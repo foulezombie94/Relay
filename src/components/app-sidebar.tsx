@@ -27,6 +27,7 @@ import {
   ArrowUpRight,
   Check,
   Plus,
+  BookOpen,
 } from "lucide-react";
 import { useWorkspace } from "./data-provider";
 import { browserDb } from "@/lib/supabase/client";
@@ -53,6 +54,7 @@ const groups = [
       ["companies", "Entreprises", Building2],
       ["people", "Personnes", Users],
       ["deals", "Opportunités", Layers],
+      ["pipelines", "Pipelines", FolderKanban],
       ["lists", "Listes", List],
       ["tasks", "Tâches", CheckSquare],
     ],
@@ -61,6 +63,7 @@ const groups = [
     label: "Contexte & intelligence",
     items: [
       ["communications", "Messages", MessageSquare],
+      ["email-templates", "Modèles email", MessageSquare],
       ["assistant", "Assistant IA", Sparkles],
       ["meetings", "Réunions", Video],
       ["notes", "Notes", MessageSquare],
@@ -232,6 +235,18 @@ export function AppSidebar() {
         </nav>
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              render={<Link href="/doc">{null}</Link>}
+              tooltip="Documentation"
+              onClick={close}
+            >
+              <BookOpen size={18} />
+              <span>Documentation</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <SidebarMenu>
           {(
             [

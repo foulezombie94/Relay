@@ -1,3 +1,5 @@
+import { PipelinesPage } from "@/components/pages/pipelines";
+import { EmailTemplatesPage } from "@/components/pages/email-templates";
 import { RecordsPage } from "@/components/pages/records";
 import { ResourcePage } from "@/components/pages/resource-page";
 import { WorkflowsPage } from "@/components/pages/workflows";
@@ -38,6 +40,10 @@ export default async function Page({
   )
     return <ResourcePage resource={section} />;
   switch (section) {
+    case "pipelines":
+      return <PipelinesPage />;
+    case "email-templates":
+      return <EmailTemplatesPage />;
     case "priorities":
       return <PrioritiesPage />;
     case "playbooks":

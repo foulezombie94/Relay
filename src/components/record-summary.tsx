@@ -11,10 +11,11 @@ import {
   Mail,
   Globe,
 } from "lucide-react";
-import { request, useWorkspace } from "./data-provider";
+import { request, useRows, useWorkspace } from "./data-provider";
 import { Badge, date, money, str } from "./ui";
 import type { RecordContext } from "./record-context";
 import type { CrmRecord } from "@/lib/domain/types";
+import { dealProbability, type Pipeline } from "@/lib/domain/pipelines";
 import styles from "./pages/records.module.css";
 
 export function RecordSummary({
@@ -32,6 +33,10 @@ export function RecordSummary({
   const object = objects.find((item) => item.id === record.object_id);
   const slug = object?.slug;
   const isDeal = slug === "deals";
+  const pipelines = useRows<Pipeline>("pipelines", { size: 100 });
+  const pipeline = pipelines.data?.data.find(
+    (p) => p.id === record.pipeline_id,
+  );
   const Icon =
     slug === "people"
       ? CircleUserRound
@@ -86,13 +91,24 @@ export function RecordSummary({
       {isDeal && (
         <div className={styles.summaryDeal}>
           <strong>{money(record.amount, record.currency || "EUR")}</strong>
-          <Badge value={record.stage} />
+          <Badge value={pipeline?.labels[record.stage] || record.stage} />
+          {pipeline && (
+            <span>
+              {pipeline.name} ·{" "}
+              {dealProbability(record, pipelines.data?.data ?? [])} %
+            </span>
+          )}
           {record.close_date && (
             <span>
               <CalendarDays size={14} /> Clôture le {date(record.close_date)}
             </span>
           )}
         </div>
+      )}
+      {isDeal && record.stage === "Perdu" && (
+        <p className="preserve-lines">
+          Raison de perte : {record.lost_reason || "Non renseignée"}
+        </p>
       )}
       <div className={styles.summaryContacts}>
         {record.email && (

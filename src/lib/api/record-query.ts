@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { ApiError } from "./context";
 import { z } from "zod";
 export const recordColumns =
-  "id,workspace_id,object_id,display_name,email,domain,stage,amount,currency,owner_id,attributes,archived,version,close_date,created_at,updated_at,merged_into";
+  "id,workspace_id,object_id,display_name,email,domain,stage,amount,currency,owner_id,attributes,archived,version,close_date,created_at,updated_at,merged_into,pipeline_id,probability,lost_reason";
 export function recordQuery(
   client: SupabaseClient,
   workspace: string,
@@ -18,6 +18,8 @@ export function recordQuery(
   if (p.get("object_id"))
     query = query.eq("object_id", z.uuid().parse(p.get("object_id")));
   if (p.get("id")) query = query.eq("id", z.uuid().parse(p.get("id")));
+  if (p.get("pipeline_id"))
+    query = query.eq("pipeline_id", z.uuid().parse(p.get("pipeline_id")));
   if (p.get("stage")) query = query.eq("stage", p.get("stage")!);
   if (p.get("owner")) {
     const owner = p.get("owner")!;

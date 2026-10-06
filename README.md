@@ -16,7 +16,10 @@ Installez Node.js 24 et les dépendances avec `npm ci`. Copiez `.env.example` ve
 - Engagements avec preuves, contradictions à examiner, portail client isolé et dossier de réalisation des ventes gagnées.
 - Simulation de workflows avec snapshot serveur, versions, expiration et confirmation avant écriture ; guides d’action à adapter.
 - Assistant IA avec contexte autorisé et propositions à approuver, nécessitant une clé OpenAI.
-- Import CSV (1 000 lignes), export et rapports par devise.
+- Import CSV / Excel avec association des colonnes, aperçu, validation, historique et écriture atomique/idempotente (5 Mo, 1 000 lignes). Export filtré.
+- Pipelines configurables, probabilités par étape et par opportunité, raisons de perte. Rapports par devise : pipeline ouvert, forecast pondéré, gagné/perdu, dates prévues et résultats mensuels issus du journal. Comparaison des hypothèses avec les taux de victoire observés, échantillons faibles signalés.
+- Recherche globale textuelle dans fiches, notes, tâches, engagements et réunions avec les droits RLS. Modèles email partagés avec variables et envoi manuel confirmé via le compte connecté.
+- Centre d’aide public `/doc` : dix guides avec recherche et limites explicites.
 - Gmail, Google Calendar, Outlook et Outlook Calendar : OAuth séparé, import manuel de 25 éléments par service, emails confirmés et calendriers en lecture. Identifiants fournisseur à configurer. Zapier : clé API révocable, lecture des fiches/tâches et création optionnelle, expiration, contrôle des permissions et idempotence.
 - Priorités expliquées, contexte chronologique et relations entre fiches.
 - Doublons : comparaison côte à côte, modification et recalcul, aperçu et confirmation ; séparation persistante ou report de sept jours. Fusion et annulation administrateur, versions serveur, transaction atomique et journal durable.
@@ -54,3 +57,11 @@ npx supabase db query --linked --project-ref duhnmyxpxizxbxlhbtzs --file supabas
 GitHub contient code, migrations et CI (TypeScript, tests, build). La publication du dépôt ne crée pas un hébergement web : configurez les variables, APP_URL et les redirections sur votre hébergeur Next.js.
 
 Les exports sont synchrones. Les workers, files de tâches volumineuses, mesures de charge et capacités Enterprise restent à développer. Un envoi manuel ambigu n’est pas automatiquement relancé. Révoquez aussi le consentement fournisseur lors de la déconnexion.
+
+## Ajouts commerciaux du 6 octobre 2026
+
+Migration `20261006113312_commercial_workflow_foundations.sql` appliquée au projet existant. L’ancien historique de migrations reste à réconcilier avant un `db push`.
+
+Contrôles ciblés : 13 tests de calcul/import/modèles/historique, 10 contrôles SQL transactionnels (RLS, notes privées, import atomique et idempotent, versions et rôles), fixtures annulées avec ROLLBACK. Aucun email de test envoyé. À la demande de l’utilisateur, les pages de cette dernière évolution ne sont pas vérifiées dans le navigateur.
+
+Les taux historiques utilisent le journal disponible, les opportunités non archivées actuellement gagnées/perdues et leurs pipeline/responsable actuels. Les montants mensuels reprennent les valeurs actuelles des fiches ; ils ne constituent pas une comptabilité. Détails : [écarts concurrentiels](docs/competitive-gap-analysis.md).

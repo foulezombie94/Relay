@@ -25,6 +25,8 @@ const names: Record<string, string> = {
   handovers: "Réalisation",
   portals: "Portails clients",
   settings: "Paramètres",
+  pipelines: "Pipelines",
+  "email-templates": "Modèles email",
   integrations: "Intégrations",
   search: "Recherche",
 };

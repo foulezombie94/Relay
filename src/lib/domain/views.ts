@@ -1,5 +1,6 @@
 import { z } from "zod";
 export const viewConfigSchema = z.object({
+  pipeline_id: z.union([z.uuid(), z.literal("")]).default(""),
   layout: z.enum(["table", "cards", "kanban"]).optional(),
   search: z.string().max(300).default(""),
   stage: z.string().max(80).default(""),
@@ -28,6 +29,7 @@ export const viewConfigSchema = z.object({
 export type ViewConfig = z.infer<typeof viewConfigSchema>;
 export function defaultView(deals = false): ViewConfig {
   return {
+    pipeline_id: "",
     search: "",
     stage: "",
     owner: "",

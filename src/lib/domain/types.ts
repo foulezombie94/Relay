@@ -42,6 +42,9 @@ export type CrmRecord = Row & {
   version: number;
   close_date: string | null;
   merged_into?: string | null;
+  pipeline_id?: string | null;
+  probability?: number | null;
+  lost_reason?: string | null;
 };
 export type Workflow = Row & {
   name: string;

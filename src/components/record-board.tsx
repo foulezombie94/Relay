@@ -13,6 +13,7 @@ export function RecordBoard({
   onOpen,
   onCreate,
   onMove,
+  stageLabels,
 }: {
   rows: CrmRecord[];
   members: Row[];
@@ -21,6 +22,7 @@ export function RecordBoard({
   onOpen: (record: CrmRecord) => void;
   onCreate: (stage: string) => void;
   onMove: (record: CrmRecord, stage: string) => Promise<void>;
+  stageLabels?: Record<string, string>;
 }) {
   const [dragging, setDragging] = useState<string | null>(null);
   const [dropStage, setDropStage] = useState<string | null>(null);
@@ -73,7 +75,7 @@ export function RecordBoard({
             }}
           >
             <div className="column-heading">
-              <Badge value={stage} />
+              <Badge value={stageLabels?.[stage] || stage} />
               <span>{deals.length}</span>
               <button
                 type="button"
@@ -147,7 +149,9 @@ export function RecordBoard({
                   }
                 >
                   {stages.map((value) => (
-                    <option key={value}>{value}</option>
+                    <option key={value} value={value}>
+                      {stageLabels?.[value] || value}
+                    </option>
                   ))}
                 </select>
               </article>

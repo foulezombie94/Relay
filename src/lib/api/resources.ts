@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { pipelineSchema } from "@/lib/domain/pipelines";
+import { emailTemplateSchema } from "@/lib/domain/email-templates";
 import { viewConfigSchema } from "@/lib/domain/views";
 const id = z.uuid(),
   optionalId = id.nullable().optional();
@@ -22,9 +24,11 @@ export const workflowDefinition = z.object({
   actions: z.array(action).min(1).max(20),
 });
 export const resources = {
+  pipelines: pipelineSchema,
+  email_templates: emailTemplateSchema,
   records: z.object({
     object_id: id,
-    display_name: text,
+    display_name: text.max(200),
     email: z
       .union([z.email(), z.literal("")])
       .nullable()
@@ -47,6 +51,9 @@ export const resources = {
       .regex(/^\d{4}-\d{2}-\d{2}$/)
       .nullable()
       .optional(),
+    pipeline_id: optionalId,
+    probability: z.number().min(0).max(100).nullable().optional(),
+    lost_reason: z.string().trim().max(2000).nullable().optional(),
     attributes: z.record(z.string().max(50), z.unknown()).optional(),
     archived: z.boolean().optional(),
   }),
@@ -228,6 +235,7 @@ export type Resource = keyof typeof resources;
 export const readResources = [
   ...Object.keys(resources),
   "memberships",
+  "import_jobs",
   "documents",
   "audit_events",
   "workflow_runs",

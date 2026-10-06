@@ -64,3 +64,9 @@ Les filtres composés AND/OR, opérations en masse et moteur de pipelines avanc�
 COMP04/COMP05 incluent maintenant les décisions par paire, le recalcul après modification, la confirmation liée aux versions et une annulation sous contrôle de cohérence. Une QA complète du CRM reste distincte.
 
 Connexions du 6 octobre : Gmail, Google Calendar, Outlook et Outlook Calendar sont séparés, avec OAuth PKCE, state à usage unique, jetons chiffrés et contrôle du renouvellement. Zapier dispose de clés API avec permissions, expiration, révocation, limites et idempotence. Les tests ciblés passent ; les consentements réels Google/Microsoft restent à effectuer après configuration des applications. Voir integrations.md.
+
+## Livraison commerciale du 6 octobre 2026
+
+Pipelines multiples (six états, labels personnalisables), probabilités configurables et surcharge par opportunité, raisons de perte, forecast ouvert et résultats gagnés/perdus séparés par devise sont implémentés. L’historique permet des résultats mensuels et une comparaison indicative des hypothèses avec les taux observés, sans déduire les étapes manquantes ni modifier les probabilités automatiquement.
+
+Imports CSV/XLSX avec mapping, aperçu, validation, reprise atomique/idempotente et historique ; recherche globale textuelle sous RLS ; modèles email partagés et composer manuel ; centre d’aide `/doc` avec dix guides. Les aspects sémantiques de COL04, dashboards/funnels avancés de REPORT02 et séquences automatiques restent distincts. Voir [écarts et limites](competitive-gap-analysis.md).

@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
-import { useWorkspace, useRows, request } from "../data-provider";
+import { useSearchParams } from "next/navigation";
+import { TemplateComposer } from "../template-composer";
+import { useWorkspace, useRows } from "../data-provider";
 import {
   PageHeader,
-  Editor,
   Empty,
   Badge,
   str,
@@ -13,11 +14,12 @@ import {
 } from "../ui";
 export function CommunicationsPage() {
   const { workspace } = useWorkspace();
+  const template = useSearchParams().get("template") ?? "";
   const q = useRows("communications", { size: 100 });
   const connections = useRows("integrations", { size: 100 });
   const [compose, setCompose] = useState(false);
   const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
+
   const mail = (connections.data?.data ?? []).filter(
     (c) =>
       c.status === "connected" &&
@@ -75,43 +77,13 @@ export function CommunicationsPage() {
         </div>
       )}
       {compose && (
-        <Editor
-          open
+        <TemplateComposer
+          accounts={mail}
+          initialTemplate={template}
           onClose={() => setCompose(false)}
-          title="Envoyer un email"
-          busy={busy}
-          fields={[
-            {
-              key: "provider",
-              label: "Compte expéditeur",
-              type: "select",
-              required: true,
-              options: mail.map((c) => ({
-                value: str(c.provider),
-                label:
-                  (c.provider === "gmail" ? "Gmail" : "Outlook") +
-                  " · " +
-                  str(c.email),
-              })),
-            },
-            { key: "to", label: "Destinataire", type: "email", required: true },
-            { key: "subject", label: "Objet", required: true },
-            { key: "body", label: "Message", type: "textarea", required: true },
-          ]}
-          onSave={async (v) => {
-            if (
-              !window.confirm(
-                "Envoyer réellement cet email au destinataire indiqué ?",
-              )
-            )
-              throw new Error("Envoi annulé.");
-            setBusy(true);
-            try {
-              await request("/api/" + workspace.id + "/send", "POST", v);
-              setMessage("Email transmis au fournisseur.");
-            } finally {
-              setBusy(false);
-            }
+          onSent={() => {
+            setMessage("Email transmis au fournisseur.");
+            void q.refetch();
           }}
         />
       )}

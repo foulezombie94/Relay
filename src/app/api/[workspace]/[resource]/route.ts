@@ -78,7 +78,11 @@ export async function POST(request: NextRequest, { params }: Params) {
     const { workspace, resource } = await params;
     if (!isResource(resource)) throw new ApiError("Ressource inconnue.", 404);
     const { client, role } = await context(workspace, true);
-    if (["objects", "attributes", "portal_members"].includes(resource))
+    if (
+      ["objects", "attributes", "portal_members", "pipelines"].includes(
+        resource,
+      )
+    )
       requireAdmin(role);
     const result = resources[resource].safeParse(await request.json());
     if (!result.success)
@@ -88,6 +92,8 @@ export async function POST(request: NextRequest, { params }: Params) {
       workspace_id: workspace,
     };
     if (resource === "records") {
+      if (values.stage === "Perdu" && !String(values.lost_reason ?? "").trim())
+        throw new ApiError("Précisez la raison de perte.");
       const { data: attrs, error } = await client
         .from("attributes")
         .select("*")
@@ -136,7 +142,11 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const { workspace, resource } = await params;
     if (!isResource(resource)) throw new ApiError("Ressource inconnue.", 404);
     const { client, role } = await context(workspace, true);
-    if (["objects", "attributes", "portal_members"].includes(resource))
+    if (
+      ["objects", "attributes", "portal_members", "pipelines"].includes(
+        resource,
+      )
+    )
       requireAdmin(role);
     const body = await request.json();
     const rowId = z.uuid().parse(body.id);
@@ -156,10 +166,28 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       if (immutable in values)
         throw new ApiError("Cette relation ne peut pas être déplacée.");
     if (
-      ["records", "notes", "handovers", "workflows"].includes(resource) &&
+      [
+        "records",
+        "notes",
+        "handovers",
+        "workflows",
+        "pipelines",
+        "email_templates",
+      ].includes(resource) &&
       !Number.isInteger(body.version)
     )
       throw new ApiError("Version de la fiche requise.");
+    if (resource === "records" && values.stage === "Perdu") {
+      const { data: current, error: readError } = await client
+        .from("records")
+        .select("lost_reason")
+        .eq("workspace_id", workspace)
+        .eq("id", rowId)
+        .single();
+      databaseError(readError);
+      if (!String(values.lost_reason ?? current?.lost_reason ?? "").trim())
+        throw new ApiError("Précisez la raison de perte.");
+    }
     if (resource === "records" && values.attributes) {
       const { data: record } = await client
         .from("records")
@@ -216,7 +244,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     const { workspace, resource } = await params;
     if (!isResource(resource) || ["objects", "attributes"].includes(resource))
       throw new ApiError("Archivez cet élément plutôt que le supprimer.");
-    const { client } = await context(workspace, true);
+    const { client, role } = await context(workspace, true);
+    if (resource === "pipelines") requireAdmin(role);
     const id = z.uuid().parse(request.nextUrl.searchParams.get("id"));
     if (resource === "records") {
       const { data, error } = await client

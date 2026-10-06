@@ -443,6 +443,7 @@ export default function Home() {
         </section>
       </main>
       <footer className={styles.footer}>
+        <Link href="/doc">Documentation</Link>
         <Link href="/" aria-label="Relay, accueil">
           <Logo />
         </Link>

@@ -22,6 +22,8 @@ import {
 import { RecordDetails } from "./record-details";
 import { RecordBoard } from "../record-board";
 import { RecordDirectory } from "../record-directory";
+import { ImportRecords } from "../record-import";
+import { type Pipeline } from "@/lib/domain/pipelines";
 import type { CrmRecord, Attribute } from "@/lib/domain/types";
 import { stages } from "@/lib/domain/types";
 import { Building2, Users, Layers3 } from "lucide-react";
@@ -32,15 +34,20 @@ export function RecordsPage({ slug }: { slug: string }) {
   const router = useRouter();
   const url = useSearchParams();
   const linkedId = url.get("record");
+  const pipelineFromUrl = url.get("pipeline") ?? "";
+  const pipelines = useRows<Pipeline>("pipelines", { size: 100 });
   const [page, setPage] = useState(1);
   const [view, setView] = useState<ViewConfig>(() => defaultRecordView(slug));
   useEffect(() => {
-    setView(defaultRecordView(slug));
+    setView({
+      ...defaultRecordView(slug),
+      pipeline_id: slug === "deals" ? pipelineFromUrl : "",
+    });
     setPage(1);
     setMode(
       slug === "deals" ? "kanban" : slug === "companies" ? "cards" : "table",
     );
-  }, [slug, workspace.id]);
+  }, [slug, workspace.id, pipelineFromUrl]);
   const pageContent = {
     companies: {
       description:
@@ -125,9 +132,11 @@ export function RecordsPage({ slug }: { slug: string }) {
     }
   }, [linked.data, object, router]);
   const [importing, setImporting] = useState(false);
+  const [lost, setLost] = useState<CrmRecord | null>(null);
   const [error, setError] = useState("");
   const q = useRows<CrmRecord>("records", {
     object_id: object?.id,
+    pipeline_id: slug === "deals" ? view.pipeline_id || undefined : undefined,
     q: search || undefined,
     stage: view.stage || undefined,
     owner: view.owner || undefined,
@@ -165,7 +174,32 @@ export function RecordsPage({ slug }: { slug: string }) {
         type: "select",
         options: stages.map((s) => ({ value: s, label: s })),
       },
+      {
+        key: "pipeline_id",
+        label: "Pipeline",
+        type: "select",
+        required: true,
+        options: (pipelines.data?.data ?? []).map((p) => ({
+          value: p.id,
+          label: p.name,
+        })),
+      },
       { key: "amount", label: "Montant", type: "number" },
+      {
+        key: "use_stage_probability",
+        label: "Utiliser la probabilité de cette étape",
+        type: "checkbox",
+      },
+      {
+        key: "probability",
+        label: "Probabilité spécifique (%) · sinon étape",
+        type: "number",
+      },
+      {
+        key: "lost_reason",
+        label: "Raison de perte · obligatoire si Perdu",
+        type: "textarea",
+      },
       { key: "currency", label: "Devise", required: true },
       { key: "close_date", label: "Date de clôture", type: "date" },
     );
@@ -204,6 +238,7 @@ export function RecordsPage({ slug }: { slug: string }) {
     sort: view.sort,
     direction: view.direction,
     columns: view.columns.join(","),
+    pipeline_id: slug === "deals" ? view.pipeline_id : "",
   });
   return (
     <>
@@ -305,44 +340,42 @@ export function RecordsPage({ slug }: { slug: string }) {
         >
           Exporter CSV
         </a>
-        <label className="button small">
-          {importing ? "Import…" : "Importer CSV"}
-          <input
-            type="file"
-            accept=".csv"
-            className="sr-only"
-            disabled={importing || workspace.role === "viewer"}
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              setImporting(true);
-              setError("");
-              try {
-                const form = new FormData();
-                form.set("file", file);
-                form.set("object_id", object.id);
-                const response = await fetch(
-                  "/api/" + workspace.id + "/imports",
-                  { method: "POST", body: form },
-                );
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error);
-                setError(
-                  data.inserted +
-                    " fiches importées. " +
-                    data.errors.length +
-                    " lignes ignorées.",
-                );
-                await q.refetch();
-              } catch (e) {
-                setError(e instanceof Error ? e.message : "Import impossible");
-              } finally {
-                setImporting(false);
-              }
-            }}
-          />
-        </label>
+        <button
+          className="button small"
+          disabled={workspace.role === "viewer"}
+          onClick={() => setImporting(true)}
+        >
+          Importer CSV / Excel
+        </button>
       </div>
+      {slug === "deals" && (
+        <div className="toolbar">
+          <label>
+            Pipeline
+            <select
+              aria-label="Pipeline affiché"
+              value={view.pipeline_id}
+              onChange={(e) => {
+                setView((current) => ({
+                  ...current,
+                  pipeline_id: e.target.value,
+                }));
+                setPage(1);
+              }}
+            >
+              <option value="">Tous les pipelines</option>
+              {pipelines.data?.data.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <a className="button small" href="/app/pipelines">
+            Configurer les pipelines
+          </a>
+        </div>
+      )}
       <RecordViews
         key={object.id}
         object={object}
@@ -409,7 +442,14 @@ export function RecordsPage({ slug }: { slug: string }) {
             setNewStage(stage);
             setEdit(true);
           }}
+          stageLabels={
+            pipelines.data?.data.find((p) => p.id === view.pipeline_id)?.labels
+          }
           onMove={async (record, stage) => {
+            if (stage === "Perdu" && !record.lost_reason?.trim()) {
+              setLost(record);
+              return;
+            }
             setError("");
             try {
               await save("records", { stage }, record);
@@ -526,9 +566,15 @@ export function RecordsPage({ slug }: { slug: string }) {
           fields={fields}
           initial={
             edit === true
-              ? { currency: workspace.currency, stage: newStage }
+              ? {
+                  currency: workspace.currency,
+                  stage: newStage,
+                  pipeline_id: view.pipeline_id || pipelines.data?.data[0]?.id,
+                  use_stage_probability: true,
+                }
               : {
                   ...edit,
+                  use_stage_probability: edit.probability == null,
                   ...Object.fromEntries(
                     custom.map((a) => [
                       "attr_" + a.key,
@@ -545,6 +591,12 @@ export function RecordsPage({ slug }: { slug: string }) {
             !!members.error
           }
           onSave={async (values) => {
+            if (slug === "deals") {
+              values.probability = values.use_stage_probability
+                ? null
+                : values.probability;
+              delete values.use_stage_probability;
+            }
             const attributes: Record<string, unknown> = {
               ...(edit === true ? {} : edit.attributes),
             };
@@ -566,6 +618,42 @@ export function RecordsPage({ slug }: { slug: string }) {
               },
               edit === true ? undefined : edit,
             );
+          }}
+        />
+      )}
+      {importing && (
+        <ImportRecords
+          object={object}
+          attributes={custom}
+          pipelineId={
+            slug === "deals"
+              ? view.pipeline_id || pipelines.data?.data[0]?.id
+              : undefined
+          }
+          onClose={() => setImporting(false)}
+        />
+      )}
+      {lost && (
+        <Editor
+          open
+          onClose={() => setLost(null)}
+          title="Pourquoi cette opportunité est-elle perdue ?"
+          fields={[
+            {
+              key: "lost_reason",
+              label: "Raison de perte",
+              type: "textarea",
+              required: true,
+            },
+          ]}
+          busy={busy}
+          onSave={async (values) => {
+            await save(
+              "records",
+              { stage: "Perdu", lost_reason: values.lost_reason },
+              lost,
+            );
+            setLost(null);
           }}
         />
       )}
