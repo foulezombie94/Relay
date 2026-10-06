@@ -17,7 +17,8 @@ export async function POST(
     const { workspace, provider: p } = await params;
     const { user, client } = await context(workspace, true);
     const name = provider(p);
-    const c = config(name, req.nextUrl.origin);
+    // Next may canonicalize the request URL to localhost; preserve the validated browser origin for OAuth cookies.
+    const c = config(name, req.headers.get('origin') || req.nextUrl.origin);
     const s = state();
     const { error } = await client.rpc("integration_oauth_begin", {
       w: workspace,
