@@ -10,6 +10,7 @@ import {
   type Service,
 } from "./services";
 import { seal, unseal } from "./crypto";
+import { providerFailure } from "./provider-errors";
 export { seal, unseal, state, digest } from "./crypto";
 export type Provider = Service;
 export function provider(value: string): Service {
@@ -243,15 +244,21 @@ export async function externalJson(
       502,
     );
   }
-  if (!response.ok)
-    throw new ApiError(
-      response.status === 401 || response.status === 403
-        ? "Le fournisseur a refusé l’accès. Reconnectez le service et vérifiez les permissions."
-        : response.status === 429
-          ? "Limite du fournisseur atteinte. Réessayez plus tard."
-          : "Le fournisseur a refusé l’opération.",
-      response.status === 429 ? 429 : 502,
-    );
+  if (!response.ok) {
+    // Only known error codes influence the message; never expose provider payloads or tokens.
+    const payload: unknown = await response.json().catch(() => null);
+    const apiName =
+      parsed.hostname === "gmail.googleapis.com"
+        ? "Gmail"
+        : parsed.hostname === "www.googleapis.com" &&
+            parsed.pathname.startsWith("/calendar/")
+          ? "Google Calendar"
+          : parsed.hostname === "graph.microsoft.com"
+            ? "Microsoft Graph"
+            : "Google";
+    const failure = providerFailure(response.status, payload, apiName);
+    throw new ApiError(failure.message, failure.status);
+  }
   if (response.status === 202 || response.status === 204) return {};
   return response.json();
 }
