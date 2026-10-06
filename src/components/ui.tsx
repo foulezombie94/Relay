@@ -3,6 +3,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X, Plus, Inbox, LoaderCircle, Search } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { statusLabels } from "@/lib/domain/types";
+import { DatePicker } from "./ui/date-picker";
 export function Modal({
   open,
   onClose,
@@ -270,6 +271,13 @@ export function Editor({
           try {
             for (const f of fields) {
               const v = String(form.get(f.key) ?? "");
+              if (
+                f.required &&
+                ["date", "datetime-local"].includes(f.type ?? "") &&
+                !v
+              ) {
+                throw new Error(`Choisissez une date pour « ${f.label} ».`);
+              }
               if (f.type === "checkbox") values[f.key] = form.has(f.key);
               else if (f.type === "json") values[f.key] = JSON.parse(v || "[]");
               else if (f.type === "number")
@@ -329,16 +337,24 @@ export function Editor({
                   required={f.required}
                   placeholder={f.placeholder}
                 />
-              ) : (
-                <input
+              ) : f.type === "date" || f.type === "datetime-local" ? (
+                <DatePicker
                   name={f.key}
-                  type={f.type ?? "text"}
-                  step={f.type === "number" ? "0.01" : undefined}
+                  label={f.label}
+                  withTime={f.type === "datetime-local"}
+                  required={f.required}
                   defaultValue={
                     f.type === "datetime-local" && initial[f.key]
                       ? localDateTime(initial[f.key])
                       : str(initial[f.key])
                   }
+                />
+              ) : (
+                <input
+                  name={f.key}
+                  type={f.type ?? "text"}
+                  step={f.type === "number" ? "0.01" : undefined}
+                  defaultValue={str(initial[f.key])}
                   required={f.required}
                   placeholder={f.placeholder}
                 />

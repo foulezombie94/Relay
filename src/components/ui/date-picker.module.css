@@ -1,0 +1,343 @@
+.trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 41px;
+  text-align: left;
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: white;
+  color: #293242;
+  font-size: 12px;
+  margin-top: 7px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.trigger > svg {
+  color: #8292ac;
+  flex-shrink: 0;
+}
+.trigger > svg:last-child {
+  margin-left: auto;
+}
+.trigger:hover {
+  border-color: #a9bbe6;
+  background: #fcfdff;
+}
+.trigger[data-state="open"] {
+  border-color: #4169e1;
+  box-shadow: 0 0 0 3px #4169e112;
+}
+.trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.empty {
+  color: #8693a7;
+}
+.content {
+  width: 324px;
+  max-width: calc(100vw - 28px);
+  padding: 18px;
+  background: white;
+  border: 1px solid #e3e8f1;
+  border-radius: 15px;
+  box-shadow: 0 12px 45px #21355924;
+  z-index: 130;
+  outline: none;
+  animation: appear 0.15s ease-out;
+  transform-origin: var(--radix-popover-content-transform-origin);
+  font-family: "DM Sans", Arial, sans-serif;
+  color: #293242;
+}
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 17px;
+}
+.eyebrow {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 1.3px;
+  color: #8a96aa;
+}
+.heading h3 {
+  font:
+    700 15px "Manrope",
+    Arial,
+    sans-serif;
+  letter-spacing: -0.3px;
+  margin: 5px 0 0;
+}
+.close {
+  border: 0;
+  width: 27px;
+  height: 27px;
+  background: #f5f7fb;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: #8292ac;
+}
+.close:hover {
+  background: #eaf0ff;
+  color: #4169e1;
+}
+.shortcuts {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 17px;
+}
+.shortcuts button {
+  flex: 1;
+  border: 1px solid #e4eaf5;
+  border-radius: 6px;
+  padding: 7px 4px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #6c80a5;
+  background: #f8faff;
+}
+.shortcuts button:hover {
+  background: #edf2ff;
+  border-color: #c8d5f3;
+  color: #4169e1;
+}
+.calendar {
+  --rdp-accent-color: #4169e1;
+  --rdp-accent-background-color: #edf2ff;
+  --rdp-day-height: 39px;
+  --rdp-day-width: 40px;
+  --rdp-day_button-width: 35px;
+  --rdp-day_button-height: 35px;
+  --rdp-day_button-border-radius: 8px;
+  --rdp-selected-border: 1px solid #4169e1;
+  --rdp-outside-opacity: 0.35;
+  --rdp-nav_button-height: 29px;
+  --rdp-nav_button-width: 29px;
+  --rdp-nav-height: 37px;
+  font-size: 12px;
+}
+.calendar :global(.rdp-months) {
+  width: 100%;
+}
+.calendar :global(.rdp-month) {
+  width: 100%;
+}
+.calendar :global(.rdp-month_grid) {
+  width: 100%;
+  border-collapse: collapse;
+}
+.calendar :global(.rdp-month_caption) {
+  font:
+    600 13px "Manrope",
+    sans-serif;
+  margin-bottom: 10px;
+  text-transform: capitalize;
+}
+.calendar :global(.rdp-nav) {
+  gap: 6px;
+}
+.calendar :global(.rdp-button_previous),
+.calendar :global(.rdp-button_next) {
+  border: 1px solid #e5eaf3;
+  border-radius: 7px;
+  background: white;
+  color: #7488ab;
+}
+.calendar :global(.rdp-button_previous:hover),
+.calendar :global(.rdp-button_next:hover) {
+  background: #edf2ff;
+  color: #4169e1;
+}
+.calendar :global(.rdp-weekday) {
+  font-size: 9px;
+  font-weight: 500;
+  color: #8a96aa;
+  text-transform: capitalize;
+  opacity: 1;
+  padding-bottom: 9px;
+}
+.calendar :global(.rdp-day) {
+  padding: 1px 0;
+  text-align: center;
+}
+.calendar :global(.rdp-day_button) {
+  font-size: 11px;
+  margin: auto;
+  transition: background 0.12s;
+  color: #526078;
+  font-weight: 500;
+}
+.calendar :global(.rdp-day_button:hover) {
+  background: #edf2ff;
+  color: #4169e1;
+}
+.calendar :global(.rdp-selected .rdp-day_button) {
+  background: #4169e1;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 6px #4169e125;
+}
+.calendar :global(.rdp-today:not(.rdp-selected) .rdp-day_button) {
+  background: #f0f4ff;
+  color: #4169e1;
+  border: 1px solid #d2def8;
+  font-weight: 600;
+}
+.timeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  border-top: 1px solid #edf0f6;
+  padding-top: 16px;
+  font-size: 11px;
+}
+.timeRow > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #7889a3;
+}
+.timeRow > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.timeRow small {
+  font-size: 10px;
+  color: #8a96aa;
+}
+.timeTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 61px;
+  border: 1px solid #dfe6f1;
+  border-radius: 7px;
+  background: #f9fbff;
+  padding: 8px;
+  font-size: 11px;
+  color: #526078;
+  font-variant-numeric: tabular-nums;
+}
+.timeTrigger:hover {
+  border-color: #b5c6ea;
+}
+.timeMenu {
+  z-index: 150;
+  min-width: 70px;
+  max-height: 220px;
+  border: 1px solid #e1e7f2;
+  border-radius: 9px;
+  background: white;
+  padding: 5px;
+  box-shadow: 0 8px 30px #21355920;
+  overflow: hidden;
+}
+.timeMenu :global([data-radix-select-viewport]) {
+  max-height: 190px;
+}
+.timeItem {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 7px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  color: #526078;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.timeItem[data-highlighted] {
+  background: #edf2ff;
+  color: #4169e1;
+}
+.timeItem[data-state="checked"] {
+  color: #4169e1;
+  font-weight: 600;
+}
+.scrollButton {
+  display: grid;
+  place-items: center;
+  color: #8a96aa;
+  padding: 4px;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #edf0f6;
+  padding-top: 13px;
+  margin-top: 15px;
+}
+.footer > span {
+  font-size: 10px;
+  color: #8795aa;
+}
+.clear {
+  border: 0;
+  background: none;
+  font-size: 10px;
+  padding: 5px 0;
+  color: #7a8ba7;
+}
+.clear:hover {
+  color: #4169e1;
+}
+.apply {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 7px;
+  padding: 8px 12px;
+  background: #4169e1;
+  color: white;
+  font-size: 11px;
+  font-weight: 500;
+}
+.apply:hover {
+  background: #355bc9;
+}
+.content button:focus-visible,
+.trigger:focus-visible,
+.timeTrigger:focus-visible {
+  outline: 2px solid #4169e1;
+  outline-offset: 2px;
+}
+.content button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    animation: none;
+  }
+  .trigger,
+  .calendar :global(.rdp-day_button) {
+    transition: none;
+  }
+}
