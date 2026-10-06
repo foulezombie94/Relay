@@ -5,6 +5,7 @@ import { useRows, useWorkspace } from "./data-provider";
 import { Modal, ErrorMessage, Loading, str, date } from "./ui";
 import { importFields, type ImportError } from "@/lib/domain/imports";
 import type { Attribute, ObjectDefinition } from "@/lib/domain/types";
+import { BackgroundJob } from "./background-job";
 type Inspection = {
   headers: string[];
   mapping: Record<string, string>;
@@ -56,6 +57,7 @@ export function ImportRecords({
   const [policy, setPolicy] = useState("skip");
   const [preview, setPreview] = useState<Preview | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+  const [jobId,setJobId]=useState<string|null>(null);
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -112,7 +114,8 @@ export function ImportRecords({
         setPreview(data);
         setAccepted(false);
       } else {
-        setResult(data);
+        if(data.queued) setJobId(data.job.id);
+        else setResult(data);
         await cache.invalidateQueries({ queryKey: ["rows", workspace.id] });
       }
     } catch (e) {
@@ -145,7 +148,8 @@ export function ImportRecords({
         feuille ; remplacez les formules par leurs valeurs.
       </p>
       <ErrorMessage error={error ? new Error(error) : null} />
-      {result ? (
+      {jobId && !result ? <BackgroundJob id={jobId} onComplete={(data)=>setResult(data as Result)} /> : null}
+      {jobId && !result ? <button className="button" onClick={onClose}>Fermer</button> : result ? (
         <div className="alert info">
           <strong>
             {result.replayed

@@ -10,6 +10,8 @@ import { adminDb } from "@/lib/supabase/admin";
 import { simulate } from "@/lib/domain/workflows";
 import { z } from "zod";
 import type { CrmRecord, Workflow } from "@/lib/domain/types";
+import { enqueueJob, workerReady } from "@/lib/jobs/client";
+import { backgroundJobsEnabled } from "@/lib/jobs/flags";
 type P = { params: Promise<{ workspace: string }> };
 export async function POST(request: NextRequest, { params }: P) {
   try {
@@ -119,6 +121,11 @@ export async function PATCH(request: NextRequest, { params }: P) {
       .eq("id", preview_id)
       .single();
     if (!run) throw new ApiError("Aperçu inaccessible.", 403);
+    if (backgroundJobsEnabled()) {
+      if (!(await workerReady(adminDb(),"workflow_run"))) throw new ApiError("Le service d’automatisation est temporairement indisponible. Réessayez dans quelques instants.",503);
+      const job=await enqueueJob(client,workspace,"workflow_run",{preview_id});
+      return NextResponse.json({queued:true,job},{status:202});
+    }
     const { data, error } = await client.rpc("execute_preview", {
       preview: preview_id,
     });

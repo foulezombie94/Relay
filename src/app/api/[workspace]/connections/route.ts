@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { context, databaseError, fail } from "@/lib/api/context";
+import { adminDb } from "@/lib/supabase/admin";
+import { workerReady } from "@/lib/jobs/client";
+import { backgroundJobsEnabled } from "@/lib/jobs/flags";
 import {
   services,
   hasRequiredScopes,
@@ -29,6 +32,9 @@ export async function GET(
         return { provider: row.provider, ...data };
       }),
     );
+    const ready = backgroundJobsEnabled()
+      ? await Promise.all([workerReady(adminDb(),"email_sync"),workerReady(adminDb(),"calendar_sync")])
+      : [false,false];
     const data = Object.entries(services).map(([provider, s]) => {
       const row = connections?.find((c) => c.provider === provider);
       const missing = [
@@ -46,7 +52,7 @@ export async function GET(
       ].filter(Boolean);
       return {
         ...states.find((state) => state.provider === provider),
-        worker_ready: !!process.env.JOBS_SECRET,
+        worker_ready: ready[s.kind==="email"?0:1],
         provider,
         name: s.name,
         configured: missing.length === 0,

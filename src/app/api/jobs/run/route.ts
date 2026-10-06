@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { processSequence } from "@/lib/integrations/sequence-worker";
 import { timingSafeEqual } from "node:crypto";
 import { adminDb } from "@/lib/supabase/admin";
-import { synchronize } from "@/lib/integrations/sync";
-import { workerClient } from "@/lib/integrations/worker-client";
-import { provider } from "@/lib/integrations/oauth";
-import { databaseError, fail } from "@/lib/api/context";
-export const maxDuration = 120;
+import { queueOperation } from "@/lib/jobs/client";
+import { enabledJobTypes } from "@/lib/jobs/flags";
+import { fail } from "@/lib/api/context";
+export const maxDuration = 30;
 export async function POST(req: NextRequest) {
   const expected = process.env.JOBS_SECRET;
   const provided =
@@ -18,33 +16,10 @@ export async function POST(req: NextRequest) {
   )
     return NextResponse.json({ error: "Accès refusé." }, { status: 401 });
   try {
-    const admin = adminDb();
-    const { data, error } = await admin.rpc("connector_jobs");
-    databaseError(error);
-    let completed = 0,
-      failed = 0;
-    const started = Date.now();
-    for (const job of data ?? []) {
-      if (Date.now() - started > 80000) break;
-      try {
-        await synchronize(
-          workerClient(admin, job.workspace_id, job.user_id, job.provider),
-          job.workspace_id,
-          job.user_id,
-          provider(job.provider),
-        );
-        completed++;
-      } catch {
-        failed++;
-      }
-    }
-    let followed = 0;
-    for (let n = 0; n < 3 && Date.now() - started < 90000; n++) {
-      if (!(await processSequence(admin))) break;
-      followed++;
-    }
+    // Enqueue only: Railway executes jobs outside the HTTP lifecycle.
+    await queueOperation(adminDb(),"schedule",{types:enabledJobTypes()});
     return NextResponse.json(
-      { completed, failed, followed },
+      { scheduled: true },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {

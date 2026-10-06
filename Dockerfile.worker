@@ -1,0 +1,10 @@
+FROM node:24-bookworm-slim
+ENV NODE_ENV=production
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+COPY tsconfig.json ./
+COPY scripts/worker.mts scripts/worker.mts
+COPY src/lib ./src/lib
+USER node
+CMD ["npm", "run", "worker"]

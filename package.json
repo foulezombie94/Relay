@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "worker": "node scripts/worker.mjs",
+    "worker": "node --conditions=react-server --import tsx scripts/worker.mts",
+    "test:jobs": "vitest run src/lib/jobs/types.test.ts src/lib/jobs/runner.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false",
+    "test:queue": "node --env-file=.env.local --conditions=react-server --import tsx scripts/tests/job-queue.mts",
     "dev": "next dev --webpack --hostname 127.0.0.1 --port 3000",
     "build": "next build --webpack",
     "start": "next start --hostname 127.0.0.1 --port 3000",
@@ -19,6 +21,8 @@
     "@radix-ui/react-select": "2.3.7",
     "@radix-ui/react-tabs": "1.1.21",
     "@radix-ui/react-tooltip": "1.2.16",
+    "@sentry/nextjs": "11.4.0",
+    "@sentry/node": "11.4.0",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.2",
     "@tanstack/react-query": "5.104.1",
@@ -35,6 +39,7 @@
     "recharts": "3.10.1",
     "server-only": "0.0.1",
     "sonner": "2.0.8",
+    "tsx": "4.23.15",
     "zod": "4.6.5"
   },
   "devDependencies": {
@@ -49,7 +54,6 @@
     "eslint-config-next": "16.3.8",
     "pg": "8.23.1",
     "supabase": "2.119.0",
-    "tsx": "4.23.15",
     "typescript": "6.0.3",
     "vitest": "5.0.3"
   }

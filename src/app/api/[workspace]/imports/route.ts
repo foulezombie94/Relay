@@ -11,6 +11,10 @@ import { readImportFile } from "@/lib/api/import-file";
 import { automaticMapping, prepareImport } from "@/lib/domain/imports";
 import type { Attribute } from "@/lib/domain/types";
 import { z } from "zod";
+import { enqueueJob, workerReady } from "@/lib/jobs/client";
+import { backgroundJobsEnabled } from "@/lib/jobs/flags";
+import { adminDb } from "@/lib/supabase/admin";
+export const maxDuration = 30;
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ workspace: string }> },
@@ -124,6 +128,14 @@ export async function POST(
       .update(Buffer.from(await file.arrayBuffer()))
       .update(canonical)
       .digest("hex");
+    if (backgroundJobsEnabled()) {
+      if (!(await workerReady(adminDb(),"imports"))) throw new ApiError("Le service d’import est temporairement indisponible. Réessayez dans quelques instants.",503);
+      const job = await enqueueJob(client,workspace,"imports",{
+        object_id:objectId,rows_data:prepared.valid,digest,filename:file.name.slice(0,255),
+        mapping,duplicate_policy:duplicatePolicy,error_rows:prepared.errors,
+      });
+      return NextResponse.json({queued:true,job},{status:202});
+    }
     const { data, error } = await client.rpc("import_crm_records", {
       w: workspace,
       obj: objectId,

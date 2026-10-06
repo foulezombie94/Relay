@@ -11,12 +11,21 @@ import {
   nextSequenceDate,
 } from "@/lib/domain/sequences";
 import { ApiError, databaseError } from "@/lib/api/context";
-export async function processSequence(admin: SupabaseClient) {
+import { PermanentJobError, type JobResult } from "@/lib/jobs/types";
+export async function processSequence(admin: SupabaseClient, enrollmentId: string): Promise<JobResult> {
   const { data: job, error } = await admin.rpc("sequence_job", {
     operation: "claim",
+    payload: { enrollment_id: enrollmentId },
   });
   databaseError(error);
-  if (!job) return false;
+  if (!job) {
+    const { data: enrollment, error: readError } = await admin.from("enrollments").select("status,next_at").eq("id",enrollmentId).maybeSingle();
+    databaseError(readError);
+    if (enrollment && ["active","paused"].includes(enrollment.status)) {
+      return { runAt: new Date(Math.max(Date.now()+60000,Date.parse(enrollment.next_at ?? "") || 0)).toISOString() };
+    }
+    return { result: { skipped: true } };
+  }
   const lease = { delivery_id: job.delivery_id, lease: job.lease };
   let attempted = false;
   try {
@@ -31,7 +40,7 @@ export async function processSequence(admin: SupabaseClient) {
         payload: { ...lease, next_at: eligible.toISOString() },
       });
       databaseError(r.error);
-      return true;
+      return { runAt: eligible.toISOString() };
     }
     const origin = new URL(process.env.APP_URL ?? "");
     if (origin.protocol !== "https:")
@@ -83,7 +92,7 @@ export async function processSequence(admin: SupabaseClient) {
         payload: lease,
       });
       databaseError(r.error);
-      return true;
+      return { result: { replied: true } };
     }
     const message = sequenceMessage(step, job.record);
     const token = unseal<{ token: string }>(job.unsubscribe_cipher).token;
@@ -97,7 +106,7 @@ export async function processSequence(admin: SupabaseClient) {
       payload: lease,
     });
     databaseError(prepared.error);
-    if (!prepared.data?.ok) return true;
+    if (!prepared.data?.ok) return { runAt: new Date(Date.now()+60000).toISOString() };
     attempted = true;
     const providerId = await deliver(
       job.provider,
@@ -117,17 +126,20 @@ export async function processSequence(admin: SupabaseClient) {
       },
     });
     databaseError(complete.error);
-    return true;
+    return { result: { sent: true } };
   } catch (error) {
     const message = attempted
       ? "Envoi incertain : vérifiez la boîte d’envoi. Ce message ne sera pas renvoyé automatiquement."
       : error instanceof ApiError
         ? error.message
         : "Le suivi a été arrêté avant l’envoi. Vérifiez le contenu, le fuseau horaire et le compte connecté.";
-    await admin.rpc("sequence_job", {
-      operation: "fail",
+    const retry = !attempted && (!(error instanceof ApiError) || error.status >= 500 || error.status===409);
+    const failed = await admin.rpc("sequence_job", {
+      operation: retry ? "retry" : "fail",
       payload: { ...lease, error: message },
     });
-    return true;
+    databaseError(failed.error);
+    if (retry) throw error;
+    throw new PermanentJobError(attempted ? "delivery_uncertain" : "sequence_invalid");
   }
 }

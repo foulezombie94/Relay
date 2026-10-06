@@ -7,13 +7,13 @@
 - Optimistic version checks for tasks, commitments, conflicts and sequences. Task completion timestamp stored separately from the due date.
 - Private assignment notifications and due reminders. Supabase Cron generates reminders every five minutes; UI polls every minute.
 - Durable connector pages, atomic upsert/checkpoint commits, exclusive leases, retries after failure. Email first import: past 30 days; subsequent imports: received timestamps with five-minute overlap. Calendars: primary calendar, upcoming 30 days, refreshed snapshots with deletion reconciliation on cycle completion.
-- Opt-in automatic connector imports. Worker polls /api/jobs/run every minute; completed cycles are due after five minutes.
+- Opt-in automatic connector imports. The standalone worker consumes Postgres jobs directly; completed cycles are due after five minutes.
 - Sequence delivery engine: confirmed enrollment, immutable step/address snapshot, timezone/business-hour scheduling, pause/resume, fresh reply check, suppressions, token-backed unsubscribe, exclusive attempt per step, and no blind retry after an uncertain send.
 
 ## Deployment
-Keep JOBS_SECRET server-side, randomly generated (32 bytes or more). Run `npm run worker` alongside the Next server on a durable host, or schedule authenticated POST requests to /api/jobs/run at least every minute. Include `Authorization: Bearer <JOBS_SECRET>`. Do not expose the secret through NEXT_PUBLIC variables or commit it.
+Run `npm run worker` on Railway or another durable host. It uses Supabase directly. `/api/jobs/run` is an optional authenticated enqueue trigger only. See [deployment](deployment.md) for flags, health, metrics, retry policy and telemetry privacy.
 
-The local worker operates only while this computer and the local server are running. For public use, set APP_URL to the deployed HTTPS origin and register matching OAuth callbacks. Sequence enrollment deliberately refuses a loopback/http origin: recipients need a usable unsubscribe link. Existing disconnected integrations do not auto-enable synchronization; reconnecting or changing the connected email resets cursor and automatic mode.
+The local worker operates while this computer is running. For public use, set APP_URL to the deployed HTTPS origin and register matching OAuth callbacks. Sequence enrollment deliberately refuses a loopback/http origin: recipients need a usable unsubscribe link. Existing disconnected integrations do not auto-enable synchronization; reconnecting or changing the connected email resets cursor and automatic mode.
 
 SQL migrations have been applied to the configured project. Supabase Cron for reminders is independent of the local worker.
 

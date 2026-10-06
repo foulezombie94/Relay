@@ -34,6 +34,12 @@ export async function synchronize(
       409,
     );
   const lease = claim.lease;
+  let leaseLost=false;
+  let renewing:Promise<unknown>|undefined;
+  const renewal=setInterval(()=>{
+    if(!renewing) renewing=Promise.resolve(client.rpc("connector_sync",{w,p,operation:"renew",payload:{lease}}))
+      .then(({error})=>{if(error)leaseLost=true;}).catch(()=>{leaseLost=true;}).finally(()=>{renewing=undefined;});
+  },45000);
   try {
     const { tokens } = await connection(client, w, p);
     const token = tokens.access_token;
@@ -195,6 +201,7 @@ export async function synchronize(
     const cursor = page
       ? { ...window, page }
       : { watermark: service.kind === "email" ? window.end : undefined };
+    if(leaseLost) throw new ApiError("Le verrou de synchronisation a expiré. Réessayez pour reprendre ce lot.",409);
     const { data, error } = await client.rpc("connector_sync", {
       w,
       p,
@@ -224,5 +231,7 @@ export async function synchronize(
       },
     });
     throw error;
+  } finally {
+    clearInterval(renewal);await renewing;
   }
 }

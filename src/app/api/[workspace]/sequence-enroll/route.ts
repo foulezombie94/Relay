@@ -14,6 +14,9 @@ import {
   nextSequenceDate,
 } from "@/lib/domain/sequences";
 import { z } from "zod";
+import { workerReady } from "@/lib/jobs/client";
+import { backgroundJobsEnabled } from "@/lib/jobs/flags";
+import { adminDb } from "@/lib/supabase/admin";
 type P = { params: Promise<{ workspace: string }> };
 export async function POST(req: NextRequest, { params }: P) {
   try {
@@ -31,13 +34,14 @@ export async function POST(req: NextRequest, { params }: P) {
       })
       .parse(await req.json());
     if (
-      !process.env.JOBS_SECRET ||
+      !backgroundJobsEnabled() || process.env.FEATURE_SEQUENCE_SEND!=="true" ||
       !process.env.APP_URL?.startsWith("https://")
     )
       throw new ApiError(
         "Les envois planifiés nécessitent un domaine HTTPS public et le service de suivi actif. Votre administrateur doit terminer cette configuration.",
         503,
       );
+    if(!(await workerReady(adminDb(),"sequence_send"))) throw new ApiError("Le service d’envoi est temporairement indisponible.",503);
     const [{ data: s, error: se }, { data: r, error: re }] = await Promise.all([
       client
         .from("sequences")

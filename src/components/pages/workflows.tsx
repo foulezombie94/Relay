@@ -15,6 +15,7 @@ import {
 import type { Workflow, Simulation } from "@/lib/domain/types";
 import { Pagination } from "../pagination";
 import { WorkflowFields } from "../structured-fields";
+import { BackgroundJob } from "../background-job";
 export function WorkflowsPage() {
   const { workspace, objects } = useWorkspace();
   const [page, setPage] = useState(0);
@@ -29,6 +30,7 @@ export function WorkflowsPage() {
   );
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
+  const [jobId,setJobId]=useState<string|null>(null);
   const readonly = workspace.role === "viewer";
   return (
     <>
@@ -44,6 +46,7 @@ export function WorkflowsPage() {
         }
       />
       {error && <div className="alert error">{error}</div>}
+      {jobId && <BackgroundJob id={jobId} onComplete={()=>{void runs.refetch();}} />}
       <ErrorMessage error={q.error} />
       <div className="alert info">
         Les workflows s’exécutent après simulation et confirmation. L’envoi
@@ -207,11 +210,12 @@ export function WorkflowsPage() {
                 onClick={async () => {
                   setWorking(true);
                   try {
-                    await request(
+                    const response = await request<{queued?:boolean;job?:{id:string}}>(
                       "/api/" + workspace.id + "/simulate",
                       "PATCH",
                       { preview_id: preview.id },
                     );
+                    if(response.queued && response.job) setJobId(response.job.id);
                     await cache.invalidateQueries({
                       queryKey: ["rows", workspace.id],
                     });

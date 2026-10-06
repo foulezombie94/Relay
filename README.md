@@ -28,6 +28,8 @@ La couverture complète du prompt et la parité avec Attio ne sont pas acquises.
 
 ## Configuration externe
 
+Vercel + Supabase + worker Railway sont configurés dans le dépôt. La file Postgres, les reprises, les health checks et la supervision sont détaillés dans [le guide de déploiement](docs/deployment.md). Les variables à renseigner séparément sont dans `deploy/`. Démarrer `npm run worker` pour les imports, workflows et synchronisations en arrière-plan.
+
 `OPENAI_API_KEY` active l’assistant ; `OPENAI_MODEL` vaut gpt-4.1-mini par défaut. Les variables `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `MICROSOFT_CLIENT_ID` et `MICROSOFT_CLIENT_SECRET` activent OAuth. `INTEGRATION_ENCRYPTION_KEY` est une clé AES de 32 octets en base64 : ne la changez pas sans migration des jetons.
 
 `APP_URL` doit correspondre à l’origine publique. Les quatre callbacks Gmail, Google Calendar, Outlook et Outlook Calendar sont détaillés dans docs/integrations.md. Configurez applications, permissions et redirections auprès des fournisseurs. Dans Supabase Auth, autorisez les URL `/auth/confirm` et `/auth/confirm?next=/reset-password` de votre origine et réglez Site URL. Les intégrations restent à valider avec une connexion réelle.

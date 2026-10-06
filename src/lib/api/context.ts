@@ -3,6 +3,9 @@ import {ZodError} from 'zod';
 import { db } from '@/lib/supabase/server';
 import { NextRequest,NextResponse } from 'next/server';
 import type { Role } from '@/lib/domain/types';
+import { after } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
+import { logEvent } from '@/lib/observability/logger';
 export class ApiError extends Error {constructor(message:string,public status=400){super(message);}}
 export async function context(workspaceId:string,write=false) {
   const client=await db();const {data:{user},error}=await client.auth.getUser();
@@ -34,5 +37,14 @@ export function checkOrigin(request:NextRequest){
   }
   if(!allowed.has(origin))throw new ApiError('Origine non autorisée.',403);
 }
-export function fail(error:unknown){if(error instanceof ZodError)return NextResponse.json({error:error.issues.map(i=>i.path.join('.')+': '+i.message).join(' ')},{status:400});if(error instanceof ApiError)return NextResponse.json({error:error.message},{status:error.status});console.error('relay-api',error instanceof Error?error.message:'Unexpected error');return NextResponse.json({error:'Impossible de terminer cette action. Réessayez ou contactez votre administrateur.'},{status:500});}
+export function fail(error:unknown){
+  if(error instanceof ZodError)return NextResponse.json({error:error.issues.map(i=>i.path.join('.')+': '+i.message).join(' ')},{status:400});
+  if(!(error instanceof ApiError)||error.status>=500){
+    const status=error instanceof ApiError?error.status:500;
+    Sentry.captureException(new Error('api_failure'),{tags:{status:String(status)}});
+    after(async()=>{await logEvent('error','api_failure',{status});await Sentry.flush(2000);});
+  }
+  if(error instanceof ApiError)return NextResponse.json({error:error.message},{status:error.status});
+  return NextResponse.json({error:'Impossible de terminer cette action. Réessayez ou contactez votre administrateur.'},{status:500});
+}
 export function databaseError(error:{message:string;code?:string}|null){if(error)throw new ApiError(error.code==='23503'?'Une relation est invalide ou encore utilisée.':error.code==='23505'?'Cet élément existe déjà.':error.code==='42501'?'Vous ne disposez pas des droits nécessaires.':'La modification n’a pas pu être enregistrée.',error.code==='42501'?403:400);}

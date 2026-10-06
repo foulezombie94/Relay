@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace, request } from "../data-provider";
 import { PageHeader, Badge, ErrorMessage, date, Loading } from "../ui";
 import { ZapierConnection } from "../zapier-connection";
+import { BackgroundJob } from "../background-job";
 type Connector = {
   provider: string;
   name: string;
@@ -25,6 +26,7 @@ export function IntegrationsPage() {
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [jobId,setJobId]=useState<string|null>(null);
   const cache = useQueryClient();
   const search = useSearchParams();
   const q = useQuery({
@@ -40,14 +42,15 @@ export function IntegrationsPage() {
     setBusy(p);
     setError("");
     try {
-      const r = await request<{ data?: { synced: number; complete: boolean } }>(
+      const r = await request<{ queued?:boolean;job?:{id:string};data?: { synced: number; complete: boolean } }>(
         "/api/" + workspace.id + "/connections/" + p,
         method,
         method === "PATCH" ? { enabled } : undefined,
       );
+      if(r.queued && r.job) setJobId(r.job.id);
       setMessage(
         method === "POST"
-          ? (r.data?.synced ?? 0) +
+          ? r.queued ? "Synchronisation planifiée." : (r.data?.synced ?? 0) +
               (r.data?.complete
                 ? " éléments importés. Synchronisation terminée."
                 : " éléments importés. Cliquez sur Continuer pour importer la suite.")
@@ -85,6 +88,7 @@ export function IntegrationsPage() {
         description="Connectez chaque service avec les permissions nécessaires. Vos messages et événements restent privés à votre compte."
       />
       <ErrorMessage error={q.error} />
+      {jobId && <BackgroundJob id={jobId} onComplete={(data)=>{setMessage(String(data.synced??0)+" éléments importés."+(data.complete?" Synchronisation terminée.":" Continuez pour importer la suite."));void q.refetch();}} />}
       {(error || search.get("connection_error")) && (
         <div className="alert error" role="alert">
           {error || search.get("connection_error")}
