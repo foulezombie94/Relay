@@ -744,18 +744,18 @@ export const helpArticles: HelpArticle[] = [
   {
     id: "automatisations",
     category: "Organisation",
-    title: "Utiliser les guides d’action et les automatisations",
+    title: "Utiliser les modèles de processus et les automatisations",
     description: "Préparer des actions puis relire leurs conséquences.",
     href: "/app/playbooks",
     sections: [
       {
         title: "Adapter un guide d’action",
         paragraphs: [
-          "Les Guides d’action proposent des processus commerciaux : ils sont différents des articles de ce centre d’aide.",
+          "Les Modèles de processus proposent des processus commerciaux : ils sont différents des articles de ce centre d’aide.",
         ],
         steps: [
-          "Ouvrez Guides d’action et choisissez un processus.",
-          "Cliquez sur Adapter ce guide.",
+          "Ouvrez Modèles de processus et choisissez un processus.",
+          "Cliquez sur Adapter ce modèle.",
           "Ajustez les titres et les délais pour votre équipe.",
           "Enregistrez le workflow préparé puis ouvrez Automatisations.",
         ],

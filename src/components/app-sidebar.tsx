@@ -79,7 +79,6 @@ const groups = [
     items: [
       ["assistant", "Assistant IA", Sparkles],
       ["quality", "Qualité des données", TriangleAlert],
-      ["playbooks", "Guides d’action", FolderKanban],
     ],
   },
   {
@@ -97,7 +96,10 @@ const groups = [
     id: "automatisation",
     label: "Automatisation",
     icon: Workflow,
-    items: [["workflows", "Automatisations", Workflow]],
+    items: [
+      ["workflows", "Automatisations", Workflow],
+      ["playbooks", "Modèles de processus", FolderKanban],
+    ],
   },
   {
     id: "analyse",

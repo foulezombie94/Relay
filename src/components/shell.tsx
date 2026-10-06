@@ -7,7 +7,7 @@ import { AppSidebar } from "./app-sidebar";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "./ui/sidebar";
 const names: Record<string, string> = {
   priorities: "À traiter",
-  playbooks: "Guides d’action",
+  playbooks: "Modèles de processus",
   quality: "Qualité des données",
   companies: "Entreprises",
   people: "Personnes",

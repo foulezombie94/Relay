@@ -15,7 +15,7 @@ export function PlaybooksPage() {
   return (
     <>
       <PageHeader
-        title="Guides d’action"
+        title="Modèles de processus"
         description="Transformez un processus commercial en prochaines tâches explicites."
       />
       <div className="cards-grid">
@@ -39,17 +39,17 @@ export function PlaybooksPage() {
                 setError("");
               }}
             >
-              Adapter ce guide
+              Adapter ce modèle
             </button>
           </article>
         ))}
       </div>
       <div className="alert info">
-        Chaque guide crée un workflow à simuler. Aucune tâche ni transition
+        Chaque modèle crée un workflow à simuler. Aucune tâche ni transition
         d’étape n’est exécutée automatiquement.
       </div>
       {selected && (
-        <Modal open onClose={() => setSelected(null)} title="Adapter le guide">
+        <Modal open onClose={() => setSelected(null)} title="Adapter le modèle">
           <form
             onSubmit={async (e) => {
               e.preventDefault();
