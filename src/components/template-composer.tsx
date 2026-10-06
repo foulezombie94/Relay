@@ -1,4 +1,5 @@
 "use client";
+import { RecordPicker } from "./record-picker";
 import { useState } from "react";
 import { useRows, useWorkspace, request } from "./data-provider";
 import { Modal, ErrorMessage, str } from "./ui";
@@ -17,13 +18,9 @@ export function TemplateComposer({
 }) {
   const { workspace } = useWorkspace();
   const templates = useRows("email_templates", { size: 100 });
-  const [search, setSearch] = useState("");
-  const records = useRows<CrmRecord>("records", {
-    q: search || undefined,
-    size: 25,
-  });
+  const [contact, setContact] = useState<CrmRecord | undefined>();
   const [template, setTemplate] = useState(initialTemplate);
-  const [recordId, setRecordId] = useState("");
+
   const [provider, setProvider] = useState(str(accounts[0]?.provider));
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
@@ -34,7 +31,7 @@ export function TemplateComposer({
     setError("");
     const selected = templates.data?.data.find((t) => t.id === template);
     if (!selected) return;
-    const contact = records.data?.data.find((r) => r.id === recordId);
+
     const values = {
       name: contact?.display_name,
       email: to || contact?.email,
@@ -65,35 +62,16 @@ export function TemplateComposer({
   return (
     <Modal open onClose={onClose} title="Rédiger un email">
       <div className="stack">
-        <label>
-          Rechercher une fiche pour personnaliser le modèle
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Nom, email…"
-          />
-        </label>
-        <label>
-          Fiche · 25 résultats maximum
-          <select
-            value={recordId}
-            onChange={(e) => {
-              setRecordId(e.target.value);
-              const contact = records.data?.data.find(
-                (r) => r.id === e.target.value,
-              );
-              if (contact?.email) setTo(contact.email);
+        <div>
+          <strong>Fiche pour personnaliser le modèle</strong>
+          <RecordPicker
+            name="email-contact"
+            onChange={(_, row) => {
+              setContact(row);
+              if (row?.email) setTo(row.email);
             }}
-          >
-            <option value="">Sans fiche</option>
-            {records.data?.data.map((r) => (
-              <option value={r.id} key={r.id}>
-                {r.display_name}
-                {r.email ? " · " + r.email : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+          />
+        </div>
         <div className="row-actions">
           <select
             style={{ width: "auto", flex: 1 }}
@@ -118,11 +96,7 @@ export function TemplateComposer({
           </button>
         </div>
         <ErrorMessage
-          error={
-            templates.error ||
-            records.error ||
-            (error ? new Error(error) : null)
-          }
+          error={templates.error || (error ? new Error(error) : null)}
         />
         <form
           className="stack"

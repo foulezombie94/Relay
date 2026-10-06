@@ -1,5 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Pagination } from "../pagination";
+import { RecordPicker } from "../record-picker";
+import { SourceFields, RepeatFields } from "../structured-fields";
 import { Pencil, Trash2, Check, FileText } from "lucide-react";
 import { useRows, useSave, useWorkspace } from "../data-provider";
 import {
@@ -124,14 +128,20 @@ const configs: Record<
       { key: "field", label: "Information concernée", required: true },
       {
         key: "source_a",
-        label: "Première source — label, quote, value",
-        type: "json",
+        label: "Première source",
+        type: "custom",
+        render: (initial, name) => (
+          <SourceFields initial={initial} name={name} />
+        ),
         required: true,
       },
       {
         key: "source_b",
-        label: "Deuxième source — label, quote, value",
-        type: "json",
+        label: "Deuxième source",
+        type: "custom",
+        render: (initial, name) => (
+          <SourceFields initial={initial} name={name} />
+        ),
         required: true,
       },
       statusField(["open", "resolved", "dismissed"]),
@@ -157,8 +167,11 @@ const configs: Record<
       statusField(["draft", "approved", "completed"]),
       {
         key: "milestones",
-        label: "Jalons — tableau de title, date, done",
-        type: "json",
+        label: "Jalons",
+        type: "custom",
+        render: (initial, name) => (
+          <RepeatFields kind="milestones" initial={initial} name={name} />
+        ),
       },
     ],
     initial: { status: "draft", milestones: [] },
@@ -170,8 +183,11 @@ const configs: Record<
       { key: "name", label: "Nom", required: true },
       {
         key: "steps",
-        label: "Étapes — subject, body, delay_days",
-        type: "json",
+        label: "Messages de la séquence",
+        type: "custom",
+        render: (initial, name) => (
+          <RepeatFields kind="steps" initial={initial} name={name} />
+        ),
         required: true,
       },
     ],
@@ -216,12 +232,36 @@ const configs: Record<
 export function ResourcePage({ resource }: { resource: string }) {
   const config = configs[resource];
   const { workspace, objects, user } = useWorkspace();
-  const q = useRows(resource, { size: 100 });
-  const records = useRows<CrmRecord>("records", { size: 100 });
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState("");
+  const [debounced, setDebounced] = useState("");
+  const [status, setStatus] = useState("");
+  const [owner, setOwner] = useState("");
+  const [due, setDue] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebounced(search);
+      setPage(0);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [search]);
+  const focus = useSearchParams().get("focus") ?? undefined;
+  const q = useRows(resource, {
+    size: 25,
+    page,
+    id: focus,
+    q: debounced,
+    status,
+    owner,
+    due,
+    sort: ["tasks", "commitments"].includes(resource) ? "due_date" : undefined,
+    direction: ["tasks", "commitments"].includes(resource) ? "asc" : undefined,
+  });
+
   const members = useRows("memberships", { size: 100 });
   const { save, remove, busy } = useSave();
   const [editor, setEditor] = useState<Row | true | null>(null);
-  const [search, setSearch] = useState("");
+
   const [portal, setPortal] = useState<Row | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const readOnly = workspace.role === "viewer";
@@ -251,28 +291,35 @@ export function ResourcePage({ resource }: { resource: string }) {
         key: "record_id",
         label:
           resource === "handovers" ? "Opportunité gagnée" : "Fiche associée",
-        type: "select",
+        type: "custom",
         required: ["handovers", "portals"].includes(resource),
-        options: (records.data?.data ?? [])
-          .filter((r) => resource !== "handovers" || r.stage === "Gagné")
-          .map((r) => ({ value: r.id, label: r.display_name })),
+        render: (initial, name) => (
+          <RecordPicker
+            name={name}
+            initial={initial}
+            required={["handovers", "portals"].includes(resource)}
+            objectId={
+              resource === "handovers"
+                ? objects.find((o) => o.slug === "deals")?.id
+                : undefined
+            }
+            stage={resource === "handovers" ? "Gagné" : undefined}
+          />
+        ),
       });
   }
   if (["tasks", "commitments", "handovers"].includes(resource))
     fields.push({
       key: "owner_id",
       label: "Responsable",
+      nullable: true,
       type: "select",
       options: (members.data?.data ?? []).map((m) => ({
         value: str(m.user_id),
         label: str(m.display_name) || str(m.user_id),
       })),
     });
-  const rows = (q.data?.data ?? []).filter((r) =>
-    (str(r.title || r.name) + " " + str(r.content))
-      .toLowerCase()
-      .includes(search.toLowerCase()),
-  );
+  const rows = q.data?.data ?? [];
   return (
     <>
       <PageHeader
@@ -289,6 +336,63 @@ export function ResourcePage({ resource }: { resource: string }) {
       <div className="toolbar">
         <SearchBox value={search} onChange={setSearch} />
         <span className="pill">{q.data?.count ?? 0} éléments</span>
+        {config.fields.some((field) => field.key === "status") && (
+          <select
+            aria-label="Filtrer le statut"
+            style={{ width: "auto" }}
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value);
+              setPage(0);
+            }}
+          >
+            <option value="">Tous les statuts</option>
+            {config.fields
+              .find((field) => field.key === "status")
+              ?.options?.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+          </select>
+        )}
+        {["tasks", "commitments", "handovers"].includes(resource) && (
+          <select
+            aria-label="Filtrer le responsable"
+            style={{ width: "auto" }}
+            value={owner}
+            onChange={(e) => {
+              setOwner(e.target.value);
+              setPage(0);
+            }}
+          >
+            <option value="">Toute l’équipe</option>
+            <option value="me">Mes éléments</option>
+            <option value="unassigned">Sans responsable</option>
+            {members.data?.data.map((member) => (
+              <option key={member.id} value={str(member.user_id)}>
+                {str(member.display_name)}
+              </option>
+            ))}
+          </select>
+        )}
+        {["tasks", "commitments"].includes(resource) && (
+          <select
+            aria-label="Filtrer les échéances"
+            style={{ width: "auto" }}
+            value={due}
+            onChange={(e) => {
+              setDue(e.target.value);
+              setPage(0);
+            }}
+          >
+            <option value="">Toutes les échéances</option>
+            <option value="overdue">En retard</option>
+            <option value="today">Aujourd’hui</option>
+            <option value="upcoming">Les 7 prochains jours</option>
+            <option value="undated">Sans date</option>
+          </select>
+        )}
       </div>
       {resource === "sequences" && (
         <div className="alert info">
@@ -325,8 +429,8 @@ export function ResourcePage({ resource }: { resource: string }) {
                     {date(row.due_date || row.starts_at || row.created_at)}
                     {row.record_id
                       ? " · " +
-                        (records.data?.data.find((r) => r.id === row.record_id)
-                          ?.display_name ?? "Fiche associée")
+                        ((row.record as CrmRecord | null)?.display_name ??
+                          "Fiche associée")
                       : ""}
                   </small>
                 </div>
@@ -405,25 +509,49 @@ export function ResourcePage({ resource }: { resource: string }) {
                   <p>
                     <strong>Exclusions :</strong> {str(row.exclusions)}
                   </p>
-                  <pre className="quote">
-                    {JSON.stringify(row.commitments_snapshot, null, 2)}
-                  </pre>
+                  <h4>Engagements transmis</h4>
+                  <ul>
+                    {(Array.isArray(row.commitments_snapshot)
+                      ? row.commitments_snapshot
+                      : []
+                    ).map(
+                      (commitment: Record<string, unknown>, index: number) => (
+                        <li key={index}>
+                          {str(commitment.title)} ·{" "}
+                          <Badge value={commitment.status} />
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                  <h4>Jalons</h4>
+                  <ul>
+                    {(Array.isArray(row.milestones) ? row.milestones : []).map(
+                      (milestone: Record<string, unknown>, index: number) => (
+                        <li key={index}>
+                          {milestone.done ? "✓ " : ""}
+                          {str(milestone.title)} ·{" "}
+                          {str(milestone.date) || "Sans date"}
+                        </li>
+                      ),
+                    )}
+                  </ul>
                 </>
               )}
-              {resource === "tasks" && row.status !== "done" && (
-                <div className="card-actions">
-                  <button
-                    className="button small"
-                    disabled={readOnly || busy}
-                    onClick={() =>
-                      save(resource, { status: "done" }, row).catch(() => {})
-                    }
-                  >
-                    <Check size={13} />
-                    Terminer
-                  </button>
-                </div>
-              )}
+              {resource === "tasks" &&
+                !["done", "cancelled"].includes(str(row.status)) && (
+                  <div className="card-actions">
+                    <button
+                      className="button small"
+                      disabled={readOnly || busy}
+                      onClick={() =>
+                        save(resource, { status: "done" }, row).catch(() => {})
+                      }
+                    >
+                      <Check size={13} />
+                      Terminer
+                    </button>
+                  </div>
+                )}
               {resource === "lists" && (
                 <div className="card-actions">
                   <a className="button small" href={"/app/list-" + row.id}>
@@ -436,6 +564,13 @@ export function ResourcePage({ resource }: { resource: string }) {
           ))}
         </div>
       )}
+      <Pagination
+        page={page}
+        size={25}
+        total={q.data?.count ?? 0}
+        busy={q.isFetching}
+        onChange={setPage}
+      />
       {editor && (
         <Editor
           key={typeof editor === "object" ? editor.id : "new"}

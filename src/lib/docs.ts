@@ -256,7 +256,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Limites",
         paragraphs: [
-          "Les modèles produisent du texte simple. Les séquences présentes dans Relay préparent des étapes mais n’envoient pas automatiquement des campagnes. La programmation, l’arrêt sur réponse et la désinscription d’une séquence restent à développer.",
+          "Les modèles produisent du texte simple. Les séquences permettent des suivis planifiés après aperçu et confirmation : pause, arrêt à la réponse et désabonnement. Leur envoi nécessite un domaine public HTTPS et le service de suivi configuré par votre administrateur.",
         ],
       },
     ],
@@ -289,7 +289,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Comprendre la synchronisation",
         paragraphs: [
-          "Chaque import manuel contient jusqu’à 25 messages ou événements. Les événements concernent les 30 prochains jours. Les calendriers sont en lecture seule : Relay ne modifie pas vos rendez-vous et ne réalise pas de synchronisation complète en arrière-plan.",
+          "Chaque lot importe jusqu’à 100 éléments. Cliquez sur Continuer l’import tant qu’il reste des pages ; la progression est conservée après une interruption. Le premier import mail couvre les 30 derniers jours, puis les nouveaux messages avec un léger chevauchement qui évite les pertes à la frontière. Les emails montrent un aperçu. Les calendriers restent en lecture et couvrent les 30 prochains jours. La synchronisation automatique est une option à activer pour chacun de vos comptes ; elle fonctionne lorsque le service de synchronisation est actif.",
         ],
       },
       {
@@ -775,7 +775,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Fonctionnement actuel",
         paragraphs: [
-          "Les actions sont exécutées manuellement après confirmation. Les déclenchements automatiques, campagnes mail et exécutions programmées ne sont pas actifs. Pour modifier directement une définition de workflow, demandez l’aide de votre administrateur ; commencez par un Guide d’action.",
+          "Les workflows s’exécutent après aperçu et confirmation, jusqu’à 100 fiches correspondantes. Le formulaire permet de choisir les conditions et actions sans écrire de code. Les déclenchements automatiques de workflows ne sont pas actifs. Les séquences email disposent de leur propre programmation, sous réserve que le service de suivi soit configuré.",
         ],
       },
     ],
@@ -889,6 +889,96 @@ export const helpArticles: HelpArticle[] = [
         title: "Demander de l’aide",
         paragraphs: [
           "Transmettez à votre administrateur la page, l’action, l’heure et le message exact. Masquez les informations confidentielles d’une capture. Ne communiquez jamais votre mot de passe.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "notifications",
+    category: "Organisation",
+    title: "Suivre vos notifications et échéances",
+    description: "Retrouver les actions attribuées et les échéances à venir.",
+    href: "/app/tasks",
+    sections: [
+      {
+        title: "Ouvrir vos rappels",
+        paragraphs: [
+          "La cloche en haut de votre espace indique le nombre de notifications non lues. Vous recevez une notification lorsqu’une tâche ou un engagement vous est attribué. Un rappel apparaît dans les 24 heures précédant l’échéance ; les rappels sont calculés toutes les cinq minutes, et la cloche se rafraîchit chaque minute.",
+        ],
+      },
+      {
+        title: "Traiter une action",
+        paragraphs: [
+          "Cliquez sur Ouvrir pour retrouver la tâche ou l’engagement concerné. Une notification lue ne termine pas votre tâche : changez son statut dans sa fiche. Les rappels restent dans votre historique ; une notification ancienne peut concerner une tâche déjà terminée ou retirée.",
+        ],
+      },
+      {
+        title: "Organiser votre journée",
+        paragraphs: [
+          "Dans Tâches ou Engagements, filtrez par responsable, statut et période. La recherche porte sur les données autorisées, au-delà de la page affichée. Utilisez Précédent et Suivant pour parcourir les résultats. Terminer une tâche conserve aussi la date réelle de réalisation.",
+        ],
+      },
+      {
+        title: "Travail en équipe",
+        paragraphs: [
+          "Si un collègue modifie une tâche, un engagement ou une contradiction pendant votre édition, Relay refuse d’écraser sa version. Rouvrez l’élément, comparez ses changements puis enregistrez votre modification.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "sequences-suivi",
+    category: "Relations clients",
+    title: "Créer une séquence de suivi commercial",
+    description: "Planifier des messages avec contrôle et arrêt à la réponse.",
+    href: "/app/sequences",
+    sections: [
+      {
+        title: "Préparer les messages",
+        steps: [
+          "Créez une séquence, nommez-la et choisissez son fuseau horaire.",
+          "Ajoutez vos objets et messages, puis le délai en jours pour chaque étape. Le premier délai part de l’inscription ; les suivants partent du message précédent.",
+          "Utilisez {{display_name}}, {{email}} ou {{domain}} pour personnaliser le texte. Une information manquante bloque la préparation.",
+          "Enregistrez puis activez la séquence.",
+        ],
+        paragraphs: [
+          "Les envois ont lieu du lundi au vendredi entre 9 h et 17 h dans le fuseau choisi. Un envoi prévu en dehors de cette plage est reporté.",
+        ],
+      },
+      {
+        title: "Inscrire un contact",
+        steps: [
+          "Ouvrez Contacts et historique.",
+          "Choisissez une personne et votre compte Gmail ou Outlook connecté.",
+          "Préparez l’aperçu et vérifiez chaque message et le destinataire.",
+          "Confirmez explicitement l’inscription et les envois.",
+        ],
+        paragraphs: [
+          "Les messages et l’adresse sont figés pour cette inscription. Modifier la séquence concerne les nouvelles inscriptions. Un contact ne peut être inscrit qu’une fois dans la même séquence.",
+        ],
+      },
+      {
+        title: "Contrôler le suivi",
+        paragraphs: [
+          "Vous pouvez mettre votre inscription en pause, la reprendre ou l’arrêter. Mettre toute la séquence en pause suspend également ses envois. Relay vérifie les réponses du contact avant chaque message et arrête le suivi s’il détecte une réponse depuis le début de ce suivi.",
+        ],
+      },
+      {
+        title: "Respecter les demandes du contact",
+        paragraphs: [
+          "Chaque message contient un lien permettant au contact de confirmer son désabonnement. Son adresse rejoint les exclusions de l’espace. Vous pouvez aussi ajouter une exclusion manuellement. Un message déjà transmis au fournisseur ne peut pas être rappelé.",
+        ],
+      },
+      {
+        title: "Comprendre un arrêt ou une erreur",
+        paragraphs: [
+          "Consultez l’historique d’envoi du contact. Transmis signifie accepté par Gmail ou Outlook, et ne garantit pas la remise dans la boîte de réception. À vérifier signifie que l’envoi est incertain : Relay bloque le suivi et ne renvoie pas automatiquement le message. Vérifiez votre boîte d’envoi avant de décider de la suite.",
+        ],
+      },
+      {
+        title: "Configuration nécessaire",
+        paragraphs: [
+          "Les séquences utilisent un domaine public HTTPS et un service de suivi actif. Si la confirmation indique que la configuration manque, votre administrateur doit terminer le déploiement. En local, vous pouvez préparer et relire les séquences ; la confirmation des envois reste bloquée tant que ce domaine public n’est pas configuré.",
         ],
       },
     ],

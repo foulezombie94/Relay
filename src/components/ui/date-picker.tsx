@@ -78,6 +78,7 @@ export function DatePicker({
   withTime = false,
   required = false,
   disabled = false,
+  onValueChange,
 }: {
   name: string;
   label: string;
@@ -85,6 +86,7 @@ export function DatePicker({
   withTime?: boolean;
   required?: boolean;
   disabled?: boolean;
+  onValueChange?: (value: string) => void;
 }) {
   const headingId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -114,6 +116,9 @@ export function DatePicker({
         0,
       );
     setSelected(next);
+    onValueChange?.(
+      format(next, withTime ? "yyyy-MM-dd\u0027T\u0027HH:mm" : "yyyy-MM-dd"),
+    );
     setMonth(next);
     if (!withTime) setOpen(false);
   }
@@ -123,6 +128,9 @@ export function DatePicker({
     if (part === "hours") updated.setHours(Number(next));
     else updated.setMinutes(Number(next));
     setSelected(updated);
+    onValueChange?.(
+      format(updated, withTime ? "yyyy-MM-dd\u0027T\u0027HH:mm" : "yyyy-MM-dd"),
+    );
   }
 
   return (
@@ -240,6 +248,7 @@ export function DatePicker({
               disabled={!selected || required}
               onClick={() => {
                 setSelected(undefined);
+                onValueChange?.("");
                 setOpen(false);
               }}
             >

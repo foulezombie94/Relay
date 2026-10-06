@@ -1,54 +1,94 @@
 "use client";
 import { useState } from "react";
-import { useRows, useSave } from "../data-provider";
-import { PageHeader, Editor, AddButton, Empty, str } from "../ui";
-import type { CrmRecord } from "@/lib/domain/types";
+import { useRows, useSave, useWorkspace } from "../data-provider";
+import {
+  PageHeader,
+  Editor,
+  AddButton,
+  Empty,
+  str,
+  Loading,
+  ErrorMessage,
+} from "../ui";
+import { Pagination } from "../pagination";
+import { RecordPicker } from "../record-picker";
+import type { Row } from "@/lib/domain/types";
 export function ListPage({ id }: { id: string }) {
+  const { workspace, objects } = useWorkspace();
+  const [page, setPage] = useState(0);
   const list = useRows("lists", { id, size: 1 });
-  const entries = useRows("list_entries", { list_id: id, size: 100 });
-  const records = useRows<CrmRecord>("records", {
-    object_id: list.data?.data[0]?.object_id as string | undefined,
-    size: 100,
-  });
+  const entries = useRows("list_entries", { list_id: id, size: 25, page });
   const [adding, setAdding] = useState(false);
   const { save, remove, busy } = useSave();
+  const readOnly = workspace.role === "viewer";
   return (
     <>
       <PageHeader
         title={str(list.data?.data[0]?.name) || "Liste"}
         description="Un regroupement de fiches existantes."
-        action={<AddButton onClick={() => setAdding(true)} />}
+        action={
+          <AddButton
+            disabled={readOnly || !list.data?.data[0]}
+            onClick={() => setAdding(true)}
+          />
+        }
       />
-      <div className="stack">
-        {entries.data?.data.map((entry) => (
-          <article className="detail-card" key={entry.id}>
-            <div className="card-head">
-              <strong>
-                {records.data?.data.find((r) => r.id === entry.record_id)
-                  ?.display_name ?? "Fiche " + str(entry.record_id)}
-              </strong>
-              <button
-                className="button small"
-                onClick={() =>
-                  void remove("list_entries", entry.id).catch(() => {})
-                }
-              >
-                Retirer de la liste
-              </button>
-            </div>
-            {Array.isArray(entry.merge_provenance) &&
-              entry.merge_provenance.length > 0 && (
-                <details>
-                  <summary>Données conservées lors d’une fusion</summary>
-                  <pre className="preserve-lines">
-                    {JSON.stringify(entry.merge_provenance, null, 2)}
-                  </pre>
-                </details>
-              )}
-          </article>
-        ))}
-        {entries.data?.data.length === 0 && <Empty />}
-      </div>
+      <ErrorMessage error={list.error || entries.error} />
+      {entries.isPending ? (
+        <Loading />
+      ) : (
+        <div className="stack">
+          {entries.data?.data.map((entry) => {
+            const record = entry.record as Row | null;
+            const object = objects.find(
+              (object) => object.id === record?.object_id,
+            );
+            return (
+              <article className="detail-card" key={entry.id}>
+                <div className="card-head">
+                  <strong>
+                    {record && object ? (
+                      <a
+                        href={
+                          "/app/" +
+                          (object.standard
+                            ? object.slug
+                            : "object-" + object.slug) +
+                          "?record=" +
+                          record.id
+                        }
+                      >
+                        {str(record.display_name)}
+                      </a>
+                    ) : (
+                      str(record?.display_name) || "Fiche inaccessible"
+                    )}
+                  </strong>
+                  <button
+                    className="button small"
+                    disabled={readOnly || busy}
+                    onClick={() =>
+                      void remove("list_entries", entry.id).catch(() => {})
+                    }
+                  >
+                    Retirer de la liste
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+          {entries.data?.count === 0 && (
+            <Empty description="Ajoutez des fiches existantes à cette sélection." />
+          )}
+        </div>
+      )}
+      <Pagination
+        page={page}
+        size={25}
+        total={entries.data?.count ?? 0}
+        busy={entries.isFetching}
+        onChange={setPage}
+      />
       {adding && (
         <Editor
           open
@@ -58,17 +98,20 @@ export function ListPage({ id }: { id: string }) {
           fields={[
             {
               key: "record_id",
-              label: "Fiche",
+              label: "Fiche à ajouter",
+              type: "custom",
               required: true,
-              type: "select",
-              options: (records.data?.data ?? [])
-                .filter(
-                  (r) => !entries.data?.data.some((e) => e.record_id === r.id),
-                )
-                .map((r) => ({ value: r.id, label: r.display_name })),
+              render: (initial, name) => (
+                <RecordPicker
+                  name={name}
+                  initial={initial}
+                  required
+                  objectId={str(list.data?.data[0]?.object_id)}
+                />
+              ),
             },
           ]}
-          onSave={(v) => save("list_entries", { ...v, list_id: id })}
+          onSave={(values) => save("list_entries", { ...values, list_id: id })}
         />
       )}
     </>

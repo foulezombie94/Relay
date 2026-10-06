@@ -12,6 +12,7 @@ import { validateAttributes } from "@/lib/domain/attributes";
 import type { Attribute } from "@/lib/domain/types";
 import { z } from "zod";
 import { recordQuery } from "@/lib/api/record-query";
+import { resourceQuery } from "@/lib/api/resource-query";
 type Params = { params: Promise<{ workspace: string; resource: string }> };
 export async function GET(request: NextRequest, { params }: Params) {
   try {
@@ -20,8 +21,11 @@ export async function GET(request: NextRequest, { params }: Params) {
       throw new ApiError("Ressource inconnue.", 404);
     const { client, user } = await context(workspace);
     const p = request.nextUrl.searchParams;
-    const page = Math.max(0, Number(p.get("page") ?? 0) || 0),
-      size = Math.min(100, Math.max(1, Number(p.get("size") ?? 50) || 50));
+    const page = Math.max(0, Math.floor(Number(p.get("page") ?? 0) || 0)),
+      size = Math.min(
+        100,
+        Math.max(1, Math.floor(Number(p.get("size") ?? 50) || 50)),
+      );
     if (resource === "records") {
       const { data, error, count } = await recordQuery(
         client,
@@ -32,42 +36,31 @@ export async function GET(request: NextRequest, { params }: Params) {
       databaseError(error);
       return NextResponse.json({ data, count, page, size });
     }
-    let query = client
-      .from(resource)
-      .select(
-        resource === "records"
-          ? "id,workspace_id,object_id,display_name,email,domain,stage,amount,currency,owner_id,attributes,archived,version,close_date,created_at,updated_at"
-          : "*",
-        { count: "exact" },
-      )
-      .eq("workspace_id", workspace);
-    for (const key of [
-      "id",
-      "object_id",
-      "record_id",
-      "portal_id",
-      "list_id",
-      "workflow_id",
-      "status",
-      "stage",
-      "source_id",
-      "target_id",
-    ])
-      if (p.get(key)) query = query.eq(key, p.get(key)!);
-    if (resource === "records") {
-      query = query.eq("archived", p.get("archived") === "true");
-      const search = p.get("q")?.trim();
-      if (search)
-        query = query.textSearch("search", search, {
-          type: "websearch",
-          config: "simple",
-        });
-    }
-    const { data, error, count } = await query
-      .order("created_at", { ascending: false })
-      .range(page * size, (page + 1) * size - 1);
+    const { data, error, count } = await resourceQuery(
+      client,
+      workspace,
+      resource,
+      p,
+      user.id,
+    ).range(page * size, (page + 1) * size - 1);
     databaseError(error);
-    return NextResponse.json({ data, count, page, size });
+    const ids = [
+      ...new Set((data ?? []).map((row) => row.record_id).filter(Boolean)),
+    ];
+    let result = data;
+    if (ids.length) {
+      const { data: related, error: re } = await client
+        .from("records")
+        .select("id,display_name,object_id,archived")
+        .eq("workspace_id", workspace)
+        .in("id", ids);
+      databaseError(re);
+      result = (data ?? []).map((row) => ({
+        ...row,
+        record: related?.find((record) => record.id === row.record_id) ?? null,
+      }));
+    }
+    return NextResponse.json({ data: result, count, page, size });
   } catch (error) {
     return fail(error);
   }
@@ -167,6 +160,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         throw new ApiError("Cette relation ne peut pas être déplacée.");
     if (
       [
+        "tasks",
+        "commitments",
+        "conflicts",
+        "sequences",
         "records",
         "notes",
         "handovers",

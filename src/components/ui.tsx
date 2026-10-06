@@ -237,10 +237,13 @@ export type Field = {
     | "textarea"
     | "select"
     | "checkbox"
-    | "json";
+    | "json"
+    | "custom";
   required?: boolean;
   options?: { value: string; label: string }[];
   placeholder?: string;
+  render?: (initial: unknown, name: string) => ReactNode;
+  nullable?: boolean;
 };
 export function Editor({
   open,
@@ -279,13 +282,16 @@ export function Editor({
                 throw new Error(`Choisissez une date pour « ${f.label} ».`);
               }
               if (f.type === "checkbox") values[f.key] = form.has(f.key);
-              else if (f.type === "json") values[f.key] = JSON.parse(v || "[]");
-              else if (f.type === "number")
+              else if (f.type === "json" || f.type === "custom") {
+                values[f.key] = JSON.parse(v || "null");
+                if (f.required && values[f.key] == null)
+                  throw new Error(`Complétez « ${f.label} ».`);
+              } else if (f.type === "number")
                 values[f.key] = v === "" ? 0 : Number(v);
               else if (f.type === "datetime-local")
                 values[f.key] = v ? new Date(v).toISOString() : null;
               else if (v !== "" || f.required) values[f.key] = v;
-              else if (f.type === "date") values[f.key] = null;
+              else if (f.type === "date" || f.nullable) values[f.key] = null;
             }
             await onSave(values);
             onClose();
@@ -297,70 +303,80 @@ export function Editor({
         }}
       >
         <div className="form-grid">
-          {fields.map((f) => (
-            <label
-              key={f.key}
-              className={
-                ["textarea", "json"].includes(f.type ?? "") ? "span-2" : ""
-              }
-            >
-              {f.label}
-              {f.required ? " *" : ""}
-              {f.type === "select" ? (
-                <select
-                  name={f.key}
-                  defaultValue={str(initial[f.key])}
-                  required={f.required}
-                >
-                  <option value="">Choisir…</option>
-                  {f.options?.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              ) : f.type === "checkbox" ? (
-                <input
-                  type="checkbox"
-                  name={f.key}
-                  defaultChecked={Boolean(initial[f.key])}
-                />
-              ) : ["textarea", "json"].includes(f.type ?? "") ? (
-                <textarea
-                  name={f.key}
-                  rows={f.type === "json" ? 6 : 4}
-                  defaultValue={
-                    f.type === "json"
-                      ? JSON.stringify(initial[f.key] ?? [], null, 2)
-                      : str(initial[f.key])
-                  }
-                  required={f.required}
-                  placeholder={f.placeholder}
-                />
-              ) : f.type === "date" || f.type === "datetime-local" ? (
-                <DatePicker
-                  name={f.key}
-                  label={f.label}
-                  withTime={f.type === "datetime-local"}
-                  required={f.required}
-                  defaultValue={
-                    f.type === "datetime-local" && initial[f.key]
-                      ? localDateTime(initial[f.key])
-                      : str(initial[f.key])
-                  }
-                />
-              ) : (
-                <input
-                  name={f.key}
-                  type={f.type ?? "text"}
-                  step={f.type === "number" ? "0.01" : undefined}
-                  defaultValue={str(initial[f.key])}
-                  required={f.required}
-                  placeholder={f.placeholder}
-                />
-              )}
-            </label>
-          ))}
+          {fields.map((f) =>
+            f.type === "custom" ? (
+              <div className="span-2" key={f.key}>
+                <strong>
+                  {f.label}
+                  {f.required ? " *" : ""}
+                </strong>
+                {f.render?.(initial[f.key], f.key)}
+              </div>
+            ) : (
+              <label
+                key={f.key}
+                className={
+                  ["textarea", "json"].includes(f.type ?? "") ? "span-2" : ""
+                }
+              >
+                {f.label}
+                {f.required ? " *" : ""}
+                {f.type === "select" ? (
+                  <select
+                    name={f.key}
+                    defaultValue={str(initial[f.key])}
+                    required={f.required}
+                  >
+                    <option value="">Choisir…</option>
+                    {f.options?.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : f.type === "checkbox" ? (
+                  <input
+                    type="checkbox"
+                    name={f.key}
+                    defaultChecked={Boolean(initial[f.key])}
+                  />
+                ) : ["textarea", "json"].includes(f.type ?? "") ? (
+                  <textarea
+                    name={f.key}
+                    rows={f.type === "json" ? 6 : 4}
+                    defaultValue={
+                      f.type === "json"
+                        ? JSON.stringify(initial[f.key] ?? [], null, 2)
+                        : str(initial[f.key])
+                    }
+                    required={f.required}
+                    placeholder={f.placeholder}
+                  />
+                ) : f.type === "date" || f.type === "datetime-local" ? (
+                  <DatePicker
+                    name={f.key}
+                    label={f.label}
+                    withTime={f.type === "datetime-local"}
+                    required={f.required}
+                    defaultValue={
+                      f.type === "datetime-local" && initial[f.key]
+                        ? localDateTime(initial[f.key])
+                        : str(initial[f.key])
+                    }
+                  />
+                ) : (
+                  <input
+                    name={f.key}
+                    type={f.type ?? "text"}
+                    step={f.type === "number" ? "0.01" : undefined}
+                    defaultValue={str(initial[f.key])}
+                    required={f.required}
+                    placeholder={f.placeholder}
+                  />
+                )}
+              </label>
+            ),
+          )}
         </div>
         {error && <div className="alert error">{error}</div>}
         <div className="dialog-footer">

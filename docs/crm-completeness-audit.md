@@ -1,3 +1,4 @@
+> État de l’audit au moment de sa rédaction. Les corrections ultérieures de pagination, formulaires, rappels, synchronisation et séquences sont décrites dans [daily-crm-operations.md](daily-crm-operations.md). Les limites qui restent y sont indiquées.
 # Relay : audit de complétude fonctionnelle
 
 Date : 6 octobre 2026. Révision examinée : 7fbeee7.

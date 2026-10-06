@@ -1,3 +1,4 @@
+import { SequencesPage } from "@/components/pages/sequences";
 import { PipelinesPage } from "@/components/pages/pipelines";
 import { EmailTemplatesPage } from "@/components/pages/email-templates";
 import { RecordsPage } from "@/components/pages/records";
@@ -33,13 +34,15 @@ export default async function Page({
       "commitments",
       "conflicts",
       "handovers",
-      "sequences",
+
       "lists",
       "portals",
     ].includes(section)
   )
     return <ResourcePage resource={section} />;
   switch (section) {
+    case "sequences":
+      return <SequencesPage />;
     case "pipelines":
       return <PipelinesPage />;
     case "email-templates":

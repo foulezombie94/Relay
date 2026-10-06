@@ -12,6 +12,7 @@ import {
   ErrorMessage,
   type Field,
 } from "../ui";
+import { Pagination } from "../pagination";
 import { RecordContextPanel } from "../record-context";
 import { RecordSummary } from "../record-summary";
 import type { CrmRecord, Row } from "@/lib/domain/types";
@@ -96,7 +97,8 @@ function DetailResource({ record, tab }: { record: CrmRecord; tab: string }) {
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
-  const q = useRows(tab, { record_id: record.id, size: 100 });
+  const [page, setPage] = useState(0);
+  const q = useRows(tab, { record_id: record.id, size: 25, page });
   const { save, busy } = useSave();
   const readonly = workspace.role === "viewer";
   const fieldMap: Record<string, Field[]> = {
@@ -217,11 +219,13 @@ function DetailResource({ record, tab }: { record: CrmRecord; tab: string }) {
           {q.data?.data.length === 0 && (
             <Empty description="Ajoutez du contexte à cette fiche." />
           )}
-          {(q.data?.count ?? 0) > 100 && (
-            <p>
-              100 éléments affichés. Retrouvez la suite dans la page dédiée.
-            </p>
-          )}
+          <Pagination
+            page={page}
+            size={25}
+            total={q.data?.count ?? 0}
+            busy={q.isFetching}
+            onChange={setPage}
+          />
         </div>
       )}
       {adding && (

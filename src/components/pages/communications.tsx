@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { Pagination } from "../pagination";
 import { TemplateComposer } from "../template-composer";
 import { useWorkspace, useRows } from "../data-provider";
 import {
@@ -15,7 +16,18 @@ import {
 export function CommunicationsPage() {
   const { workspace } = useWorkspace();
   const template = useSearchParams().get("template") ?? "";
-  const q = useRows("communications", { size: 100 });
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState("");
+  const [debounced, setDebounced] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebounced(search);
+      setPage(0);
+    }, 250);
+    return () => clearTimeout(t);
+  }, [search]);
+  const [kind, setKind] = useState("");
+  const q = useRows("communications", { size: 25, page, q: debounced, kind });
   const connections = useRows("integrations", { size: 100 });
   const [compose, setCompose] = useState(false);
   const [message, setMessage] = useState("");
@@ -40,13 +52,35 @@ export function CommunicationsPage() {
           </button>
         }
       />
+      <div className="toolbar">
+        <input
+          aria-label="Rechercher les échanges"
+          placeholder="Rechercher un message ou un événement…"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(0);
+          }}
+        />
+        <select
+          aria-label="Type d’échange"
+          value={kind}
+          onChange={(e) => {
+            setKind(e.target.value);
+            setPage(0);
+          }}
+        >
+          <option value="">Messages et événements</option>
+          <option value="email">Emails</option>
+          <option value="calendar">Calendrier</option>
+        </select>
+      </div>
       <ErrorMessage error={q.error} />
       <ErrorMessage error={connections.error} />
       {message && <div className="alert info">{message}</div>}
       <p className="footer-note">
-        Chaque service s’importe séparément depuis Intégrations, avec 25
-        éléments maximum. Les calendriers disposent uniquement d’un accès en
-        lecture.
+        Retrouvez les emails et événements importés depuis Intégrations. Les
+        emails affichent un aperçu. Les calendriers sont accessibles en lecture.
       </p>
       {q.isPending ? (
         <Loading />
@@ -76,6 +110,13 @@ export function CommunicationsPage() {
           )}
         </div>
       )}
+      <Pagination
+        page={page}
+        size={25}
+        total={q.data?.count ?? 0}
+        busy={q.isFetching}
+        onChange={setPage}
+      />
       {compose && (
         <TemplateComposer
           accounts={mail}

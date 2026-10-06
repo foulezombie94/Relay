@@ -123,4 +123,13 @@ export const statusLabels: Record<string, string> = {
   pending: "En attente",
   completed: "Terminé",
   failed: "Échec",
+  active: "Actif",
+  paused: "En pause",
+  replied: "Réponse reçue",
+  unsubscribed: "Désabonné",
+  preparing: "Préparation",
+  sending: "Envoi en cours",
+  sent: "Transmis",
+  uncertain: "À vérifier",
+  stopped: "Arrêté",
 };

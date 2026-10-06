@@ -14,6 +14,11 @@ type Connector = {
   description: string;
   email?: string;
   last_sync?: string;
+  auto_sync?: boolean;
+  pending?: boolean;
+  imported?: number;
+  last_error?: string;
+  worker_ready?: boolean;
 };
 export function IntegrationsPage() {
   const { workspace } = useWorkspace();
@@ -27,18 +32,28 @@ export function IntegrationsPage() {
     queryFn: () =>
       request<{ data: Connector[] }>("/api/" + workspace.id + "/connections"),
   });
-  async function action(p: string, method: "POST" | "DELETE") {
+  async function action(
+    p: string,
+    method: "POST" | "DELETE" | "PATCH",
+    enabled?: boolean,
+  ) {
     setBusy(p);
     setError("");
     try {
-      const r = await request<{ data?: { synced: number } }>(
+      const r = await request<{ data?: { synced: number; complete: boolean } }>(
         "/api/" + workspace.id + "/connections/" + p,
         method,
+        method === "PATCH" ? { enabled } : undefined,
       );
       setMessage(
         method === "POST"
-          ? (r.data?.synced ?? 0) + " éléments synchronisés."
-          : "Service déconnecté. Les éléments importés sont conservés ; révoquez le consentement auprès du fournisseur si nécessaire.",
+          ? (r.data?.synced ?? 0) +
+              (r.data?.complete
+                ? " éléments importés. Synchronisation terminée."
+                : " éléments importés. Cliquez sur Continuer pour importer la suite.")
+          : method === "PATCH"
+            ? "Préférence enregistrée."
+            : "Service déconnecté. Les éléments importés sont conservés ; révoquez le consentement auprès du fournisseur si nécessaire.",
       );
       await q.refetch();
       await cache.invalidateQueries({ queryKey: ["rows", workspace.id] });
@@ -94,9 +109,25 @@ export function IntegrationsPage() {
                 <small>Dernier import : {date(c.last_sync)}</small>
               )}
               <p className="caption">
-                Import manuel : 25 messages ou événements maximum ; événements
-                des 30 prochains jours.
+                Import par lots de 100 avec reprise. Premier import des emails :
+                30 derniers jours, puis nouveaux messages. Calendrier : 30
+                prochains jours.
               </p>
+              {c.last_error && <p className="alert error">{c.last_error}</p>}
+              {c.status === "connected" && workspace.role !== "viewer" && (
+                <label className="caption">
+                  <input
+                    type="checkbox"
+                    checked={!!c.auto_sync}
+                    disabled={!!busy || !c.worker_ready}
+                    onChange={(e) =>
+                      void action(c.provider, "PATCH", e.target.checked)
+                    }
+                  />{" "}
+                  Synchronisation automatique toutes les 5 minutes lorsque le
+                  service est actif
+                </label>
+              )}
               {!c.configured && (
                 <div className="alert info">
                   Configuration serveur à compléter : {c.missing.join(", ")}. Le
@@ -112,7 +143,7 @@ export function IntegrationsPage() {
                         disabled={!!busy}
                         onClick={() => action(c.provider, "POST")}
                       >
-                        Synchroniser
+                        {c.pending ? "Continuer l’import" : "Synchroniser"}
                       </button>
                       <button
                         className="button small"

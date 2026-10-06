@@ -18,6 +18,17 @@ export async function GET(
       .eq("workspace_id", workspace)
       .eq("user_id", user.id);
     databaseError(error);
+    const states = await Promise.all(
+      (connections ?? []).map(async (row) => {
+        const { data, error } = await client.rpc("connector_sync", {
+          w: workspace,
+          p: row.provider,
+          operation: "status",
+        });
+        databaseError(error);
+        return { provider: row.provider, ...data };
+      }),
+    );
     const data = Object.entries(services).map(([provider, s]) => {
       const row = connections?.find((c) => c.provider === provider);
       const missing = [
@@ -34,6 +45,8 @@ export async function GET(
             : "",
       ].filter(Boolean);
       return {
+        ...states.find((state) => state.provider === provider),
+        worker_ready: !!process.env.JOBS_SECRET,
         provider,
         name: s.name,
         configured: missing.length === 0,

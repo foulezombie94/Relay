@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { useWorkspace } from "./data-provider";
+import { Notifications } from "./notifications";
 import { AppSidebar } from "./app-sidebar";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "./ui/sidebar";
 const names: Record<string, string> = {
@@ -55,6 +56,7 @@ export function Shell({
           <span className="sb-breadcrumb-workspace">{workspace.name}</span>
           <span className="sb-breadcrumb-slash">/</span>
           <span className="sb-breadcrumb-current">{name}</span>
+          <Notifications />
           <div className="sb-topbar-privacy">
             <span />
             Espace privé<small>Europe</small>

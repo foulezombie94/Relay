@@ -169,6 +169,10 @@ export const resources = {
     definition: workflowDefinition,
     enabled: z.boolean().optional(),
   }),
+  suppressions: z.object({
+    email: z.email().toLowerCase(),
+    reason: z.string().trim().min(1).max(300),
+  }),
   sequences: z.object({
     name: text,
     steps: z
@@ -182,7 +186,7 @@ export const resources = {
       .min(1)
       .max(30),
     timezone: z.string().max(80).optional(),
-    enabled: z.literal(false).optional(),
+    enabled: z.boolean().optional(),
   }),
   portals: z.object({
     record_id: id,
@@ -244,6 +248,7 @@ export const readResources = [
   "portal_comments",
   "enrollments",
   "communications",
+  "sequence_deliveries",
   "merge_history",
   "duplicate_decisions",
 ] as const;

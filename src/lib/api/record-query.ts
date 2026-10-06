@@ -18,6 +18,27 @@ export function recordQuery(
   if (p.get("object_id"))
     query = query.eq("object_id", z.uuid().parse(p.get("object_id")));
   if (p.get("id")) query = query.eq("id", z.uuid().parse(p.get("id")));
+  if (p.get("ids"))
+    query = query.in(
+      "id",
+      z.array(z.uuid()).max(100).parse(p.get("ids")!.split(",")),
+    );
+  if (p.get("lookup")) {
+    const pattern = JSON.stringify(
+      "%" +
+        z
+          .string()
+          .max(200)
+          .parse(p.get("lookup")!.trim())
+          .replace(/[\\%_]/g, "\\$&") +
+        "%",
+    );
+    query = query.or(
+      ["display_name", "email", "domain"]
+        .map((column) => column + ".ilike." + pattern)
+        .join(","),
+    );
+  }
   if (p.get("pipeline_id"))
     query = query.eq("pipeline_id", z.uuid().parse(p.get("pipeline_id")));
   if (p.get("stage")) query = query.eq("stage", p.get("stage")!);
