@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Pagination } from "../pagination";
@@ -43,13 +44,18 @@ export function CommunicationsPage() {
         title="Messages et calendrier"
         description="Vos éléments importés restent privés à votre compte."
         action={
-          <button
-            className="button primary"
-            disabled={workspace.role === "viewer" || !mail.length}
-            onClick={() => setCompose(true)}
-          >
-            Rédiger un email
-          </button>
+          <div className="row-actions">
+            <Link className="button" href="/app/email-templates">
+              Modèles email
+            </Link>
+            <button
+              className="button primary"
+              disabled={workspace.role === "viewer" || !mail.length}
+              onClick={() => setCompose(true)}
+            >
+              Rédiger un email
+            </button>
+          </div>
         }
       />
       <div className="toolbar">

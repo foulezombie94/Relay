@@ -372,7 +372,7 @@ export function RecordsPage({ slug }: { slug: string }) {
             </select>
           </label>
           <a className="button small" href="/app/pipelines">
-            Configurer les pipelines
+            Paramètres du pipeline
           </a>
         </div>
       )}
