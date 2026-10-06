@@ -70,3 +70,9 @@ Connexions du 6 octobre : Gmail, Google Calendar, Outlook et Outlook Calendar so
 Pipelines multiples (six états, labels personnalisables), probabilités configurables et surcharge par opportunité, raisons de perte, forecast ouvert et résultats gagnés/perdus séparés par devise sont implémentés. L’historique permet des résultats mensuels et une comparaison indicative des hypothèses avec les taux observés, sans déduire les étapes manquantes ni modifier les probabilités automatiquement.
 
 Imports CSV/XLSX avec mapping, aperçu, validation, reprise atomique/idempotente et historique ; recherche globale textuelle sous RLS ; modèles email partagés et composer manuel ; centre d’aide `/doc` avec 25 guides. Les aspects sémantiques de COL04, dashboards/funnels avancés de REPORT02 et séquences automatiques restent distincts. Voir [écarts et limites](competitive-gap-analysis.md).
+
+## Lecture actuelle de la complétude
+
+Les lignes de la matrice initiale sont une photographie de la première livraison. CRM06 est désormais implémenté (pipelines, probabilités et raisons de perte). CRM08 couvre CSV/XLSX, mapping, aperçu et reprise pour l’ajout de fiches ; les migrations complètes avec relations restent distinctes. COL04 couvre la recherche globale textuelle, pas la recherche sémantique. REPORT02 couvre les prévisions et des agrégats historiques prédéfinis, pas un constructeur de dashboards et funnels.
+
+L’audit fonctionnel actualisé détaille les parcours encore partiels, notamment la pagination des modules génériques et les formulaires JSON destinés aux utilisateurs : [audit de complétude](crm-completeness-audit.md).
