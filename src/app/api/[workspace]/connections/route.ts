@@ -1,3 +1,59 @@
-import {NextRequest,NextResponse} from 'next/server';
-import {context,databaseError,fail} from '@/lib/api/context';
-export async function GET(_:NextRequest,{params}:{params:Promise<{workspace:string}>}){try{const {workspace}=await params;const {client,user}=await context(workspace);const {data:connections,error}=await client.from('integrations').select('provider,status,email,last_sync').eq('workspace_id',workspace).eq('user_id',user.id);databaseError(error);return NextResponse.json({data:[{provider:'openai',name:'OpenAI',configured:!!process.env.OPENAI_API_KEY,status:process.env.OPENAI_API_KEY?'configured':'disconnected',description:'Assistant et extraction à partir de vos sources accessibles.'},...['google','microsoft'].map(provider=>{const row=connections?.find(c=>c.provider===provider);return {provider,name:provider==='google'?'Google Workspace':'Microsoft 365',configured:!!process.env.INTEGRATION_ENCRYPTION_KEY&&(provider==='google'?!!process.env.GOOGLE_CLIENT_ID&&!!process.env.GOOGLE_CLIENT_SECRET:!!process.env.MICROSOFT_CLIENT_ID&&!!process.env.MICROSOFT_CLIENT_SECRET),status:row?.status??'disconnected',email:row?.email,last_sync:row?.last_sync,description:'Connexion OAuth, lecture des 25 derniers messages et prochains événements, envoi manuel.'};})]});}catch(e){return fail(e);}}
+import { NextRequest, NextResponse } from "next/server";
+import { context, databaseError, fail } from "@/lib/api/context";
+import {
+  services,
+  hasRequiredScopes,
+  type Service,
+} from "@/lib/integrations/services";
+export async function GET(
+  _: NextRequest,
+  { params }: { params: Promise<{ workspace: string }> },
+) {
+  try {
+    const { workspace } = await params;
+    const { client, user } = await context(workspace);
+    const { data: connections, error } = await client
+      .from("integrations")
+      .select("provider,status,email,last_sync,scopes")
+      .eq("workspace_id", workspace)
+      .eq("user_id", user.id);
+    databaseError(error);
+    const data = Object.entries(services).map(([provider, s]) => {
+      const row = connections?.find((c) => c.provider === provider);
+      const missing = [
+        !process.env.INTEGRATION_ENCRYPTION_KEY
+          ? "INTEGRATION_ENCRYPTION_KEY"
+          : "",
+        s.family === "google"
+          ? !process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET
+            ? "GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET"
+            : ""
+          : !process.env.MICROSOFT_CLIENT_ID ||
+              !process.env.MICROSOFT_CLIENT_SECRET
+            ? "MICROSOFT_CLIENT_ID / MICROSOFT_CLIENT_SECRET"
+            : "",
+      ].filter(Boolean);
+      return {
+        provider,
+        name: s.name,
+        configured: missing.length === 0,
+        missing,
+        status:
+          row?.status === "connected" &&
+          !hasRequiredScopes(provider as Service, row.scopes)
+            ? "error"
+            : (row?.status ?? "disconnected"),
+        email: row?.email,
+        last_sync: row?.last_sync,
+        description: s.description,
+        scopes: s.scopes,
+      };
+    });
+    return NextResponse.json(
+      { data },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
+  } catch (e) {
+    return fail(e);
+  }
+}

@@ -62,3 +62,5 @@ Validation ciblée du 6 octobre 2026 : build, TypeScript, six tests unitaires de
 Les filtres composés AND/OR, opérations en masse et moteur de pipelines avancé ne sont pas couverts par COMP06. Analyse détaillée et limites : [competitive-analysis.md](competitive-analysis.md).
 
 COMP04/COMP05 incluent maintenant les décisions par paire, le recalcul après modification, la confirmation liée aux versions et une annulation sous contrôle de cohérence. Une QA complète du CRM reste distincte.
+
+Connexions du 6 octobre : Gmail, Google Calendar, Outlook et Outlook Calendar sont séparés, avec OAuth PKCE, state à usage unique, jetons chiffrés et contrôle du renouvellement. Zapier dispose de clés API avec permissions, expiration, révocation, limites et idempotence. Les tests ciblés passent ; les consentements réels Google/Microsoft restent à effectuer après configuration des applications. Voir integrations.md.

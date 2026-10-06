@@ -8,7 +8,7 @@
     "start": "next start --hostname 127.0.0.1 --port 3000",
     "typecheck": "tsc --noEmit --incremental false",
     "lint": "eslint .",
-    "test": "vitest run src/lib/domain/duplicate-pairs.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false"
+    "test": "vitest run --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "1.3.11",

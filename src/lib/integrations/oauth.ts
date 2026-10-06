@@ -1,16 +1,257 @@
-import 'server-only';
-import {createCipheriv,createDecipheriv,createHash,randomBytes} from 'node:crypto';
-import {ApiError,databaseError} from '@/lib/api/context';
-import type {SupabaseClient} from '@supabase/supabase-js';
-export type Provider='google'|'microsoft';
-export function provider(value:string):Provider{if(value!=='google'&&value!=='microsoft')throw new ApiError('Fournisseur inconnu.');return value;}
-function key(){const value=process.env.INTEGRATION_ENCRYPTION_KEY;if(!value)throw new ApiError('La clé de chiffrement des intégrations manque.',503);const bytes=Buffer.from(value,'base64');if(bytes.length!==32)throw new ApiError('Clé de chiffrement invalide.',503);return bytes;}
-export function seal(data:unknown){const iv=randomBytes(12);const cipher=createCipheriv('aes-256-gcm',key(),iv);const encrypted=Buffer.concat([cipher.update(JSON.stringify(data),'utf8'),cipher.final()]);return Buffer.concat([iv,cipher.getAuthTag(),encrypted]).toString('base64url');}
-export function unseal<T>(value:string):T{const bytes=Buffer.from(value,'base64url');const decipher=createDecipheriv('aes-256-gcm',key(),bytes.subarray(0,12));decipher.setAuthTag(bytes.subarray(12,28));return JSON.parse(Buffer.concat([decipher.update(bytes.subarray(28)),decipher.final()]).toString('utf8'));}
-export function config(p:Provider){const google=p==='google';const clientId=google?process.env.GOOGLE_CLIENT_ID:process.env.MICROSOFT_CLIENT_ID;const secret=google?process.env.GOOGLE_CLIENT_SECRET:process.env.MICROSOFT_CLIENT_SECRET;if(!clientId||!secret)throw new ApiError('Configurez les identifiants OAuth de ce fournisseur.',503);return {clientId,secret,authorize:google?'https://accounts.google.com/o/oauth2/v2/auth':'https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize',token:google?'https://oauth2.googleapis.com/token':'https://login.microsoftonline.com/organizations/oauth2/v2.0/token',scope:google?'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events.readonly':'offline_access User.Read Mail.Read Mail.Send Calendars.Read',redirect:(process.env.APP_URL||'http://localhost:3000')+'/api/oauth/'+p+'/callback'};}
-export function state(){const verifier=randomBytes(32).toString('base64url');return {state:randomBytes(32).toString('base64url'),verifier,challenge:createHash('sha256').update(verifier).digest('base64url')};}
-export type Tokens={access_token:string;refresh_token?:string;expires_at:number;scope?:string;email:string};
-export async function exchange(p:Provider,fields:Record<string,string>){const c=config(p);const response=await fetch(c.token,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:c.clientId,client_secret:c.secret,...fields}),signal:AbortSignal.timeout(20000)});if(!response.ok)throw new ApiError('L’autorisation du fournisseur a expiré. Reconnectez le compte.',502);return response.json() as Promise<{access_token:string;refresh_token?:string;expires_in:number;scope?:string}>;}
-export async function connection(client:SupabaseClient,w:string,p:Provider){const {data,error}=await client.rpc('integration_get',{w,p});databaseError(error);if(!data?.encrypted_tokens)throw new ApiError('Connectez votre compte de messagerie.',409);let tokens=unseal<Tokens>(data.encrypted_tokens);if(tokens.expires_at<Date.now()+60000){if(!tokens.refresh_token)throw new ApiError('Reconnectez votre compte de messagerie.',409);const fresh=await exchange(p,{grant_type:'refresh_token',refresh_token:tokens.refresh_token});tokens={...tokens,...fresh,expires_at:Date.now()+fresh.expires_in*1000};await storeTokens(client,w,p,tokens);}return {id:data.id,tokens};}
-export async function storeTokens(client:SupabaseClient,w:string,p:Provider,tokens:Tokens){const {error}=await client.rpc('integration_save',{w,p,mail:tokens.email,encrypted:seal(tokens),permissions:(tokens.scope||'').split(' ')});databaseError(error);}
-export async function externalJson(url:string,token:string,init:RequestInit={}){const response=await fetch(url,{...init,headers:{Authorization:'Bearer '+token,...init.headers},signal:AbortSignal.timeout(20000)});if(!response.ok)throw new ApiError('Le fournisseur a refusé l’opération. Reconnectez le compte ou réessayez.',502);if(response.status===202||response.status===204)return {};return response.json();}
+import "server-only";
+import { ApiError, databaseError } from "@/lib/api/context";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
+import {
+  services,
+  serviceId,
+  hasRequiredScopes,
+  callbackOrigin,
+  type Service,
+} from "./services";
+import { seal, unseal } from "./crypto";
+export { seal, unseal, state, digest } from "./crypto";
+export type Provider = Service;
+export function provider(value: string): Service {
+  try {
+    return serviceId(value);
+  } catch {
+    throw new ApiError("Fournisseur inconnu.");
+  }
+}
+export function config(p: Service, origin?: string) {
+  const google = services[p].family === "google";
+  const clientId = google
+    ? process.env.GOOGLE_CLIENT_ID
+    : process.env.MICROSOFT_CLIENT_ID;
+  const secret = google
+    ? process.env.GOOGLE_CLIENT_SECRET
+    : process.env.MICROSOFT_CLIENT_SECRET;
+  if (!clientId || !secret)
+    throw new ApiError(
+      "Ajoutez les identifiants OAuth Google ou Microsoft dans la configuration serveur.",
+      503,
+    );
+  const tenant = process.env.MICROSOFT_TENANT || "common";
+  if (!/^(common|organizations|consumers|[0-9a-fA-F-]{36})$/.test(tenant))
+    throw new ApiError("MICROSOFT_TENANT invalide.", 503);
+  let base: string;
+  try {
+    base = callbackOrigin(
+      process.env.APP_URL,
+      origin,
+      process.env.NODE_ENV === "production",
+    );
+  } catch {
+    throw new ApiError(
+      "APP_URL doit correspondre à une origine HTTPS en production.",
+      503,
+    );
+  }
+  return {
+    clientId,
+    secret,
+    authorize: google
+      ? "https://accounts.google.com/o/oauth2/v2/auth"
+      : "https://login.microsoftonline.com/" +
+        tenant +
+        "/oauth2/v2.0/authorize",
+    token: google
+      ? "https://oauth2.googleapis.com/token"
+      : "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/token",
+    scope: services[p].scopes.join(" "),
+    redirect: base + "/api/oauth/" + p + "/callback",
+  };
+}
+export type Tokens = {
+  access_token: string;
+  refresh_token?: string;
+  expires_at: number;
+  scope: string;
+  email: string;
+};
+const tokenResponse = z.object({
+  access_token: z.string().min(1).max(20000),
+  refresh_token: z.string().min(1).max(20000).optional(),
+  expires_in: z.number().positive().max(864000),
+  scope: z.string().optional(),
+  token_type: z
+    .string()
+    .refine((t) => t.toLowerCase() === "bearer")
+    .optional(),
+});
+export async function exchange(p: Service, fields: Record<string, string>) {
+  const c = config(p);
+  let response: Response;
+  try {
+    response = await fetch(c.token, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: c.clientId,
+        client_secret: c.secret,
+        ...fields,
+      }),
+      redirect: "error",
+      cache: "no-store",
+      signal: AbortSignal.timeout(20000),
+    });
+  } catch {
+    throw new ApiError(
+      "Le fournisseur est indisponible. Réessayez la connexion.",
+      502,
+    );
+  }
+  if (!response.ok)
+    throw new ApiError(
+      "L’autorisation du fournisseur a expiré ou a été refusée. Reconnectez le compte.",
+      409,
+    );
+  const parsed = tokenResponse.safeParse(await response.json());
+  if (!parsed.success) throw new ApiError("Réponse OAuth invalide.", 502);
+  return parsed.data;
+}
+type SavedConnection = {
+  id: string;
+  encrypted_tokens: string;
+  revision: number;
+};
+async function saved(client: SupabaseClient, w: string, p: Service) {
+  const { data, error } = await client.rpc("integration_get", { w, p });
+  databaseError(error);
+  if (!data?.encrypted_tokens)
+    throw new ApiError("Connectez ce service dans les intégrations.", 409);
+  return data as SavedConnection;
+}
+export async function connection(
+  client: SupabaseClient,
+  w: string,
+  p: Service,
+) {
+  let data = await saved(client, w, p);
+  let tokens = unseal<Tokens>(data.encrypted_tokens);
+  if (!hasRequiredScopes(p, (tokens.scope || "").split(" ")))
+    throw new ApiError(
+      "Les permissions sont insuffisantes. Reconnectez ce service.",
+      409,
+    );
+  if (tokens.expires_at < Date.now() + 60000) {
+    if (!tokens.refresh_token)
+      throw new ApiError(
+        "Reconnectez ce service pour renouveler son autorisation.",
+        409,
+      );
+    const claimedRevision = data.revision;
+    const claim = await client.rpc("integration_refresh_claim", {
+      w,
+      p,
+      expected_revision: data.revision,
+    });
+    databaseError(claim.error);
+    if (!claim.data)
+      throw new ApiError(
+        "Le compte est en cours de renouvellement. Réessayez dans quelques instants.",
+        409,
+      );
+    try {
+      const fresh = await exchange(p, {
+        grant_type: "refresh_token",
+        refresh_token: tokens.refresh_token,
+        scope: config(p).scope,
+      });
+      tokens = {
+        ...tokens,
+        ...fresh,
+        refresh_token: fresh.refresh_token || tokens.refresh_token,
+        scope: fresh.scope || tokens.scope,
+        expires_at: Date.now() + fresh.expires_in * 1000,
+      };
+      if (!hasRequiredScopes(p, tokens.scope.split(" ")))
+        throw new ApiError(
+          "Les permissions ont changé. Reconnectez ce service.",
+          409,
+        );
+      const finish = await client.rpc("integration_refresh_finish", {
+        w,
+        p,
+        expected_revision: data.revision,
+        encrypted: seal(tokens),
+        permissions: tokens.scope.split(" "),
+      });
+      databaseError(finish.error);
+      if (!finish.data) {
+        data = await saved(client, w, p);
+        tokens = unseal<Tokens>(data.encrypted_tokens);
+      }
+    } finally {
+      await client.rpc("integration_refresh_finish", {
+        w,
+        p,
+        expected_revision: claimedRevision,
+        encrypted: null,
+        permissions: [],
+      });
+    }
+  }
+  return { id: data.id, tokens };
+}
+export async function storeTokens(
+  client: SupabaseClient,
+  w: string,
+  p: Service,
+  tokens: Tokens,
+  oauthHash: string,
+) {
+  const { error } = await client.rpc("integration_save", {
+    w,
+    p,
+    mail: tokens.email,
+    encrypted: seal(tokens),
+    permissions: tokens.scope.split(" "),
+    oauth_hash: oauthHash,
+  });
+  databaseError(error);
+}
+export async function externalJson(
+  url: string,
+  token: string,
+  init: RequestInit = {},
+): Promise<Record<string, any>> {
+  const parsed = new URL(url);
+  if (
+    parsed.protocol !== "https:" ||
+    ![
+      "gmail.googleapis.com",
+      "www.googleapis.com",
+      "openidconnect.googleapis.com",
+      "graph.microsoft.com",
+    ].includes(parsed.hostname)
+  )
+    throw new ApiError("Adresse fournisseur invalide.");
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...init,
+      headers: { ...init.headers, Authorization: "Bearer " + token },
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.timeout(20000),
+    });
+  } catch {
+    throw new ApiError(
+      "Le fournisseur est indisponible. Réessayez plus tard.",
+      502,
+    );
+  }
+  if (!response.ok)
+    throw new ApiError(
+      response.status === 401 || response.status === 403
+        ? "Le fournisseur a refusé l’accès. Reconnectez le service et vérifiez les permissions."
+        : response.status === 429
+          ? "Limite du fournisseur atteinte. Réessayez plus tard."
+          : "Le fournisseur a refusé l’opération.",
+      response.status === 429 ? 429 : 502,
+    );
+  if (response.status === 202 || response.status === 204) return {};
+  return response.json();
+}
