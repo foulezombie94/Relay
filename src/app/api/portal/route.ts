@@ -1,0 +1,4 @@
+import {NextRequest,NextResponse} from 'next/server';
+import {db} from '@/lib/supabase/server';
+import {ApiError,databaseError,fail} from '@/lib/api/context';
+export async function GET(_:NextRequest){try{const client=await db();const {data:{user}}=await client.auth.getUser();if(!user)throw new ApiError('Connectez-vous avec l’adresse invitée.',401);const {error:claimError}=await client.rpc('claim_invitations');databaseError(claimError);const {data:members,error}=await client.from('portal_members').select('portal_id').eq('user_id',user.id).eq('revoked',false).or('expires_at.is.null,expires_at.gt.'+new Date().toISOString());databaseError(error);if(!members?.length)return NextResponse.json({data:[]});const {data,error:pe}=await client.from('portals').select('id,name,enabled').in('id',members.map(m=>m.portal_id)).eq('enabled',true);databaseError(pe);return NextResponse.json({data});}catch(e){return fail(e);}}

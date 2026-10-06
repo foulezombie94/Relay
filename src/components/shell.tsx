@@ -1,0 +1,65 @@
+"use client";
+import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { useWorkspace } from "./data-provider";
+import { AppSidebar } from "./app-sidebar";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "./ui/sidebar";
+const names: Record<string, string> = {
+  priorities: "À traiter",
+  playbooks: "Guides d’action",
+  quality: "Qualité des données",
+  companies: "Entreprises",
+  people: "Personnes",
+  deals: "Opportunités",
+  lists: "Listes",
+  tasks: "Tâches",
+  communications: "Messages",
+  assistant: "Assistant IA",
+  meetings: "Réunions",
+  notes: "Notes",
+  workflows: "Automatisations",
+  sequences: "Séquences",
+  reports: "Rapports",
+  commitments: "Engagements",
+  conflicts: "Contradictions",
+  handovers: "Réalisation",
+  portals: "Portails clients",
+  settings: "Paramètres",
+  integrations: "Intégrations",
+  search: "Recherche",
+};
+export function Shell({
+  children,
+  defaultOpen = true,
+}: {
+  children: ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const { workspace, objects } = useWorkspace();
+  const section = usePathname().split("/")[2] ?? "";
+  const name =
+    names[section] ??
+    (section.startsWith("object-")
+      ? objects.find((o) => o.slug === section.slice(7))?.name
+      : "Liste") ??
+    "Votre espace";
+  return (
+    <SidebarProvider defaultOpen={defaultOpen}>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="sb-topbar">
+          <SidebarTrigger />
+          <span className="sb-topbar-divider" />
+          <span className="sb-breadcrumb-workspace">{workspace.name}</span>
+          <span className="sb-breadcrumb-slash">/</span>
+          <span className="sb-breadcrumb-current">{name}</span>
+          <div className="sb-topbar-privacy">
+            <span />
+            Espace privé<small>Europe</small>
+          </div>
+        </header>
+        <main className="page-content">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
