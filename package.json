@@ -5,6 +5,7 @@
   "scripts": {
     "worker": "node --conditions=react-server --import tsx scripts/worker.mts",
     "test:jobs": "vitest run src/lib/jobs/types.test.ts src/lib/jobs/runner.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false",
+    "test:worker": "vitest run src/lib/jobs/types.test.ts src/lib/jobs/runner.test.ts src/lib/api/xlsx-budget.test.ts src/lib/observability/logger.test.ts src/lib/domain/sales-history.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false",
     "test:queue": "node --env-file=.env.local --conditions=react-server --import tsx scripts/tests/job-queue.mts",
     "dev": "next dev --webpack --hostname 127.0.0.1 --port 3000",
     "build": "next build --webpack",

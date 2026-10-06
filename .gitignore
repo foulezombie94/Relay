@@ -21,3 +21,4 @@ work-node-probe.txt
 src/components/write-status.txt
 
 work-integration-patch.sql
+.next-check-*/

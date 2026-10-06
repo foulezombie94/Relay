@@ -25,9 +25,12 @@ export function resourceQuery(
   p: URLSearchParams,
   user: string,
 ) {
+  const columns: string = resource === "audit_events" && !p.get("id")
+    ? "id,workspace_id,actor_id,entity,entity_id,action,created_at,private_to"
+    : "*";
   let query = client
     .from(resource)
-    .select("*", { count: "exact" })
+    .select(columns, { count: "exact" })
     .eq("workspace_id", workspace);
   for (const key of [
     "id",

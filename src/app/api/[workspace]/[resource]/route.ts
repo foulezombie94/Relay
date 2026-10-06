@@ -42,7 +42,8 @@ export async function GET(request: NextRequest, { params }: Params) {
       resource,
       p,
       user.id,
-    ).range(page * size, (page + 1) * size - 1);
+    ).range(page * size, (page + 1) * size - 1)
+      .overrideTypes<(Record<string, unknown> & { record_id?: string | null })[], { merge: false }>();
     databaseError(error);
     const ids = [
       ...new Set((data ?? []).map((row) => row.record_id).filter(Boolean)),

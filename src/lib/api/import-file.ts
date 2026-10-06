@@ -1,13 +1,16 @@
 import "server-only";
 import { csvTable, type ImportTable } from "@/lib/domain/imports";
+import { checkXlsxBudget } from "./xlsx-budget";
 export async function readImportFile(file: File): Promise<ImportTable> {
   if (file.size > 5 * 1024 * 1024) throw new Error("Fichier limité à 5 Mo.");
   if (/\.csv$/i.test(file.name)) return csvTable(await file.text());
   if (!/\.xlsx$/i.test(file.name))
     throw new Error("Choisissez un fichier CSV ou Excel .xlsx.");
+  const data = Buffer.from(await file.arrayBuffer());
+  await checkXlsxBudget(data);
   const ExcelJS = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(await file.arrayBuffer());
+  await workbook.xlsx.load(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer);
   const sheet = workbook.worksheets[0];
   if (!sheet) throw new Error("Classeur sans feuille.");
   if (sheet.rowCount > 1001 || sheet.columnCount > 100)

@@ -40,7 +40,7 @@ Les invitations sont enregistrées ; partagez le lien de connexion manuellement.
 
 `schema.sql`, `operations.sql`, `finishing.sql`, `integrations.sql`, `communications.sql`, `crm-improvements.sql` et `merge-consistency.sql` ont déjà été appliqués au projet duhnmyxpxizxbxlhbtzs via la CLI et l’API de gestion Supabase. Les migrations `20261006095630_duplicate_decisions_and_undo.sql` et `20261006102036_secure_service_connections.sql` sont également appliquées.
 
-Les copies dans `supabase/migrations` permettent d’initialiser une nouvelle base. L’historique du projet existant n’a pas été réconcilié : réconciliez-le avant `db push` et ne rejouez pas les migrations initiales sur cette base.
+Les copies dans `supabase/migrations` permettent d’initialiser une nouvelle base. L'historique du projet existant a été réconcilié le 6 octobre 2026 après contrôle des tables et fonctions déjà présentes. Les anciennes migrations sont enregistrées comme appliquées, sans rejouer leur DDL ; les noms/version des fichiers correspondent à Supabase. Les corrections worker/imports/audit et l'isolation des admissions sont également appliquées. Utiliser `supabase db push --dry-run` avant de pousser une future migration ; ne pas rejouer les migrations initiales.
 
 Les requêtes utilisent la session et les politiques RLS. Les sauvegardes de restauration contenant du contexte privé restent dans `relay_private`, inaccessible aux utilisateurs ordinaires. Les secrets ne sont jamais importés par les composants client.
 
@@ -62,7 +62,7 @@ Les exports sont synchrones. Les workers, files de tâches volumineuses, mesures
 
 ## Ajouts commerciaux du 6 octobre 2026
 
-Migration `20261006113312_commercial_workflow_foundations.sql` appliquée au projet existant. L’ancien historique de migrations reste à réconcilier avant un `db push`.
+Migration `20261006113312_commercial_workflow_foundations.sql` appliquée au projet existant. L'ancien historique est maintenant réconcilié par `20261006175108_reconcile_existing_migration_history.sql`.
 
 Contrôles ciblés : 13 tests de calcul/import/modèles/historique, 10 contrôles SQL transactionnels (RLS, notes privées, import atomique et idempotent, versions et rôles), fixtures annulées avec ROLLBACK. Aucun email de test envoyé. À la demande de l’utilisateur, les pages de cette dernière évolution ne sont pas vérifiées dans le navigateur.
 

@@ -10,13 +10,19 @@ Jobs, payloads, événements et heartbeats sont dans `relay_private`, sans accè
 
 ## Garanties et limites
 
-La prise est atomique avec `FOR UPDATE SKIP LOCKED`. Un token UUID protège chaque résultat ; le verrou est renouvelé toutes les 45 secondes et expire après trois minutes. Un worker traite un job à la fois, plusieurs réplicas peuvent partager la queue. Le scheduler déduplique les échéances toutes les quinze secondes.
+La prise est atomique avec `FOR UPDATE SKIP LOCKED`. Un token UUID protège chaque résultat ; le verrou est renouvelé toutes les 45 secondes et expire après trois minutes. Un worker traite un job à la fois, plusieurs réplicas peuvent partager la queue. Le scheduler tourne indépendamment du job courant, toutes les 60 secondes. Postgres sérialise les schedulers et limite chaque ensemble de types à un passage par minute. Les types de connecteurs sont filtrés avant la limite de lot.
 
-Les erreurs temporaires ont jusqu’à cinq tentatives avec délai exponentiel et aléa, plafonné à environ une heure. Les erreurs permanentes terminent dans `dead`. Un arrêt brutal entraîne la reprise après expiration du verrou. Les heures non ouvrées reportent un envoi sans consommer les tentatives.
+À vide, le polling recule de 5 à 30 secondes ; après un job, la prise suivante reste immédiate. Avec un réplica inactif, l'ordre de grandeur passe de 25–26 milliers à environ 7 800 RPC par jour (claims, scheduler et heartbeats), soit environ 70 % de moins. C'est une estimation arithmétique, pas une mesure de facturation. Une nouvelle demande peut attendre environ 30 secondes avant sa prise. Les RPC serveur ont un timeout réseau de 30 secondes ; il ne remplace pas les limites SQL.
+
+Les erreurs temporaires ont jusqu’à cinq tentatives avec délai exponentiel et aléa. Le plafond du délai est d'environ une heure ; avec cinq tentatives par défaut, les délais effectifs restent de l'ordre des minutes. Les erreurs permanentes terminent dans `dead`. Un arrêt brutal entraîne la reprise après expiration du verrou. Les heures non ouvrées reportent un envoi sans consommer les tentatives. Une séquence en pause ou désactivée met son job en `paused`, sans boucle de claims ; le scheduler reprend le même job quand sa source redevient éligible.
 
 Les effets d’un import/workflow et la validation de son job sont dans la même transaction. La synchronisation réutilise les upserts et le curseur durable. Les séquences conservent une clé unique `(enrollment_id,step)` et marquent `sending` avant l’appel fournisseur. Un envoi incertain n’est jamais renvoyé automatiquement : vérifier la boîte d’envoi. Il n’y a pas de garantie de livraison ni d’exactement un envoi chez le fournisseur.
 
-Les imports restent limités à 5 Mo / 1 000 lignes. La file interactive accepte au plus 200 jobs en attente par espace et 30 nouveaux jobs par minute/utilisateur. Les payloads réussis sont effacés immédiatement, ceux en échec après sept jours ; les métadonnées sont supprimées après trente jours. Les historiques métier gardent leurs propres règles de rétention.
+Les imports restent limités à 5 Mo / 1 000 lignes. Excel est contrôlé avant parsing : 256 entrées ZIP maximum, 8 Mo par entrée et 20 Mo décompressés au total, avec vérification des tailles réelles. Le RPC d'import valide aussi les limites JSON (4 Mo au total, mapping 64 Ko, erreurs 1 Mo) et 30 nouvelles exécutions par minute/utilisateur/espace. L'historique d'import est écrit uniquement par la transaction d'import, jamais directement par le client.
+
+La file accepte au plus 200 jobs `queued`, `running` ou `paused` par espace, y compris ceux du scheduler. Les admissions interactives conservent le plafond de 30/minute/utilisateur. Un compte au plafond est sauté par le scheduler sans annuler les jobs des autres espaces. Les rappels ne sont programmés que si une notification manque ; le cron historique `relay-due-reminders` est désactivé pour éviter un deuxième producteur.
+
+Les payloads réussis sont effacés immédiatement, ceux en échec après sept jours. Le nettoyage horaire traite jusqu'à 500 jobs par passage et efface les jobs terminés de plus de trente jours avec leurs événements. À forte charge, surveiller le retard de nettoyage : ce débit limité ne constitue pas une suppression à heure exacte. Les audits métier et historiques d'import n'ont pas de purge automatique ; fixer leur durée de conservation avant une exploitation prolongée. Les snapshots d'audit excluent les vecteurs de recherche et les mises à jour sans changement métier, mais gardent les champs de forecast. Les audits d'invitations aux portails sont réservés aux admins/propriétaires ; les notes privées restent réservées à leur auteur. Le rôle serveur reste capable de modifier l'audit : ce n'est pas un journal WORM.
 
 ## Local
 
@@ -33,6 +39,8 @@ Le worker charge `.env.local` uniquement s’il existe. Sur Railway, il lit les 
 
 Sur ce runtime Windows, les anciens dossiers Next ont des droits insuffisants et le verrou SWC échoue : les nouveaux fichiers utilisent `.next-local` et `.next-build`, avec `experimental.lockDistDir` désactivé uniquement sous Windows. Ne pas lancer plusieurs builds dans le même répertoire. Vercel utilise `.next`, conformément à `vercel.json`. Le verrou natif reste actif sous Linux.
 
+Si un ancien cache Windows refuse son nettoyage (`EPERM`), définir `RELAY_BUILD_DIR=.next-check-NOM` pour construire dans un dossier neuf, ignoré par Git. Ce réglage local ne change pas le dossier `.next` de Vercel.
+
 ## Vercel
 
 1. Importer le dépôt Relay ; choisir `relay-crm` si le dépôt contient un dossier parent.
@@ -48,7 +56,7 @@ Sur ce runtime Windows, les anciens dossiers Next ont des droits insuffisants et
 1. Créer un service depuis le même dépôt, avec `railway.json` et `Dockerfile.worker`.
 2. Choisir une région européenne proche de Supabase dans les paramètres du service.
 3. Renseigner `deploy/worker.env.example`. La clé serveur Supabase et le chiffrement OAuth doivent correspondre au web. Ne pas changer la clé de chiffrement sans migration des tokens existants.
-4. Railway fournit `PORT` ; le worker écoute `0.0.0.0`. Le health check `/healthz` répond 200 si le heartbeat Supabase a réussi depuis moins de 90 secondes. `/metrics` nécessite un Bearer `WORKER_METRICS_SECRET` et expose uniquement des compteurs.
+4. Railway fournit `PORT` ; le worker écoute `0.0.0.0`. Le health check `/healthz` répond 200 si le heartbeat Supabase a réussi depuis moins de 90 secondes et si la boucle de traitement a progressé depuis moins de 15 minutes. Il ne prouve pas l'absence de backlog. `/metrics` nécessite un Bearer `WORKER_METRICS_SECRET` et expose uniquement des compteurs.
 5. Commencer avec un réplica. Séparer ensuite les traitements en services via `WORKER_JOB_TYPES` (ex. `email_sync,calendar_sync` et `imports,workflow_run,notifications`). Augmenter les réplicas après observation des quotas fournisseurs et de la queue.
 
 Le conteneur utilise l’utilisateur non privilégié `node` et ne contient aucun `.env`. Les séquences sont désactivées par défaut : pour les activer, ajouter `sequence_send` aux types du worker et `FEATURE_SEQUENCE_SEND=true` sur web + worker. Il faut toujours HTTPS, confirmation, compte connecté et lien de désinscription.
@@ -61,17 +69,17 @@ Configurer `SENTRY_DSN` sur web + worker et `NEXT_PUBLIC_SENTRY_DSN` sur le web.
 
 La collecte des utilisateurs, cookies, headers, corps HTTP, paramètres d’URL, données SQL/IA et variables locales est désactivée. Un filtre efface également les contextes de requête et les valeurs d’exception. Les logs structurés contiennent des codes d’événements, types/IDs de jobs, durées et tentatives ; aucun contenu CRM, email ou token OAuth.
 
-Créer une source Better Stack et renseigner `BETTER_STACK_SOURCE_TOKEN` et son URL HTTPS `BETTER_STACK_INGEST_URL`. L’ingestion Bearer a un timeout de deux secondes ; une panne de supervision ne bloque pas les jobs. Ajouter un moniteur pour `/api/health` et `/healthz` (si le worker a un domaine public). Alerter sur l’absence de heartbeat, l’âge des jobs et les échecs permanents. Le health check de déploiement Railway ne remplace pas une surveillance continue.
+Créer une source Better Stack et renseigner `BETTER_STACK_SOURCE_TOKEN` et son URL HTTPS `BETTER_STACK_INGEST_URL`. L'ingestion Bearer a un timeout de deux secondes. Le worker ne l'attend pas pour traiter un job et limite les requêtes de logs simultanées à huit ; en saturation, des copies distantes sont abandonnées, les logs de la plateforme restent présents. Sur le web, l'ingestion reste attendue dans le traitement différé des erreurs. Ajouter un moniteur pour `/api/health` et `/healthz` (si le worker a un domaine public). Alerter sur l’absence de heartbeat, l’âge des jobs et les échecs permanents. Le health check de déploiement Railway ne remplace pas une surveillance continue.
 
 Choisir la région et les modalités de traitement adaptées à l’hébergement européen dans chaque service.
 
 ## Migrations et vérifications
 
-Les migrations `scalable_job_runtime`, `job_queue_operational_indexes` et `connector_lease_renewal` sont versionnées dans `supabase/migrations`. Ne pas lancer un `db push` aveugle tant que l’historique initial décrit dans README n’a pas été réconcilié.
+Les migrations sont versionnées dans `supabase/migrations`, avec des versions correspondant à l'historique Supabase. `reconcile_existing_migration_history` a vérifié les objets existants puis enregistré les neuf anciennes migrations appliquées avant le suivi de l'historique, sans rejouer leurs instructions. Vérifier `supabase db push --dry-run` avant une nouvelle migration ; aucune migration initiale ne doit être rejouée sur ce projet.
 
 ```sh
 npm run typecheck
-npm run test:jobs
+npm run test:worker
 # Définir SUPABASE_DB_URL avec TLS vérifié :
 npm run test:queue
 ```
