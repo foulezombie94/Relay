@@ -199,6 +199,7 @@ export default function Home() {
           <a href="#methode">Notre approche</a>
         </nav>
         <div className={styles.headerActions}>
+          <Link className={styles.login} href="/doc" aria-label="Doc — Guide utilisateur">Doc</Link>
           <Link className={styles.login} href="/login">
             Se connecter
           </Link>
