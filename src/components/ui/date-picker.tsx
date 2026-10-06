@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import * as Select from "@radix-ui/react-select";
 import { DayPicker } from "react-day-picker";
@@ -87,6 +87,7 @@ export function DatePicker({
   disabled?: boolean;
 }) {
   const headingId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const [selected, setSelected] = useState<Date | undefined>(() => {
     const parsed = defaultValue ? parseISO(defaultValue) : undefined;
     return parsed && isValid(parsed) ? parsed : undefined;
@@ -130,6 +131,7 @@ export function DatePicker({
       <Popover.Trigger asChild>
         <button
           type="button"
+          ref={triggerRef}
           className={`${styles.trigger} ${selected ? "" : styles.empty}`}
           disabled={disabled}
           aria-label={`${label} : ${display}`}
@@ -140,10 +142,18 @@ export function DatePicker({
           <ChevronDown size={14} />
         </button>
       </Popover.Trigger>
-      <Popover.Portal>
+      <Popover.Portal
+        container={
+          triggerRef.current?.closest<HTMLElement>("[role=dialog]") ?? undefined
+        }
+      >
         <Popover.Content
           sideOffset={8}
           collisionPadding={14}
+          collisionBoundary={
+            triggerRef.current?.closest<HTMLElement>("[role=dialog]") ??
+            undefined
+          }
           align="start"
           className={styles.content}
           aria-labelledby={headingId}
@@ -184,7 +194,6 @@ export function DatePicker({
             weekStartsOn={1}
             fixedWeeks
             showOutsideDays
-            autoFocus
             month={month}
             onMonthChange={setMonth}
             selected={selected}

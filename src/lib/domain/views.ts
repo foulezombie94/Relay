@@ -1,5 +1,6 @@
 import { z } from "zod";
 export const viewConfigSchema = z.object({
+  layout: z.enum(["table", "cards", "kanban"]).optional(),
   search: z.string().max(300).default(""),
   stage: z.string().max(80).default(""),
   owner: z.union([z.uuid(), z.enum(["", "me", "unassigned"])]).default(""),
@@ -39,4 +40,15 @@ export function defaultView(deals = false): ViewConfig {
 export function normalizeView(value: unknown, deals = false) {
   const parsed = viewConfigSchema.safeParse(value);
   return parsed.success ? parsed.data : defaultView(deals);
+}
+
+export function defaultRecordView(slug: string): ViewConfig {
+  const view = defaultView(slug === "deals");
+  view.layout =
+    slug === "deals" ? "kanban" : slug === "companies" ? "cards" : "table";
+  if (slug === "companies") view.columns = ["display_name", "domain", "email"];
+  if (slug === "people") view.columns = ["display_name", "email"];
+  if (slug === "deals")
+    view.columns = ["display_name", "amount", "stage", "close_date"];
+  return view;
 }

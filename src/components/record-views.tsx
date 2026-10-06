@@ -2,7 +2,11 @@
 import { useState } from "react";
 import { useRows, useSave, useWorkspace } from "./data-provider";
 import { Editor, ErrorMessage, type Field, str } from "./ui";
-import { normalizeView, type ViewConfig } from "@/lib/domain/views";
+import {
+  defaultRecordView,
+  normalizeView,
+  type ViewConfig,
+} from "@/lib/domain/views";
 import type { ObjectDefinition, Attribute } from "@/lib/domain/types";
 import { stages } from "@/lib/domain/types";
 export function RecordViews({
@@ -30,16 +34,24 @@ export function RecordViews({
   const current = views.data?.data.find((v) => v.id === selected);
   const modified =
     current &&
-    (JSON.stringify(normalizeView(current.config, object.slug === "deals")) !==
-      JSON.stringify(config) ||
-      current.type !== mode);
+    (JSON.stringify({
+      ...normalizeView(current.config, object.slug === "deals"),
+      layout: mode,
+    }) !== JSON.stringify({ ...config, layout: mode }) ||
+      (normalizeView(current.config, object.slug === "deals").layout ??
+        current.type) !== mode);
+  const salesFields = !object.standard || object.slug === "deals";
   const columns = [
     { key: "display_name", label: "Nom" },
     { key: "email", label: "Email" },
     { key: "domain", label: "Site" },
-    { key: "amount", label: "Montant" },
-    { key: "stage", label: "Étape" },
-    { key: "close_date", label: "Clôture" },
+    ...(salesFields
+      ? [
+          { key: "amount", label: "Montant" },
+          { key: "stage", label: "Étape" },
+          { key: "close_date", label: "Clôture" },
+        ]
+      : []),
     ...attributes.map((a) => ({ key: "attr_" + a.key, label: a.name })),
   ];
   const field: Field = {
@@ -56,22 +68,28 @@ export function RecordViews({
           onChange={(e) => {
             setSelected(e.target.value);
             const row = views.data?.data.find((v) => v.id === e.target.value);
-            const loaded = normalizeView(row?.config, object.slug === "deals");
+            const loaded = row
+              ? normalizeView(row.config, object.slug === "deals")
+              : defaultRecordView(object.slug);
             const allowed = new Set([
               "display_name",
               "email",
               "domain",
-              "amount",
-              "stage",
-              "close_date",
+              ...(salesFields ? ["amount", "stage", "close_date"] : []),
               ...attributes.map((a) => "attr_" + a.key),
             ]);
             const visible = loaded.columns.filter((c) => allowed.has(c));
             onChange({
               ...loaded,
+              stage: salesFields ? loaded.stage : "",
+              minimum: salesFields ? loaded.minimum : "",
+              sort:
+                !salesFields && loaded.sort === "amount"
+                  ? "updated_at"
+                  : loaded.sort,
               columns: visible.length ? visible : ["display_name"],
             });
-            onMode(str(row?.type) || "table");
+            onMode(loaded.layout ?? (str(row?.type) || "table"));
           }}
         >
           <option value="">Vue personnalisée</option>
@@ -81,16 +99,18 @@ export function RecordViews({
             </option>
           ))}
         </select>
-        <select
-          aria-label="Filtrer par étape"
-          value={config.stage}
-          onChange={(e) => onChange({ ...config, stage: e.target.value })}
-        >
-          <option value="">Toutes les étapes</option>
-          {stages.map((s) => (
-            <option key={s}>{s}</option>
-          ))}
-        </select>
+        {salesFields && (
+          <select
+            aria-label="Filtrer par étape"
+            value={config.stage}
+            onChange={(e) => onChange({ ...config, stage: e.target.value })}
+          >
+            <option value="">Toutes les étapes</option>
+            {stages.map((s) => (
+              <option key={s}>{s}</option>
+            ))}
+          </select>
+        )}
         <select
           aria-label="Filtrer par responsable"
           value={config.owner}
@@ -116,7 +136,7 @@ export function RecordViews({
             updated_at: "Dernière modification",
             created_at: "Création",
             display_name: "Nom",
-            amount: "Montant",
+            ...(salesFields ? { amount: "Montant" } : {}),
           }).map(([value, label]) => (
             <option key={value} value={value}>
               {label}
@@ -134,15 +154,17 @@ export function RecordViews({
         >
           {config.direction === "asc" ? "Croissant ↑" : "Décroissant ↓"}
         </button>
-        <input
-          aria-label="Montant minimum"
-          type="number"
-          min={0}
-          step=".01"
-          placeholder="Montant minimum"
-          value={config.minimum}
-          onChange={(e) => onChange({ ...config, minimum: e.target.value })}
-        />
+        {salesFields && (
+          <input
+            aria-label="Montant minimum"
+            type="number"
+            min={0}
+            step=".01"
+            placeholder="Montant minimum"
+            value={config.minimum}
+            onChange={(e) => onChange({ ...config, minimum: e.target.value })}
+          />
+        )}
         <details className="column-picker">
           <summary className="button small">Colonnes</summary>
           <div>
@@ -225,8 +247,8 @@ export function RecordViews({
               {
                 ...v,
                 ...(!updating ? { object_id: object.id } : {}),
-                type: mode,
-                config,
+                type: mode === "cards" ? "table" : mode,
+                config: { ...config, layout: mode },
               },
               updating ? current : undefined,
             );

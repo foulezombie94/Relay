@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { RecordViews } from "../record-views";
-import { defaultView, type ViewConfig } from "@/lib/domain/views";
+import { defaultRecordView, type ViewConfig } from "@/lib/domain/views";
 import { request, useRows, useSave, useWorkspace } from "../data-provider";
 import {
   PageHeader,
@@ -20,8 +20,12 @@ import {
   type Field,
 } from "../ui";
 import { RecordDetails } from "./record-details";
+import { RecordBoard } from "../record-board";
+import { RecordDirectory } from "../record-directory";
 import type { CrmRecord, Attribute } from "@/lib/domain/types";
 import { stages } from "@/lib/domain/types";
+import { Building2, Users, Layers3 } from "lucide-react";
+import styles from "./records.module.css";
 export function RecordsPage({ slug }: { slug: string }) {
   const { objects, workspace } = useWorkspace();
   const object = objects.find((o) => o.slug === slug);
@@ -29,16 +33,64 @@ export function RecordsPage({ slug }: { slug: string }) {
   const url = useSearchParams();
   const linkedId = url.get("record");
   const [page, setPage] = useState(1);
-  const [view, setView] = useState<ViewConfig>(() =>
-    defaultView(slug === "deals"),
-  );
+  const [view, setView] = useState<ViewConfig>(() => defaultRecordView(slug));
   useEffect(() => {
-    setView(defaultView(slug === "deals"));
+    setView(defaultRecordView(slug));
     setPage(1);
-    setMode("table");
+    setMode(
+      slug === "deals" ? "kanban" : slug === "companies" ? "cards" : "table",
+    );
   }, [slug, workspace.id]);
+  const pageContent = {
+    companies: {
+      description:
+        "Vos comptes clients et prospects, avec leur contexte et leurs coordonnées.",
+      action: "Nouvelle entreprise",
+      single: "entreprise",
+      plural: "entreprises",
+      name: "Nom de l’entreprise",
+      icon: Building2,
+    },
+    people: {
+      description:
+        "Les personnes avec qui vous échangez. Retrouvez leurs coordonnées et le fil de la relation.",
+      action: "Nouvelle personne",
+      single: "personne",
+      plural: "personnes",
+      name: "Nom complet",
+      icon: Users,
+    },
+    deals: {
+      description:
+        "Votre pipeline commercial, de la qualification à la signature.",
+      action: "Nouvelle opportunité",
+      single: "opportunité",
+      plural: "opportunités",
+      name: "Nom de l’opportunité",
+      icon: Layers3,
+    },
+  }[slug] ?? {
+    description: "Vos fiches et leur contexte, dans un espace commun.",
+    action: "Nouvelle fiche",
+    single: "fiche",
+    plural: "fiches",
+    name: "Nom",
+    icon: Layers3,
+  };
+  const PageIcon = pageContent.icon;
   const search = view.search;
-  const [mode, setMode] = useState("table");
+  const [mode, setMode] = useState(
+    slug === "deals" ? "kanban" : slug === "companies" ? "cards" : "table",
+  );
+  function chooseMode(value: string) {
+    const next = value === "kanban" && slug !== "deals" ? "cards" : value;
+    setMode(next);
+    setView((current) => ({
+      ...current,
+      layout: next as ViewConfig["layout"],
+    }));
+  }
+  const [newStage, setNewStage] = useState("Nouveau");
   const [edit, setEdit] = useState<CrmRecord | true | null>(null);
   const [detail, setDetail] = useState<CrmRecord | null>(null);
   const linked = useQuery({
@@ -92,7 +144,7 @@ export function RecordsPage({ slug }: { slug: string }) {
   });
   const { save, busy } = useSave();
   const fields: Field[] = [
-    { key: "display_name", label: "Nom", required: true },
+    { key: "display_name", label: pageContent.name, required: true },
     { key: "email", label: "Email", type: "email" },
     { key: "domain", label: "Site internet" },
     {
@@ -132,11 +184,13 @@ export function RecordsPage({ slug }: { slug: string }) {
               ? "select"
               : a.type === "date"
                 ? "date"
-                : a.type === "email"
-                  ? "email"
-                  : a.type === "multi_select"
-                    ? "json"
-                    : "text",
+                : a.type === "datetime"
+                  ? "datetime-local"
+                  : a.type === "email"
+                    ? "email"
+                    : a.type === "multi_select"
+                      ? "json"
+                      : "text",
       options: (a.options ?? []).map((v) => ({ value: v, label: v })),
     });
   if (!object) return <Loading />;
@@ -153,17 +207,64 @@ export function RecordsPage({ slug }: { slug: string }) {
   });
   return (
     <>
-      <PageHeader
-        title={object.name}
-        description="Toutes vos relations, dans un espace commun."
-        action={
-          <AddButton
-            label="Nouvelle fiche"
-            disabled={workspace.role === "viewer"}
-            onClick={() => setEdit(true)}
-          />
-        }
-      />
+      <div className={`${styles.pageHeading} ${styles[slug] ?? ""}`}>
+        <span className={styles.pageIcon}>
+          <PageIcon size={24} strokeWidth={1.6} />
+        </span>
+        <PageHeader
+          title={object.name}
+          description={pageContent.description}
+          action={
+            <AddButton
+              label={pageContent.action}
+              disabled={workspace.role === "viewer"}
+              onClick={() => {
+                setNewStage("Nouveau");
+                setEdit(true);
+              }}
+            />
+          }
+        />
+      </div>
+      <div className={styles.quickViews} role="group" aria-label="Vues rapides">
+        {[
+          {
+            value: "",
+            label:
+              slug === "deals"
+                ? "Toutes les opportunités"
+                : slug === "people"
+                  ? "Tous les contacts"
+                  : slug === "companies"
+                    ? "Toutes les entreprises"
+                    : "Toutes les fiches",
+          },
+          {
+            value: "me",
+            label:
+              slug === "deals"
+                ? "Mon pipeline"
+                : slug === "people"
+                  ? "Mes contacts"
+                  : slug === "companies"
+                    ? "Mes comptes"
+                    : "Mes fiches",
+          },
+          { value: "unassigned", label: "Sans responsable" },
+        ].map((item) => (
+          <button
+            key={item.value}
+            type="button"
+            aria-pressed={view.owner === item.value}
+            onClick={() => {
+              setView((current) => ({ ...current, owner: item.value }));
+              setPage(1);
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
       <div className="toolbar">
         <SearchBox
           value={search}
@@ -172,20 +273,31 @@ export function RecordsPage({ slug }: { slug: string }) {
             setPage(1);
           }}
         />
-        <span className="pill">{q.data?.count ?? 0} fiches</span>
+        <span className="pill">
+          {q.data?.count ?? 0} {pageContent.plural}
+        </span>
         <div className="segmented">
           <button
             className={mode === "table" ? "active" : ""}
-            onClick={() => setMode("table")}
+            onClick={() => chooseMode("table")}
           >
             Tableau
           </button>
-          <button
-            className={mode === "kanban" ? "active" : ""}
-            onClick={() => setMode("kanban")}
-          >
-            Kanban
-          </button>
+          {slug === "deals" ? (
+            <button
+              className={mode === "kanban" ? "active" : ""}
+              onClick={() => chooseMode("kanban")}
+            >
+              Pipeline
+            </button>
+          ) : (
+            <button
+              className={mode === "cards" ? "active" : ""}
+              onClick={() => chooseMode("cards")}
+            >
+              Répertoire
+            </button>
+          )}
         </div>
         <a
           className="button small"
@@ -237,7 +349,7 @@ export function RecordsPage({ slug }: { slug: string }) {
         attributes={custom}
         config={view}
         mode={mode}
-        onMode={setMode}
+        onMode={chooseMode}
         onChange={(value) => {
           setView(value);
           setPage(1);
@@ -258,56 +370,59 @@ export function RecordsPage({ slug }: { slug: string }) {
         )}
       {q.isPending ? (
         <Loading />
-      ) : rows.length === 0 ? (
-        <Empty />
+      ) : rows.length === 0 && mode !== "kanban" ? (
+        <Empty
+          title={`Aucune ${pageContent.single} pour le moment`}
+          description={
+            slug === "companies"
+              ? "Ajoutez une entreprise pour centraliser le suivi de ce compte."
+              : slug === "people"
+                ? "Ajoutez un contact pour retrouver vos échanges et ses coordonnées."
+                : "Ajoutez votre première opportunité pour suivre sa progression."
+          }
+          action={
+            <AddButton
+              label={pageContent.action}
+              disabled={workspace.role === "viewer"}
+              onClick={() => {
+                setNewStage("Nouveau");
+                setEdit(true);
+              }}
+            />
+          }
+        />
+      ) : mode === "cards" ? (
+        <RecordDirectory
+          rows={rows}
+          members={members.data?.data ?? []}
+          slug={slug}
+          onOpen={setDetail}
+        />
       ) : mode === "kanban" ? (
-        <div className="kanban">
-          {stages.map((stage) => (
-            <section className="kanban-column" key={stage}>
-              <div className="column-heading">
-                <Badge value={stage} />
-                <span>{rows.filter((r) => r.stage === stage).length}</span>
-              </div>
-              {rows
-                .filter((r) => r.stage === stage)
-                .map((r) => (
-                  <article
-                    className="deal-card"
-                    key={r.id}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (
-                        e.target === e.currentTarget &&
-                        (e.key === "Enter" || e.key === " ")
-                      ) {
-                        e.preventDefault();
-                        setDetail(r);
-                      }
-                    }}
-                    onClick={() => setDetail(r)}
-                  >
-                    <strong>{r.display_name}</strong>
-                    <p>{money(r.amount, r.currency || "EUR")}</p>
-                    <select
-                      aria-label="Changer l’étape"
-                      value={r.stage}
-                      disabled={workspace.role === "viewer"}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) =>
-                        save("records", { stage: e.target.value }, r).catch(
-                          () => {},
-                        )
-                      }
-                    >
-                      {stages.map((s) => (
-                        <option key={s}>{s}</option>
-                      ))}
-                    </select>
-                  </article>
-                ))}
-            </section>
-          ))}
-        </div>
+        <RecordBoard
+          rows={rows}
+          members={members.data?.data ?? []}
+          readonly={workspace.role === "viewer"}
+          busy={busy}
+          onOpen={setDetail}
+          onCreate={(stage) => {
+            setNewStage(stage);
+            setEdit(true);
+          }}
+          onMove={async (record, stage) => {
+            setError("");
+            try {
+              await save("records", { stage }, record);
+            } catch (err) {
+              setError(
+                err instanceof Error
+                  ? err.message
+                  : "Changement d’étape impossible.",
+              );
+              throw err;
+            }
+          }}
+        />
       ) : (
         <div className="table-wrap">
           <table className="data-table">
@@ -339,6 +454,7 @@ export function RecordsPage({ slug }: { slug: string }) {
                   tabIndex={0}
                   aria-label={"Ouvrir " + r.display_name}
                   onKeyDown={(e) => {
+                    if (e.target !== e.currentTarget) return;
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       setDetail(r);
@@ -349,7 +465,12 @@ export function RecordsPage({ slug }: { slug: string }) {
                   {view.columns.map((key) => (
                     <td key={key}>
                       {key === "display_name" ? (
-                        <span className="name-cell">
+                        <span
+                          className={
+                            "name-cell " +
+                            (slug === "people" ? styles.personName : "")
+                          }
+                        >
                           <Avatar name={r.display_name} />
                           <strong>{r.display_name}</strong>
                         </span>
@@ -371,7 +492,12 @@ export function RecordsPage({ slug }: { slug: string }) {
         </div>
       )}
       <div className="pagination">
-        <span>Page {page} · Kanban limité à la page affichée</span>
+        <span>
+          Page {page}
+          {mode === "kanban"
+            ? " · Pipeline limité aux 50 résultats de cette page"
+            : ""}
+        </span>
         <button
           className="button small"
           disabled={page === 1}
@@ -392,11 +518,15 @@ export function RecordsPage({ slug }: { slug: string }) {
           key={edit === true ? "new" : edit.id}
           open
           onClose={() => setEdit(null)}
-          title={edit === true ? "Nouvelle fiche" : "Modifier la fiche"}
+          title={
+            edit === true
+              ? pageContent.action
+              : "Modifier · " + edit.display_name
+          }
           fields={fields}
           initial={
             edit === true
-              ? { currency: workspace.currency, stage: "Nouveau" }
+              ? { currency: workspace.currency, stage: newStage }
               : {
                   ...edit,
                   ...Object.fromEntries(

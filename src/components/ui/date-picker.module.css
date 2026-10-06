@@ -42,6 +42,9 @@
 .content {
   width: 324px;
   max-width: calc(100vw - 28px);
+  max-height: var(--radix-popover-content-available-height);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 18px;
   background: white;
   border: 1px solid #e3e8f1;

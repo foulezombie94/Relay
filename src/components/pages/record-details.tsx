@@ -6,7 +6,6 @@ import {
   Editor,
   Empty,
   Badge,
-  money,
   str,
   date,
   Loading,
@@ -14,6 +13,7 @@ import {
   type Field,
 } from "../ui";
 import { RecordContextPanel } from "../record-context";
+import { RecordSummary } from "../record-summary";
 import type { CrmRecord, Row } from "@/lib/domain/types";
 const names: Record<string, string> = {
   timeline: "Contexte",
@@ -41,9 +41,12 @@ export function RecordDetails({
   return (
     <Drawer open onClose={onClose} title={record.display_name}>
       <div className="detail-card">
-        <Badge value={record.stage} />
-        <p>{record.email || record.domain || "Pas de coordonnées"}</p>
-        <h2>{money(record.amount, record.currency)}</h2>
+        <RecordSummary
+          record={record}
+          onTasks={() => setTab("tasks")}
+          onCommitments={() => setTab("commitments")}
+          onRelations={() => setTab("relations")}
+        />
         <div className="row-actions">
           <button className="button small" disabled={readonly} onClick={onEdit}>
             Modifier
