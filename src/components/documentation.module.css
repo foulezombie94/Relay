@@ -224,3 +224,20 @@
     gap: 15px;
   }
 }
+
+.resultCount {
+  font-size: 13px;
+  color: #607491;
+  margin-bottom: 22px;
+}
+.search:focus-within {
+  outline: 2px solid #4169e1;
+  outline-offset: 2px;
+}
+.search input {
+  min-width: 0;
+  width: 100%;
+}
+.section li {
+  margin-bottom: 8px;
+}

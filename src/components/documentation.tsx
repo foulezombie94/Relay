@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { BookOpen, ArrowRight, Search } from "lucide-react";
 import { helpArticles } from "@/lib/docs";
 import styles from "./documentation.module.css";
 export function Documentation() {
   const params = useSearchParams();
+  const router = useRouter();
   const [term, setTerm] = useState("");
   const article = helpArticles.find((a) => a.id === params.get("article"));
   const normalize = (s: string) =>
@@ -16,11 +17,15 @@ export function Documentation() {
       .toLowerCase();
   const filtered = helpArticles.filter((a) =>
     normalize(
-      a.title +
+      a.category +
+        " " +
+        a.title +
         " " +
         a.description +
         " " +
-        a.sections.map((s) => s.paragraphs.join(" ")).join(" "),
+        a.sections
+          .map((s) => [s.title, ...s.paragraphs, ...(s.steps ?? [])].join(" "))
+          .join(" "),
     ).includes(normalize(term)),
   );
   const categories = [...new Set(helpArticles.map((a) => a.category))];
@@ -29,10 +34,12 @@ export function Documentation() {
       <header className={styles.header}>
         <Link href="/" className="brand">
           <span className="brand-mark">r</span>relay{" "}
-          <small>Documentation</small>
+          <small>Guide utilisateur</small>
         </Link>
         <nav>
-          <Link href="/doc">Tous les guides</Link>
+          <Link href="/doc" onNavigate={() => setTerm("")}>
+            Tous les guides
+          </Link>
           <Link className="button primary" href="/app/companies">
             Ouvrir Relay <ArrowRight size={14} />
           </Link>
@@ -43,10 +50,13 @@ export function Documentation() {
           <label className={styles.search}>
             <Search size={16} />
             <input
-              aria-label="Rechercher dans la documentation"
+              aria-label="Rechercher dans les guides"
               placeholder="Rechercher un guide…"
               value={term}
-              onChange={(e) => setTerm(e.target.value)}
+              onChange={(e) => {
+                setTerm(e.target.value);
+                if (article) router.replace("/doc", { scroll: false });
+              }}
             />
           </label>
           {categories.map((category) => (
@@ -57,6 +67,7 @@ export function Documentation() {
                 .map((a) => (
                   <Link
                     key={a.id}
+                    onNavigate={() => setTerm("")}
                     href={"/doc?article=" + a.id}
                     aria-current={article?.id === a.id ? "page" : undefined}
                   >
@@ -68,9 +79,13 @@ export function Documentation() {
           {!filtered.length && <p>Aucun guide trouvé.</p>}
         </aside>
         <main className={styles.main}>
-          {article && !term ? (
+          {article ? (
             <>
-              <Link className={styles.back} href="/doc">
+              <Link
+                className={styles.back}
+                href="/doc"
+                onNavigate={() => setTerm("")}
+              >
                 ← Tous les guides
               </Link>
               <span className={styles.category}>{article.category}</span>
@@ -117,17 +132,42 @@ export function Documentation() {
                 <BookOpen size={14} /> CENTRE D’AIDE RELAY
               </span>
               <h1>
-                Moins de questions.
+                Le guide de votre CRM.
                 <br />
-                Plus de contexte.
+                Une action à la fois.
               </h1>
               <p className={styles.lead}>
                 Des guides concrets pour organiser vos relations, suivre vos
                 ventes et travailler avec votre équipe.
               </p>
+              <p role="status" className={styles.resultCount}>
+                {term
+                  ? filtered.length + " guide(s) pour « " + term + " »"
+                  : helpArticles.length +
+                    " guides pour utiliser Relay au quotidien"}
+              </p>
+              {!filtered.length && (
+                <div className={styles.contents}>
+                  <p>
+                    Aucun guide ne correspond à votre recherche. Essayez «
+                    contact », « importer », « email » ou « vente ».
+                  </p>
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() => setTerm("")}
+                  >
+                    Afficher tous les guides
+                  </button>
+                </div>
+              )}
               <div className={styles.cards}>
                 {filtered.map((a) => (
-                  <Link href={"/doc?article=" + a.id} key={a.id}>
+                  <Link
+                    onNavigate={() => setTerm("")}
+                    href={"/doc?article=" + a.id}
+                    key={a.id}
+                  >
                     <small>{a.category}</small>
                     <h2>{a.title}</h2>
                     <p>{a.description}</p>

@@ -239,11 +239,11 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               render={<Link href="/doc">{null}</Link>}
-              tooltip="Documentation"
+              tooltip="Guide utilisateur"
               onClick={close}
             >
               <BookOpen size={18} />
-              <span>Documentation</span>
+              <span>Guide utilisateur</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

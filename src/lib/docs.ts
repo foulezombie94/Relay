@@ -15,20 +15,33 @@ export const helpArticles: HelpArticle[] = [
     href: "/login",
     sections: [
       {
-        title: "Votre compte",
+        title: "Créer votre compte",
         paragraphs: [
-          "Créez votre compte depuis Connexion. Si la confirmation email est activée, ouvrez le lien reçu avant de vous connecter. La récupération de mot de passe est disponible sur la même page.",
+          "Relay organise votre travail dans un espace qui regroupe les contacts et les ventes de votre équipe.",
         ],
         steps: [
-          "Créer et confirmer votre compte.",
-          "Nommer votre espace de travail.",
-          "Ajouter une entreprise, une personne et une opportunité.",
+          "Depuis Connexion, choisissez l’inscription.",
+          "Renseignez votre email et votre mot de passe.",
+          "Si une confirmation est demandée, ouvrez le lien reçu par email ; vérifiez les courriers indésirables.",
+          "Connectez-vous, nommez votre entreprise puis choisissez Créer mon espace.",
         ],
       },
       {
-        title: "Votre équipe",
+        title: "Commencer avec trois fiches",
         paragraphs: [
-          "Dans Paramètres, les administrateurs peuvent inviter des membres et choisir leur rôle. Le propriétaire et les administrateurs configurent le CRM ; les membres travaillent sur les données ; les lecteurs ne peuvent pas les modifier. Les invitations se partagent manuellement : Relay ne les envoie pas automatiquement par email.",
+          "Créez une entreprise pour le compte client, une personne pour votre interlocuteur et une opportunité pour la vente. Reliez-les depuis Relations dans une fiche. Ajoutez ensuite une tâche avec échéance pour la prochaine action.",
+        ],
+      },
+      {
+        title: "Changer d’espace",
+        paragraphs: [
+          "Le menu du nom de l’espace permet de passer d’un espace à un autre. Chaque espace possède ses propres fiches ; changer d’espace ne déplace pas vos contacts.",
+        ],
+      },
+      {
+        title: "Mot de passe oublié ou invitation",
+        paragraphs: [
+          "Utilisez la récupération du mot de passe depuis Connexion et ouvrez le lien reçu. Si vous êtes invité, utilisez exactement l’adresse invitée et confirmez-la avant de rejoindre l’équipe.",
         ],
       },
     ],
@@ -74,28 +87,40 @@ export const helpArticles: HelpArticle[] = [
     href: "/app/people",
     sections: [
       {
-        title: "Préparer le fichier",
+        title: "Préparer votre fichier",
         paragraphs: [
-          "Le fichier doit avoir une première ligne avec des noms de colonnes uniques. Formats acceptés : CSV et Excel .xlsx. Limites : 5 Mo, 1 000 lignes et 100 colonnes. Excel utilise uniquement la première feuille ; remplacez les formules par leurs valeurs.",
+          "Utilisez CSV ou Excel .xlsx, jusqu’à 5 Mo, 1 000 lignes de données et 100 colonnes. La première ligne doit contenir des intitulés uniques. Excel utilise uniquement la première feuille ; remplacez les formules par leurs valeurs.",
+        ],
+      },
+      {
+        title: "Associer les colonnes",
+        paragraphs: [
+          "Prévoyez une colonne Nom et vérifiez les correspondances proposées. Ignorez les colonnes inutiles.",
         ],
         steps: [
-          "Ouvrir Personnes, Entreprises ou Opportunités.",
-          "Cliquer sur Importer CSV / Excel.",
-          "Associer chaque colonne à un champ Relay, notamment le nom.",
-          "Choisir le format décimal et la politique de doublons.",
-          "Vérifier les lignes, puis confirmer l’import.",
+          "Ouvrez Personnes, Entreprises ou Opportunités selon le contenu.",
+          "Choisissez Importer CSV / Excel puis votre fichier.",
+          "Associez chaque colonne au champ correspondant, notamment le nom.",
+          "Choisissez le format décimal : virgule pour 1 234,56 ou point pour 1,234.56.",
+          "Choisissez la politique de doublons et lancez l’aperçu.",
         ],
       },
       {
-        title: "Erreurs et doublons",
+        title: "Examiner les erreurs",
         paragraphs: [
-          "La vérification n’écrit aucune fiche. Les lignes invalides sont détaillées et téléchargeables. Vous pouvez corriger le fichier ou accepter explicitement d’importer seulement les lignes valides. Les personnes sont rapprochées par email, les entreprises par domaine ; les opportunités ne sont pas rapprochées par leur nom. Aucune fiche existante n’est écrasée.",
+          "L’aperçu ne crée aucune fiche. Téléchargez la liste d’erreurs si besoin. Vérifiez les dates, les devises comme EUR et la raison des ventes Perdues. Corrigez le fichier ou acceptez explicitement de n’importer que les lignes valides.",
         ],
       },
       {
-        title: "Reprise et historique",
+        title: "Décider pour les doublons",
         paragraphs: [
-          "L’écriture des fiches et du journal est transactionnelle : une erreur de base annule l’ensemble de cette tentative. Réessayer le même fichier avec les mêmes paramètres restitue l’import déjà enregistré. L’historique affiche les quantités créées, les doublons ignorés et les erreurs.",
+          "Les personnes sont rapprochées par email, les entreprises par domaine. Les ventes ne sont pas rapprochées par leur nom. Vous pouvez ignorer les doublons ou créer les lignes puis examiner les rapprochements dans Qualité des données. Aucune fiche existante n’est écrasée.",
+        ],
+      },
+      {
+        title: "Confirmer et retrouver l’import",
+        paragraphs: [
+          "Relisez l’aperçu puis confirmez. Le résultat et l’historique indiquent créations, doublons ignorés et erreurs. Si une erreur empêche l’enregistrement, cette tentative n’ajoute pas seulement une partie des fiches. Réessayer le même fichier avec les mêmes réglages retrouve l’import déjà terminé.",
         ],
       },
     ],
@@ -110,7 +135,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Configurer un pipeline",
         paragraphs: [
-          "Le pipeline principal est créé avec l’espace. Les propriétaires et administrateurs peuvent créer d’autres pipelines et renommer leurs six étapes. Nouveau, Qualification, Proposition, Négociation, Gagné et Perdu restent les états de référence pour les règles internes.",
+          "Le pipeline principal est créé avec l’espace. Les propriétaires et administrateurs peuvent créer d’autres pipelines et renommer les six étapes pour adapter le cycle de vente.",
         ],
         steps: [
           "Ouvrir Pipelines et créer ou configurer un pipeline.",
@@ -140,21 +165,39 @@ export const helpArticles: HelpArticle[] = [
     href: "/app/reports",
     sections: [
       {
-        title: "Les quatre valeurs",
+        title: "Distinguer les quatre montants",
         paragraphs: [
-          "Pipeline ouvert : somme des ventes qui ne sont ni gagnées ni perdues. Prévision pondérée : somme du montant de chaque vente ouverte multiplié par sa probabilité. Ventes gagnées : somme des opportunités gagnées. Ventes perdues : valeur des opportunités perdues. Il ne s’agit pas d’un suivi de facturation ni d’une garantie de revenu.",
+          "Pipeline ouvert : valeur brute des ventes en cours. Forecast pondéré : montant de chaque vente en cours multiplié par son pourcentage. Gagné : valeur des ventes conclues. Perdu : valeur des ventes abandonnées. Chaque devise reste séparée.",
         ],
       },
       {
-        title: "Périodes et devises",
+        title: "Un exemple de forecast",
         paragraphs: [
-          "Les clôtures attendues utilisent la date prévue de chaque opportunité ouverte. Sans date, la vente apparaît dans une ligne distincte. Chaque devise a son propre rapport ; Relay n’additionne pas euros et dollars et ne fait pas de conversion. Les filtres portent sur le pipeline et le responsable. Le mois sélectionné filtre uniquement les résultats gagnés/perdus, à partir du dernier passage effectif au statut actuel dans le journal (UTC). Les montants sont les valeurs actuelles des fiches. Une vente sans date d’issue fiable est exclue du total mensuel et signalée. La date prévue ne sert jamais de date réelle de signature.",
+          "Une vente de 1 000 € à 25 % et une vente de 4 000 € à 50 % donnent 2 250 € de forecast ouvert. Les ventes gagnées ou perdues restent dans leurs propres montants et ne s’ajoutent pas à ces 2 250 €.",
         ],
       },
       {
-        title: "Portée",
+        title: "Sélectionner vos résultats",
         paragraphs: [
-          "Les rapports parcourent toutes les opportunités accessibles correspondant aux filtres, jusqu’à 50 000 lignes. Le pipeline visuel, lui, présente les 50 résultats de la page courante ; ses sommes concernent cette page. Les tâches du rapport sont filtrées par responsable, tous pipelines confondus. La comparaison des probabilités configurées avec les taux observés utilise les ventes actuellement clôturées, ayant traversé l’étape dans leur pipeline actuel. Une vente compte une seule fois par étape ; les ventes ouvertes et les étapes non observées sont exclues. Moins de 20 ventes résolues est signalé comme échantillon faible. Cette comparaison descriptive ne modifie jamais automatiquement les probabilités. Au-delà de 100 000 événements du journal, les métriques historiques ne sont pas affichées avec des données partielles.",
+          "Le mois concerne les ventes gagnées ou perdues. Les clôtures attendues utilisent les dates prévues des ventes encore ouvertes.",
+        ],
+        steps: [
+          "Ouvrez Rapports.",
+          "Choisissez un pipeline et un responsable, ou toute l’équipe.",
+          "Choisissez le mois et l’année des résultats.",
+          "Consultez séparément les devises et les clôtures attendues.",
+        ],
+      },
+      {
+        title: "Comparer aux taux historiques",
+        paragraphs: [
+          "Le taux observé compare les ventes gagnées aux ventes gagnées et perdues qui ont réellement traversé une étape du pipeline actuel. Les ventes ouvertes sont exclues. Les effectifs sont affichés ; moins de 20 ventes est signalé comme un échantillon faible. Cette comparaison ne change pas vos pourcentages.",
+        ],
+      },
+      {
+        title: "Comprendre les périodes",
+        paragraphs: [
+          "Les résultats utilisent le dernier passage enregistré au statut actuel, avec des périodes calculées en UTC, et les montants actuels des fiches. Les anciennes ventes sans date fiable sont signalées. Les fiches archivées sont exclues. Les tâches sont filtrées par responsable, tous pipelines confondus. Le rapport n’est pas un suivi des factures ou encaissements.",
         ],
       },
     ],
@@ -180,7 +223,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Droits et limites",
         paragraphs: [
-          "Vos droits sont vérifiés à chaque recherche. Les notes privées d’un autre membre restent exclues. Au maximum 25 résultats sont affichés par catégorie ; les comptes complets vous indiquent quand affiner votre recherche. Il s’agit d’une recherche textuelle indexée, pas d’une recherche sémantique.",
+          "Vos droits sont vérifiés à chaque recherche. Les notes privées d’un autre membre restent exclues. Au maximum 25 résultats sont affichés par catégorie ; les comptes complets vous indiquent quand affiner votre recherche. Essayez un mot présent dans le contenu plutôt qu’une question complète.",
         ],
       },
     ],
@@ -226,21 +269,39 @@ export const helpArticles: HelpArticle[] = [
     href: "/app/integrations",
     sections: [
       {
-        title: "Connecter un service",
+        title: "Choisir le service",
         paragraphs: [
-          "Chaque service dispose d’un consentement séparé : Gmail, Google Calendar, Outlook et Outlook Calendar. Utilisez Connecter dans Intégrations, acceptez les permissions puis revenez dans Relay. Les messages et événements importés restent privés au compte connecté.",
+          "Gmail et Google Calendar se connectent séparément. Outlook et Outlook Calendar aussi. La connexion de la messagerie n’autorise donc pas automatiquement le calendrier.",
         ],
       },
       {
-        title: "Synchroniser",
+        title: "Connecter un compte",
         paragraphs: [
-          "Synchroniser effectue un import manuel de 25 messages ou événements maximum. Les calendriers sont en lecture seule. Le logiciel n’annonce pas de synchronisation complète en arrière-plan.",
+          "Les messages et événements importés restent privés au compte connecté.",
+        ],
+        steps: [
+          "Ouvrez Intégrations et choisissez Connecter sur le service.",
+          "Sélectionnez votre compte Google ou Microsoft et acceptez les permissions.",
+          "Revenez dans Relay et vérifiez le compte affiché.",
+          "Choisissez Synchroniser puis consultez Messages.",
         ],
       },
       {
-        title: "Résoudre les erreurs",
+        title: "Comprendre la synchronisation",
         paragraphs: [
-          "Accès refusé par Google en mode test : l’administrateur doit ajouter votre compte aux utilisateurs de test du projet OAuth. API Gmail ou Calendar désactivée : activez le service correspondant dans Google Cloud. Permissions insuffisantes ou consentement expiré : reconnectez le service. Relay affiche les erreurs connues sans révéler les jetons. La déconnexion locale ne remplace pas la révocation du consentement chez le fournisseur.",
+          "Chaque import manuel contient jusqu’à 25 messages ou événements. Les événements concernent les 30 prochains jours. Les calendriers sont en lecture seule : Relay ne modifie pas vos rendez-vous et ne réalise pas de synchronisation complète en arrière-plan.",
+        ],
+      },
+      {
+        title: "Résoudre un refus",
+        paragraphs: [
+          "Si Google indique que Relay est en test, demandez à l’administrateur d’autoriser votre adresse. Si les permissions sont refusées ou expirées, reconnectez le service. Si le problème persiste, transmettez le service, l’heure et le message affiché à votre administrateur.",
+        ],
+      },
+      {
+        title: "Déconnecter",
+        paragraphs: [
+          "Utilisez Déconnecter pour arrêter l’utilisation du compte dans Relay. Vous pouvez aussi retirer l’autorisation depuis votre compte Google ou Microsoft ; la déconnexion dans Relay ne remplace pas cette action.",
         ],
       },
     ],
@@ -261,34 +322,573 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Fusion et restauration",
         paragraphs: [
-          "Fusionner exige un aperçu et une confirmation. Les versions des fiches sont vérifiées et la modification se fait dans une transaction. Un journal conserve la fusion. L’annulation est réservée aux administrateurs ; si les données ont changé depuis la fusion, une restauration pouvant écraser ces changements est refusée.",
+          "Fusionner exige un aperçu et une confirmation. Relay vérifie que les fiches n’ont pas changé et conserve la fusion dans un historique. L’annulation est réservée aux administrateurs ; si les données ont changé depuis la fusion, une restauration pouvant écraser ces changements est refusée.",
         ],
       },
     ],
   },
   {
     id: "securite",
-    category: "Administration",
-    title: "Rôles et données privées",
+    category: "Votre équipe",
+    title: "Inviter l’équipe et choisir les droits",
     description: "Qui peut voir, modifier et partager votre contexte.",
     href: "/app/settings",
     sections: [
       {
-        title: "Isolation des espaces",
+        title: "Comprendre les rôles",
         paragraphs: [
-          "Chaque ressource appartient à un espace et les règles de la base limitent l’accès à ses membres. Les lecteurs consultent sans modifier. La configuration des pipelines est réservée aux propriétaires et administrateurs. Une note privée n’est visible que par son auteur ; une communication synchronisée reste privée au compte connecté.",
+          "Le propriétaire et les administrateurs configurent l’espace, les pipelines et les accès. Les membres travaillent sur les données. Les lecteurs consultent sans modifier. Les libellés owner, admin, member et viewer correspondent à ces quatre rôles.",
         ],
       },
       {
-        title: "Partage client",
+        title: "Inviter votre équipe",
         paragraphs: [
-          "Un portail client montre uniquement les éléments explicitement partagés avec ce portail. Les accès se rattachent à une adresse vérifiée. Les liens temporaires de fichiers expirent après 60 secondes ; retirer un accès n’annule pas rétroactivement un lien déjà émis avant cette expiration.",
+          "Les invitations ne sont pas envoyées automatiquement par email.",
+        ],
+        steps: [
+          "Dans Paramètres, ouvrez Équipe puis Inviter.",
+          "Renseignez l’adresse exacte et choisissez un rôle.",
+          "Enregistrez puis partagez le lien de connexion avec la personne.",
+          "Demandez-lui de créer un compte avec cette adresse et de la confirmer.",
+          "Vérifiez son apparition dans la liste des membres.",
         ],
       },
       {
-        title: "Configuration technique",
+        title: "Modifier les droits",
         paragraphs: [
-          "L’hébergement public nécessite HTTPS, les variables serveur, les callbacks OAuth et la configuration Supabase. Les secrets ne doivent jamais être placés dans une URL, une page publique ou le code client. Les clés Zapier peuvent être limitées et révoquées dans Intégrations. Relay n’annonce pas de certification Enterprise, de SSO SAML ou de capacité de charge mesurée.",
+          "Un administrateur peut changer le rôle d’un membre dans Équipe. Le rôle du propriétaire n’est pas modifiable dans ce sélecteur. Choisissez Lecteur pour une personne qui doit seulement consulter.",
+        ],
+      },
+      {
+        title: "Respecter les données privées",
+        paragraphs: [
+          "Une note privée reste visible par son auteur. Les messages et événements importés restent privés au compte connecté. Les clients consultent seulement les éléments explicitement ajoutés à leur portail.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "vues",
+    category: "Votre CRM",
+    title: "Filtrer, enregistrer une vue et exporter",
+    description: "Retrouver vos sélections sans recommencer vos filtres.",
+    href: "/app/people",
+    sections: [
+      {
+        title: "Préparer une sélection",
+        paragraphs: [
+          "Utilisez la recherche, le tri, les filtres disponibles et le choix des colonnes. Pour vos opportunités, sélectionnez aussi un pipeline.",
+        ],
+      },
+      {
+        title: "Enregistrer une vue",
+        paragraphs: [
+          "Une vue mémorise votre présentation et vos critères : elle ne copie pas les fiches.",
+        ],
+        steps: [
+          "Réglez les filtres et les colonnes utiles.",
+          "Enregistrez la vue avec un nom clair, par exemple « Mes prospects ».",
+          "Retrouvez-la dans le sélecteur des vues.",
+          "Modifiez ou supprimez la vue si votre organisation change.",
+        ],
+      },
+      {
+        title: "Exporter",
+        paragraphs: [
+          "L’export CSV reprend vos filtres. Vérifiez la sélection avant le téléchargement. Les montants du tableau ou du pipeline visuel concernent la page affichée ; utilisez Rapports pour les totaux de toutes les ventes sélectionnées.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "listes",
+    category: "Votre CRM",
+    title: "Créer une liste de contacts ou d’entreprises",
+    description: "Regrouper explicitement des fiches existantes.",
+    href: "/app/lists",
+    sections: [
+      {
+        title: "Liste ou vue ?",
+        paragraphs: [
+          "Une liste contient les fiches que vous ajoutez vous-même. Une vue sélectionne des résultats selon des filtres. Une liste convient par exemple aux entreprises rencontrées lors d’un événement.",
+        ],
+      },
+      {
+        title: "Remplir votre liste",
+        paragraphs: ["Choisissez le type de fiches concerné."],
+        steps: [
+          "Ouvrez Listes et ajoutez une liste.",
+          "Nommez-la et choisissez son type de fiches.",
+          "Ouvrez la liste puis ajoutez une fiche existante.",
+          "Répétez pour les autres contacts de votre sélection.",
+        ],
+      },
+      {
+        title: "Retirer et partager",
+        paragraphs: [
+          "Retirer de la liste ne supprime pas la fiche du CRM. Une liste privée est réservée à son propriétaire ; une liste partagée est consultable par l’équipe autorisée.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "opportunites",
+    category: "Ventes",
+    title: "Suivre une opportunité jusqu’à sa clôture",
+    description:
+      "Préparer la prochaine action et documenter l’issue de la vente.",
+    href: "/app/deals",
+    sections: [
+      {
+        title: "Créer votre vente",
+        paragraphs: [
+          "Renseignez le nom, le pipeline, l’étape, le montant, la devise, le responsable et la clôture prévue. Reliez l’entreprise et vos interlocuteurs depuis la fiche.",
+        ],
+        steps: [
+          "Ouvrez Opportunités et ajoutez une vente.",
+          "Choisissez son pipeline et sa première étape.",
+          "Enregistrez puis reliez le contact et l’entreprise.",
+          "Ajoutez une tâche avec une échéance pour la prochaine action.",
+        ],
+      },
+      {
+        title: "Faire avancer le dossier",
+        paragraphs: [
+          "Changez l’étape depuis le tableau ou le pipeline. Ajustez la date prévue lorsque le calendrier change. Un changement d’étape ne crée pas automatiquement une relance.",
+        ],
+      },
+      {
+        title: "Gagner, perdre ou rouvrir",
+        paragraphs: [
+          "Gagné signifie que la vente est conclue. Perdu demande une raison, par exemple Budget ou Projet reporté. Ces ventes sortent du forecast ouvert. Si le dossier reprend, vous pouvez le replacer dans une étape ouverte ; sa prochaine clôture aura une nouvelle date de résultat.",
+        ],
+      },
+      {
+        title: "Préparer la livraison",
+        paragraphs: [
+          "Après une vente gagnée, créez son dossier dans Réalisation pour reprendre les engagements retenus et les critères de réussite.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "taches",
+    category: "Travail quotidien",
+    title: "Créer des tâches et suivre vos prochaines actions",
+    description: "Attribuer une action, une échéance et une priorité.",
+    href: "/app/tasks",
+    sections: [
+      {
+        title: "Créer une tâche",
+        paragraphs: [
+          "Choisissez un titre qui décrit l’action à faire, par exemple « Confirmer le budget avec le contact ».",
+        ],
+        steps: [
+          "Ouvrez Tâches puis le bouton d’ajout.",
+          "Renseignez le titre, la description, l’échéance et la priorité.",
+          "Choisissez un responsable et la fiche concernée si nécessaire.",
+          "Enregistrez la tâche.",
+        ],
+      },
+      {
+        title: "Suivre l’avancement",
+        paragraphs: [
+          "Passez à En cours quand le travail commence, Réalisé lorsqu’il est terminé ou Annulé s’il n’est plus nécessaire. Une échéance n’entraîne pas l’envoi automatique d’un email de rappel.",
+        ],
+      },
+      {
+        title: "Choisir quoi traiter",
+        paragraphs: [
+          "À traiter rassemble des priorités expliquées, notamment à partir des retards et prochaines actions. Ouvrez la fiche liée pour vérifier le contexte. Le score organise votre travail ; il ne prédit pas une vente.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "notes",
+    category: "Travail quotidien",
+    title: "Écrire une note et choisir sa visibilité",
+    description: "Conserver un compte rendu privé ou partagé avec l’équipe.",
+    href: "/app/notes",
+    sections: [
+      {
+        title: "Ajouter une note",
+        paragraphs: [
+          "Une note conserve une décision, un échange ou une information utile.",
+        ],
+        steps: [
+          "Ouvrez Notes et ajoutez une note.",
+          "Renseignez son titre et son contenu.",
+          "Reliez la fiche concernée.",
+          "Vérifiez l’option de confidentialité puis enregistrez.",
+        ],
+      },
+      {
+        title: "Choisir la confidentialité",
+        paragraphs: [
+          "Une note privée reste visible par son auteur. Une note partagée est accessible aux membres autorisés de l’espace. Vérifiez ce choix avant d’ajouter une information confidentielle.",
+        ],
+      },
+      {
+        title: "Retrouver et corriger",
+        paragraphs: [
+          "La recherche globale retrouve le contenu des notes que vous pouvez lire. Si Relay signale que la note a changé pendant votre édition, rechargez-la avant de reprendre votre correction.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "documents",
+    category: "Travail quotidien",
+    title: "Joindre et partager des documents",
+    description:
+      "Rassembler devis, comptes rendus et livrables dans une fiche.",
+    href: "/app/companies",
+    sections: [
+      {
+        title: "Ajouter un fichier",
+        paragraphs: ["Les documents se gèrent depuis la fiche concernée."],
+        steps: [
+          "Ouvrez la personne, l’entreprise ou l’opportunité.",
+          "Accédez à ses documents et choisissez le fichier.",
+          "Vérifiez le nom et attendez la confirmation de l’ajout.",
+          "Ouvrez le document depuis la fiche pour le consulter.",
+        ],
+      },
+      {
+        title: "Vérifier le fichier",
+        paragraphs: [
+          "Chaque fichier est limité à 20 Mo. Les formats acceptés comprennent PDF, texte, CSV, Excel .xlsx et images PNG ou JPEG. Si l’ajout échoue, vérifiez le format et la taille.",
+        ],
+      },
+      {
+        title: "Partager avec un client",
+        paragraphs: [
+          "Joindre un fichier à une fiche ne le publie pas automatiquement. Ajoutez un élément dans le portail client et sélectionnez explicitement le document. Si un lien a expiré, rouvrez le fichier dans Relay pour obtenir un lien à jour.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "reunions",
+    category: "Communication",
+    title: "Conserver un compte rendu de réunion",
+    description: "Rattacher un résumé et une transcription à votre client.",
+    href: "/app/meetings",
+    sections: [
+      {
+        title: "Ajouter le compte rendu",
+        paragraphs: [
+          "Relay conserve les informations que vous ajoutez. Il ne rejoint pas vos appels et ne les enregistre pas automatiquement.",
+        ],
+        steps: [
+          "Ouvrez Réunions et ajoutez un compte rendu.",
+          "Renseignez le titre, le résumé et les informations disponibles.",
+          "Ajoutez la transcription si vous en disposez.",
+          "Reliez la fiche concernée puis enregistrez.",
+        ],
+      },
+      {
+        title: "Préparer la suite",
+        paragraphs: [
+          "Créez des tâches pour les prochaines actions et des engagements pour les promesses. Conservez le passage qui confirme une promesse pour pouvoir la retrouver.",
+        ],
+      },
+      {
+        title: "Retrouver une réunion",
+        paragraphs: [
+          "La recherche globale couvre le titre et le résumé. Choisissez un titre explicite pour distinguer premier rendez-vous, négociation et suivi.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "engagements",
+    category: "Suivi client",
+    title: "Suivre les engagements et leurs preuves",
+    description: "Passer d’une promesse à une réalisation vérifiable.",
+    href: "/app/commitments",
+    sections: [
+      {
+        title: "Créer une promesse précise",
+        paragraphs: [
+          "Décrivez ce qui a été promis, son échéance et sa source.",
+        ],
+        steps: [
+          "Ouvrez Engagements et ajoutez un engagement.",
+          "Renseignez la promesse, le responsable et la fiche concernée.",
+          "Ajoutez le passage source et la date attendue.",
+          "Choisissez À confirmer si la promesse doit encore être validée.",
+        ],
+      },
+      {
+        title: "Confirmer et réaliser",
+        paragraphs: [
+          "Passez à Confirmé lorsque l’équipe reconnaît la promesse puis à En cours pendant sa réalisation. Pour passer à Réalisé, ajoutez une preuve : livraison effectuée, livrable ou confirmation du client. Sans preuve, la clôture est refusée.",
+        ],
+      },
+      {
+        title: "Reporter ou annuler",
+        paragraphs: [
+          "Mettez à jour le statut et l’échéance si la promesse change. Conservez une note expliquant la décision. Le changement dans Relay n’informe pas automatiquement le client : prévenez-le si nécessaire.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "contradictions",
+    category: "Suivi client",
+    title: "Examiner des informations contradictoires",
+    description: "Comparer deux sources et conserver votre décision.",
+    href: "/app/conflicts",
+    sections: [
+      {
+        title: "Documenter le désaccord",
+        paragraphs: [
+          "Une contradiction peut concerner deux dates de livraison ou deux montants différents. Renseignez le sujet, la fiche et les deux passages sources.",
+        ],
+      },
+      {
+        title: "Décider avec le contexte",
+        paragraphs: ["Relay ne décide pas quelle source est correcte."],
+        steps: [
+          "Ouvrez Contradictions et lisez les deux informations.",
+          "Vérifiez leur date et leur contexte dans la fiche client.",
+          "Clarifiez avec le responsable ou le client.",
+          "Renseignez la résolution et choisissez Résolu ou Écarté.",
+        ],
+      },
+      {
+        title: "Mettre à jour le suivi",
+        paragraphs: [
+          "Corrigez ensuite les fiches, tâches ou engagements concernés. Résoudre un dossier ne corrige pas automatiquement les autres informations et ne remplace pas un échange avec le client.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "realisation",
+    category: "Suivi client",
+    title: "Préparer la réalisation d’une vente gagnée",
+    description: "Transmettre les engagements, le périmètre et les jalons.",
+    href: "/app/handovers",
+    sections: [
+      {
+        title: "Créer au bon moment",
+        paragraphs: [
+          "Le dossier de réalisation nécessite une opportunité Gagnée. Il reprend les engagements retenus au moment de sa création.",
+        ],
+      },
+      {
+        title: "Préparer la transmission",
+        paragraphs: ["Relisez les promesses avant de créer le dossier."],
+        steps: [
+          "Ouvrez l’opportunité et vérifiez son statut Gagné.",
+          "Vérifiez ses engagements confirmés ou en cours.",
+          "Ouvrez Réalisation et créez le dossier lié à cette vente.",
+          "Renseignez le périmètre accepté, les exclusions et les jalons, puis suivez le statut du dossier.",
+        ],
+      },
+      {
+        title: "Suivre les nouvelles promesses",
+        paragraphs: [
+          "Le dossier conserve les engagements repris à sa création. Si d’autres promesses apparaissent ensuite, vérifiez-les avec l’équipe et actualisez votre suivi ; ne supposez pas que le dossier s’est mis à jour seul.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "portails",
+    category: "Suivi client",
+    title: "Partager un portail avec votre client",
+    description: "Choisir les informations visibles et les accès autorisés.",
+    href: "/app/portals",
+    sections: [
+      {
+        title: "Créer et remplir le portail",
+        paragraphs: [
+          "Un portail affiche les actualités, étapes, décisions et documents que vous y ajoutez. Il ne partage pas toute la fiche CRM.",
+        ],
+        steps: [
+          "Ouvrez Portails clients et créez un portail lié à la fiche.",
+          "Ouvrez-le et ajoutez les éléments à partager.",
+          "Pour un fichier, sélectionnez explicitement le document.",
+          "Relisez le contenu avant de transmettre le lien.",
+        ],
+      },
+      {
+        title: "Autoriser le client",
+        paragraphs: ["Les propriétaires et administrateurs gèrent les accès."],
+        steps: [
+          "Dans le portail, choisissez Autoriser un client.",
+          "Renseignez son adresse exacte.",
+          "Choisissez les commentaires autorisés et une expiration si nécessaire.",
+          "Enregistrez puis transmettez manuellement le lien affiché.",
+          "Demandez au client de créer son compte et de confirmer l’adresse invitée.",
+        ],
+      },
+      {
+        title: "Modifier ou révoquer",
+        paragraphs: [
+          "Dans Personnes autorisées, choisissez Modifier pour ajuster l’expiration, les commentaires ou révoquer l’accès. Un lien de fichier déjà ouvert peut rester utilisable brièvement.",
+        ],
+      },
+      {
+        title: "Le client ne voit rien",
+        paragraphs: [
+          "Vérifiez l’adresse confirmée, l’accès et son expiration. Ajoutez des éléments au portail : relier une fiche ne partage pas son activité entière. Aucun email d’invitation n’est envoyé automatiquement.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "automatisations",
+    category: "Organisation",
+    title: "Utiliser les guides d’action et les automatisations",
+    description: "Préparer des actions puis relire leurs conséquences.",
+    href: "/app/playbooks",
+    sections: [
+      {
+        title: "Adapter un guide d’action",
+        paragraphs: [
+          "Les Guides d’action proposent des processus commerciaux : ils sont différents des articles de ce centre d’aide.",
+        ],
+        steps: [
+          "Ouvrez Guides d’action et choisissez un processus.",
+          "Cliquez sur Adapter ce guide.",
+          "Ajustez les titres et les délais pour votre équipe.",
+          "Enregistrez le workflow préparé puis ouvrez Automatisations.",
+        ],
+      },
+      {
+        title: "Simuler puis confirmer",
+        paragraphs: [
+          "Cliquez sur Simuler et relisez les fiches concernées ainsi que les actions prévues. Aucune tâche n’a encore été créée. Annuler ferme l’aperçu ; Confirmer ces modifications applique les actions proposées.",
+        ],
+      },
+      {
+        title: "Recommencer si les données ont changé",
+        paragraphs: [
+          "Si l’aperçu a expiré ou si des fiches ont changé, relancez une simulation avant de confirmer.",
+        ],
+      },
+      {
+        title: "Fonctionnement actuel",
+        paragraphs: [
+          "Les actions sont exécutées manuellement après confirmation. Les déclenchements automatiques, campagnes mail et exécutions programmées ne sont pas actifs. Pour modifier directement une définition de workflow, demandez l’aide de votre administrateur ; commencez par un Guide d’action.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "assistant",
+    category: "Organisation",
+    title: "Utiliser l’assistant IA",
+    description:
+      "Lire les sources et examiner les propositions avant de les ajouter.",
+    href: "/app/assistant",
+    sections: [
+      {
+        title: "Poser une question",
+        paragraphs: [
+          "L’assistant doit être activé par l’administrateur. Demandez par exemple un résumé client ou des engagements à examiner.",
+        ],
+        steps: [
+          "Ouvrez Assistant IA.",
+          "Choisissez une fiche ou conservez le contexte récent de l’espace.",
+          "Posez une question précise.",
+          "Lisez la réponse et vérifiez ses sources.",
+        ],
+      },
+      {
+        title: "Garder le contrôle",
+        paragraphs: [
+          "Une réponse peut être incomplète ou incorrecte. Vérifiez les échanges originaux. Ajouter pour examen humain crée une proposition à examiner ; cela ne valide pas définitivement une promesse ou une contradiction.",
+        ],
+      },
+      {
+        title: "S’il est indisponible",
+        paragraphs: [
+          "Contactez votre administrateur pour l’activation. Vous pouvez continuer à créer les notes, tâches et engagements manuellement. Ne transmettez pas votre mot de passe.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "personnaliser",
+    category: "Votre équipe",
+    title: "Personnaliser vos champs et votre espace",
+    description: "Adapter les informations suivies à votre activité.",
+    href: "/app/settings",
+    sections: [
+      {
+        title: "Modifier l’organisation",
+        paragraphs: [
+          "Un propriétaire ou administrateur peut modifier le nom de l’espace, le fuseau horaire, la devise par défaut et la préférence de langue. L’interface actuelle reste en français.",
+        ],
+      },
+      {
+        title: "Ajouter un champ",
+        paragraphs: [
+          "Un champ personnalisé peut suivre la taille d’une entreprise, une date de renouvellement ou un type de client.",
+        ],
+        steps: [
+          "Dans Paramètres, ouvrez Objets et attributs puis Ajouter un attribut.",
+          "Sélectionnez le type de fiches concerné.",
+          "Donnez un nom affiché et un identifiant unique en lettres minuscules.",
+          "Choisissez le type de valeur et si le champ est obligatoire.",
+          "Pour une sélection, renseignez les options demandées puis enregistrez.",
+        ],
+      },
+      {
+        title: "Éviter de bloquer la saisie",
+        paragraphs: [
+          "Un champ obligatoire peut empêcher l’enregistrement d’une fiche incomplète. Commencez avec les informations réellement nécessaires. Archiver retire un champ de la saisie active ; Réactiver le remet à disposition.",
+        ],
+      },
+      {
+        title: "Créer un type de fiche",
+        paragraphs: [
+          "Créer un objet ajoute un type de fiches pour votre métier. Préparez son nom et ses champs avec l’équipe. Pour simplement regrouper des entreprises existantes, utilisez plutôt une liste.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "depannage",
+    category: "Premiers pas",
+    title: "Résoudre les problèmes courants",
+    description: "Les premières actions à essayer avant de demander de l’aide.",
+    href: "/app/companies",
+    sections: [
+      {
+        title: "Un bouton est désactivé",
+        paragraphs: [
+          "Vérifiez votre rôle. Un lecteur ne peut pas modifier les données et certaines actions sont réservées aux administrateurs. Attendez aussi la fin d’un enregistrement en cours.",
+        ],
+      },
+      {
+        title: "Une fiche ou une information manque",
+        paragraphs: [
+          "Vérifiez l’espace, les filtres, la vue, le pipeline et la recherche. Les fiches archivées ne sont pas dans les résultats actifs. Les notes privées d’un autre membre ne sont pas visibles.",
+        ],
+      },
+      {
+        title: "Un enregistrement est refusé",
+        paragraphs: [
+          "Relisez le message. Une vente Perdue demande une raison ; un engagement Réalisé demande une preuve. Complétez les champs obligatoires. Si la fiche a changé, rechargez-la avant de reprendre la correction.",
+        ],
+      },
+      {
+        title: "Un email ou un import échoue",
+        paragraphs: [
+          "Reconnectez le compte mail si ses permissions ont expiré. Pour l’import, vérifiez le format, la taille, les colonnes et les erreurs d’aperçu. En cas d’envoi incertain, vérifiez votre boîte de messages envoyés avant de recommencer.",
+        ],
+      },
+      {
+        title: "Demander de l’aide",
+        paragraphs: [
+          "Transmettez à votre administrateur la page, l’action, l’heure et le message exact. Masquez les informations confidentielles d’une capture. Ne communiquez jamais votre mot de passe.",
         ],
       },
     ],

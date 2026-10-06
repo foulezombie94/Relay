@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { Documentation } from "@/components/documentation";
 export const metadata = {
-  title: "Documentation · Relay CRM",
+  title: "Guide utilisateur · Relay CRM",
   description:
-    "Guides Relay : contacts, pipelines, imports, modèles email et intégrations.",
+    "Aide Relay : démarrer, gérer vos contacts, suivre vos ventes, travailler en équipe et partager avec vos clients.",
 };
 export default function DocumentationPage() {
   return (
