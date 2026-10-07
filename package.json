@@ -12,7 +12,9 @@
     "start": "next start --hostname 127.0.0.1 --port 3000",
     "typecheck": "tsc --noEmit --incremental false",
     "lint": "eslint .",
-    "test": "vitest run --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false"
+    "test": "vitest run --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false",
+    "format:workflows": "prettier --write src/app/api/[workspace]/automation/route.ts src/app/api/[workspace]/simulate/route.ts src/components/pages/playbooks.tsx src/components/pages/workflows.tsx src/components/workflows src/lib/api/resource-query.ts src/lib/api/resources.ts src/lib/docs.ts src/lib/domain/types.ts src/lib/domain/workflow-schema.ts src/lib/domain/workflow-templates.ts src/lib/domain/workflows.ts docs/workflow-competitive-analysis.md",
+    "format:check": "prettier --check src/app/api/[workspace]/automation/route.ts src/app/api/[workspace]/simulate/route.ts src/components/pages/playbooks.tsx src/components/pages/workflows.tsx src/components/workflows src/lib/api/resource-query.ts src/lib/api/resources.ts src/lib/docs.ts src/lib/domain/types.ts src/lib/domain/workflow-schema.ts src/lib/domain/workflow-templates.ts src/lib/domain/workflows.ts docs/workflow-competitive-analysis.md"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "1.3.11",
@@ -54,6 +56,7 @@
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.8",
     "pg": "8.23.1",
+    "prettier": "^3.9.9",
     "supabase": "2.119.0",
     "typescript": "6.0.3",
     "vitest": "5.0.3"

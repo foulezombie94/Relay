@@ -8,9 +8,7 @@ export function PlaybooksPage() {
   const { workspace, objects } = useWorkspace();
   const { save, busy } = useSave();
   const router = useRouter();
-  const [selected, setSelected] = useState<(typeof playbooks)[number] | null>(
-    null,
-  );
+  const [selected, setSelected] = useState<(typeof playbooks)[number] | null>(null);
   const [error, setError] = useState("");
   return (
     <>
@@ -45,8 +43,8 @@ export function PlaybooksPage() {
         ))}
       </div>
       <div className="alert info">
-        Chaque modèle crée un workflow à simuler. Aucune tâche ni transition
-        d’étape n’est exécutée automatiquement.
+        Chaque modèle crée un workflow à simuler. Aucune tâche ni transition d’étape n’est exécutée
+        automatiquement.
       </div>
       {selected && (
         <Modal open onClose={() => setSelected(null)} title="Adapter le modèle">
@@ -77,20 +75,13 @@ export function PlaybooksPage() {
                 setSelected(null);
                 router.push("/app/workflows");
               } catch (e) {
-                setError(
-                  e instanceof Error ? e.message : "Création impossible",
-                );
+                setError(e instanceof Error ? e.message : "Création impossible");
               }
             }}
           >
             <label>
               Nom
-              <input
-                name="name"
-                defaultValue={selected.name}
-                required
-                maxLength={300}
-              />
+              <input name="name" defaultValue={selected.name} required maxLength={300} />
             </label>
             <label>
               Objet
@@ -110,12 +101,7 @@ export function PlaybooksPage() {
               <div className="form-grid" key={s.title}>
                 <label>
                   Tâche {i + 1}
-                  <input
-                    name={"title" + i}
-                    defaultValue={s.title}
-                    required
-                    maxLength={300}
-                  />
+                  <input name={"title" + i} defaultValue={s.title} required maxLength={300} />
                 </label>
                 <label>
                   Délai en jours
@@ -132,11 +118,7 @@ export function PlaybooksPage() {
             ))}
             {error && <div className="alert error">{error}</div>}
             <div className="dialog-footer">
-              <button
-                className="button"
-                type="button"
-                onClick={() => setSelected(null)}
-              >
+              <button className="button" type="button" onClick={() => setSelected(null)}>
                 Annuler
               </button>
               <button className="button primary" disabled={busy}>

@@ -4,13 +4,13 @@ Analyse réalisée le 7 octobre 2026 à partir des guides officiels publiquement
 
 ## Ce qui revient chez les CRM établis
 
-| Produit | Idée utile observée | Adaptation Relay |
-|---|---|---|
-| Attio | Éditeur par blocs, déclencheurs sur les fiches et listes, conditions, branches, délais et publication de workflows. | Blocs lisibles et version publiée immuable, avec un aperçu avant lancement manuel. |
-| HubSpot | Étapes de révision avant publication, règles d’inscription, branches, tests et historique des exécutions. | Tester les fiches et les conséquences avant confirmation ; version et trace conservées pour chaque exécution. |
-| Pipedrive | Automatisations lisibles dans une liste, filtres, délais et inspection de l’activité. | Liste filtrable, pause/reprise et historique avec étapes et erreurs explicites. |
-| monday.com | Création visuelle et partage de workflows entre équipes. | Modèles adaptables et éditeur canvas accessible ; Relay garde une grammaire limitée pour rester maintenable. |
-| Zoho CRM | Règles déclenchées par événements avec conditions et actions. | Déclencheurs sur la création, la modification et l’étape des fiches, contrôlés par l’espace de travail. |
+| Produit    | Idée utile observée                                                                                                 | Adaptation Relay                                                                                              |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Attio      | Éditeur par blocs, déclencheurs sur les fiches et listes, conditions, branches, délais et publication de workflows. | Blocs lisibles et version publiée immuable, avec un aperçu avant lancement manuel.                            |
+| HubSpot    | Étapes de révision avant publication, règles d’inscription, branches, tests et historique des exécutions.           | Tester les fiches et les conséquences avant confirmation ; version et trace conservées pour chaque exécution. |
+| Pipedrive  | Automatisations lisibles dans une liste, filtres, délais et inspection de l’activité.                               | Liste filtrable, pause/reprise et historique avec étapes et erreurs explicites.                               |
+| monday.com | Création visuelle et partage de workflows entre équipes.                                                            | Modèles adaptables et éditeur canvas accessible ; Relay garde une grammaire limitée pour rester maintenable.  |
+| Zoho CRM   | Règles déclenchées par événements avec conditions et actions.                                                       | Déclencheurs sur la création, la modification et l’étape des fiches, contrôlés par l’espace de travail.       |
 
 ## Fonctionnement retenu
 

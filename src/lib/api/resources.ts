@@ -98,14 +98,7 @@ export const resources = {
     owner_id: optionalId,
     due_date: z.iso.datetime({ offset: true }).nullable().optional(),
     status: z
-      .enum([
-        "proposed",
-        "confirmed",
-        "in_progress",
-        "done",
-        "postponed",
-        "cancelled",
-      ])
+      .enum(["proposed", "confirmed", "in_progress", "done", "postponed", "cancelled"])
       .optional(),
     source_type: z.enum(["manual", "note", "meeting", "email"]).optional(),
     source_id: optionalId,

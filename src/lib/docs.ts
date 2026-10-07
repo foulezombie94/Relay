@@ -12,8 +12,7 @@ export const helpArticles: HelpArticle[] = [
     id: "migrations",
     category: "Importer et migrer",
     title: "Migrer votre CRM vers Relay",
-    description:
-      "Attio, Pipedrive, Close, HubSpot, Freshsales, Copper, Zoho, folk et monday CRM.",
+    description: "Attio, Pipedrive, Close, HubSpot, Freshsales, Copper, Zoho, folk et monday CRM.",
     href: "/app/companies",
     sections: [
       {
@@ -42,47 +41,44 @@ export const helpArticles: HelpArticle[] = [
   },
   ...crmSources
     .filter((s) => s.id !== "file")
-    .map(
-      (s): HelpArticle => ({
-        id: "migration-" + s.id,
-        category: "Importer et migrer",
-        title: "Importer depuis " + s.name,
-        description:
-          "Préparer l’export " + s.formats + " et conserver les relations.",
-        href: s.url,
-        sections: [
-          {
-            title: "Exporter depuis " + s.name,
-            paragraphs: [
-              "Vérifiez que votre compte dispose des droits d’export. Les intitulés peuvent varier selon la langue et la version du produit.",
-            ],
-            steps: [...s.steps],
-          },
-          {
-            title: "Importer dans Relay",
-            paragraphs: [
-              "Dans Entreprises, Personnes ou Opportunités, cliquez sur Importer et choisissez " +
-                s.name +
-                ". Déposez votre fichier, choisissez sa table puis la destination. Un fichier correspond à un type de fiche.",
-              "Associez le nom et les champs utiles. Pour les relations, conservez l’ID de chaque fiche et les ID des cibles, séparés par des points-virgules ou fournis dans un tableau JSON de chaînes. Utilisez le même nom de lot pour tous les fichiers du même compte source.",
-              "Pour les opportunités, choisissez le pipeline et faites correspondre chaque étape source à une étape Relay. Les autres libellés, propriétaires et configurations ne sont pas automatiquement recréés.",
-            ],
-            steps: [
-              "Vérifier l’import affiche jusqu’à 20 lignes valides et le rapport de toutes les erreurs.",
-              "Corrigez l’export ou confirmez explicitement le rejet des lignes invalides.",
-              "Confirmez l’import. Consultez les relations en attente et importez les cibles manquantes avec le même lot.",
-            ],
-          },
-          {
-            title: "Ce qui est repris",
-            paragraphs: [
-              "Noms, email principal, domaine, montant, devise, étape, date de clôture, motif de perte, probabilité et champs personnalisés déjà créés, selon vos correspondances. Les fichiers et réglages du backup, les utilisateurs, activités, emails et automatisations ne sont pas restaurés. Les liens exigent des ID explicites ; les noms d’entreprise seuls demandent un rapprochement manuel depuis Relations.",
-              "Pour les gros exports, extrayez les CSV puis découpez chaque table en lots de 1 000 lignes et 4 Mo maximum. Gardez le même en-tête et le même nom de lot. L’import n’écrase pas les fiches existantes.",
-            ],
-          },
-        ],
-      }),
-    ),
+    .map((s): HelpArticle => ({
+      id: "migration-" + s.id,
+      category: "Importer et migrer",
+      title: "Importer depuis " + s.name,
+      description: "Préparer l’export " + s.formats + " et conserver les relations.",
+      href: s.url,
+      sections: [
+        {
+          title: "Exporter depuis " + s.name,
+          paragraphs: [
+            "Vérifiez que votre compte dispose des droits d’export. Les intitulés peuvent varier selon la langue et la version du produit.",
+          ],
+          steps: [...s.steps],
+        },
+        {
+          title: "Importer dans Relay",
+          paragraphs: [
+            "Dans Entreprises, Personnes ou Opportunités, cliquez sur Importer et choisissez " +
+              s.name +
+              ". Déposez votre fichier, choisissez sa table puis la destination. Un fichier correspond à un type de fiche.",
+            "Associez le nom et les champs utiles. Pour les relations, conservez l’ID de chaque fiche et les ID des cibles, séparés par des points-virgules ou fournis dans un tableau JSON de chaînes. Utilisez le même nom de lot pour tous les fichiers du même compte source.",
+            "Pour les opportunités, choisissez le pipeline et faites correspondre chaque étape source à une étape Relay. Les autres libellés, propriétaires et configurations ne sont pas automatiquement recréés.",
+          ],
+          steps: [
+            "Vérifier l’import affiche jusqu’à 20 lignes valides et le rapport de toutes les erreurs.",
+            "Corrigez l’export ou confirmez explicitement le rejet des lignes invalides.",
+            "Confirmez l’import. Consultez les relations en attente et importez les cibles manquantes avec le même lot.",
+          ],
+        },
+        {
+          title: "Ce qui est repris",
+          paragraphs: [
+            "Noms, email principal, domaine, montant, devise, étape, date de clôture, motif de perte, probabilité et champs personnalisés déjà créés, selon vos correspondances. Les fichiers et réglages du backup, les utilisateurs, activités, emails et automatisations ne sont pas restaurés. Les liens exigent des ID explicites ; les noms d’entreprise seuls demandent un rapprochement manuel depuis Relations.",
+            "Pour les gros exports, extrayez les CSV puis découpez chaque table en lots de 1 000 lignes et 4 Mo maximum. Gardez le même en-tête et le même nom de lot. L’import n’écrase pas les fiches existantes.",
+          ],
+        },
+      ],
+    })),
   {
     id: "demarrer",
     category: "Premiers pas",
@@ -352,9 +348,7 @@ export const helpArticles: HelpArticle[] = [
       },
       {
         title: "Connecter un compte",
-        paragraphs: [
-          "Les messages et événements importés restent privés au compte connecté.",
-        ],
+        paragraphs: ["Les messages et événements importés restent privés au compte connecté."],
         steps: [
           "Ouvrez Intégrations et choisissez Connecter sur le service.",
           "Sélectionnez votre compte Google ou Microsoft et acceptez les permissions.",
@@ -551,8 +545,7 @@ export const helpArticles: HelpArticle[] = [
     id: "opportunites",
     category: "Ventes",
     title: "Suivre une opportunité jusqu’à sa clôture",
-    description:
-      "Préparer la prochaine action et documenter l’issue de la vente.",
+    description: "Préparer la prochaine action et documenter l’issue de la vente.",
     href: "/app/deals",
     sections: [
       {
@@ -629,9 +622,7 @@ export const helpArticles: HelpArticle[] = [
     sections: [
       {
         title: "Ajouter une note",
-        paragraphs: [
-          "Une note conserve une décision, un échange ou une information utile.",
-        ],
+        paragraphs: ["Une note conserve une décision, un échange ou une information utile."],
         steps: [
           "Ouvrez Notes et ajoutez une note.",
           "Renseignez son titre et son contenu.",
@@ -657,8 +648,7 @@ export const helpArticles: HelpArticle[] = [
     id: "documents",
     category: "Travail quotidien",
     title: "Joindre et partager des documents",
-    description:
-      "Rassembler devis, comptes rendus et livrables dans une fiche.",
+    description: "Rassembler devis, comptes rendus et livrables dans une fiche.",
     href: "/app/companies",
     sections: [
       {
@@ -727,9 +717,7 @@ export const helpArticles: HelpArticle[] = [
     sections: [
       {
         title: "Créer une promesse précise",
-        paragraphs: [
-          "Décrivez ce qui a été promis, son échéance et sa source.",
-        ],
+        paragraphs: ["Décrivez ce qui a été promis, son échéance et sa source."],
         steps: [
           "Ouvrez Engagements et ajoutez un engagement.",
           "Renseignez la promesse, le responsable et la fiche concernée.",
@@ -866,22 +854,44 @@ export const helpArticles: HelpArticle[] = [
     sections: [
       {
         title: "Créer un workflow",
-        paragraphs: ["Un workflow associe un type de fiche, un déclencheur, des conditions et des actions. Il reste en brouillon jusqu’à sa publication."],
-        steps: ["Ouvrez Automatisations puis Créer un workflow, ou choisissez un modèle.", "Sélectionnez Entreprises, Personnes ou Opportunités.", "Choisissez un déclenchement manuel, à la création d’une fiche, à sa modification ou au changement d’étape.", "Ajoutez des conditions : toutes doivent correspondre (ET) ou au moins une (OU). Les champs standards et personnalisés sont disponibles.", "Ajoutez des actions : créer une tâche, proposer un engagement, ajouter une note partagée, modifier une fiche, l’ajouter à une liste, attendre ou tester une branche Oui/Non."],
+        paragraphs: [
+          "Un workflow associe un type de fiche, un déclencheur, des conditions et des actions. Il reste en brouillon jusqu’à sa publication.",
+        ],
+        steps: [
+          "Ouvrez Automatisations puis Créer un workflow, ou choisissez un modèle.",
+          "Sélectionnez Entreprises, Personnes ou Opportunités.",
+          "Choisissez un déclenchement manuel, à la création d’une fiche, à sa modification ou au changement d’étape.",
+          "Ajoutez des conditions : toutes doivent correspondre (ET) ou au moins une (OU). Les champs standards et personnalisés sont disponibles.",
+          "Ajoutez des actions : créer une tâche, proposer un engagement, ajouter une note partagée, modifier une fiche, l’ajouter à une liste, attendre ou tester une branche Oui/Non.",
+        ],
       },
       {
         title: "Tester et publier",
-        paragraphs: ["Tester prépare un aperçu sans rien modifier. Vérifiez les fiches et les actions prévues, puis confirmez le lancement manuel. Pour un workflow déclenché par un événement, Publier valide sa configuration pour les prochains événements. La publication crée une version immuable ; une modification ultérieure reste un brouillon jusqu’à la prochaine publication."],
-        steps: ["Ouvrez Tester et choisissez une fiche ou toutes les fiches correspondantes.", "Relisez les conditions, les actions et les branches estimées.", "Confirmez l’aperçu pour un lancement manuel, ou choisissez Publier pour activer les déclencheurs futurs."],
+        paragraphs: [
+          "Tester prépare un aperçu sans rien modifier. Vérifiez les fiches et les actions prévues, puis confirmez le lancement manuel. Pour un workflow déclenché par un événement, Publier valide sa configuration pour les prochains événements. La publication crée une version immuable ; une modification ultérieure reste un brouillon jusqu’à la prochaine publication.",
+        ],
+        steps: [
+          "Ouvrez Tester et choisissez une fiche ou toutes les fiches correspondantes.",
+          "Relisez les conditions, les actions et les branches estimées.",
+          "Confirmez l’aperçu pour un lancement manuel, ou choisissez Publier pour activer les déclencheurs futurs.",
+        ],
       },
       {
         title: "Délais, branches et historique",
-        paragraphs: ["Un délai est enregistré dans la file de travail : il ne garde pas un serveur occupé. À la reprise, Relay vérifie à nouveau les conditions puis évalue les branches avec les valeurs actuelles. L’historique conserve la version, les étapes, les choix de branche et les erreurs. Une exécution en échec reprend au dernier point enregistré ; les actions validées ne sont pas rejouées."],
-        steps: ["Mettez un workflow en pause pour stopper ses déclenchements et ses reprises en attente.", "Dans Historique, consultez les détails ou arrêtez les actions restantes.", "Corrigez la cause d’un échec avant de choisir Réessayer."],
+        paragraphs: [
+          "Un délai est enregistré dans la file de travail : il ne garde pas un serveur occupé. À la reprise, Relay vérifie à nouveau les conditions puis évalue les branches avec les valeurs actuelles. L’historique conserve la version, les étapes, les choix de branche et les erreurs. Une exécution en échec reprend au dernier point enregistré ; les actions validées ne sont pas rejouées.",
+        ],
+        steps: [
+          "Mettez un workflow en pause pour stopper ses déclenchements et ses reprises en attente.",
+          "Dans Historique, consultez les détails ou arrêtez les actions restantes.",
+          "Corrigez la cause d’un échec avant de choisir Réessayer.",
+        ],
       },
       {
         title: "Limites et actions sensibles",
-        paragraphs: ["Relay accepte 30 workflows actifs et 200 exécutions en attente par espace. Un workflow contient au plus 40 blocs et un lancement manuel traite jusqu’à 100 fiches. Les aperçus expirent après 15 minutes. L’historique est conservé 90 jours. Les envois d’emails restent dans Séquences. La publication exige un worker disponible. Un retrait de droits bloque les exécutions concernées."],
+        paragraphs: [
+          "Relay accepte 30 workflows actifs et 200 exécutions en attente par espace. Un workflow contient au plus 40 blocs et un lancement manuel traite jusqu’à 100 fiches. Les aperçus expirent après 15 minutes. L’historique est conservé 90 jours. Les envois d’emails restent dans Séquences. La publication exige un worker disponible. Un retrait de droits bloque les exécutions concernées.",
+        ],
       },
     ],
   },
@@ -889,8 +899,7 @@ export const helpArticles: HelpArticle[] = [
     id: "assistant",
     category: "Organisation",
     title: "Utiliser l’assistant IA",
-    description:
-      "Lire les sources et examiner les propositions avant de les ajouter.",
+    description: "Lire les sources et examiner les propositions avant de les ajouter.",
     href: "/app/assistant",
     sections: [
       {

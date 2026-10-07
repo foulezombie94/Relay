@@ -61,12 +61,24 @@ export type WorkflowDefinition = {
   conditions: Condition[];
   actions: WorkflowAction[];
   condition_mode?: "all" | "any";
-  trigger?: { type: "manual" | "record_created" | "record_updated" | "stage_changed"; field?: string };
+  trigger?: {
+    type: "manual" | "record_created" | "record_updated" | "stage_changed";
+    field?: string;
+  };
   reenrollment?: "once" | "on_change";
 };
 export type Condition = {
   field: string;
-  operator: "equals" | "not_equals" | "contains" | "gt" | "lt" | "exists" | "not_exists" | "before" | "after";
+  operator:
+    | "equals"
+    | "not_equals"
+    | "contains"
+    | "gt"
+    | "lt"
+    | "exists"
+    | "not_exists"
+    | "before"
+    | "after";
   value?: string | number;
 };
 export type WorkflowAction = {
@@ -108,14 +120,7 @@ export type Simulation = {
   warnings: string[];
   created_at: string;
 };
-export const stages = [
-  "Nouveau",
-  "Qualification",
-  "Proposition",
-  "Négociation",
-  "Gagné",
-  "Perdu",
-];
+export const stages = ["Nouveau", "Qualification", "Proposition", "Négociation", "Gagné", "Perdu"];
 export const commitmentStatuses = [
   "proposed",
   "confirmed",

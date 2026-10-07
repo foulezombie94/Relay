@@ -25,9 +25,10 @@ export function resourceQuery(
   p: URLSearchParams,
   user: string,
 ) {
-  const columns: string = resource === "audit_events" && !p.get("id")
-    ? "id,workspace_id,actor_id,entity,entity_id,action,created_at,private_to"
-    : "*";
+  const columns: string =
+    resource === "audit_events" && !p.get("id")
+      ? "id,workspace_id,actor_id,entity,entity_id,action,created_at,private_to"
+      : "*";
   let query = client
     .from(resource)
     .select(columns, { count: "exact" })
@@ -46,25 +47,20 @@ export function resourceQuery(
   ])
     if (p.get(key)) query = query.eq(key, z.uuid().parse(p.get(key)));
   if (resource === "workflows" && p.get("state")) {
-    const state=z.enum(["active","draft","paused"]).parse(p.get("state"));
-    query=state==="draft"?query.is("published_version",null):state==="active"?query.eq("enabled",true).not("published_version","is",null):query.eq("enabled",false).not("published_version","is",null);
+    const state = z.enum(["active", "draft", "paused"]).parse(p.get("state"));
+    query =
+      state === "draft"
+        ? query.is("published_version", null)
+        : state === "active"
+          ? query.eq("enabled", true).not("published_version", "is", null)
+          : query.eq("enabled", false).not("published_version", "is", null);
   }
-  if (p.get("status"))
-    query = query.eq("status", z.string().max(80).parse(p.get("status")));
+  if (p.get("status")) query = query.eq("status", z.string().max(80).parse(p.get("status")));
   if (p.get("priority") && resource === "tasks")
-    query = query.eq(
-      "priority",
-      z.enum(["low", "normal", "high"]).parse(p.get("priority")),
-    );
+    query = query.eq("priority", z.enum(["low", "normal", "high"]).parse(p.get("priority")));
   if (p.get("kind") && resource === "communications")
-    query = query.eq(
-      "kind",
-      z.enum(["email", "calendar"]).parse(p.get("kind")),
-    );
-  if (
-    p.get("owner") &&
-    ["tasks", "commitments", "handovers"].includes(resource)
-  ) {
+    query = query.eq("kind", z.enum(["email", "calendar"]).parse(p.get("kind")));
+  if (p.get("owner") && ["tasks", "commitments", "handovers"].includes(resource)) {
     const owner = p.get("owner")!;
     query =
       owner === "unassigned"
@@ -82,11 +78,7 @@ export function resourceQuery(
           .replace(/[\\%_]/g, "\\$&") +
         "%",
     );
-    query = query.or(
-      searchable[resource]
-        .map((column) => column + ".ilike." + pattern)
-        .join(","),
-    );
+    query = query.or(searchable[resource].map((column) => column + ".ilike." + pattern).join(","));
   }
   const due = p.get("due");
   if (due && ["tasks", "commitments"].includes(resource)) {
@@ -96,19 +88,13 @@ export function resourceQuery(
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     if (due === "overdue")
-      query = query
-        .lt("due_date", now.toISOString())
-        .not("status", "in", "(done,cancelled)");
+      query = query.lt("due_date", now.toISOString()).not("status", "in", "(done,cancelled)");
     else if (due === "today")
-      query = query
-        .gte("due_date", today.toISOString())
-        .lt("due_date", tomorrow.toISOString());
+      query = query.gte("due_date", today.toISOString()).lt("due_date", tomorrow.toISOString());
     else if (due === "upcoming") {
       const end = new Date(now);
       end.setDate(end.getDate() + 7);
-      query = query
-        .gte("due_date", now.toISOString())
-        .lt("due_date", end.toISOString());
+      query = query.gte("due_date", now.toISOString()).lt("due_date", end.toISOString());
     } else if (due === "undated") query = query.is("due_date", null);
     else throw new ApiError("Période non autorisée.");
   }

@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  context,
-  checkOrigin,
-  databaseError,
-  fail,
-  ApiError,
-} from "@/lib/api/context";
+import { context, checkOrigin, databaseError, fail, ApiError } from "@/lib/api/context";
 import { adminDb } from "@/lib/supabase/admin";
 import { simulate } from "@/lib/domain/workflows";
 import { z } from "zod";
@@ -38,19 +32,15 @@ export async function POST(request: NextRequest, { params }: P) {
         .eq("object_id", w.definition.object_id)
         .eq("archived", false);
       if (record_id) query = query.eq("id", record_id);
-      for (const condition of w.definition.condition_mode === "any" ? [] : w.definition.conditions) {
+      for (const condition of w.definition.condition_mode === "any"
+        ? []
+        : w.definition.conditions) {
         if (
-          ["stage", "owner_id", "display_name", "email", "domain"].includes(
-            condition.field,
-          ) &&
+          ["stage", "owner_id", "display_name", "email", "domain"].includes(condition.field) &&
           condition.operator === "equals" &&
           String(condition.value ?? "") !== ""
         )
-          query = query.filter(
-            condition.field,
-            "eq",
-            String(condition.value ?? ""),
-          );
+          query = query.filter(condition.field, "eq", String(condition.value ?? ""));
         if (
           condition.field === "amount" &&
           ["gt", "lt"].includes(condition.operator) &&
@@ -66,16 +56,9 @@ export async function POST(request: NextRequest, { params }: P) {
         .range(page * 500, page * 500 + 499);
       databaseError(readError);
       scanned += (data ?? []).length;
-      const eligible = simulate(
-        w as Workflow,
-        (data ?? []) as CrmRecord[],
-      ).records;
+      const eligible = simulate(w as Workflow, (data ?? []) as CrmRecord[]).records;
       const eligibleIds = new Set(eligible.map((row) => row.id));
-      records.push(
-        ...((data ?? []) as CrmRecord[]).filter((row) =>
-          eligibleIds.has(row.id),
-        ),
-      );
+      records.push(...((data ?? []) as CrmRecord[]).filter((row) => eligibleIds.has(row.id)));
       if (records.length > 100)
         throw new ApiError(
           "Plus de 100 fiches correspondent aux conditions. Précisez le workflow avant de confirmer des modifications.",
@@ -111,9 +94,7 @@ export async function PATCH(request: NextRequest, { params }: P) {
     checkOrigin(request);
     const { workspace } = await params;
     const { client } = await context(workspace, true);
-    const { preview_id } = z
-      .object({ preview_id: z.uuid() })
-      .parse(await request.json());
+    const { preview_id } = z.object({ preview_id: z.uuid() }).parse(await request.json());
     const { data: run } = await client
       .from("workflow_runs")
       .select("id")
@@ -121,8 +102,15 @@ export async function PATCH(request: NextRequest, { params }: P) {
       .eq("id", preview_id)
       .single();
     if (!run) throw new ApiError("Aperçu inaccessible.", 403);
-    if (!(await workerReady(adminDb(),"workflow_run"))) throw new ApiError("Le service d’automatisation est temporairement indisponible. Réessayez dans quelques instants.",503);
-    const { data, error } = await client.rpc("workflow_launch", { w: workspace, preview: preview_id });
+    if (!(await workerReady(adminDb(), "workflow_run")))
+      throw new ApiError(
+        "Le service d’automatisation est temporairement indisponible. Réessayez dans quelques instants.",
+        503,
+      );
+    const { data, error } = await client.rpc("workflow_launch", {
+      w: workspace,
+      preview: preview_id,
+    });
     if (error)
       throw new ApiError(
         /changed|expired/i.test(error.message)
