@@ -1,0 +1,296 @@
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import {
+  Check,
+  ChevronDown,
+  Copy,
+  RotateCcw,
+  Sparkles,
+  LoaderCircle,
+  FileText,
+  Video,
+  Building2,
+  ArrowUpRight,
+  TriangleAlert,
+  Pencil,
+} from "lucide-react";
+import { toast } from "sonner";
+import type { AssistantMessage, AssistantSource, AssistantStep } from "@/lib/domain/assistant";
+import { useWorkspace } from "../data-provider";
+import styles from "./assistant.module.css";
+
+function sourceHref(
+  source: AssistantSource,
+  objects: { id: string; slug: string; standard: boolean }[],
+  workspace: string,
+) {
+  if (source.type === "note" || source.type === "meeting")
+    return `/app/${source.type === "note" ? "notes" : "meetings"}?focus=${source.id}&workspace=${workspace}`;
+  const object = objects.find((o) => o.id === source.object_id);
+  return object
+    ? `/app/${object.standard ? object.slug : "object-" + object.slug}?record=${source.id}&workspace=${workspace}`
+    : `/app/search?q=${encodeURIComponent(source.label)}&workspace=${workspace}`;
+}
+function inline(text: string) {
+  return text
+    .split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
+    .map((part, i) =>
+      part.startsWith("**") ? (
+        <strong key={i}>{part.slice(2, -2)}</strong>
+      ) : part.startsWith("`") ? (
+        <code key={i}>{part.slice(1, -1)}</code>
+      ) : (
+        part
+      ),
+    );
+}
+function Answer({ text }: { text: string }) {
+  return (
+    <div className={styles.answer}>
+      {text.split(/\n\s*\n/).map((block, i) => {
+        const lines = block.split("\n");
+        if (lines.every((line) => /^\s*[-*•]\s+/.test(line)))
+          return (
+            <ul key={i}>
+              {lines.map((line, j) => (
+                <li key={j}>{inline(line.replace(/^\s*[-*•]\s+/, ""))}</li>
+              ))}
+            </ul>
+          );
+        if (lines.every((line) => /^\s*\d+[.)]\s+/.test(line)))
+          return (
+            <ol key={i}>
+              {lines.map((line, j) => (
+                <li key={j}>{inline(line.replace(/^\s*\d+[.)]\s+/, ""))}</li>
+              ))}
+            </ol>
+          );
+        if (/^#{1,3}\s/.test(block))
+          return <h3 key={i}>{inline(block.replace(/^#{1,3}\s/, ""))}</h3>;
+        return <p key={i}>{inline(block)}</p>;
+      })}
+    </div>
+  );
+}
+export function AgentActivity({
+  steps,
+  active,
+  elapsed,
+}: {
+  steps: AssistantStep[];
+  active: boolean;
+  elapsed?: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const running = steps.find((s) => s.status === "running");
+  const failed = steps.some((s) => s.status === "error");
+  return (
+    <div className={styles.activity}>
+      <button
+        type="button"
+        className={styles.activityToggle}
+        aria-expanded={active || expanded}
+        onClick={() => setExpanded(!expanded)}
+      >
+        {active ? (
+          <LoaderCircle size={14} className={styles.spin} />
+        ) : failed ? (
+          <TriangleAlert size={14} />
+        ) : (
+          <Check size={14} />
+        )}
+        <span>
+          {active
+            ? running?.label || "Préparation de la réponse"
+            : failed
+              ? "Activité interrompue"
+              : "Activité de l’assistant"}
+        </span>
+        {!!elapsed && <small>{(elapsed / 1000).toFixed(1)} s</small>}
+        <ChevronDown size={14} className={active || expanded ? styles.rotated : ""} />
+      </button>
+      {(active || expanded) && (
+        <ol className={styles.steps}>
+          {steps.map((s) => (
+            <li key={s.id} data-state={s.status}>
+              <span className={styles.stepIcon}>
+                {s.status === "running" ? (
+                  <LoaderCircle size={12} className={styles.spin} />
+                ) : s.status === "error" ? (
+                  <TriangleAlert size={12} />
+                ) : (
+                  <Check size={12} />
+                )}
+              </span>
+              <div>
+                <strong>{s.label}</strong>
+                {s.detail && <p>{s.detail}</p>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
+export function ChatMessage({
+  message,
+  busy,
+  onRetry,
+  onEdit,
+  onAccept,
+}: {
+  message: AssistantMessage;
+  busy: boolean;
+  onRetry: () => void;
+  onEdit: () => void;
+  onAccept: (index: number) => Promise<void>;
+}) {
+  const { workspace, objects } = useWorkspace();
+  const [accepting, setAccepting] = useState<number | null>(null);
+  const active = message.state === "pending" && busy;
+  if (message.role === "user")
+    return (
+      <article className={styles.userMessage}>
+        <span className={styles.userLabel}>Vous</span>
+        <div>{message.content}</div>
+        <button
+          type="button"
+          className={styles.iconButton}
+          aria-label="Modifier et relancer dans une nouvelle conversation"
+          title="Modifier dans une nouvelle conversation"
+          disabled={busy}
+          onClick={onEdit}
+        >
+          <Pencil size={13} />
+        </button>
+      </article>
+    );
+  return (
+    <article className={styles.agentMessage}>
+      <div className={styles.agentHeading}>
+        <span className={styles.agentMark}>
+          <Sparkles size={15} />
+        </span>
+        <strong>Relay</strong>
+        <span>Assistant</span>
+      </div>
+      {((message.steps?.length ?? 0) > 0 || active) && (
+        <AgentActivity steps={message.steps ?? []} active={active} elapsed={message.elapsed_ms} />
+      )}
+      {message.answer ? (
+        <Answer text={message.answer} />
+      ) : active ? (
+        <div className={styles.waiting} role="status">
+          L’assistant prépare votre réponse<span>···</span>
+        </div>
+      ) : (
+        <p className={styles.muted}>Cette réponse n’a pas été terminée. Relancez la question.</p>
+      )}
+      {!!message.sources?.length && !active && (
+        <div className={styles.sources}>
+          <span>Sources</span>
+          {message.sources.map((source) => {
+            const Icon =
+              source.type === "note" ? FileText : source.type === "meeting" ? Video : Building2;
+            return (
+              <Link
+                key={source.id}
+                href={sourceHref(source, objects, workspace.id)}
+                className={styles.source}
+              >
+                <Icon size={13} />
+                <span>{source.label}</span>
+                <ArrowUpRight size={11} />
+              </Link>
+            );
+          })}
+        </div>
+      )}
+      {!active && !!message.proposals?.length && (
+        <section className={styles.proposals} aria-label="Propositions à confirmer">
+          <div className={styles.proposalHeading}>
+            <span>À examiner</span>
+            <small>
+              {message.proposals.length} proposition{message.proposals.length > 1 ? "s" : ""}
+            </small>
+          </div>
+          {message.proposals.map((p, i) => {
+            const accepted = message.accepted?.[i];
+            return (
+              <article key={i} className={styles.proposal}>
+                <span className={styles.proposalType}>
+                  {p.type === "commitment" ? "Engagement proposé" : "Contradiction à clarifier"}
+                </span>
+                <h3>{p.title}</h3>
+                <blockquote>{p.source_quote}</blockquote>
+                {p.source_b_quote && <blockquote>{p.source_b_quote}</blockquote>}
+                {p.uncertainty && <p>{p.uncertainty}</p>}
+                <footer>
+                  <span>Votre confirmation est nécessaire.</span>
+                  {accepted ? (
+                    <Link
+                      className="button small"
+                      href={`/app/${accepted.resource}?focus=${accepted.id}&workspace=${workspace.id}`}
+                    >
+                      <Check size={13} />
+                      Ouvrir
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      className="button small"
+                      disabled={busy || accepting !== null || workspace.role === "viewer"}
+                      onClick={async () => {
+                        setAccepting(i);
+                        try {
+                          await onAccept(i);
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Ajout impossible");
+                        } finally {
+                          setAccepting(null);
+                        }
+                      }}
+                    >
+                      {accepting === i ? (
+                        <LoaderCircle size={13} className={styles.spin} />
+                      ) : (
+                        <Check size={13} />
+                      )}
+                      Ajouter pour examen
+                    </button>
+                  )}
+                </footer>
+              </article>
+            );
+          })}
+        </section>
+      )}
+      {!active && (
+        <div className={styles.messageActions}>
+          <button
+            type="button"
+            aria-label="Copier la réponse"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(message.answer || "");
+                toast.success("Réponse copiée");
+              } catch {
+                toast.error("La copie est indisponible dans ce navigateur.");
+              }
+            }}
+          >
+            <Copy size={13} />
+            Copier
+          </button>
+          <button type="button" disabled={busy} onClick={onRetry}>
+            <RotateCcw size={13} />
+            Réessayer
+          </button>
+          {message.model && <span>{message.model}</span>}
+        </div>
+      )}
+    </article>
+  );
+}
