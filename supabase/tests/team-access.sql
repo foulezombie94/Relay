@@ -6,7 +6,7 @@ do $$
 declare
  owner_user uuid:=gen_random_uuid(); admin_user uuid:=gen_random_uuid(); member_user uuid:=gen_random_uuid();
  guest uuid:=gen_random_uuid(); outsider uuid:=gen_random_uuid(); viewer_user uuid:=gen_random_uuid();
- w uuid; other_w uuid; obj uuid; rec uuid; task uuid; invitation uuid; integration uuid; output jsonb; n integer; portal uuid;
+ w uuid; other_w uuid; obj uuid; rec uuid; task uuid; invitation uuid; integration uuid; output jsonb; n integer; portal uuid; secret text; old_secret text;
 begin
  insert into auth.users(id,email,aud,role,email_confirmed_at)
  select u,'team-test-'||u||'@example.invalid','authenticated','authenticated',case when u=guest then null else now() end
@@ -71,28 +71,55 @@ begin
   raise exception 'Foreign workspace replacement accepted';
  exception when invalid_parameter_value then null;end;
  if not exists(select 1 from public.memberships where workspace_id=w and user_id=member_user and version=1) then raise exception 'Failed changes were not atomic';end if;
- output:=public.team_invitation_manage(w,'create','team-test-'||guest||'@example.invalid','member');invitation:=(output->>'id')::uuid;
+ output:=public.team_invitation_manage(w,'create','team-test-'||guest||'@example.invalid','member');invitation:=(output->>'id')::uuid;secret:=output->>'token';
+ if secret is null or length(secret)<>64 then raise exception 'Secure link not issued';end if;
  perform set_config('request.jwt.claim.sub',guest::text,true);
  perform public.claim_invitations();
  if relay_private.has_role(w) then raise exception 'Unverified email claimed invitation';end if;
+ begin
+  perform public.team_invitation_accept(secret);raise exception 'Unverified email accepted secure link';
+ exception when insufficient_privilege then null;end;
  execute 'reset role';
  update auth.users set email_confirmed_at=now() where id=guest;
+ execute 'set local role authenticated';
+ perform set_config('request.jwt.claim.sub',viewer_user::text,true);
+ begin
+  perform public.team_invitation_info(secret);raise exception 'Wrong account read invitation';
+ exception when insufficient_privilege then null;end;
  perform set_config('request.jwt.claim.sub',owner_user::text,true);
  perform public.team_invitation_manage(w,'cancel',null,null,invitation);
- execute 'set local role authenticated';
  perform set_config('request.jwt.claim.sub',guest::text,true);
- perform public.claim_invitations();
- if relay_private.has_role(w) then raise exception 'Revoked invitation claimed';end if;
+ begin
+  perform public.team_invitation_accept(secret);raise exception 'Revoked link accepted';
+ exception when invalid_parameter_value then null;end;
  execute 'reset role';
  update public.invitations set revoked_at=null,expires_at=now()-interval '1 day' where id=invitation;
+ insert into relay_private.invitation_links(invitation_id,token_hash) values(invitation,encode(extensions.digest(secret,'sha256'),'hex'));
  execute 'set local role authenticated';
- perform public.claim_invitations();
- if relay_private.has_role(w) then raise exception 'Expired invitation claimed';end if;
+ begin
+  perform public.team_invitation_accept(secret);raise exception 'Expired link accepted';
+ exception when invalid_parameter_value then null;end;
  execute 'reset role';
- update public.invitations set expires_at=now()+interval '1 day' where id=invitation;
+ update public.invitations set expires_at=now()+interval '1 day',last_issued_at=now()-interval '2 minutes' where id=invitation;
  execute 'set local role authenticated';
+ perform set_config('request.jwt.claim.sub',owner_user::text,true);
+ old_secret:=secret;
+ output:=public.team_invitation_manage(w,'renew',null,null,invitation);secret:=output->>'token';
+ if secret=old_secret then raise exception 'Renewal did not rotate token';end if;
+ perform set_config('request.jwt.claim.sub',guest::text,true);
+ begin
+  perform public.team_invitation_accept(old_secret);raise exception 'Rotated link remained valid';
+ exception when invalid_parameter_value then null;end;
  perform public.claim_invitations();
+ if relay_private.has_role(w) then raise exception 'Invitation auto-accepted without link confirmation';end if;
+ perform public.team_invitation_accept(secret);
  if not relay_private.has_role(w,array['member']) then raise exception 'Verified valid invitation failed';end if;
+ begin
+  perform public.team_invitation_accept(secret);raise exception 'Invitation replay allowed';
+ exception when invalid_parameter_value then null;end;
+ begin
+  perform token_hash from relay_private.invitation_links limit 1;raise exception 'Token table exposed';
+ exception when insufficient_privilege then null;end;
  perform set_config('request.jwt.claim.sub',viewer_user::text,true);
  if exists(select 1 from public.audit_events where workspace_id=w and entity='team_invitations') then raise exception 'Team audit leaked to viewer';end if;
  perform set_config('request.jwt.claim.sub',outsider::text,true);

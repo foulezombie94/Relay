@@ -38,11 +38,17 @@ Index par espace pour les listes paginées, index d’adresse normalisée pour l
 
 Les tests SQL `supabase/tests/team-access.sql` exercent les vrais RPC et RLS avec des fixtures entièrement annulées : droits insuffisants, ancien RPC, version périmée, réattribution hors espace, invitations non vérifiées/annulées/expirées, journal privé, réattribution, déconnexion et retrait effectif même avec l’ancien JWT. Aucun email n’est envoyé par ces tests.
 
-## Envoi d’invitations
+## Liens d’invitation sans service email
 
-L’envoi automatique utilise l’API Resend côté serveur, avec un délai de 8 secondes et une clé d’idempotence par émission. Configurer `APP_URL` en HTTPS, `RESEND_API_KEY` et `RELAY_EMAIL_FROM` avec un expéditeur vérifié chez Resend. Les valeurs restent côté serveur et ne sont jamais dans Git. Sans ces variables, le partage manuel du lien fonctionne et l’interface l’indique explicitement.
+Aucun fournisseur d’envoi d’invitations n’est utilisé. L’administrateur crée ou renouvelle l’invitation puis copie le lien personnel affiché et le transmet à la personne concernée. Seul `APP_URL` en HTTPS est nécessaire en production.
 
-La réponse distingue invitation enregistrée, email accepté par Resend, échec d’envoi et envoi non configuré. Elle ne prétend pas prouver la réception de l’email. L’annulation en base reste effective même si un email déjà demandé au fournisseur arrive ensuite.
+Chaque lien contient 32 octets aléatoires produits par pgcrypto ; seule son empreinte SHA-256 est stockée dans une table privée avec RLS et aucun droit de lecture client. Le secret est rendu une seule fois lors de la génération. Le renouvellement le remplace, l’annulation le supprime et l’acceptation le consomme. Le journal d’audit ne contient aucun jeton.
+
+Le secret voyage dans le fragment du lien, absent des requêtes HTTP initiales et des référents. La page le retire de l’adresse et le conserve via un cookie HttpOnly, Secure en production et SameSite=Lax, limité à l’API d’invitation. Aucun secret n’est placé dans les URL de connexion, de confirmation email, ni dans localStorage. La durée effective reste contrôlée en base (7 jours).
+
+La page exige une session vérifiée, l’adresse invitée exacte et une confirmation explicite. Les anciennes invitations sans jeton doivent être renouvelées ; la simple visite du CRM ne les accepte plus. Le contrôle est également dans les RPC, pas seulement dans l’API Next.js. Le renouvellement, l’annulation et l’acceptation utilisent le même verrou transactionnel par espace. Les tests vérifient aussi le mauvais compte, l’expiration, la rotation et l’impossibilité de réutiliser un lien consommé.
+
+Les emails de vérification de compte restent ceux de Supabase Auth ; ils ne sont pas des emails d’invitation Relay.
 
 ## Limites explicites
 

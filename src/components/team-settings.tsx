@@ -8,7 +8,7 @@ import { Avatar, date, ErrorMessage, Modal } from "./ui";
 import { canManageTeamMember, invitationState, teamRoles, type TeamInvitation, type TeamMember } from "@/lib/domain/team";
 import type { Role } from "@/lib/domain/types";
 import styles from "./team-settings.module.css";
-type TeamResponse = { data: (TeamMember | TeamInvitation)[]; count: number; login_url: string | null; delivery_configured: boolean };
+type TeamResponse = { data: (TeamMember | TeamInvitation)[]; count: number };
 export function TeamSettings() {
   const { workspace, user } = useWorkspace();
   const admin = workspace.role === "owner" || workspace.role === "admin";
@@ -26,6 +26,14 @@ export function TeamSettings() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [links, setLinks] = useState<Record<string, { url: string; issued: string }>>({});
+  const [ready, setReady] = useState<{ url: string; email: string } | null>(null);
+  function remember(result: { invitation_url?: string; invitation?: TeamInvitation }) {
+    if (!result.invitation_url || !result.invitation) return;
+    const url = result.invitation_url, invitation = result.invitation;
+    setLinks(current => ({ ...current, [invitation.id]: { url, issued: invitation.last_issued_at } }));
+    setReady({ url, email: invitation.email });
+  }
   const q = useQuery({ queryKey: ["team", workspace.id, kind, page, filter, roleFilter], enabled: admin,
     queryFn: () => request<TeamResponse>("/api/" + workspace.id + "/team?" + new URLSearchParams({ kind, page: String(page), q: filter, role: roleFilter })),
   });
@@ -35,16 +43,14 @@ export function TeamSettings() {
   async function mutate(body: unknown) {
     setBusy(true); setError("");
     try {
-      const result = await request<{ message?: string }>("/api/" + workspace.id + "/team", "PATCH", body);
-      await refresh(); if (result.message) setMessage(result.message); return true;
+      const result = await request<{ message?: string; invitation_url?: string; invitation?: TeamInvitation }>("/api/" + workspace.id + "/team", "PATCH", body);
+      remember(result); await refresh(); if (result.message) setMessage(result.message); return true;
     } catch (err) { setError(err instanceof Error ? err.message : "Modification impossible."); await refresh(); return false; }
     finally { setBusy(false); }
   }
-  async function copy(email: string) {
-    try {
-      const url = new URL(q.data?.login_url ?? "/login", window.location.origin); url.searchParams.set("email", email);
-      await navigator.clipboard.writeText(url.toString()); toast.success("Lien copié. La personne doit utiliser l’adresse invitée.");
-    } catch { setError("La copie a été bloquée par le navigateur. Partagez le lien de connexion avec l’adresse invitée."); }
+  async function copy(url: string) {
+    try { await navigator.clipboard.writeText(url); toast.success("Lien d’invitation copié."); }
+    catch { setError("La copie a été bloquée. Sélectionnez le lien et copiez-le manuellement."); }
   }
   const allowedRoles = workspace.role === "owner" ? ["admin", "member", "viewer"] as const : ["member", "viewer"] as const;
   return <section id="equipe" className={styles.root}>
@@ -63,20 +69,26 @@ export function TeamSettings() {
           const status = invitationState(invitation);
           const editable = !invitation.accepted_at && (workspace.role === "owner" || invitation.role !== "admin");
           return <tr key={invitation.id}><td><strong>{invitation.email}</strong><small className={styles.date}>Échéance : {date(invitation.expires_at)}</small></td><td>{teamRoles[invitation.role].label}</td><td><span className={styles.status} data-state={status}>{status}</span></td><td><div className={styles.actions}>
-            {editable && <><button className="button small" disabled={busy} onClick={() => { if (window.confirm("Renouveler cette invitation pour 7 jours ? Un email sera envoyé si le service est configuré.")) void mutate({ invitation_id: invitation.id, action: "renew" }); }}>Renouveler</button>{!invitation.revoked_at && <button className="button small danger" disabled={busy} onClick={() => { if (window.confirm("Annuler cette invitation ? Elle ne donnera plus accès à l’espace.")) void mutate({ invitation_id: invitation.id, action: "cancel" }); }}>Annuler</button>}</>}
-            {status === "En attente" && <button className="icon-button" aria-label={"Copier le lien pour " + invitation.email} onClick={() => copy(invitation.email)}><Copy size={15} /></button>}
+            {editable && <><button className="button small" disabled={busy} onClick={() => { if (window.confirm("Créer un nouveau lien valable 7 jours ? L’ancien lien ne fonctionnera plus.")) void mutate({ invitation_id: invitation.id, action: "renew" }); }}>Renouveler le lien</button>{!invitation.revoked_at && <button className="button small danger" disabled={busy} onClick={() => { if (window.confirm("Annuler cette invitation ? Elle ne donnera plus accès à l’espace.")) void mutate({ invitation_id: invitation.id, action: "cancel" }); }}>Annuler</button>}</>}
+            {status === "En attente" && links[invitation.id]?.issued === invitation.last_issued_at && <button className="icon-button" aria-label={"Copier le lien pour " + invitation.email} onClick={() => copy(links[invitation.id].url)}><Copy size={15} /></button>}
           </div></td></tr>;
         })}
         {!q.error && q.data?.data.length === 0 && <tr><td colSpan={4} className={styles.empty}>Aucun résultat. Modifiez les filtres ou invitez une personne.</td></tr>}
       </tbody></table></div>}
       <footer className={styles.pagination}><span>{q.data?.count ?? 0} résultat{q.data?.count === 1 ? "" : "s"} · Page {page + 1}</span><div><button className="button small" disabled={page === 0 || q.isFetching} onClick={() => setPage(current => current - 1)}>Précédente</button><button className="button small" disabled={q.isFetching || (page + 1) * 25 >= (q.data?.count ?? 0)} onClick={() => setPage(current => current + 1)}>Suivante</button></div></footer>
-      {kind === "invitations" && <p className={styles.notice}>{q.data?.delivery_configured ? "L’envoi email est configuré. Un envoi échoué est signalé après la création ou le renouvellement." : "Envoi email automatique non configuré. Copiez le lien et partagez-le avec la personne invitée."} L’accès est accordé seulement après connexion avec son adresse vérifiée.</p>}
+      {kind === "invitations" && <p className={styles.notice}>Aucun email d’invitation n’est envoyé. Copiez le lien affiché après création ou renouvellement et partagez-le avec la personne invitée. Il expire après 7 jours et exige son adresse vérifiée. Si vous n’avez plus le lien, renouvelez-le : l’ancien sera invalidé.</p>}
     </>}
     {inviting && <Modal open title="Inviter dans l’espace" description="La personne recevra les droits du rôle choisi après vérification de son adresse." onClose={() => { if (!busy) setInviting(false); }}>
-      <form onSubmit={async event => { event.preventDefault(); setBusy(true); setError(""); try { const result = await request<{ message: string }>("/api/" + workspace.id + "/team", "POST", { email, role: inviteRole }); setMessage(result.message); setInviting(false); setKind("invitations"); setPage(0); setFilter(""); setSearch(""); setRoleFilter(""); await refresh(); } catch (err) { setError(err instanceof Error ? err.message : "Invitation impossible."); } finally { setBusy(false); } }}>
+      <form onSubmit={async event => { event.preventDefault(); setBusy(true); setError(""); try { const result = await request<{ message: string; invitation_url: string; invitation: TeamInvitation }>("/api/" + workspace.id + "/team", "POST", { email, role: inviteRole }); remember(result); setMessage(result.message); setInviting(false); setKind("invitations"); setPage(0); setFilter(""); setSearch(""); setRoleFilter(""); await refresh(); } catch (err) { setError(err instanceof Error ? err.message : "Invitation impossible."); } finally { setBusy(false); } }}>
         <label>Email professionnel<input type="email" autoFocus required maxLength={254} value={email} disabled={busy} onChange={event => setEmail(event.target.value)} /></label><label className={styles.modalLabel}>Rôle<select value={inviteRole} disabled={busy} onChange={event => setInviteRole(event.target.value as Exclude<Role, "owner">)}>{allowedRoles.map(role => <option key={role} value={role}>{teamRoles[role].label}</option>)}</select></label><p className={styles.notice}>{teamRoles[inviteRole].description}</p>
         {error && <div className="alert error" role="alert">{error}</div>}<div className="dialog-footer"><button className="button" type="button" disabled={busy} onClick={() => setInviting(false)}>Annuler</button><button className="button primary" disabled={busy}>{busy ? "Création…" : "Créer l’invitation"}</button></div>
       </form>
+    </Modal>}
+    {ready && <Modal open title="Votre lien d’invitation" description={ready.email} onClose={() => setReady(null)}>
+      <p>Partagez ce lien uniquement avec cette personne. Elle devra se connecter avec son adresse vérifiée et confirmer son entrée dans l’espace.</p>
+      <label>Lien personnel<input readOnly value={ready.url} onFocus={event => event.currentTarget.select()} /></label>
+      <p className={styles.notice}>Valable 7 jours. Le lien est affiché uniquement après sa génération ; si vous le perdez, renouvelez-le depuis Invitations. Aucun email d’invitation n’est envoyé.</p>
+      {error && <div className="alert error" role="alert">{error}</div>}<div className="dialog-footer"><button className="button" onClick={() => setReady(null)}>Fermer</button><button className="button primary" onClick={() => copy(ready.url)}><Copy size={15} />Copier le lien</button></div>
     </Modal>}
     {change && <Modal open title={change.role === "remove" ? "Retirer l’accès à l’espace" : "Confirmer le changement de rôle"} description={change.member.display_name || "Membre"} onClose={() => { if (!busy) setChange(null); }}>
       {change.role === "remove" ? <><p>Ses fiches, tâches, engagements et réalisations seront réattribués. Les notes et l’historique restent conservés. Ses accès aux portails de cet espace seront également retirés. Ses connexions et traitements en cours seront désactivés.</p><ErrorMessage error={impact.error ?? candidates.error} /><div className={styles.impact}>{Object.entries(impact.data?.counts ?? {}).map(([key, count]) => <span key={key}>{({ records: "Fiches", tasks: "Tâches", commitments: "Engagements", handovers: "Réalisations" } as Record<string, string>)[key]}<strong>{count}</strong></span>)}</div><label>Réattribuer à<select value={replacement} disabled={busy} onChange={event => setReplacement(event.target.value)}><option value={user.id}>Moi · {user.email}</option>{(candidates.data?.data as TeamMember[] | undefined)?.filter(member => member.user_id !== change.member.user_id && member.user_id !== user.id).map(member => <option key={member.id} value={member.user_id}>{member.display_name || "Membre"}</option>)}</select></label>{(candidates.data?.count ?? 0) > 100 && <p className={styles.notice}>Les 100 premiers responsables sont proposés. Vous pouvez vous attribuer les éléments puis les répartir depuis le CRM.</p>}</> : <><p>Passer de <strong>{teamRoles[change.member.role].label}</strong> à <strong>{teamRoles[change.role].label}</strong>.</p><p>{teamRoles[change.role].description}</p>{change.role === "viewer" && <p>Ses connexions et ses traitements seront désactivés, car le rôle Lecteur ne peut plus modifier les données.</p>}</>}

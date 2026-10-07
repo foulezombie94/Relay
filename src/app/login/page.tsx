@@ -3,9 +3,11 @@ import { useState, Suspense } from "react";
 import { browserDb } from "@/lib/supabase/client";
 import { ArrowRight, Check, Layers, Mail } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 function LoginForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const destination = searchParams.get("next") === "/invite" ? "/invite" : "/app/companies";
   const [mode, setMode] = useState<"login" | "signup" | "reset">(
     searchParams.get("mode") === "signup" ? "signup" : "login",
   );
@@ -34,19 +36,19 @@ function LoginForm() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/confirm`,
+            emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(destination)}`,
           },
         });
         if (error) throw error;
-        if (data.session) window.location.assign("/app/companies");
-        else setMessage("Vérifiez votre email pour confirmer votre compte.");
+        if (data.session) router.push(destination);
+        else setMessage(destination === "/invite" ? "Vérifiez votre email, puis revenez ici ou rouvrez votre lien d’invitation pour accepter." : "Vérifiez votre email pour confirmer votre compte.");
       } else {
         const { error } = await client.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
-        window.location.assign("/app/companies");
+        router.push(destination);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Connexion impossible.");

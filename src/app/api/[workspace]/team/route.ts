@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ApiError, checkOrigin, context, fail, databaseError, requireAdmin } from "@/lib/api/context";
-import { deliverInvitation, invitationDeliveryConfigured, teamLoginUrl } from "@/lib/team/invitations";
+import { invitationLink } from "@/lib/team/invitations";
 import type { TeamInvitation } from "@/lib/domain/team";
 import { z } from "zod";
 type P = { params: Promise<{ workspace: string }> };
@@ -63,22 +63,21 @@ export async function GET(req: NextRequest, { params }: P) {
     if (candidates && kind === "members") query = query.in("role", ["owner", "admin", "member"]);
     if (search) query = query.ilike(kind === "members" ? "display_name" : "email", "%" + search.replace(/[\\%_]/g, "\\$&") + "%");
     const { data, count, error } = await query.order("created_at", { ascending: false }).order("id").range(page * size, page * size + size - 1); databaseError(error);
-    return json({ data, count, login_url: teamLoginUrl(), delivery_configured: invitationDeliveryConfigured() });
+    return json({ data, count });
   } catch (error) { return fail(error); }
 }
-async function invitationResponse(client: Awaited<ReturnType<typeof context>>["client"], workspace: string, data: unknown) {
-  const invitation = data as TeamInvitation;
-  const { data: space, error } = await client.from("workspaces").select("name").eq("id", workspace).single(); databaseError(error);
-  const delivery = await deliverInvitation(invitation, space?.name ?? "votre espace");
-  return json({ ok: true, invitation, delivery, message: delivery === "sent" ? "Invitation créée et email accepté par le service d’envoi." : delivery === "failed" ? "Invitation créée, mais l’envoi email a échoué. Copiez le lien ou renouvelez l’invitation dans une minute." : "Invitation créée. Copiez le lien et partagez-le avec cette adresse : l’envoi email automatique n’est pas configuré." });
+function invitationResponse(data: unknown, requestUrl: string) {
+  const { token, ...invitation } = data as TeamInvitation & { token: string };
+  return json({ ok: true, invitation, invitation_url: invitationLink(token, requestUrl), message: "Lien créé pour 7 jours. Copiez-le et partagez-le avec la personne invitée. L’ancien lien est invalidé lors du renouvellement." });
 }
 export async function POST(req: NextRequest, { params }: P) {
   try {
     checkOrigin(req); const { workspace } = await params;
     const { client, role } = await context(workspace, true); requireAdmin(role);
     const input = z.object({ email: z.string().trim().toLowerCase().max(254).pipe(z.email()), role: z.enum(["admin", "member", "viewer"]) }).strict().parse(await body(req));
+    invitationLink("0".repeat(64), req.url);
     const { data, error } = await client.rpc("team_invitation_manage", { w: workspace, operation: "create", mail: input.email, r: input.role }); teamError(error);
-    return invitationResponse(client, workspace, data);
+    return invitationResponse(data, req.url);
   } catch (error) { return fail(error); }
 }
 export async function PATCH(req: NextRequest, { params }: P) {
@@ -90,8 +89,9 @@ export async function PATCH(req: NextRequest, { params }: P) {
       z.object({ invitation_id: z.uuid(), action: z.enum(["renew", "cancel"]) }).strict(),
     ]).parse(await body(req));
     if ("invitation_id" in input) {
+      if (input.action === "renew") invitationLink("0".repeat(64), req.url);
       const { data, error } = await client.rpc("team_invitation_manage", { w: workspace, operation: input.action, invite: input.invitation_id }); teamError(error);
-      return input.action === "renew" ? invitationResponse(client, workspace, data) : json({ ok: true, message: "Invitation annulée." });
+      return input.action === "renew" ? invitationResponse(data, req.url) : json({ ok: true, message: "Invitation annulée." });
     }
     const { data, error } = await client.rpc("team_member_change", { w: workspace, u: input.user_id, r: input.role, expected_version: input.expected_version, replacement: input.replacement ?? null }); teamError(error);
     return json(data);

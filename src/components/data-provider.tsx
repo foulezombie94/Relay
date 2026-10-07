@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import type { Workspace, ObjectDefinition, Row } from "@/lib/domain/types";
 import { toast } from "sonner";
+import Link from "next/link";
 export async function request<T = Record<string, unknown>>(
   url: string,
   method = "GET",
@@ -110,7 +111,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 }
 function Gate({ children }: { children: ReactNode }) {
   const cache = useQueryClient();
-  const [selected, setSelected] = useState("");
+  const [selected, setSelected] = useState(() => typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("workspace") ?? "");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const q = useQuery({
@@ -173,7 +174,7 @@ function Gate({ children }: { children: ReactNode }) {
             Créer mon espace
           </button>
         </form>
-        <a href="/portal">Ouvrir mon portail client</a>
+        <Link href="/portal">Ouvrir mon portail client</Link>
       </div>
     );
   return (

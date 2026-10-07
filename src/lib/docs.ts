@@ -420,14 +420,14 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Inviter votre équipe",
         paragraphs: [
-          "Une invitation expire après 7 jours. L’accès exige une connexion avec exactement l’adresse invitée et sa confirmation. Le lien de connexion seul ne donne aucun droit.",
-          "Si l’envoi email est configuré pour votre espace, Relay tente d’envoyer l’invitation et affiche le résultat. Sinon, ou si l’envoi échoue, utilisez Copier le lien et partagez-le avec la personne. Un email accepté par le service d’envoi ne garantit pas son arrivée dans la boîte de réception.",
+          "Une invitation expire après 7 jours. L’accès exige un lien personnel valide, une connexion avec exactement l’adresse invitée vérifiée, puis une confirmation sur la page d’invitation. Une simple connexion au CRM ne rejoint pas l’équipe.",
+          "Aucun email d’invitation n’est envoyé. Copiez le lien personnel affiché après la création et partagez-le uniquement avec la personne invitée. Pour des raisons de sécurité, il n’est affiché qu’après sa génération ; si vous le perdez, renouvelez-le depuis Invitations.",
         ],
         steps: [
           "Dans Paramètres, ouvrez Équipe et accès puis Inviter.",
           "Renseignez l’adresse exacte, choisissez le rôle et créez l’invitation.",
-          "Consultez le message affiché et partagez le lien si nécessaire.",
-          "La personne se connecte ou crée son compte avec cette adresse, puis la confirme.",
+          "Copiez le lien affiché dans Votre lien d’invitation et partagez-le avec cette personne.",
+          "La personne ouvre le lien, se connecte ou crée son compte avec cette adresse, puis vérifie son email. Elle revient sur l’invitation et clique sur Accepter et rejoindre l’espace.",
           "Vérifiez son apparition dans Membres et le statut Acceptée dans Invitations.",
         ],
       },
@@ -435,7 +435,7 @@ export const helpArticles: HelpArticle[] = [
         title: "Suivre, renouveler ou annuler une invitation",
         paragraphs: [
           "L’onglet Invitations distingue En attente, Expirée, Acceptée et Annulée. Utilisez la recherche, le filtre de rôle et la pagination pour retrouver une adresse.",
-          "Renouveler remet l’échéance à 7 jours et tente un nouvel envoi si celui-ci est configuré. Attendez au moins une minute entre deux renouvellements. Annuler empêche l’acceptation future ; cela ne retire pas l’accès d’une personne déjà membre. Gérez alors cette personne dans Membres.",
+          "Renouveler le lien remet l’échéance à 7 jours et invalide immédiatement l’ancien lien. Copiez et partagez le nouveau lien affiché. Attendez au moins une minute entre deux renouvellements. Annuler empêche l’acceptation future ; cela ne retire pas l’accès d’une personne déjà membre. Gérez alors cette personne dans Membres.",
           "Un espace peut avoir 100 invitations actives en attente. Si une limite est atteinte, annulez les invitations inutiles ou attendez avant de recommencer.",
         ],
       },
