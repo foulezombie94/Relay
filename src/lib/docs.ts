@@ -413,8 +413,8 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Comprendre les rôles",
         paragraphs: [
-          "Le propriétaire gère l’espace et les administrateurs. Les administrateurs configurent l’espace et gèrent les membres et lecteurs ; seul le propriétaire peut inviter, nommer ou modifier un administrateur. Les membres créent et modifient les données du CRM. Les lecteurs consultent et peuvent exporter, sans modifier les données.",
-          "Ces droits s’appliquent à tout l’espace, sans restriction par département ou par fiche. Les données privées gardent leurs propres restrictions. Les clients externes utilisent un portail, pas un rôle de membre.",
+          "Le propriétaire et les administrateurs configurent l’espace et gèrent les collaborateurs. Un administrateur peut inviter ou promouvoir un autre administrateur. Le propriétaire reste protégé et chacun ne peut pas modifier son propre rôle. Les membres créent et modifient les données du CRM. Les lecteurs consultent et peuvent exporter, sans modifier les données.",
+          "Les membres et administrateurs travaillent sur tout l’espace. Pour chaque lecteur, choisissez Tout l’espace ou Fiches choisies dans Données visibles. Les données privées gardent leurs propres restrictions. Les clients externes utilisent un portail, pas un rôle de membre.",
         ],
       },
       {
@@ -442,8 +442,8 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Modifier les droits",
         paragraphs: [
-          "Dans Membres, choisissez le nouveau rôle puis confirmez. Votre propre accès et celui du propriétaire sont protégés. Un administrateur ne peut pas modifier un autre administrateur. Si le rôle a changé entre-temps, Relay refuse la modification : actualisez la liste et recommencez.",
-          "Passer une personne à Lecteur désactive ses connexions Relay, ses synchronisations et ses traitements en attente. Ses séquences actives sont mises en pause. Revenir à Membre ne réactive pas automatiquement ces connexions : la personne devra les reconnecter.",
+          "Dans Membres, choisissez le nouveau rôle puis confirmez. Votre propre accès et celui du propriétaire sont protégés. Un administrateur peut modifier un autre administrateur, avec confirmation et contrôle des modifications concurrentes. Si le rôle a changé entre-temps, Relay refuse la modification : actualisez la liste et recommencez.",
+          "Passer une personne à Lecteur démarre avec aucune fiche autorisée et désactive ses connexions Relay, ses synchronisations et ses traitements en attente. Ses séquences actives sont mises en pause. Revenir à Membre ne réactive pas automatiquement ces connexions : la personne devra les reconnecter.",
         ],
       },
       {
@@ -458,6 +458,21 @@ export const helpArticles: HelpArticle[] = [
           "La réattribution et le retrait sont réalisés ensemble : en cas d’échec, aucun changement partiel n’est conservé. Les notes, documents et historiques restent en place. L’accès à cet espace, y compris ses éventuels accès aux portails clients de cet espace, est retiré, sans supprimer le compte ni ses accès à d’autres espaces. Au-delà de 10 000 éléments attribués, réattribuez-les par lots avant le retrait.",
           "Relay supprime les identifiants de connexion conservés pour cet espace, désactive ses synchronisations, annule ses jobs actifs et met ses séquences en pause. Un email ou une autre action déjà envoyé au fournisseur externe ne peut pas être rappelé. Cela ne supprime pas les autorisations dans le compte Google ou Microsoft lui-même.",
           "Les changements de rôle, invitations et retraits sont conservés dans l’historique des modifications, visible aux administrateurs et au propriétaire.",
+        ],
+      },
+      {
+        title: "Choisir les données visibles par un lecteur",
+        steps: [
+          "Dans Paramètres → Équipe et accès → Membres, cliquez sur Données visibles à côté du lecteur.",
+          "Choisissez Tout l’espace ou Fiches choisies. Tout l’espace exige une confirmation.",
+          "Pour Fiches choisies, recherchez les fiches, filtrez leur type et cochez celles à autoriser. La sélection reste conservée quand vous changez de page.",
+          "Consultez Voir les fiches autorisées pour retirer une autorisation, puis enregistrez les droits.",
+        ],
+        paragraphs: [
+          "Un nouveau lecteur ne voit aucune fiche tant que ses droits ne sont pas configurés. Les lecteurs déjà présents lors de l’ajout de cette fonction gardent Tout l’espace : vous pouvez maintenant les restreindre individuellement. La sélection est limitée à 1 000 fiches par lecteur.",
+          "La sélection couvre les fiches complètes et leurs tâches, notes publiques, activités, réunions, documents, engagements et réalisations. Les relations ne montrent que les fiches elles-mêmes autorisées. Autoriser une entreprise ne partage pas automatiquement ses contacts ou opportunités ; sélectionnez-les séparément.",
+          "Les recherches, listes, montants des rapports et exports respectent ces droits. Les notes privées restent privées. En mode Fiches choisies, les données globales non liées à une fiche, dont messages, automations, imports, séquences et aperçus de fusion, ne sont pas accessibles. Les accès aux portails clients ne contournent pas cette restriction.",
+          "Les nouvelles fiches ne sont pas automatiquement ajoutées à une sélection. Modifier les droits prend effet sur les prochaines lectures en base ; des données déjà affichées ou téléchargées ne peuvent pas être rappelées. Ces réglages ne limitent pas certains champs à l’intérieur d’une fiche.",
         ],
       },
       {

@@ -22,7 +22,7 @@ Date : 7 octobre 2026. Analyse des documentations officielles, pas des comptes c
 
 - Dans **Paramètres → Équipe et accès** : onglets Membres et Invitations, recherche sur validation, filtre de rôle, pagination de 25 lignes. Les droits sont expliqués dans le produit.
 - Invitations normalisées par adresse, échéance de 7 jours, renouvellement, annulation et lien partageable. L’accès exige l’adresse réellement confirmée dans Supabase Auth ; aucun rôle ne provient de paramètres d’URL ou d’un email déclaré côté navigateur.
-- Propriétaire protégé ; aucun changement de son propre rôle. **Seul le propriétaire gère les administrateurs.** Un administrateur peut gérer membres et lecteurs. Cette restriction est un choix propre à Relay.
+- Propriétaire protégé ; aucun changement de son propre rôle. **Les administrateurs peuvent inviter, promouvoir et gérer d’autres administrateurs**, comme chez Attio. Le propriétaire et son propre accès restent protégés.
 - Chaque changement exige la version actuelle de l’appartenance. Un écran ancien reçoit une erreur 409 et doit être actualisé.
 - Retrait avec aperçu des quantités et réattribution à un responsable actif du même espace. Fiches, tâches, engagements et réalisations sont réattribués dans la même transaction que le retrait ; notes et historique sont conservés.
 - Retrait ou passage à Lecteur : suppression des secrets de connecteurs dans Relay, désactivation des synchronisations, annulation des jobs actifs de cet utilisateur dans cet espace et pause des séquences. Les éventuels accès aux portails de cet espace sont également révoqués lors du retrait. Les autres espaces et le compte Auth global restent disponibles.
@@ -52,10 +52,24 @@ Les emails de vérification de compte restent ceux de Supabase Auth ; ils ne son
 
 ## Limites explicites
 
-Cette livraison renforce **les collaborateurs d’un espace**. Elle ne crée pas de départements, hiérarchie d’équipes, restrictions par fiche/objet, profils personnalisés, SAML/SSO ou SCIM. Ces fonctions nécessitent une conception dédiée des ACL ; les présenter comme actives sans les contrôler sur toutes les lectures et écritures serait trompeur.
+Cette livraison renforce **les collaborateurs d’un espace**. Elle ajoute une visibilité par fiche pour les lecteurs, mais ne crée pas de départements, hiérarchie d’équipes, permissions automatiques par objet ou par champ, profils personnalisés, SAML/SSO ou SCIM. Ces fonctions nécessitent une conception dédiée des ACL ; les présenter comme actives sans les contrôler sur toutes les lectures et écritures serait trompeur.
 
 Le retrait empêche les prochains accès et invalide les traitements dans Relay. Il ne rappelle pas une action déjà envoyée à Google, Microsoft ou à un autre fournisseur, et ne supprime pas le consentement OAuth dans le compte du fournisseur. Des données déjà téléchargées par un utilisateur ne peuvent pas être retirées de son appareil.
 
 ## Résultat des vérifications
 
 TypeScript et ESLint ciblé : aucune erreur. Préflight SQL et tests après migration réussis, sans fixtures conservées ni email envoyé. Le contrôle Supabase de sécurité ne signale aucune erreur et aucune alerte sur les nouvelles fonctions d’équipe. Quatre avertissements existants restent présents : trois RPC d’import/séquence exposées en `security definer` et la protection contre les mots de passe compromis désactivée. Ces observations ne constituent pas une certification générale de sécurité de l’application.
+
+## Visibilité des lecteurs et délégation administrative
+
+Inspirations : [Attio autorise la promotion par un administrateur](https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins) ; [Pipedrive distingue visibilité et permissions](https://support.pipedrive.com/en/article/visibility-groups).
+
+Dans Membres → Données visibles, un lecteur reçoit tout l’espace ou une sélection explicite (1 000 fiches maximum). Les lecteurs existants gardent leur visibilité actuelle ; les nouveaux lecteurs et les changements vers Lecteur commencent sans aucune fiche. La sélection ne se propage pas automatiquement aux contacts/opportunités associés et ne comprend pas les nouvelles fiches futures.
+
+Une table privée avec RLS, droits révoqués et clés étrangères tenant-bound conserve les autorisations. Des politiques restrictives s’ajoutent aux ACL existantes sur toutes les tables publiques métier concernées : fiches, enfants, relations (les deux extrémités), entrées et listes visibles, audit lié. Les données opérationnelles globales sans rattachement fiable sont fermées pour un lecteur sélectionné. Les recherches, agrégats et exports utilisent déjà le client authentifié et héritent de ces RLS. Les résultats de jobs privilégiés sont aussi bloqués pour ces lecteurs. Les lecteurs gardent les métadonnées nécessaires pour utiliser le CRM : espace, collaborateurs, types, champs et pipelines.
+
+Le contrôle ne s’appuie pas sur des claims de rôle périmés. L’enregistrement vérifie le rôle administrateur courant, le rôle Lecteur de la cible, la version, l’espace de chaque fiche et le plafond ; il est atomique, audité et sérialisé avec les autres changements d’accès. Changer de rôle efface les autorisations précédentes. Les portails des clients externes conservent leurs ACL, mais un lecteur interne sélectionné ne peut pas utiliser un portail pour contourner sa sélection.
+
+Les tests `supabase/tests/reader-visibility.sql` couvrent les données liées, notes privées, listes, audits, rapports, documents et Storage, snapshots, accès inter-espace, écriture interdite, version périmée, révocation avec ancien JWT, changement de rôle et préservation des portails externes. Ils ont aussi révélé une collision existante entre `documents.name` et `storage.objects.name` dans la politique de téléchargement ; la référence est désormais qualifiée explicitement.
+
+Toute nouvelle table métier ou RPC privilégiée doit intégrer cette règle de visibilité ; une fonction `security definer` ne doit jamais renvoyer un dataset CRM global à un lecteur sélectionné. Les champs individuels des fiches choisies ne sont pas masqués et les données déjà téléchargées ne peuvent pas être rappelées.

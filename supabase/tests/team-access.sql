@@ -51,16 +51,18 @@ begin
  perform set_config('request.jwt.claim.sub',admin_user::text,true);
  begin
   perform public.team_member_change(w,member_user,'admin',1);
-  raise exception 'Admin promoted another admin';
- exception when insufficient_privilege then null;end;
+  if not exists(select 1 from public.memberships where workspace_id=w and user_id=member_user and role='admin') then raise exception 'Admin promotion failed';end if;
+  raise exception 'Rollback permitted promotion fixture' using errcode='PZ001';
+ exception when sqlstate 'PZ001' then null;end;
  begin
   perform public.team_member_change(w,admin_user,'remove',1,owner_user);
   raise exception 'Self removal allowed';
  exception when insufficient_privilege then null;end;
  begin
-  perform public.team_invitation_manage(w,'create','admin-forged@example.invalid','admin');
-  raise exception 'Admin invited another admin';
- exception when insufficient_privilege then null;end;
+  output:=public.team_invitation_manage(w,'create','new-admin@example.invalid','admin');
+  if output->>'role'<>'admin' or output->>'token' is null then raise exception 'Admin invitation failed';end if;
+  raise exception 'Rollback permitted invitation fixture' using errcode='PZ001';
+ exception when sqlstate 'PZ001' then null;end;
  perform set_config('request.jwt.claim.sub',owner_user::text,true);
  begin
   perform public.team_member_change(w,member_user,'viewer',99);

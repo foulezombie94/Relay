@@ -9,7 +9,7 @@ function teamError(error: { code?: string; message: string } | null) {
   if (!error) return;
   const messages: Record<string, [string, number]> = {
     "40001": ["Le rôle a changé depuis l’ouverture de la liste. Actualisez et recommencez.", 409],
-    "42501": ["Cet accès est protégé ou réservé au propriétaire de l’espace.", 403],
+    "42501": ["Cet accès est protégé ou réservé à un administrateur de l’espace.", 403],
     "53300": ["Limite atteinte : attendez une minute ou réduisez les invitations en attente (100 maximum).", 429],
     "23505": ["Cette personne est déjà membre de l’espace.", 409],
     "22023": ["Cette action n’est plus possible. Actualisez la liste et vérifiez le responsable choisi.", 400],
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest, { params }: P) {
     const filter = z.enum(["", "owner", "admin", "member", "viewer"]).parse(p.get("role") ?? "");
     const candidates = p.get("candidates") === "true";
     const size = candidates && kind === "members" ? 100 : 25;
-    let query = kind === "members" ? client.from("memberships").select("id,user_id,display_name,role,version,created_at", { count: "exact" }) : client.from("invitations").select("id,email,role,created_at,last_issued_at,expires_at,accepted_at,revoked_at", { count: "exact" });
+    let query = kind === "members" ? client.from("memberships").select("id,user_id,display_name,role,reader_scope,version,created_at", { count: "exact" }) : client.from("invitations").select("id,email,role,created_at,last_issued_at,expires_at,accepted_at,revoked_at", { count: "exact" });
     query = query.eq("workspace_id", workspace);
     if (filter) query = query.eq("role", filter);
     if (candidates && kind === "members") query = query.in("role", ["owner", "admin", "member"]);
