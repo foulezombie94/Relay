@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { request, useRows, useSave, useWorkspace } from "./data-provider";
+import { request, useSave, useWorkspace } from "./data-provider";
 import { Modal, Loading, ErrorMessage, Empty, Badge, date, str } from "./ui";
 import type { CrmRecord, Row } from "@/lib/domain/types";
 export type RecordContext = {
@@ -14,6 +14,17 @@ export type RecordContext = {
   truncated: boolean;
   relation_count: number;
 };
+export function useRecordContext(recordId: string) {
+  const { workspace } = useWorkspace();
+  return useQuery({
+    queryKey: ["rows", workspace.id, "context", recordId],
+    staleTime: 30_000,
+    queryFn: () =>
+      request<RecordContext>(
+        "/api/" + workspace.id + "/context?record_id=" + recordId,
+      ),
+  });
+}
 const labels: Record<string, string> = {
   notes: "Note",
   tasks: "Tâche",
@@ -36,14 +47,18 @@ export function RecordContextPanel({
   const [adding, setAdding] = useState(false);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
-  const q = useQuery({
-    queryKey: ["rows", workspace.id, "context", record.id],
+  const q = useRecordContext(record.id);
+  const candidates = useQuery({
+    queryKey: ["rows", workspace.id, "record-relation-candidates", search],
+    enabled: adding,
     queryFn: () =>
-      request<RecordContext>(
-        "/api/" + workspace.id + "/context?record_id=" + record.id,
+      request<{ data: CrmRecord[] }>(
+        "/api/" +
+          workspace.id +
+          "/records?size=25&q=" +
+          encodeURIComponent(search),
       ),
   });
-  const candidates = useRows<CrmRecord>("records", { q: search, size: 25 });
   function go(r: CrmRecord) {
     const o = objects.find((o) => o.id === r.object_id);
     if (o)
@@ -86,11 +101,13 @@ export function RecordContextPanel({
       {mode === "timeline" ? (
         <>
           <div className="context-counts">
-            {Object.entries(data.counts).map(([key, count]) => (
-              <span className="pill" key={key}>
-                {labels[key]} · {count}
-              </span>
-            ))}
+            {Object.entries(data.counts)
+              .filter(([, count]) => count > 0)
+              .map(([key, count]) => (
+                <span className="pill" key={key}>
+                  {labels[key]} · {count}
+                </span>
+              ))}
           </div>
           <div className="timeline">
             {data.timeline.map((r) => (

@@ -1,0 +1,610 @@
+.drawer {
+  width: min(1080px, 100vw);
+  padding: 0;
+  background: #fff;
+  overflow-x: hidden;
+}
+.drawer :global(.drawer-heading) {
+  padding: 18px 28px;
+  margin: 0;
+  border-bottom: 1px solid #dfe4ec;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+}
+.drawer :global(.drawer-heading h2) {
+  font-size: 13px;
+  font-weight: 600;
+  color: #626b7b;
+  margin: 0;
+}
+.recordShell {
+  color: #20252d;
+  font-size: 13px;
+}
+.recordShell :global(p) {
+  color: #626b7b;
+}
+.recordShell :global(.badge) {
+  white-space: nowrap;
+  color: #3655b4;
+}
+.recordShell :global(.badge.green) {
+  color: #166b50;
+}
+.recordShell :global(.badge.red) {
+  color: #a53637;
+}
+.recordShell :global(.button) {
+  font-size: 12px;
+  min-height: 35px;
+}
+.recordShell :global(.text-link) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #365de3;
+}
+.recordShell :global(.empty) {
+  padding: 48px 20px;
+}
+.recordShell :global(.empty p) {
+  color: #626b7b;
+}
+.recordShell :global(.detail-card) {
+  margin: 12px 0;
+}
+.identity {
+  padding: 28px 28px 20px;
+}
+.identityMain {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.identityMain > div {
+  min-width: 0;
+}
+.identity h2 {
+  font:
+    650 25px/1.3 "Manrope",
+    sans-serif;
+  letter-spacing: -0.025em;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.identityAvatar {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  color: #4668c8;
+  background: #edf2ff;
+  border-radius: 12px;
+}
+.identity[data-kind="people"] .identityAvatar {
+  background: transparent;
+  border-radius: 50%;
+}
+.identityAvatar :global(.avatar) {
+  height: 56px;
+  width: 56px;
+  font-size: 19px;
+}
+.identity[data-kind="companies"] .identityAvatar {
+  background: #eef5f3;
+  color: #2b6e5b;
+}
+.identityMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  color: #626b7b;
+  font-size: 12px;
+}
+.identityMeta > a,
+.identityMeta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.identityMeta a:hover {
+  color: #365de3;
+  text-decoration: underline;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 28px 20px;
+  color: #626b7b;
+}
+.toolbar > span {
+  font-size: 12px;
+  max-width: 65ch;
+  line-height: 1.6;
+}
+.toolbar > div {
+  display: flex;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.tabs {
+  display: flex;
+  gap: 22px;
+  padding: 0 28px;
+  border-bottom: 1px solid #dfe4ec;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c5cddc transparent;
+}
+.tabs button {
+  min-height: 47px;
+  padding: 0 0 11px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  white-space: nowrap;
+  font-size: 12px;
+  color: #626b7b;
+}
+.tabs button:hover {
+  color: #20252d;
+}
+.tabs .activeTab {
+  color: #365de3;
+  border-bottom-color: #365de3;
+  font-weight: 600;
+}
+.content {
+  padding: 24px 28px 32px;
+}
+.personLayout,
+.dealLayout,
+.companyLayout {
+  display: grid;
+  gap: 28px;
+  align-items: start;
+}
+.personLayout {
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.45fr);
+}
+.dealLayout {
+  grid-template-columns: minmax(0, 1.5fr) minmax(230px, 0.8fr);
+}
+.companyLayout {
+  grid-template-columns: minmax(0, 1.5fr) minmax(230px, 0.8fr);
+}
+.sideColumn,
+.mainColumn,
+.companyMain {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+.sideColumn {
+  background: #f7f9fc;
+  padding: 18px;
+  border-radius: 12px;
+}
+.section {
+  min-width: 0;
+}
+.sectionHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.sectionHeading h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+.sectionHeading h3 svg {
+  flex: none;
+  color: #6d7d98;
+}
+.subtleButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: none;
+  color: #365de3;
+  padding: 3px 0;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.subtleButton:hover {
+  text-decoration: underline;
+}
+.properties {
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+.properties > div {
+  display: grid;
+  gap: 4px;
+}
+.properties dt {
+  color: #626b7b;
+  font-size: 11px;
+}
+.properties dd {
+  margin: 0;
+  color: #20252d;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.properties dd a:hover {
+  color: #365de3;
+  text-decoration: underline;
+}
+.nextAction {
+  background: #edf2ff;
+  padding: 18px 20px;
+  border-radius: 12px;
+}
+.nextAction .sectionHeading h3,
+.nextAction .sectionHeading h3 svg {
+  color: #3154ae;
+}
+.nextAction > strong {
+  font-size: 14px;
+  display: block;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.nextAction p {
+  color: #4b5f89;
+  font-size: 12px;
+  margin: 8px 0 14px;
+  line-height: 1.65;
+}
+.nextAction :global(.button) {
+  background: #fff;
+}
+.relatedList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.relatedList li + li {
+  border-top: 1px solid #e6ebf2;
+}
+.relatedList a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 62px;
+  padding: 10px 0;
+}
+.relatedList a:hover {
+  background: #f4f6fb;
+}
+.relatedList a > span:not(:global(.avatar)):not(:global(.badge)) {
+  flex: 1;
+  min-width: 0;
+}
+.relatedList strong {
+  font-size: 12px;
+  font-weight: 600;
+  display: block;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.relatedList small {
+  color: #626b7b;
+  font-size: 11px;
+  display: block;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+.relatedList a > svg {
+  color: #78879d;
+  flex-shrink: 0;
+}
+.relatedList :global(.avatar) {
+  width: 31px;
+  height: 31px;
+  flex-shrink: 0;
+  font-size: 10px;
+}
+.emptyInline {
+  padding: 16px 0;
+  border-top: 1px solid #e6ebf2;
+}
+.emptyInline p {
+  color: #626b7b;
+  font-size: 12px;
+  line-height: 1.65;
+  margin: 0 0 10px;
+  max-width: 65ch;
+}
+.interactions,
+.commitmentList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.interactions li {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 14px 0;
+  border-top: 1px solid #e6ebf2;
+}
+.eventIcon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #f4f6fb;
+  color: #617391;
+  flex-shrink: 0;
+}
+.interactions strong {
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.interactions p {
+  margin: 5px 0 7px;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.interactions small {
+  color: #626b7b;
+  font-size: 11px;
+}
+.commitmentList li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #e6ebf2;
+  padding: 14px 0;
+}
+.commitmentList strong {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.commitmentList small {
+  display: block;
+  font-size: 11px;
+  color: #626b7b;
+  margin-top: 5px;
+}
+.dealNumbers {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+  padding: 20px 0;
+  border-top: 1px solid #e6ebf2;
+}
+.dealNumbers > div > span {
+  display: block;
+  color: #626b7b;
+  font-size: 11px;
+  margin-bottom: 9px;
+}
+.dealNumbers strong {
+  font-size: 24px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.dealNumbers small {
+  display: block;
+  color: #626b7b;
+  font-size: 10px;
+  margin-top: 7px;
+}
+.dealNumbers .closeDate {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+}
+.stageTrack {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.stageTrack li {
+  font-size: 11px;
+  color: #626b7b;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.stageTrack li > span {
+  display: block;
+  height: 4px;
+  border-radius: 3px;
+  background: #e5eaf3;
+  margin-bottom: 7px;
+}
+.stageTrack li[data-passed="true"] > span {
+  background: #8da3e6;
+}
+.stageTrack li[data-current="true"] {
+  color: #365de3;
+  font-weight: 650;
+}
+.stageTrack li[data-current="true"] > span {
+  background: #365de3;
+}
+.lossReason {
+  color: #a53637 !important;
+  font-size: 12px;
+  margin: 15px 0 0;
+}
+.accountTotals {
+  padding: 16px;
+  background: #f4f6fb;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+.accountTotals > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.accountTotals > div + div {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #dfe4ec;
+}
+.accountTotals span {
+  display: block;
+  font-size: 11px;
+  color: #626b7b;
+  margin-bottom: 7px;
+}
+.accountTotals strong {
+  font-size: 20px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.bodyCopy {
+  font-size: 12px;
+  line-height: 1.65;
+  margin: 0 0 14px;
+}
+.limitNotice {
+  background: #fff5df;
+  color: #735325 !important;
+  font-size: 12px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin: 0 0 20px;
+  line-height: 1.6;
+}
+.recordShell button:focus-visible,
+.recordShell a:focus-visible {
+  outline: 2px solid #365de3;
+  outline-offset: 4px;
+}
+.recordShell ::selection {
+  background: #dbe5ff;
+}
+@media (max-width: 760px) {
+  .drawer :global(.drawer-heading),
+  .identity,
+  .toolbar,
+  .content {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .tabs {
+    padding-left: 20px;
+    padding-right: 20px;
+    gap: 20px;
+  }
+  .personLayout,
+  .dealLayout,
+  .companyLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .personLayout .sideColumn {
+    order: 2;
+  }
+  .identity h2 {
+    font-size: 22px;
+  }
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .dealNumbers {
+    gap: 16px;
+  }
+  .dealNumbers strong {
+    font-size: 21px;
+  }
+  .dealNumbers .closeDate {
+    font-size: 12px;
+  }
+}
+@media (max-width: 440px) {
+  .drawer :global(.drawer-heading),
+  .identity,
+  .toolbar,
+  .content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .tabs {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .identityMain {
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .identityAvatar,
+  .identityAvatar :global(.avatar) {
+    width: 45px;
+    height: 45px;
+    font-size: 16px;
+  }
+  .identity h2 {
+    font-size: 20px;
+  }
+  .dealNumbers {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dealNumbers > div:last-child {
+    grid-column: 1 / -1;
+  }
+  .stageTrack {
+    gap: 4px;
+  }
+  .stageTrack li {
+    font-size: 10px;
+  }
+  .sideColumn {
+    padding: 16px;
+  }
+  .relatedList a {
+    gap: 7px;
+  }
+}
+
+.identity[data-kind="people"] .identityAvatar :global(.avatar) {
+  border-radius: 50%;
+}

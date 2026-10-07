@@ -1,211 +1,113 @@
 "use client";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import {
-  Building2,
-  CalendarDays,
-  CircleUserRound,
-  Layers3,
-  ArrowRight,
-  CheckCheck,
-  Mail,
-  Globe,
-} from "lucide-react";
-import { request, useRows, useWorkspace } from "./data-provider";
-import { Badge, date, money, str } from "./ui";
-import type { RecordContext } from "./record-context";
-import type { CrmRecord } from "@/lib/domain/types";
+import { Building2, Layers3, Mail, Globe, CalendarDays } from "lucide-react";
+import { Avatar, Badge, date, money } from "./ui/display";
 import { dealProbability, type Pipeline } from "@/lib/domain/pipelines";
-import styles from "./pages/records.module.css";
-
+import { stages, type CrmRecord } from "@/lib/domain/types";
+import styles from "./pages/record-details.module.css";
 export function RecordSummary({
   record,
-  onTasks,
-  onCommitments,
-  onRelations,
+  slug,
+  pipelines,
 }: {
   record: CrmRecord;
-  onTasks: () => void;
-  onCommitments: () => void;
-  onRelations: () => void;
+  slug: string;
+  pipelines: Pipeline[];
 }) {
-  const { workspace, objects } = useWorkspace();
-  const object = objects.find((item) => item.id === record.object_id);
-  const slug = object?.slug;
-  const isDeal = slug === "deals";
-  const pipelines = useRows<Pipeline>("pipelines", { size: 100 });
-  const pipeline = pipelines.data?.data.find(
-    (p) => p.id === record.pipeline_id,
-  );
-  const Icon =
-    slug === "people"
-      ? CircleUserRound
-      : slug === "companies"
-        ? Building2
-        : Layers3;
-  const q = useQuery({
-    queryKey: ["rows", workspace.id, "context", record.id],
-    queryFn: () =>
-      request<RecordContext>(
-        "/api/" + workspace.id + "/context?record_id=" + record.id,
-      ),
-  });
-  const related = (q.data?.related ?? []).filter(
-    (item) => !item.archived && !item.merged_into,
-  );
-  const upcoming = (q.data?.timeline ?? [])
-    .filter(
-      (item) =>
-        ["tasks", "commitments"].includes(item.resource) &&
-        !["done", "cancelled"].includes(str(item.status)),
-    )
-    .sort((a, b) => {
-      const aDate = a.due_date ? Date.parse(str(a.due_date)) : Infinity;
-      const bDate = b.due_date ? Date.parse(str(b.due_date)) : Infinity;
-      return (
-        (Number.isFinite(aDate) ? aDate : Infinity) -
-        (Number.isFinite(bDate) ? bDate : Infinity)
-      );
-    })[0];
+  const pipeline = pipelines.find((p) => p.id === record.pipeline_id);
+  const probability = dealProbability(record, pipelines);
   return (
-    <div className={styles.summary}>
-      <div className={styles.summaryIdentity}>
-        <span
-          className={`${styles.pageIcon} ${slug === "people" ? styles.roundIcon : ""}`}
-        >
-          <Icon size={25} />
+    <header className={styles.identity} data-kind={slug}>
+      <div className={styles.identityMain}>
+        <span className={styles.identityAvatar}>
+          {slug === "people" ? (
+            <Avatar name={record.display_name} />
+          ) : slug === "companies" ? (
+            <Building2 size={28} />
+          ) : (
+            <Layers3 size={26} />
+          )}
         </span>
         <div>
-          <small>
-            {isDeal
-              ? "OPPORTUNITÉ"
-              : slug === "people"
-                ? "CONTACT"
-                : slug === "companies"
-                  ? "COMPTE ENTREPRISE"
-                  : "FICHE"}
-          </small>
           <h2>{record.display_name}</h2>
-        </div>
-      </div>
-      {isDeal && (
-        <div className={styles.summaryDeal}>
-          <strong>{money(record.amount, record.currency || "EUR")}</strong>
-          <Badge value={pipeline?.labels[record.stage] || record.stage} />
-          {pipeline && (
-            <span>
-              {pipeline.name} ·{" "}
-              {dealProbability(record, pipelines.data?.data ?? [])} %
-            </span>
-          )}
-          {record.close_date && (
-            <span>
-              <CalendarDays size={14} /> Clôture le {date(record.close_date)}
-            </span>
-          )}
-        </div>
-      )}
-      {isDeal && record.stage === "Perdu" && (
-        <p className="preserve-lines">
-          Raison de perte : {record.lost_reason || "Non renseignée"}
-        </p>
-      )}
-      <div className={styles.summaryContacts}>
-        {record.email && (
-          <span>
-            <Mail size={14} />
-            {record.email}
-          </span>
-        )}
-        {record.domain && (
-          <span>
-            <Globe size={14} />
-            {record.domain}
-          </span>
-        )}
-        {!record.email && !record.domain && !isDeal && (
-          <span>Coordonnées à compléter</span>
-        )}
-      </div>
-      {q.data && (
-        <div className={styles.relationPreview}>
-          <div>
-            <strong>
-              {slug === "people"
-                ? "Relations professionnelles"
-                : isDeal
-                  ? "Parties prenantes"
-                  : "Contacts et opportunités liés"}
-            </strong>
-            <button type="button" onClick={onRelations}>
-              Gérer les relations <ArrowRight size={12} />
-            </button>
-          </div>
-          <div>
-            {related.slice(0, 4).map((item) => {
-              const target = objects.find(
-                (candidate) => candidate.id === item.object_id,
-              );
-              return target ? (
-                <Link
-                  key={item.id}
-                  href={
-                    "/app/" +
-                    (target.standard ? target.slug : "object-" + target.slug) +
-                    "?record=" +
-                    item.id
-                  }
-                >
-                  {target.slug === "companies" ? (
-                    <Building2 size={12} />
-                  ) : target.slug === "people" ? (
-                    <CircleUserRound size={12} />
-                  ) : (
-                    <Layers3 size={12} />
-                  )}
-                  {item.display_name}
-                </Link>
-              ) : null;
-            })}
-            {!related.length && (
-              <span>Aucune fiche reliée pour le moment.</span>
+          <div className={styles.identityMeta}>
+            {slug === "deals" ? (
+              <>
+                <Badge value={pipeline?.labels[record.stage] || record.stage} />
+                <span>{pipeline?.name || "Pipeline non renseigné"}</span>
+              </>
+            ) : (
+              <>
+                {record.email && (
+                  <a href={"mailto:" + record.email}>
+                    <Mail size={14} />
+                    {record.email}
+                  </a>
+                )}
+                {record.domain && (
+                  <span>
+                    <Globe size={14} />
+                    {record.domain}
+                  </span>
+                )}
+                {!record.email && !record.domain && (
+                  <span>Coordonnées à compléter</span>
+                )}
+              </>
             )}
           </div>
         </div>
-      )}
-      {q.data && (
-        <div className={styles.nextStep}>
-          <span>
-            <CheckCheck size={16} />{" "}
-            {q.data.truncated
-              ? "ACTION À SUIVRE · APERÇU LIMITÉ"
-              : "PROCHAINE ACTION"}
-          </span>
-          {upcoming ? (
-            <>
-              <strong>{str(upcoming.title)}</strong>
-              <div>
-                {upcoming.due_date ? date(upcoming.due_date) : "Sans échéance"}
-                <button
-                  type="button"
-                  onClick={
-                    upcoming.resource === "tasks" ? onTasks : onCommitments
+      </div>
+      {slug === "deals" && (
+        <>
+          <div className={styles.dealNumbers}>
+            <div>
+              <span>Valeur de l’opportunité</span>
+              <strong>{money(record.amount, record.currency || "EUR")}</strong>
+            </div>
+            <div>
+              <span>Probabilité commerciale</span>
+              <strong>{probability} %</strong>
+              <small>
+                {record.probability == null
+                  ? "Selon l’étape du pipeline"
+                  : "Définie sur cette opportunité"}
+              </small>
+            </div>
+            <div>
+              <span>Clôture prévue</span>
+              <strong className={styles.closeDate}>
+                <CalendarDays size={17} />
+                {record.close_date ? date(record.close_date) : "À définir"}
+              </strong>
+            </div>
+          </div>
+          <ol className={styles.stageTrack} aria-label="Étapes du pipeline">
+            {stages
+              .filter((stage) => !["Gagné", "Perdu"].includes(stage))
+              .map((stage, index) => (
+                <li
+                  key={stage}
+                  data-current={record.stage === stage}
+                  data-passed={
+                    record.stage === "Gagné" ||
+                    (index <
+                      stages.indexOf(record.stage as (typeof stages)[number]) &&
+                      record.stage !== "Perdu")
                   }
+                  aria-current={record.stage === stage ? "step" : undefined}
                 >
-                  Voir le contexte <ArrowRight size={12} />
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <p>Aucune action ouverte dans cet aperçu.</p>
-              <button type="button" onClick={onTasks}>
-                Définir une prochaine action <ArrowRight size={12} />
-              </button>
-            </>
+                  <span />
+                  {pipeline?.labels[stage] || stage}
+                </li>
+              ))}
+          </ol>
+          {record.stage === "Perdu" && (
+            <p className={styles.lossReason}>
+              Raison de perte : {record.lost_reason || "Non renseignée"}
+            </p>
           )}
-        </div>
+        </>
       )}
-    </div>
+    </header>
   );
 }

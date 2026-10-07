@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
-import { useRows, useSave, useWorkspace } from "../data-provider";
+import { useQuery } from "@tanstack/react-query";
+import { Pencil, Archive, Plus } from "lucide-react";
+import { request, useRows, useSave, useWorkspace } from "../data-provider";
 import {
   Drawer,
   Editor,
@@ -13,9 +15,13 @@ import {
   type Field,
 } from "../ui";
 import { Pagination } from "../pagination";
-import { RecordContextPanel } from "../record-context";
+import { RecordContextPanel, useRecordContext } from "../record-context";
 import { RecordSummary } from "../record-summary";
-import type { CrmRecord, Row } from "@/lib/domain/types";
+import type { CrmRecord, Row, Attribute } from "@/lib/domain/types";
+import { RecordOverview, RelatedRecordList } from "../record-overview";
+import { relatedRecords } from "@/lib/domain/record-profile";
+import type { Pipeline } from "@/lib/domain/pipelines";
+import styles from "./record-details.module.css";
 const names: Record<string, string> = {
   timeline: "Contexte",
   relations: "Relations",
@@ -34,64 +40,198 @@ export function RecordDetails({
   onClose: () => void;
   onEdit: () => void;
 }) {
-  const { workspace } = useWorkspace();
-  const [tab, setTab] = useState("timeline");
-  const { remove } = useSave();
+  const { workspace, objects } = useWorkspace();
+  const slug = objects.find((o) => o.id === record.object_id)?.slug || "custom";
+  const [tab, setTab] = useState("overview");
+  const { remove, busy } = useSave();
   const [error, setError] = useState("");
-  const readonly = workspace.role === "viewer";
+  const readonly = workspace.role === "viewer" || !!record.merged_into;
+  const context = useRecordContext(record.id);
+  const members = useRows("memberships", { size: 100 });
+  const attrs = useRows<Attribute>("attributes", {
+    object_id: record.object_id,
+    size: 100,
+  });
+  const pipelines = useQuery({
+    queryKey: ["rows", workspace.id, "pipelines", { size: 100 }],
+    enabled: slug === "deals",
+    queryFn: () =>
+      request<{ data: Pipeline[] }>(
+        "/api/" + workspace.id + "/pipelines?size=100",
+      ),
+  });
+  const owner = members.data?.data.find((m) => m.user_id === record.owner_id);
+  const overviewLabel =
+    slug === "people"
+      ? "Profil du contact"
+      : slug === "companies"
+        ? "Vue du compte"
+        : slug === "deals"
+          ? "Suivi commercial"
+          : "Aperçu";
+  const tabs: Record<string, string> = {
+    overview: overviewLabel,
+    ...(slug === "companies"
+      ? { contacts: "Contacts", deals: "Opportunités" }
+      : {}),
+    ...names,
+    timeline: "Historique",
+    relations: slug === "deals" ? "Parties prenantes" : "Relations",
+  };
   return (
-    <Drawer open onClose={onClose} title={record.display_name}>
-      <div className="detail-card">
+    <Drawer
+      open
+      onClose={onClose}
+      title={
+        slug === "people"
+          ? "Fiche personne"
+          : slug === "companies"
+            ? "Compte entreprise"
+            : slug === "deals"
+              ? "Opportunité commerciale"
+              : "Fiche CRM"
+      }
+      className={styles.drawer}
+    >
+      <div className={styles.recordShell}>
         <RecordSummary
           record={record}
-          onTasks={() => setTab("tasks")}
-          onCommitments={() => setTab("commitments")}
-          onRelations={() => setTab("relations")}
+          slug={slug}
+          pipelines={pipelines.data?.data ?? []}
         />
-        <div className="row-actions">
-          <button className="button small" disabled={readonly} onClick={onEdit}>
-            Modifier
-          </button>
-          <button
-            className="button small"
-            disabled={readonly}
-            onClick={async () => {
-              if (window.confirm("Archiver cette fiche ?"))
-                try {
-                  await remove("records", record.id);
-                  onClose();
-                } catch (e) {
-                  setError(
-                    e instanceof Error ? e.message : "Archivage impossible",
-                  );
-                }
-            }}
-          >
-            Archiver
-          </button>
+        <div className={styles.toolbar}>
+          <span>
+            {slug === "people"
+              ? "Connaître votre interlocuteur et garder le fil."
+              : slug === "companies"
+                ? "Les interlocuteurs, les ventes et les engagements de ce compte."
+                : "Les informations utiles pour faire avancer cette vente."}
+          </span>
+          <div>
+            <button
+              className="button small"
+              disabled={readonly}
+              onClick={onEdit}
+            >
+              <Pencil size={14} />
+              Modifier
+            </button>
+            <button
+              className="button small"
+              disabled={readonly || busy}
+              onClick={async () => {
+                if (window.confirm("Archiver cette fiche ?"))
+                  try {
+                    await remove("records", record.id);
+                    onClose();
+                  } catch (e) {
+                    setError(
+                      e instanceof Error ? e.message : "Archivage impossible",
+                    );
+                  }
+              }}
+            >
+              <Archive size={14} />
+              Archiver
+            </button>
+          </div>
         </div>
         <ErrorMessage error={error ? new Error(error) : null} />
+        <nav className={styles.tabs} aria-label="Sections de la fiche">
+          {Object.entries(tabs).map(([key, label]) => (
+            <button
+              type="button"
+              key={key}
+              className={tab === key ? styles.activeTab : ""}
+              onClick={() => setTab(key)}
+              aria-current={tab === key ? "page" : undefined}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+        <div className={styles.content}>
+          {tab === "overview" || tab === "contacts" || tab === "deals" ? (
+            <>
+              {context.isPending ? (
+                <Loading />
+              ) : context.error ? (
+                <ErrorMessage error={context.error} />
+              ) : (
+                context.data && (
+                  <>
+                    {context.data.truncated && (
+                      <p className={styles.limitNotice}>
+                        Aperçu limité : les listes et les totaux ci-dessous
+                        portent sur les relations et éléments chargés.
+                      </p>
+                    )}
+                    <ErrorMessage
+                      error={members.error || attrs.error || pipelines.error}
+                    />
+                    {tab === "overview" ? (
+                      <RecordOverview
+                        record={record}
+                        slug={slug}
+                        context={context.data}
+                        objects={objects}
+                        attributes={attrs.data?.data ?? []}
+                        owner={str(owner?.display_name)}
+                        pipelines={pipelines.data?.data ?? []}
+                        onTab={setTab}
+                        onEdit={onEdit}
+                        readonly={readonly}
+                      />
+                    ) : (
+                      <section className={styles.section}>
+                        <div className={styles.sectionHeading}>
+                          <h3>
+                            {tab === "contacts"
+                              ? "Interlocuteurs de cette entreprise"
+                              : "Opportunités liées à cette entreprise"}
+                          </h3>
+                          <button
+                            className="button small"
+                            onClick={() => setTab("relations")}
+                          >
+                            Gérer les relations
+                          </button>
+                        </div>
+                        <RelatedRecordList
+                          records={relatedRecords(
+                            context.data.related,
+                            objects,
+                            tab === "contacts" ? "people" : "deals",
+                          )}
+                          objects={objects}
+                          onRelations={() => setTab("relations")}
+                          empty={
+                            tab === "contacts"
+                              ? "Aucun contact relié à ce compte."
+                              : "Aucune opportunité reliée à ce compte."
+                          }
+                        />
+                      </section>
+                    )}
+                  </>
+                )
+              )}
+            </>
+          ) : tab === "timeline" || tab === "relations" ? (
+            <RecordContextPanel
+              key={record.id + tab}
+              record={record}
+              mode={tab}
+            />
+          ) : (
+            <DetailResource key={record.id + tab} record={record} tab={tab} />
+          )}
+        </div>
       </div>
-      <div className="tabs" aria-label="Contexte de la fiche">
-        {Object.entries(names).map(([t, label]) => (
-          <button
-            key={t}
-            className={tab === t ? "active" : ""}
-            onClick={() => setTab(t)}
-            aria-pressed={tab === t}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      {tab === "timeline" || tab === "relations" ? (
-        <RecordContextPanel key={record.id + tab} record={record} mode={tab} />
-      ) : (
-        <DetailResource key={record.id + tab} record={record} tab={tab} />
-      )}
     </Drawer>
   );
 }
+
 function DetailResource({ record, tab }: { record: CrmRecord; tab: string }) {
   const { workspace } = useWorkspace();
   const [adding, setAdding] = useState(false);
@@ -100,7 +240,7 @@ function DetailResource({ record, tab }: { record: CrmRecord; tab: string }) {
   const [page, setPage] = useState(0);
   const q = useRows(tab, { record_id: record.id, size: 25, page });
   const { save, busy } = useSave();
-  const readonly = workspace.role === "viewer";
+  const readonly = workspace.role === "viewer" || !!record.merged_into;
   const fieldMap: Record<string, Field[]> = {
     notes: [
       { key: "title", label: "Titre" },
@@ -185,7 +325,14 @@ function DetailResource({ record, tab }: { record: CrmRecord; tab: string }) {
           disabled={readonly}
           onClick={() => setAdding(true)}
         >
-          Ajouter
+          <Plus size={14} />{" "}
+          {tab === "notes"
+            ? "Ajouter une note"
+            : tab === "tasks"
+              ? "Ajouter une tâche"
+              : tab === "commitments"
+                ? "Ajouter un engagement"
+                : "Consigner une activité"}
         </button>
       )}
       {q.isPending ? (
@@ -217,7 +364,30 @@ function DetailResource({ record, tab }: { record: CrmRecord; tab: string }) {
             </article>
           ))}
           {q.data?.data.length === 0 && (
-            <Empty description="Ajoutez du contexte à cette fiche." />
+            <Empty
+              title={
+                tab === "notes"
+                  ? "Vos notes, au bon endroit"
+                  : tab === "tasks"
+                    ? "Une prochaine action claire"
+                    : tab === "commitments"
+                      ? "Gardez une trace de vos engagements"
+                      : tab === "documents"
+                        ? "Les documents de cette fiche"
+                        : "Le fil de vos activités"
+              }
+              description={
+                tab === "notes"
+                  ? "Consignez les informations utiles à votre équipe."
+                  : tab === "tasks"
+                    ? "Ajoutez une tâche et une échéance pour organiser le suivi."
+                    : tab === "commitments"
+                      ? "Reliez ce qui a été promis à sa réalisation."
+                      : tab === "documents"
+                        ? "Ajoutez un devis, une proposition ou un document utile."
+                        : "Consignez un appel, un email ou une réunion."
+              }
+            />
           )}
           <Pagination
             page={page}
@@ -232,7 +402,15 @@ function DetailResource({ record, tab }: { record: CrmRecord; tab: string }) {
         <Editor
           open
           onClose={() => setAdding(false)}
-          title="Ajouter du contexte"
+          title={
+            tab === "notes"
+              ? "Ajouter une note"
+              : tab === "tasks"
+                ? "Planifier une tâche"
+                : tab === "commitments"
+                  ? "Ajouter un engagement"
+                  : "Consigner une activité"
+          }
           fields={fieldMap[tab] ?? []}
           busy={busy}
           initial={tab === "activities" ? { type: "comment" } : {}}

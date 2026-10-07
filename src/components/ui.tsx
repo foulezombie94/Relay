@@ -45,17 +45,19 @@ export function Drawer({
   onClose,
   title,
   children,
+  className = "",
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content className="drawer">
+        <Dialog.Content className={"drawer " + className}>
           <div className="drawer-heading">
             <Dialog.Title>{title}</Dialog.Title>
             <Dialog.Description className="sr-only">
