@@ -1,6 +1,7 @@
 import Papa from "papaparse";
 import { resources } from "@/lib/api/resources";
 import { validateAttributes } from "./attributes";
+import { migrationFields, referenceIds } from "./crm-migration";
 import type { Attribute } from "./types";
 export const importFields = [
   "display_name",
@@ -14,7 +15,11 @@ export const importFields = [
   "probability",
   "attributes",
 ] as const;
-export type ImportTable = { headers: string[]; rows: string[][] };
+export type ImportTable = {
+  headers: string[];
+  rows: string[][];
+  rowNumbers?: number[];
+};
 export type ImportError = { line: number; message: string };
 export function csvTable(content: string): ImportTable {
   const result = Papa.parse<string[]>(content.replace(/^\uFEFF/, ""), {
@@ -108,9 +113,15 @@ export function prepareImport(
   objectId: string,
   pipelineId: string | undefined,
   numberFormat: "comma" | "dot",
+  options: {
+    sourceKey?: string;
+    stageMap?: Record<string, string>;
+    deal?: boolean;
+  } = {},
 ) {
   const allowed = new Set<string>([
     ...importFields,
+    ...migrationFields,
     ...attributes
       .filter(
         (a) => !a.archived && !["formula", "relation", "user"].includes(a.type),
@@ -132,13 +143,34 @@ export function prepareImport(
   table.rows.forEach((cells, index) => {
     try {
       const values: Record<string, unknown> = { object_id: objectId };
-      const custom: Record<string, unknown> = {};
+      const custom: Record<string, unknown> = Object.create(null);
+      const migration: Record<string, unknown> = {};
       table.headers.forEach((header, i) => {
         const target = mapping[header];
         const cell = (cells[i] ?? "").trim();
         if (!target || !cell) return;
+        if (target.startsWith("_")) {
+          if (target === "_source_id") {
+            if (cell.length > 200 || /[\x00-\x1f]/.test(cell))
+              throw new Error("ID source invalide.");
+            migration.id = cell;
+          } else
+            migration[target === "_company_ids" ? "companies" : "people"] =
+              referenceIds(cell);
+          return;
+        }
         if (target === "attributes") {
-          Object.assign(custom, JSON.parse(cell));
+          const data = JSON.parse(cell);
+          if (
+            !data ||
+            typeof data !== "object" ||
+            Array.isArray(data) ||
+            Object.keys(data).some((k) =>
+              ["__proto__", "prototype", "constructor"].includes(k),
+            )
+          )
+            throw new Error("Attributs JSON invalides.");
+          Object.assign(custom, data);
           return;
         }
         if (target.startsWith("attr_")) {
@@ -173,6 +205,19 @@ export function prepareImport(
                   : cell;
       });
       if (pipelineId) values.pipeline_id = pipelineId;
+      if (values.domain && /^https?:\/\//i.test(String(values.domain)))
+        values.domain = new URL(String(values.domain)).hostname;
+      if (values.stage && options.stageMap) {
+        const mapped = options.stageMap[String(values.stage)];
+        if (!mapped && options.deal)
+          throw new Error(
+            "Associez l’étape « " + values.stage + " » à une étape Relay.",
+          );
+        if (mapped) values.stage = mapped;
+      }
+      if (options.deal && values.stage === "Perdu" && !values.lost_reason)
+        values.lost_reason =
+          "Import CRM : raison de perte non renseignée dans l’export";
       values.attributes = custom;
       values.stage ??= "Nouveau";
       values.currency ??= "EUR";
@@ -184,15 +229,28 @@ export function prepareImport(
       if (!parsed.success)
         throw new Error(
           parsed.error.issues
-            .map((i) => i.path.join(".") + " : " + i.message)
+            .map((i) =>
+              i.path[0] === "email"
+                ? "Email invalide : vérifiez l’adresse."
+                : i.path.join(".") + " : " + i.message,
+            )
             .join(" ; "),
         );
       const issues = validateAttributes(custom, attributes);
       if (issues.length) throw new Error(issues.join(" ; "));
-      valid.push(parsed.data);
+      if ((migration.companies || migration.people) && !migration.id)
+        throw new Error(
+          "Associez l’ID source de cette fiche pour conserver ses relations.",
+        );
+      valid.push({
+        ...parsed.data,
+        ...(options.sourceKey && migration.id
+          ? { _import: { source: options.sourceKey, ...migration } }
+          : {}),
+      });
     } catch (e) {
       errors.push({
-        line: index + 2,
+        line: table.rowNumbers?.[index] ?? index + 2,
         message: e instanceof Error ? e.message : "Ligne invalide.",
       });
     }

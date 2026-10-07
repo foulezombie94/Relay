@@ -11,24 +11,28 @@ export function Modal({
   title,
   children,
   wide = false,
+  description = "Complétez les informations puis enregistrez.",
+  className = "",
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
   wide?: boolean;
+  description?: string;
+  className?: string;
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content className={"dialog-content " + (wide ? "wide" : "")}>
+        <Dialog.Content
+          className={"dialog-content " + (wide ? "wide" : "") + " " + className}
+        >
           <div className="dialog-heading">
             <div>
               <Dialog.Title>{title}</Dialog.Title>
-              <Dialog.Description>
-                Complétez les informations puis enregistrez.
-              </Dialog.Description>
+              <Dialog.Description>{description}</Dialog.Description>
             </div>
             <Dialog.Close className="icon-button" aria-label="Fermer">
               <X size={18} />

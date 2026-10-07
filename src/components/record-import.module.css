@@ -1,0 +1,356 @@
+.root {
+  --primary: var(--blue);
+  --border: var(--line);
+  --surface: #fff;
+  --surface-alt: var(--nav);
+  --primary-light: #eef2ff;
+  --muted: #627085;
+  color: var(--text);
+}
+.root h3 {
+  font-size: 22px;
+  letter-spacing: -0.025em;
+  margin: 26px 0 8px;
+}
+.root h4 {
+  margin: 20px 0 8px;
+}
+.root p {
+  max-width: 70ch;
+  line-height: 1.65;
+}
+.steps {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 28px;
+  gap: 18px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 20px;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.steps li span {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.steps li[aria-current] {
+  color: var(--primary);
+  font-weight: 600;
+}
+.steps li[aria-current] span {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+.steps .done {
+  color: var(--text);
+}
+.sources {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 22px 0;
+}
+.sources button {
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 15px 17px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.sources button:hover {
+  background: var(--surface-alt);
+}
+.sources button[aria-pressed="true"] {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+.sources button span {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+.sources button small {
+  display: block;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.instructions {
+  padding: 15px 0;
+  border-bottom: 1px solid var(--border);
+}
+.instructions summary,
+.history summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.instructions ol {
+  padding-left: 22px;
+  line-height: 1.7;
+}
+.instructions li {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+.instructions a {
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 22px 0;
+}
+.options label {
+  min-width: 0;
+}
+.options small {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-top: 7px;
+}
+.upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border: 1px dashed var(--border);
+  padding: 28px 20px;
+  border-radius: 12px;
+  background: var(--surface-alt);
+  text-align: center;
+  cursor: pointer;
+}
+.upload svg {
+  color: var(--primary);
+}
+.upload strong {
+  overflow-wrap: anywhere;
+}
+.upload span {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 13px;
+}
+.upload input {
+  width: 100%;
+  max-width: 340px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 0;
+}
+.notice svg,
+.security svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--primary);
+}
+.security {
+  display: flex;
+  gap: 9px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0 10px;
+}
+.footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.sample {
+  max-width: 200px;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.root table {
+  font-variant-numeric: tabular-nums;
+}
+.root table select {
+  min-width: 170px;
+}
+.stageSection {
+  margin: 24px 0;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+.stageSection label {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 18px;
+  margin: 10px 0;
+}
+.stageSection p {
+  font-size: 13px;
+}
+.review {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 18px 0;
+  margin-bottom: 15px;
+  border-block: 1px solid var(--border);
+  font-size: 13px;
+}
+.review strong {
+  color: var(--primary);
+}
+.errors {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--surface-alt);
+  border-radius: 12px;
+}
+.errors li {
+  margin: 8px 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.history {
+  margin-top: 26px;
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+  font-size: 13px;
+}
+.history > div {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.history strong,
+.history small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.history small {
+  color: var(--muted);
+  margin-top: 5px;
+}
+.success {
+  text-align: center;
+  padding: 24px 0 12px;
+}
+.success > span {
+  display: inline-grid;
+  place-items: center;
+  background: var(--primary-light);
+  color: var(--primary);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+}
+.success p {
+  margin-inline: auto;
+}
+@media (max-width: 600px) {
+  .steps {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .steps li {
+    font-size: 11px;
+  }
+  .sources {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .sources button {
+    padding: 12px;
+  }
+  .sources small {
+    font-size: 11px;
+  }
+  .options {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  .footer {
+    flex-wrap: wrap;
+  }
+  .footer button {
+    flex: 1;
+  }
+  .stageSection label {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  .root h3 {
+    font-size: 20px;
+  }
+}
+
+.root p,
+.root small {
+  color: var(--muted);
+}
+.root button:focus-visible,
+.root a:focus-visible,
+.root summary:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.dialog :global(.dialog-heading) {
+  position: sticky;
+  top: -28px;
+  z-index: 3;
+  background: white;
+  padding-top: 16px;
+  padding-bottom: 15px;
+  margin-top: -16px;
+  border-bottom: 1px solid var(--line);
+}
+.root :global(.data-table td) {
+  color: var(--muted);
+  padding: 10px 14px;
+  height: 54px;
+}
+.root :global(.data-table th) {
+  color: var(--muted);
+}
+.root input::file-selector-button {
+  font: inherit;
+  color: var(--text);
+  background: var(--nav);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 7px 10px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+.root input::file-selector-button:hover {
+  background: #eef2ff;
+}

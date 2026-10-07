@@ -7,8 +7,10 @@ import {
   databaseError,
   fail,
 } from "@/lib/api/context";
-import { readImportFile } from "@/lib/api/import-file";
-import { automaticMapping, prepareImport } from "@/lib/domain/imports";
+import { inspectImportFile } from "@/lib/api/import-file";
+import { prepareImport } from "@/lib/domain/imports";
+import { crmSources, crmMapping } from "@/lib/domain/crm-migration";
+import type { CrmSource } from "@/lib/domain/crm-migration";
 import type { Attribute } from "@/lib/domain/types";
 import { z } from "zod";
 import { enqueueJob, workerReady } from "@/lib/jobs/client";
@@ -23,6 +25,8 @@ export async function POST(
     checkOrigin(req);
     const { workspace } = await params;
     const { client } = await context(workspace, true);
+    if (Number(req.headers.get("content-length") || 0) > 4_200_000)
+      throw new ApiError("Fichier limité à 4 Mo.", 413);
     const form = await req.formData();
     const file = form.get("file");
     const objectId = z.uuid().parse(form.get("object_id"));
@@ -66,26 +70,99 @@ export async function POST(
     const mode = z
       .enum(["inspect", "preview", "commit"])
       .parse(form.get("mode") || "preview");
-    let table;
+    const source = z
+      .string()
+      .refine((v) => crmSources.some((s) => s.id === v))
+      .parse(form.get("source") || "file") as CrmSource;
+    const migrationKey = z
+      .string()
+      .trim()
+      .min(1)
+      .max(80)
+      .regex(/^[\p{L}\p{N} _.-]+$/u)
+      .parse(form.get("migration_key") || "principal")
+      .toLowerCase();
+    const selection = z
+      .string()
+      .max(3)
+      .optional()
+      .parse(form.get("selection") || undefined);
+    const headerRow = z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(25)
+      .parse(form.get("header_row") || 1);
+    let bundle;
     try {
-      table = await readImportFile(file);
+      bundle = await inspectImportFile(file, { selection, headerRow, source });
     } catch (e) {
       throw new ApiError(e instanceof Error ? e.message : "Fichier illisible.");
     }
+    if (!bundle.table) {
+      if (mode !== "inspect")
+        throw new ApiError("Choisissez une table avant de continuer.");
+      return NextResponse.json({
+        selections: bundle.selections,
+        ignored: bundle.ignored,
+        selection: null,
+      });
+    }
+    const table = bundle.table;
     const mapping = z
       .record(z.string().max(200), z.string().max(100))
       .parse(
         form.get("mapping")
           ? JSON.parse(String(form.get("mapping")))
-          : automaticMapping(table.headers),
+          : crmMapping(table.headers, object.slug),
       );
     if (mode === "inspect")
       return NextResponse.json({
+        selections: bundle.selections,
+        ignored: bundle.ignored,
+        selection: bundle.selection,
+        stages: [
+          ...new Set(
+            table.rows
+              .map(
+                (r) =>
+                  r[
+                    table.headers.indexOf(
+                      Object.keys(mapping).find(
+                        (h) => mapping[h] === "stage",
+                      ) || "",
+                    )
+                  ] || "",
+              )
+              .filter(Boolean),
+          ),
+        ].slice(0, 100),
         headers: table.headers,
         mapping,
         total: table.rows.length,
         sample: table.rows.slice(0, 3),
+        columnValues: Object.fromEntries(
+          table.headers.map((h, i) => [
+            h,
+            [
+              ...new Set(table.rows.map((r) => r[i]?.trim()).filter(Boolean)),
+            ].slice(0, 100),
+          ]),
+        ),
       });
+    const stageMap = z
+      .record(
+        z.string().max(200),
+        z.enum([
+          "Nouveau",
+          "Qualification",
+          "Proposition",
+          "Négociation",
+          "Gagné",
+          "Perdu",
+        ]),
+      )
+      .parse(JSON.parse(String(form.get("stage_map") || "{}")));
     let prepared;
     try {
       prepared = prepareImport(
@@ -95,6 +172,11 @@ export async function POST(
         objectId,
         pipeline,
         numberFormat,
+        {
+          sourceKey: source + ":" + migrationKey,
+          stageMap,
+          deal: object.slug === "deals",
+        },
       );
     } catch (e) {
       throw new ApiError(
@@ -123,18 +205,34 @@ export async function POST(
       pipeline,
       numberFormat,
       duplicatePolicy,
+      source,
+      migrationKey,
+      selection: bundle.selection,
+      headerRow,
+      stageMap: Object.fromEntries(
+        Object.entries(stageMap).sort(([a], [b]) => a.localeCompare(b)),
+      ),
     });
     const digest = createHash("sha256")
       .update(Buffer.from(await file.arrayBuffer()))
       .update(canonical)
       .digest("hex");
     if (backgroundJobsEnabled()) {
-      if (!(await workerReady(adminDb(),"imports"))) throw new ApiError("Le service d’import est temporairement indisponible. Réessayez dans quelques instants.",503);
-      const job = await enqueueJob(client,workspace,"imports",{
-        object_id:objectId,rows_data:prepared.valid,digest,filename:file.name.slice(0,255),
-        mapping,duplicate_policy:duplicatePolicy,error_rows:prepared.errors,
+      if (!(await workerReady(adminDb(), "imports")))
+        throw new ApiError(
+          "Le service d’import est temporairement indisponible. Réessayez dans quelques instants.",
+          503,
+        );
+      const job = await enqueueJob(client, workspace, "imports", {
+        object_id: objectId,
+        rows_data: prepared.valid,
+        digest,
+        filename: file.name.slice(0, 255),
+        mapping,
+        duplicate_policy: duplicatePolicy,
+        error_rows: prepared.errors,
       });
-      return NextResponse.json({queued:true,job},{status:202});
+      return NextResponse.json({ queued: true, job }, { status: 202 });
     }
     const { data, error } = await client.rpc("import_crm_records", {
       w: workspace,
@@ -153,6 +251,8 @@ export async function POST(
       skipped: data.skipped,
       errors: data.errors,
       replayed: data.replayed,
+      linked: data.linked,
+      pending: data.pending,
     });
   } catch (e) {
     return fail(e);

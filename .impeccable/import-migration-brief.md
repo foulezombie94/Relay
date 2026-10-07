@@ -1,0 +1,19 @@
+# Relay CRM migration — surface brief
+Mode: Operate. Ordinary extension of the authenticated CRM; preserve DESIGN.md and .impeccable/design.json (these describe the public landing world).
+User request: Implement secure, intuitive file migration from Attio, Pipedrive, Close, HubSpot with associations, Freshsales, Copper, Zoho CRM, folk, monday CRM. User requests direct coding and speed, not image generation.
+Direction: inherit the real app's blue action color, white surfaces, DM Sans/Manrope, Radix modal and native accessible form controls. Four steps: origin, file, mapping, confirmation. Source choices are a selection control, not marketing feature cards. A protected modal is justified by the explicit irreversible import confirmation.
+First viewport: choose source among 9 CRM profiles + generic files; three columns on desktop, two on phone. Signature behavior: preserve external IDs within a workspace/source/lot/object namespace, resolve associations by exact IDs, and keep missing targets pending for subsequent imports.
+Scope: people, companies, opportunities and existing custom attributes. CSV, standalone XLSX (worksheet/header selection), JSON (including Close nested collections and cents conversion), CSV/JSON ZIP backups. Files up to 4 MB, 1000 rows/table, 100 columns, ZIP 256 entries/20MB expanded/8MB entry. XLSX 25 sheets/150000 cells. ZIP XLSX and other attachments are explicitly listed as ignored; extract XLSX separately. No claim of full original-workspace restoration or live source API connection.
+Security: authenticated write permission + origin check; no records written during preview; revalidation on commit; atomic table RPC; bounded ZIP inflation/CRC/path checks/DTD rejection; no disk extraction; prototype attribute rejection; private mapping tables with RLS/no frontend grants; composite tenant FKs; idempotent file+settings digest; source IDs cannot overwrite or recreate existing source records; pending relation cap. Existing worker queue/admission checks retained. New Supabase migration 20261007094040 applied remotely. Rollback-only database suite checks isolation, exact lot matching, pending target resolution, idempotence, no overwrite, and atomic rollback.
+Verification: 33 targeted tests passed (file parsing, commercial features, public landing isolation, documentation). Typecheck and scoped ESLint passed. Real authenticated local browser file inspection/preview used a synthetic HubSpot fixture; no browser commit. Explicit reject-errors and confirm checkboxes gate commit; re-edit recalculates preview. Mobile document overflow=false, dialog width366.59px at viewport390. Reset viewport afterwards.
+Required captures (all viewport PNGs, modal scrolling is intentional; bottom capture is named accordingly):
+- .impeccable/review/import-source-desktop.png (1280x720)
+- .impeccable/review/import-file-desktop.png (1280x720)
+- .impeccable/review/import-map-desktop.png (1280x720)
+- .impeccable/review/import-confirm-desktop.png (1280x720)
+- .impeccable/review/import-confirm-bottom-desktop.png (1280x720)
+- .impeccable/review/import-source-mobile.png (390x844)
+- .impeccable/review/import-confirm-mobile.png (390x844)
+No decision comp: direct-code incumbent extension. No imagery by user request.
+Detector: ran once on changed import UI targets, result in work/import-detector.json. 11 advisory findings only (type ramp/radii relative to public landing DESIGN.md), no blocking patterns. Use the incumbent authenticated app as the token baseline; do not rewrite landing design rules.
+Relevant files: src/components/record-import.tsx, record-import.module.css, ui.tsx; src/lib/domain/crm-sources.ts, crm-migration.ts, imports.ts; src/lib/api/import-file.ts, xlsx-budget.ts; src/app/api/[workspace]/imports/route.ts; src/lib/docs.ts; supabase/migrations/20261007094040_crm_source_migrations.sql; supabase/tests/crm-migrations.sql.

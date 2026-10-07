@@ -1,3 +1,4 @@
+import { crmSources } from "./domain/crm-sources";
 export type HelpArticle = {
   id: string;
   category: string;
@@ -7,6 +8,81 @@ export type HelpArticle = {
   href?: string;
 };
 export const helpArticles: HelpArticle[] = [
+  {
+    id: "migrations",
+    category: "Importer et migrer",
+    title: "Migrer votre CRM vers Relay",
+    description:
+      "Attio, Pipedrive, Close, HubSpot, Freshsales, Copper, Zoho, folk et monday CRM.",
+    href: "/app/companies",
+    sections: [
+      {
+        title: "Un parcours en quatre étapes",
+        paragraphs: [
+          "Choisissez l’origine, déposez l’export, associez les colonnes puis vérifiez l’aperçu. Aucune fiche n’est créée avant votre confirmation. Chaque table est importée dans une transaction ; un échec annule cette table. Plusieurs tables sont des imports distincts, pas une restauration globale atomique.",
+        ],
+        steps: [
+          "Créez les champs personnalisés nécessaires et les pipelines de destination dans Relay.",
+          "Importez les entreprises, puis les personnes et les opportunités. Choisissez le même CRM et le même nom de lot pour tous les fichiers du même compte source.",
+          "Associez ID de la fiche dans le CRM source, puis ID des entreprises ou personnes associées. Les relations utilisent les identifiants exacts ; les noms seuls ne sont pas rapprochés.",
+          "Vérifiez les formats décimaux, les devises, les étapes et les lignes rejetées. Confirmez le rejet des erreurs si vous ne les corrigez pas.",
+          "Après traitement, consultez créations, doublons, relations créées et relations en attente. Importer ensuite une cible manquante dans le même lot résout sa relation.",
+        ],
+      },
+      {
+        title: "Limites et reprise",
+        paragraphs: [
+          "4 Mo par fichier, 1 000 lignes par table, 100 colonnes, 20 associations maximum par ligne. Les ZIP sont limités à 256 entrées et 20 Mo décompressés, avec 8 Mo par entrée. Les ZIP chiffrés, imbriqués ou ZIP64 ne sont pas acceptés. Les classeurs Excel à l’intérieur d’un ZIP doivent être extraits puis importés séparément. Les anciens .xls doivent être enregistrés en .xlsx. Les classeurs sont limités à 25 feuilles et 150 000 cellules au total. Exportez les identifiants longs en texte ou CSV pour éviter les arrondis d’Excel.",
+          "Les identifiants sont isolés par espace de travail, CRM, lot et type de fiche. Utilisez un autre lot pour un autre compte source. Un ID source déjà importé ne recrée et ne modifie jamais sa fiche. Les rapprochements par email / domaine peuvent être ignorés ; les opportunités sans ID ne sont pas rapprochées par nom.",
+          "Le JSON Close permet de sélectionner les leads, contacts et opportunités, y compris les collections imbriquées. Les montants des opportunités JSON Close sont convertis des centimes vers la devise ; choisissez le format international. Les autres JSON doivent contenir un tableau de fiches ou une collection data, records, leads, contacts, companies, accounts, people, deals ou opportunities.",
+          "Relay reprend les personnes, entreprises et opportunités avec les champs explicitement associés. Une sauvegarde ZIP complète peut contenir des tables hors de ce périmètre. N’importez pas une table de notes, membres, tâches ou paramètres comme une entreprise ; conservez la sauvegarde pour ces données.",
+        ],
+      },
+    ],
+  },
+  ...crmSources
+    .filter((s) => s.id !== "file")
+    .map(
+      (s): HelpArticle => ({
+        id: "migration-" + s.id,
+        category: "Importer et migrer",
+        title: "Importer depuis " + s.name,
+        description:
+          "Préparer l’export " + s.formats + " et conserver les relations.",
+        href: s.url,
+        sections: [
+          {
+            title: "Exporter depuis " + s.name,
+            paragraphs: [
+              "Vérifiez que votre compte dispose des droits d’export. Les intitulés peuvent varier selon la langue et la version du produit.",
+            ],
+            steps: [...s.steps],
+          },
+          {
+            title: "Importer dans Relay",
+            paragraphs: [
+              "Dans Entreprises, Personnes ou Opportunités, cliquez sur Importer et choisissez " +
+                s.name +
+                ". Déposez votre fichier, choisissez sa table puis la destination. Un fichier correspond à un type de fiche.",
+              "Associez le nom et les champs utiles. Pour les relations, conservez l’ID de chaque fiche et les ID des cibles, séparés par des points-virgules ou fournis dans un tableau JSON de chaînes. Utilisez le même nom de lot pour tous les fichiers du même compte source.",
+              "Pour les opportunités, choisissez le pipeline et faites correspondre chaque étape source à une étape Relay. Les autres libellés, propriétaires et configurations ne sont pas automatiquement recréés.",
+            ],
+            steps: [
+              "Vérifier l’import affiche jusqu’à 20 lignes valides et le rapport de toutes les erreurs.",
+              "Corrigez l’export ou confirmez explicitement le rejet des lignes invalides.",
+              "Confirmez l’import. Consultez les relations en attente et importez les cibles manquantes avec le même lot.",
+            ],
+          },
+          {
+            title: "Ce qui est repris",
+            paragraphs: [
+              "Noms, email principal, domaine, montant, devise, étape, date de clôture, motif de perte, probabilité et champs personnalisés déjà créés, selon vos correspondances. Les fichiers et réglages du backup, les utilisateurs, activités, emails et automatisations ne sont pas restaurés. Les liens exigent des ID explicites ; les noms d’entreprise seuls demandent un rapprochement manuel depuis Relations.",
+              "Pour les gros exports, extrayez les CSV puis découpez chaque table en lots de 1 000 lignes et 4 Mo maximum. Gardez le même en-tête et le même nom de lot. L’import n’écrase pas les fiches existantes.",
+            ],
+          },
+        ],
+      }),
+    ),
   {
     id: "demarrer",
     category: "Premiers pas",
@@ -82,24 +158,24 @@ export const helpArticles: HelpArticle[] = [
   {
     id: "importer",
     category: "Votre CRM",
-    title: "Importer un CSV ou un fichier Excel",
+    title: "Importer des fichiers et migrer depuis un CRM",
     description: "Associer les colonnes, vérifier les lignes et enregistrer.",
     href: "/app/people",
     sections: [
       {
         title: "Préparer votre fichier",
         paragraphs: [
-          "Utilisez CSV ou Excel .xlsx, jusqu’à 5 Mo, 1 000 lignes de données et 100 colonnes. La première ligne doit contenir des intitulés uniques. Excel utilise uniquement la première feuille ; remplacez les formules par leurs valeurs.",
+          "Utilisez CSV, Excel .xlsx, JSON ou un ZIP contenant des CSV ou JSON : 4 Mo maximum au dépôt, 20 Mo après décompression, 256 entrées, 1 000 lignes par table et 100 colonnes. Pour un gros backup, extrayez les CSV sur votre ordinateur et découpez-les en fichiers de 1 000 lignes avec le même en-tête. Choisissez une table ou une feuille et sa ligne d’en-tête ; remplacez les formules Excel par leurs valeurs.",
         ],
       },
       {
         title: "Associer les colonnes",
         paragraphs: [
-          "Prévoyez une colonne Nom et vérifiez les correspondances proposées. Ignorez les colonnes inutiles.",
+          "Prévoyez une colonne Nom et vérifiez les correspondances proposées. Prénom et nom peuvent être réunis automatiquement. Ignorez les colonnes inutiles ou créez vos champs personnalisés dans Relay avant l’import pour pouvoir les associer. Les activités, emails, fichiers joints et paramètres du CRM source ne sont pas restaurés.",
         ],
         steps: [
           "Ouvrez Personnes, Entreprises ou Opportunités selon le contenu.",
-          "Choisissez Importer CSV / Excel puis votre fichier.",
+          "Choisissez Importer, indiquez le CRM source, la destination et le nom du lot, puis déposez votre fichier.",
           "Associez chaque colonne au champ correspondant, notamment le nom.",
           "Choisissez le format décimal : virgule pour 1 234,56 ou point pour 1,234.56.",
           "Choisissez la politique de doublons et lancez l’aperçu.",

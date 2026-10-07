@@ -346,7 +346,7 @@ export function RecordsPage({ slug }: { slug: string }) {
           disabled={workspace.role === "viewer"}
           onClick={() => setImporting(true)}
         >
-          Importer CSV / Excel
+          Importer
         </button>
       </div>
       {slug === "deals" && (
