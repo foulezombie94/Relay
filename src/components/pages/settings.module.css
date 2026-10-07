@@ -1,0 +1,40 @@
+.layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 28px; align-items: start; margin-top: 14px; }
+.navigation { position: sticky; top: 18px; display: grid; gap: 4px; padding: 10px 7px; border-right: 1px solid var(--line); }
+.navigation > span { margin: 13px 10px 6px; color: #8793a5; font-size: 9px; font-weight: 700; letter-spacing: .1em; }
+.navigation a { display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 8px 10px; border-radius: 6px; color: #576579; font-size: 12px; transition: background .15s ease, color .15s ease; }
+.navigation a svg { flex: 0 0 auto; color: #8390a4; }
+.navigation a svg:last-child:not(:first-child) { margin-left: auto; }
+.navigation a:hover, .navigation a:focus-visible { outline: none; color: #3557c7; background: #edf2ff; }
+.navigation a:hover svg, .navigation a:focus-visible svg { color: #4169e1; }
+.main { min-width: 0; display: grid; gap: 20px; }
+.overview { display: grid; grid-template-columns: 46px minmax(0,1fr); column-gap: 14px; row-gap: 21px; padding: 24px; border: 1px solid #e2e8f2; border-radius: 10px; background: linear-gradient(115deg,#f5f7ff 0%,#fff 64%); }
+.overviewIcon { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid #dce5fa; border-radius: 10px; background: #fff; color: #4169e1; }
+.overviewTitle > span { color: #627085; font-size: 9px; font-weight: 700; letter-spacing: .12em; }
+.overviewTitle h2 { margin: 4px 0 5px; color: #202a3a; font: 700 19px Manrope,Arial,sans-serif; letter-spacing: -.4px; }
+.overviewTitle p { max-width: 62ch; margin: 0; color: #647187; font-size: 12px; line-height: 1.6; }
+.stats { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border-top: 1px solid #e3e9f3; padding-top: 16px; }
+.stats > div { display: grid; gap: 5px; padding: 0 15px; border-left: 1px solid #e3e9f3; }
+.stats > div:first-child { padding-left: 0; border-left: 0; }
+.stats > div > span { color: #738096; font-size: 10px; }
+.stats strong { color: #273347; font-size: 14px; font-weight: 650; }
+.sections { display: grid; gap: 15px; }
+.card { margin: 0; padding: 21px 22px; scroll-margin-top: 20px; }
+.card > h3 { font: 650 15px Manrope,Arial,sans-serif; letter-spacing: -.2px; margin-bottom: 7px; }
+.card > .card-head > h3 { font: 650 15px Manrope,Arial,sans-serif; letter-spacing: -.2px; }
+.card > p { color: #68768b; font-size: 12px; }
+.card > .caption { color: #738096; font-size: 11px; }
+.card :global(.card-head) { gap: 12px; }
+.card :global(.card-head > span) { font-size: 12px; }
+.card :global(.card-head select) { width: auto; min-width: 130px; font-size: 11px; }
+.card :global(.row-actions) { flex-wrap: wrap; }
+.shortcuts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 15px; }
+.shortcuts > a { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 13px; border: 1px solid var(--line); border-radius: 8px; transition: border-color .15s, background .15s; }
+.shortcuts > a:hover { border-color: #c6d4fa; background: #f8faff; }
+.shortcuts > a > span:nth-child(2) { display: grid; gap: 4px; flex: 1; min-width: 0; }
+.shortcuts strong { font-size: 12px; font-weight: 650; color: #29364a; }
+.shortcuts small { font-size: 10px; line-height: 1.5; color: #718096; }
+.shortcuts > a > svg { color: #8390a4; flex: 0 0 auto; }
+.shortcutIcon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 7px; background: #eff3ff; color: #4169e1; flex: 0 0 auto; }
+@media(max-width:950px) { .layout { grid-template-columns: 170px minmax(0,1fr); gap: 17px; } .navigation { padding-left: 0; padding-right: 5px; } .card { padding: 18px; } }
+@media(max-width:700px) { .layout { grid-template-columns: 1fr; gap: 12px; } .navigation { position: static; display: flex; overflow-x: auto; gap: 5px; padding: 4px 0 8px; border-right: 0; border-bottom: 1px solid var(--line); scrollbar-width: thin; } .navigation > span { display: none; } .navigation a { flex: 0 0 auto; min-height: 35px; padding: 8px 10px; background: #f6f8fc; } .navigation a svg:last-child:not(:first-child) { display: none; } .overview { padding: 19px; } .stats > div { padding: 0 9px; } .stats > div:first-child { padding-left: 0; } .stats strong { font-size: 12px; } .shortcuts { grid-template-columns: 1fr; } }
+@media(prefers-reduced-motion:reduce) { .navigation a,.shortcuts > a { transition: none; } }

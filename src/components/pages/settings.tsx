@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
+import { ArrowUpRight, Building2, Cable, Database, History, Users, SlidersHorizontal } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace, useRows, useSave, request } from "../data-provider";
 import {
@@ -14,6 +16,7 @@ import {
 import type { Row } from "@/lib/domain/types";
 import { toast } from "sonner";
 import { RepeatFields } from "../structured-fields";
+import styles from "./settings.module.css";
 export function SettingsPage() {
   const { workspace, objects } = useWorkspace();
   const admin = ["owner", "admin"].includes(workspace.role);
@@ -117,7 +120,25 @@ export function SettingsPage() {
         description="Votre espace, votre modèle de données et votre équipe."
       />
       {error && <div className="alert error">{error}</div>}
-      <section className="detail-card">
+      <div className={styles.layout}>
+        <nav className={styles.navigation} aria-label="Sections des paramètres">
+          <span>ESPACE DE TRAVAIL</span>
+          <a href="#organisation"><Building2 size={16} /> Général</a>
+          <a href="#equipe"><Users size={16} /> Équipe et accès</a>
+          <a href="#donnees"><Database size={16} /> Objets et champs</a>
+          <span>CONFIGURATION</span>
+          <Link href="/app/integrations"><Cable size={16} /> Intégrations <ArrowUpRight size={13} /></Link>
+          <Link href="/app/pipelines"><SlidersHorizontal size={16} /> Pipelines <ArrowUpRight size={13} /></Link>
+          <a href="#activite"><History size={16} /> Historique</a>
+        </nav>
+        <main className={styles.main}>
+          <div className={styles.overview}>
+            <div className={styles.overviewIcon}><Building2 size={20} /></div>
+            <div className={styles.overviewTitle}><span>VOTRE ESPACE</span><h2>{workspace.name}</h2><p>Gérez les informations de l’espace, les personnes qui y travaillent et les données de votre CRM.</p></div>
+            <div className={styles.stats}><div><span>Accès actuel</span><strong>{({ owner: "Propriétaire", admin: "Administrateur", member: "Membre", viewer: "Lecteur" } as Record<string, string>)[workspace.role] ?? workspace.role}</strong></div><div><span>Objets CRM</span><strong>{objects.length}</strong></div><div><span>Champs personnalisés</span><strong>{attrs.data?.data.filter((attribute) => !attribute.archived).length ?? "—"}</strong></div></div>
+          </div>
+          <div className={styles.sections}>
+          <section className={`detail-card ${styles.card}`} id="organisation">
         <div className="card-head">
           <h3>Organisation</h3>
           <button
@@ -136,9 +157,9 @@ export function SettingsPage() {
           en français.
         </p>
       </section>
-      <section className="detail-card">
+      <section className={`detail-card ${styles.card}`} id="equipe">
         <div className="card-head">
-          <h3>Équipe</h3>
+          <h3>Équipe et accès</h3>
           <button
             className="button small"
             disabled={!admin}
@@ -187,9 +208,9 @@ export function SettingsPage() {
           acceptée après vérification de cet email.
         </p>
       </section>
-      <section className="detail-card">
+      <section className={`detail-card ${styles.card}`} id="donnees">
         <div className="card-head">
-          <h3>Objets et attributs</h3>
+          <h3>Objets et champs</h3>
           <div className="row-actions">
             <button
               className="button small"
@@ -234,8 +255,16 @@ export function SettingsPage() {
           </div>
         ))}
       </section>
-      <section className="detail-card">
-        <h3>Historique des modifications</h3>
+      <section className={`detail-card ${styles.card}`}>
+        <h3>Paramètres complémentaires</h3>
+        <p>Configurez les étapes de vente et les services reliés à votre espace.</p>
+        <div className={styles.shortcuts}>
+          <Link href="/app/pipelines"><span className={styles.shortcutIcon}><SlidersHorizontal size={18} /></span><span><strong>Pipelines commerciaux</strong><small>Étapes de vente et probabilités du forecast.</small></span><ArrowUpRight size={16} /></Link>
+          <Link href="/app/integrations"><span className={styles.shortcutIcon}><Cable size={18} /></span><span><strong>Intégrations</strong><small>Messagerie, calendrier et automatisations connectées.</small></span><ArrowUpRight size={16} /></Link>
+        </div>
+      </section>
+      <section className={`detail-card ${styles.card}`} id="activite">
+        <h3>Activité récente</h3>
         {audit.data?.data.map((a) => (
           <p key={a.id}>
             <strong>{str(a.entity)}</strong> · {str(a.action)} ·{" "}
@@ -243,6 +272,9 @@ export function SettingsPage() {
           </p>
         ))}
       </section>
+          </div>
+        </main>
+      </div>
       {edit && (
         <Editor
           open
