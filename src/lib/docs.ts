@@ -407,32 +407,57 @@ export const helpArticles: HelpArticle[] = [
     id: "securite",
     category: "Votre équipe",
     title: "Inviter l’équipe et choisir les droits",
-    description: "Qui peut voir, modifier et partager votre contexte.",
-    href: "/app/settings",
+    description: "Invitations, rôles, réattribution et retrait d’accès.",
+    href: "/app/settings#equipe",
     sections: [
       {
         title: "Comprendre les rôles",
         paragraphs: [
-          "Le propriétaire et les administrateurs configurent l’espace, les pipelines et les accès. Les membres travaillent sur les données. Les lecteurs consultent sans modifier. Les libellés owner, admin, member et viewer correspondent à ces quatre rôles.",
+          "Le propriétaire gère l’espace et les administrateurs. Les administrateurs configurent l’espace et gèrent les membres et lecteurs ; seul le propriétaire peut inviter, nommer ou modifier un administrateur. Les membres créent et modifient les données du CRM. Les lecteurs consultent et peuvent exporter, sans modifier les données.",
+          "Ces droits s’appliquent à tout l’espace, sans restriction par département ou par fiche. Les données privées gardent leurs propres restrictions. Les clients externes utilisent un portail, pas un rôle de membre.",
         ],
       },
       {
         title: "Inviter votre équipe",
         paragraphs: [
-          "Les invitations ne sont pas envoyées automatiquement par email.",
+          "Une invitation expire après 7 jours. L’accès exige une connexion avec exactement l’adresse invitée et sa confirmation. Le lien de connexion seul ne donne aucun droit.",
+          "Si l’envoi email est configuré pour votre espace, Relay tente d’envoyer l’invitation et affiche le résultat. Sinon, ou si l’envoi échoue, utilisez Copier le lien et partagez-le avec la personne. Un email accepté par le service d’envoi ne garantit pas son arrivée dans la boîte de réception.",
         ],
         steps: [
-          "Dans Paramètres, ouvrez Équipe puis Inviter.",
-          "Renseignez l’adresse exacte et choisissez un rôle.",
-          "Enregistrez puis partagez le lien de connexion avec la personne.",
-          "Demandez-lui de créer un compte avec cette adresse et de la confirmer.",
-          "Vérifiez son apparition dans la liste des membres.",
+          "Dans Paramètres, ouvrez Équipe et accès puis Inviter.",
+          "Renseignez l’adresse exacte, choisissez le rôle et créez l’invitation.",
+          "Consultez le message affiché et partagez le lien si nécessaire.",
+          "La personne se connecte ou crée son compte avec cette adresse, puis la confirme.",
+          "Vérifiez son apparition dans Membres et le statut Acceptée dans Invitations.",
+        ],
+      },
+      {
+        title: "Suivre, renouveler ou annuler une invitation",
+        paragraphs: [
+          "L’onglet Invitations distingue En attente, Expirée, Acceptée et Annulée. Utilisez la recherche, le filtre de rôle et la pagination pour retrouver une adresse.",
+          "Renouveler remet l’échéance à 7 jours et tente un nouvel envoi si celui-ci est configuré. Attendez au moins une minute entre deux renouvellements. Annuler empêche l’acceptation future ; cela ne retire pas l’accès d’une personne déjà membre. Gérez alors cette personne dans Membres.",
+          "Un espace peut avoir 100 invitations actives en attente. Si une limite est atteinte, annulez les invitations inutiles ou attendez avant de recommencer.",
         ],
       },
       {
         title: "Modifier les droits",
         paragraphs: [
-          "Un administrateur peut changer le rôle d’un membre dans Équipe. Le rôle du propriétaire n’est pas modifiable dans ce sélecteur. Choisissez Lecteur pour une personne qui doit seulement consulter.",
+          "Dans Membres, choisissez le nouveau rôle puis confirmez. Votre propre accès et celui du propriétaire sont protégés. Un administrateur ne peut pas modifier un autre administrateur. Si le rôle a changé entre-temps, Relay refuse la modification : actualisez la liste et recommencez.",
+          "Passer une personne à Lecteur désactive ses connexions Relay, ses synchronisations et ses traitements en attente. Ses séquences actives sont mises en pause. Revenir à Membre ne réactive pas automatiquement ces connexions : la personne devra les reconnecter.",
+        ],
+      },
+      {
+        title: "Retirer l’accès sans perdre le travail",
+        steps: [
+          "Dans Membres, choisissez Retirer l’accès.",
+          "Consultez les nombres de fiches, tâches, engagements et réalisations concernés.",
+          "Choisissez un responsable actif du même espace : propriétaire, administrateur ou membre.",
+          "Confirmez Réattribuer et retirer l’accès.",
+        ],
+        paragraphs: [
+          "La réattribution et le retrait sont réalisés ensemble : en cas d’échec, aucun changement partiel n’est conservé. Les notes, documents et historiques restent en place. L’accès à cet espace, y compris ses éventuels accès aux portails clients de cet espace, est retiré, sans supprimer le compte ni ses accès à d’autres espaces. Au-delà de 10 000 éléments attribués, réattribuez-les par lots avant le retrait.",
+          "Relay supprime les identifiants de connexion conservés pour cet espace, désactive ses synchronisations, annule ses jobs actifs et met ses séquences en pause. Un email ou une autre action déjà envoyé au fournisseur externe ne peut pas être rappelé. Cela ne supprime pas les autorisations dans le compte Google ou Microsoft lui-même.",
+          "Les changements de rôle, invitations et retraits sont conservés dans l’historique des modifications, visible aux administrateurs et au propriétaire.",
         ],
       },
       {

@@ -9,7 +9,7 @@ function LoginForm() {
   const [mode, setMode] = useState<"login" | "signup" | "reset">(
     searchParams.get("mode") === "signup" ? "signup" : "login",
   );
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => searchParams.get("email")?.slice(0, 254) ?? "");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");

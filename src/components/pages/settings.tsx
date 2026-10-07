@@ -2,38 +2,25 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Building2, Cable, Database, History, Users, SlidersHorizontal } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useWorkspace, useRows, useSave, request } from "../data-provider";
 import {
   PageHeader,
   Editor,
-  Badge,
   str,
-  date,
-  ErrorMessage,
   type Field,
 } from "../ui";
-import type { Row } from "@/lib/domain/types";
-import { toast } from "sonner";
 import { RepeatFields } from "../structured-fields";
 import styles from "./settings.module.css";
+import { TeamSettings } from "../team-settings";
 export function SettingsPage() {
   const { workspace, objects } = useWorkspace();
   const admin = ["owner", "admin"].includes(workspace.role);
   const cache = useQueryClient();
-  const team = useQuery({
-    queryKey: ["team", workspace.id],
-    enabled: admin,
-    queryFn: () =>
-      request<{ data: Row[]; invitations: Row[] }>(
-        "/api/" + workspace.id + "/team",
-      ),
-  });
   const attrs = useRows("attributes", { size: 100 });
   const audit = useRows("audit_events", { size: 30 });
   const { save, busy } = useSave();
   const [edit, setEdit] = useState<string | null>(null);
-  const [error, setError] = useState("");
   const forms: Record<string, Field[]> = {
     workspace: [
       { key: "name", label: "Nom de l’espace", required: true },
@@ -47,19 +34,6 @@ export function SettingsPage() {
           { value: "fr", label: "Français" },
           { value: "en", label: "English" },
         ],
-      },
-    ],
-    invite: [
-      { key: "email", label: "Email", type: "email", required: true },
-      {
-        key: "role",
-        label: "Rôle",
-        type: "select",
-        required: true,
-        options: ["admin", "member", "viewer"].map((v) => ({
-          value: v,
-          label: v,
-        })),
       },
     ],
     objects: [
@@ -119,7 +93,6 @@ export function SettingsPage() {
         title="Paramètres"
         description="Votre espace, votre modèle de données et votre équipe."
       />
-      {error && <div className="alert error">{error}</div>}
       <div className={styles.layout}>
         <nav className={styles.navigation} aria-label="Sections des paramètres">
           <span>ESPACE DE TRAVAIL</span>
@@ -157,57 +130,7 @@ export function SettingsPage() {
           en français.
         </p>
       </section>
-      <section className={`detail-card ${styles.card}`} id="equipe">
-        <div className="card-head">
-          <h3>Équipe et accès</h3>
-          <button
-            className="button small"
-            disabled={!admin}
-            onClick={() => setEdit("invite")}
-          >
-            Inviter
-          </button>
-        </div>
-        <ErrorMessage error={team.error} />
-        {team.data?.data.map((m) => (
-          <div className="card-head" key={m.id}>
-            <span>{str(m.display_name) || str(m.user_id)}</span>
-            <select
-              aria-label="Rôle du membre"
-              value={str(m.role)}
-              disabled={!admin || m.role === "owner"}
-              onChange={async (e) => {
-                try {
-                  await request("/api/" + workspace.id + "/team", "PATCH", {
-                    user_id: m.user_id,
-                    role: e.target.value,
-                  });
-                  team.refetch();
-                } catch (e) {
-                  setError(
-                    e instanceof Error ? e.message : "Modification impossible",
-                  );
-                }
-              }}
-            >
-              {["owner", "admin", "member", "viewer"].map((r) => (
-                <option key={r}>{r}</option>
-              ))}
-            </select>
-          </div>
-        ))}
-        {team.data?.invitations.map((i) => (
-          <p key={i.id}>
-            {str(i.email)} ·{" "}
-            <Badge value={i.accepted_at ? "confirmed" : "proposed"} /> · Expire
-            le {date(i.expires_at)}
-          </p>
-        ))}
-        <p className="caption">
-          Partagez le lien de connexion avec l’adresse invitée. L’invitation est
-          acceptée après vérification de cet email.
-        </p>
-      </section>
+      <TeamSettings />
       <section className={`detail-card ${styles.card}`} id="donnees">
         <div className="card-head">
           <h3>Objets et champs</h3>
@@ -282,9 +205,7 @@ export function SettingsPage() {
           title={
             edit === "workspace"
               ? "Organisation"
-              : edit === "invite"
-                ? "Inviter une personne"
-                : edit === "objects"
+              : edit === "objects"
                   ? "Nouvel objet"
                   : "Nouvel attribut"
           }
@@ -292,9 +213,7 @@ export function SettingsPage() {
           initial={
             edit === "workspace"
               ? workspace
-              : edit === "invite"
-                ? { role: "member" }
-                : edit === "attributes"
+              : edit === "attributes"
                   ? { type: "text", options: [] }
                   : {}
           }
@@ -307,14 +226,6 @@ export function SettingsPage() {
                 values: v,
               });
               await cache.invalidateQueries({ queryKey: ["workspaces"] });
-            } else if (edit === "invite") {
-              const r = await request<{ message: string }>(
-                "/api/" + workspace.id + "/team",
-                "POST",
-                v,
-              );
-              toast.success(r.message);
-              team.refetch();
             } else await save(edit, v);
           }}
         />
