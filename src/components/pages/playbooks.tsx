@@ -58,7 +58,6 @@ export function PlaybooksPage() {
               try {
                 await save("workflows", {
                   name: String(f.get("name")),
-                  enabled: false,
                   definition: {
                     object_id: String(f.get("object_id")),
                     conditions: [

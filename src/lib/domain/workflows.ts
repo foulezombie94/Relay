@@ -1,13 +1,47 @@
-import type { Condition, CrmRecord, Simulation, Workflow } from './types';
-export function valueOf(record:CrmRecord,field:string):unknown {return field.startsWith('attributes.')?record.attributes[field.slice(11)]:record[field];}
-export function matches(record:CrmRecord,conditions:Condition[]):boolean {return conditions.every(c=>{const v=valueOf(record,c.field);switch(c.operator){case 'exists':return v!==null&&v!==undefined&&v!=='';case 'equals':return String(v??'')===String(c.value??'');case 'contains':return String(v??'').toLocaleLowerCase().includes(String(c.value??'').toLocaleLowerCase());case 'gt':return Number(v)>Number(c.value);case 'lt':return Number(v)<Number(c.value);}});}
-export function simulate(workflow:Workflow,records:CrmRecord[],now=new Date()):Simulation {
-  const warnings=new Set<string>();
-  const eligible=records.filter(r=>!r.archived&&r.object_id===workflow.definition.object_id&&matches(r,workflow.definition.conditions));
-  const recipients=new Set<string>();
-  return {workflow_id:workflow.id,workflow_version:workflow.version,created_at:now.toISOString(),records:eligible.map(r=>({id:r.id,version:r.version,display_name:r.display_name,changes:workflow.definition.actions.map(a=>{
-    if(a.type==='task'){const due=new Date(now);due.setUTCDate(due.getUTCDate()+(a.days??1));return {type:'task',title:a.title??'Suivre le client',due_date:due.toISOString(),description:`Créer une tâche : ${a.title??'Suivre le client'}`};}
-    if(a.type==='set_field')return {type:'set_field',field:a.field,value:a.value,description:`Modifier ${a.field} → ${a.value}`};
-    const recipient=r.email??'';if(!recipient)warnings.add(`Adresse manquante : ${r.display_name}`);if(recipients.has(recipient))warnings.add(`Destinataire répété : ${recipient}`);recipients.add(recipient);warnings.add('Les emails nécessitent une connexion d’envoi et ne seront pas envoyés par une simulation.');return {type:'email',recipient,body:a.body,description:`Préparer un email pour ${recipient||r.display_name}`};
-  })})),warnings:[...warnings]};
+import type { Condition, CrmRecord, Simulation, Workflow, WorkflowAction } from './types';
+export function valueOf(record: CrmRecord, field: string): unknown { return field.startsWith('attributes.') ? record.attributes[field.slice(11)] : record[field]; }
+export function matches(record: CrmRecord, conditions: Condition[], mode: "all" | "any" = "all"): boolean {
+ const test = (c: Condition) => {
+  const v=valueOf(record,c.field), present=v!==null && v!==undefined && v!=='';
+  switch(c.operator) {
+   case 'exists': return present;
+   case 'not_exists': return !present;
+   case 'equals': return String(v??'')===String(c.value??'');
+   case 'not_equals': return String(v??'')!==String(c.value??'');
+   case 'contains': return String(v??'').toLowerCase().includes(String(c.value??'').toLowerCase());
+   case 'gt': return present && Number.isFinite(Number(v)) && Number(v)>Number(c.value);
+   case 'lt': return present && Number.isFinite(Number(v)) && Number(v)<Number(c.value);
+   case 'before': return present && String(v).slice(0,10)<String(c.value);
+   case 'after': return present && String(v).slice(0,10)>String(c.value);
+  }
+ };
+ return !conditions.length || (mode==='any'?conditions.some(test):conditions.every(test));
+}
+export function actionLabel(a: WorkflowAction): string {
+ const fields: Record<string,string>={stage:'l’étape',owner_id:'le responsable',close_date:'la clôture prévue',probability:'la probabilité'};
+ switch(a.type) {
+  case 'task': return a.title || 'Créer une tâche';
+  case 'commitment': return a.title || 'Proposer un engagement';
+  case 'note': return a.title || 'Ajouter une note';
+  case 'add_to_list': return 'Ajouter à une liste';
+  case 'set_field': return `Modifier ${fields[a.field??'']??'une information'} → ${a.value||'Non renseigné'}`;
+  case 'delay': return `Attendre ${a.minutes??60} minute(s)`;
+  case 'branch': return 'Vérifier une condition · Oui / Non';
+  case 'email': return 'Email historique · à remplacer';
+ }
+}
+export function simulate(workflow: Workflow, records: CrmRecord[], now=new Date()): Simulation {
+ const warnings=new Set<string>();
+ const eligible=records.filter(r=>!r.archived && r.object_id===workflow.definition.object_id && matches(r,workflow.definition.conditions,workflow.definition.condition_mode));
+ const changes=(actions:WorkflowAction[],record:CrmRecord):Simulation['records'][number]['changes']=>actions.flatMap(a=>{
+  if(a.type==='branch') {
+   const yes=matches(record,a.conditions??[],a.condition_mode);
+   warnings.add('Les branches sont estimées avec les valeurs actuelles ; elles sont recalculées à leur exécution.');
+   return [{type:'branch',description:`Branche estimée : ${yes?'Oui':'Non'}`},...changes(yes?a.then??[]:a.otherwise??[],record)];
+  }
+  if(a.type==='delay') warnings.add('Les délais sont planifiés sans bloquer le serveur. Les critères sont vérifiés à nouveau à la reprise.');
+  if(a.type==='email') warnings.add('Remplacez les anciennes actions email. Les envois programmés passent par Séquences.');
+  return [{type:a.type,field:a.field,value:a.value,title:a.title,body:a.body,description:actionLabel(a)}];
+ });
+ return {workflow_id:workflow.id,workflow_version:workflow.version,created_at:now.toISOString(),records:eligible.map(r=>({id:r.id,version:r.version,display_name:r.display_name,changes:changes(workflow.definition.actions,r)})),warnings:[...warnings]};
 }

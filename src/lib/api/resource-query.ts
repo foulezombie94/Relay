@@ -45,6 +45,10 @@ export function resourceQuery(
     "target_id",
   ])
     if (p.get(key)) query = query.eq(key, z.uuid().parse(p.get(key)));
+  if (resource === "workflows" && p.get("state")) {
+    const state=z.enum(["active","draft","paused"]).parse(p.get("state"));
+    query=state==="draft"?query.is("published_version",null):state==="active"?query.eq("enabled",true).not("published_version","is",null):query.eq("enabled",false).not("published_version","is",null);
+  }
   if (p.get("status"))
     query = query.eq("status", z.string().max(80).parse(p.get("status")));
   if (p.get("priority") && resource === "tasks")

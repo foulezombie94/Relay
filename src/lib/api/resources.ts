@@ -5,24 +5,8 @@ import { viewConfigSchema } from "@/lib/domain/views";
 const id = z.uuid(),
   optionalId = id.nullable().optional();
 const text = z.string().trim().min(1).max(300);
-const condition = z.object({
-  field: z.string().max(100),
-  operator: z.enum(["equals", "contains", "gt", "lt", "exists"]),
-  value: z.union([z.string().max(300), z.number()]).optional(),
-});
-const action = z.object({
-  type: z.enum(["task", "set_field", "email"]),
-  title: z.string().max(300).optional(),
-  field: z.enum(["stage", "owner_id", "close_date"]).optional(),
-  value: z.string().max(300).optional(),
-  body: z.string().max(10000).optional(),
-  days: z.number().int().min(0).max(365).optional(),
-});
-export const workflowDefinition = z.object({
-  object_id: id,
-  conditions: z.array(condition).max(20),
-  actions: z.array(action).min(1).max(20),
-});
+export { workflowDefinition } from "@/lib/domain/workflow-schema";
+import { workflowDefinition } from "@/lib/domain/workflow-schema";
 export const resources = {
   pipelines: pipelineSchema,
   email_templates: emailTemplateSchema,
@@ -167,7 +151,7 @@ export const resources = {
   workflows: z.object({
     name: text,
     definition: workflowDefinition,
-    enabled: z.boolean().optional(),
+    description: z.string().trim().max(1000).optional(),
   }),
   suppressions: z.object({
     email: z.email().toLowerCase(),

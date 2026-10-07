@@ -48,6 +48,10 @@ export type CrmRecord = Row & {
 };
 export type Workflow = Row & {
   name: string;
+  description?: string;
+  created_by?: string | null;
+  published_version?: number | null;
+  runner_id?: string | null;
   enabled: boolean;
   version: number;
   definition: WorkflowDefinition;
@@ -56,19 +60,32 @@ export type WorkflowDefinition = {
   object_id: string;
   conditions: Condition[];
   actions: WorkflowAction[];
+  condition_mode?: "all" | "any";
+  trigger?: { type: "manual" | "record_created" | "record_updated" | "stage_changed"; field?: string };
+  reenrollment?: "once" | "on_change";
 };
 export type Condition = {
   field: string;
-  operator: "equals" | "contains" | "gt" | "lt" | "exists";
+  operator: "equals" | "not_equals" | "contains" | "gt" | "lt" | "exists" | "not_exists" | "before" | "after";
   value?: string | number;
 };
 export type WorkflowAction = {
-  type: "task" | "set_field" | "email";
+  type: "task" | "set_field" | "email" | "note" | "commitment" | "add_to_list" | "delay" | "branch";
+  id?: string;
   title?: string;
   field?: string;
   value?: string;
   body?: string;
   days?: number;
+  owner_id?: string;
+  owner?: "record" | "runner" | "selected";
+  minutes?: number;
+  list_id?: string;
+  conditions?: Condition[];
+  condition_mode?: "all" | "any";
+  then?: WorkflowAction[];
+  otherwise?: WorkflowAction[];
+  lost_reason?: string;
 };
 export type Simulation = {
   workflow_id: string;

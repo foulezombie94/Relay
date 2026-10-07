@@ -10,16 +10,15 @@ import { adminDb } from "@/lib/supabase/admin";
 import { simulate } from "@/lib/domain/workflows";
 import { z } from "zod";
 import type { CrmRecord, Workflow } from "@/lib/domain/types";
-import { enqueueJob, workerReady } from "@/lib/jobs/client";
-import { backgroundJobsEnabled } from "@/lib/jobs/flags";
+import { workerReady } from "@/lib/jobs/client";
 type P = { params: Promise<{ workspace: string }> };
 export async function POST(request: NextRequest, { params }: P) {
   try {
     checkOrigin(request);
     const { workspace } = await params;
     const { client, user } = await context(workspace, true);
-    const { workflow_id } = z
-      .object({ workflow_id: z.uuid() })
+    const { workflow_id, record_id } = z
+      .object({ workflow_id: z.uuid(), record_id: z.uuid().optional() })
       .parse(await request.json());
     const { data: w, error } = await client
       .from("workflows")
@@ -31,14 +30,15 @@ export async function POST(request: NextRequest, { params }: P) {
     if (!w) throw new ApiError("Automatisation inaccessible.", 404);
     const records: CrmRecord[] = [];
     let scanned = 0;
-    for (let page = 0; page < 100; page++) {
+    for (let page = 0; page < 10; page++) {
       let query = client
         .from("records")
         .select("*")
         .eq("workspace_id", workspace)
         .eq("object_id", w.definition.object_id)
         .eq("archived", false);
-      for (const condition of w.definition.conditions) {
+      if (record_id) query = query.eq("id", record_id);
+      for (const condition of w.definition.condition_mode === "any" ? [] : w.definition.conditions) {
         if (
           ["stage", "owner_id", "display_name", "email", "domain"].includes(
             condition.field,
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest, { params }: P) {
           "Plus de 100 fiches correspondent aux conditions. Précisez le workflow avant de confirmer des modifications.",
         );
       if ((data?.length ?? 0) < 500) break;
-      if (page === 99)
+      if (page === 9)
         throw new ApiError(
           "Périmètre trop large pour une simulation interactive. Précisez vos conditions.",
         );
@@ -121,19 +121,13 @@ export async function PATCH(request: NextRequest, { params }: P) {
       .eq("id", preview_id)
       .single();
     if (!run) throw new ApiError("Aperçu inaccessible.", 403);
-    if (backgroundJobsEnabled()) {
-      if (!(await workerReady(adminDb(),"workflow_run"))) throw new ApiError("Le service d’automatisation est temporairement indisponible. Réessayez dans quelques instants.",503);
-      const job=await enqueueJob(client,workspace,"workflow_run",{preview_id});
-      return NextResponse.json({queued:true,job},{status:202});
-    }
-    const { data, error } = await client.rpc("execute_preview", {
-      preview: preview_id,
-    });
+    if (!(await workerReady(adminDb(),"workflow_run"))) throw new ApiError("Le service d’automatisation est temporairement indisponible. Réessayez dans quelques instants.",503);
+    const { data, error } = await client.rpc("workflow_launch", { w: workspace, preview: preview_id });
     if (error)
       throw new ApiError(
-        /changed|expired/.test(error.message)
+        /changed|expired/i.test(error.message)
           ? "L’aperçu a expiré ou les données ont changé. Relancez la simulation."
-          : /email connection/.test(error.message)
+          : /email/i.test(error.message)
             ? "Connectez un compte d’envoi avant d’exécuter des actions email. Aucune modification effectuée."
             : "Cette exécution n’a pas pu être effectuée.",
         409,

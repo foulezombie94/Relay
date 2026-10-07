@@ -860,39 +860,28 @@ export const helpArticles: HelpArticle[] = [
   {
     id: "automatisations",
     category: "Organisation",
-    title: "Utiliser les modèles de processus et les automatisations",
-    description: "Préparer des actions puis relire leurs conséquences.",
-    href: "/app/playbooks",
+    title: "Créer et suivre des automatisations",
+    description: "Déclenchez les bons suivis commerciaux, avec contrôle et historique.",
+    href: "/app/workflows",
     sections: [
       {
-        title: "Adapter un guide d’action",
-        paragraphs: [
-          "Les Modèles de processus proposent des processus commerciaux : ils sont différents des articles de ce centre d’aide.",
-        ],
-        steps: [
-          "Ouvrez Modèles de processus et choisissez un processus.",
-          "Cliquez sur Adapter ce modèle.",
-          "Ajustez les titres et les délais pour votre équipe.",
-          "Enregistrez le workflow préparé puis ouvrez Automatisations.",
-        ],
+        title: "Créer un workflow",
+        paragraphs: ["Un workflow associe un type de fiche, un déclencheur, des conditions et des actions. Il reste en brouillon jusqu’à sa publication."],
+        steps: ["Ouvrez Automatisations puis Créer un workflow, ou choisissez un modèle.", "Sélectionnez Entreprises, Personnes ou Opportunités.", "Choisissez un déclenchement manuel, à la création d’une fiche, à sa modification ou au changement d’étape.", "Ajoutez des conditions : toutes doivent correspondre (ET) ou au moins une (OU). Les champs standards et personnalisés sont disponibles.", "Ajoutez des actions : créer une tâche, proposer un engagement, ajouter une note partagée, modifier une fiche, l’ajouter à une liste, attendre ou tester une branche Oui/Non."],
       },
       {
-        title: "Simuler puis confirmer",
-        paragraphs: [
-          "Cliquez sur Simuler et relisez les fiches concernées ainsi que les actions prévues. Aucune tâche n’a encore été créée. Annuler ferme l’aperçu ; Confirmer ces modifications applique les actions proposées.",
-        ],
+        title: "Tester et publier",
+        paragraphs: ["Tester prépare un aperçu sans rien modifier. Vérifiez les fiches et les actions prévues, puis confirmez le lancement manuel. Pour un workflow déclenché par un événement, Publier valide sa configuration pour les prochains événements. La publication crée une version immuable ; une modification ultérieure reste un brouillon jusqu’à la prochaine publication."],
+        steps: ["Ouvrez Tester et choisissez une fiche ou toutes les fiches correspondantes.", "Relisez les conditions, les actions et les branches estimées.", "Confirmez l’aperçu pour un lancement manuel, ou choisissez Publier pour activer les déclencheurs futurs."],
       },
       {
-        title: "Recommencer si les données ont changé",
-        paragraphs: [
-          "Si l’aperçu a expiré ou si des fiches ont changé, relancez une simulation avant de confirmer.",
-        ],
+        title: "Délais, branches et historique",
+        paragraphs: ["Un délai est enregistré dans la file de travail : il ne garde pas un serveur occupé. À la reprise, Relay vérifie à nouveau les conditions puis évalue les branches avec les valeurs actuelles. L’historique conserve la version, les étapes, les choix de branche et les erreurs. Une exécution en échec reprend au dernier point enregistré ; les actions validées ne sont pas rejouées."],
+        steps: ["Mettez un workflow en pause pour stopper ses déclenchements et ses reprises en attente.", "Dans Historique, consultez les détails ou arrêtez les actions restantes.", "Corrigez la cause d’un échec avant de choisir Réessayer."],
       },
       {
-        title: "Fonctionnement actuel",
-        paragraphs: [
-          "Les workflows s’exécutent après aperçu et confirmation, jusqu’à 100 fiches correspondantes. Le formulaire permet de choisir les conditions et actions sans écrire de code. Les déclenchements automatiques de workflows ne sont pas actifs. Les séquences email disposent de leur propre programmation, sous réserve que le service de suivi soit configuré.",
-        ],
+        title: "Limites et actions sensibles",
+        paragraphs: ["Relay accepte 30 workflows actifs et 200 exécutions en attente par espace. Un workflow contient au plus 40 blocs et un lancement manuel traite jusqu’à 100 fiches. Les aperçus expirent après 15 minutes. L’historique est conservé 90 jours. Les envois d’emails restent dans Séquences. La publication exige un worker disponible. Un retrait de droits bloque les exécutions concernées."],
       },
     ],
   },
