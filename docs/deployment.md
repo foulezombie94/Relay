@@ -89,3 +89,13 @@ Le test SQL utilise ROLLBACK et ne conserve pas ses fixtures. Il couvre dédupli
 Pour l’activation publique, renseigner les identifiants externes et le domaine, configurer SMTP Auth et les sauvegardes/PITR selon l’offre et essayer une restauration. Les fichiers ne créent pas les comptes externes. La capacité à forte charge n’est pas mesurée ; les quotas Gmail/Graph, le plan Supabase, les uploads Vercel et la rétention doivent être dimensionnés.
 
 Références : [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security), [Railway health checks](https://docs.railway.com/deployments/healthchecks), [Vercel](https://vercel.com/docs/project-configuration/vercel-json), [Sentry](https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/), [Better Stack](https://betterstack.com/docs/logs/ingesting-data/http/logs/).
+
+## Actions externes des workflows
+
+Le worker doit inclure `workflow_run` dans `WORKER_JOB_TYPES`. Le bloc IA utilise `OPENAI_API_KEY` et `OPENAI_MODEL` sur Railway. Le web conserve la même clé `INTEGRATION_ENCRYPTION_KEY` que le worker pour les tokens OAuth et destinations chiffrées.
+
+Les comptes calendrier déjà connectés en lecture doivent être reconnectés pour autoriser `calendar.events` chez Google ou `Calendars.ReadWrite` chez Microsoft. Les comptes email utilisés sont ceux de la personne qui publie ou lance l’exécution. Les destinations Slack et webhook se configurent dans Relay, onglet Connexions des automatisations, avec un compte administrateur.
+
+Un formulaire ou webhook entrant utilise `/api/workflow-hooks/{workflow_id}` avec une signature HMAC ; le guide utilisateur détaille le format. Définir `APP_URL` sur le domaine public pour que Relay affiche le bon endpoint. Aucun secret ne doit être embarqué dans un formulaire exécuté côté navigateur.
+
+Les contrôles ciblés sont disponibles via `npm run test:workflows` et `supabase/tests/workflow-blocks.sql` (rollback). Ils couvrent les scopes, variables, filtrage réseau, outbox, reprise, déclencheurs et confidentialité. Ils n’envoient aucun email réel ; une connexion OAuth autorisée reste nécessaire pour valider un envoi réel chez chaque fournisseur.

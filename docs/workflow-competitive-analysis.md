@@ -22,7 +22,33 @@ Chaque exécution est traçable dans Relay. Les utilisateurs peuvent mettre un w
 
 ## Limites assumées
 
-Relay n’envoie pas d’email depuis un workflow : les séquences restent responsables des envois. Le moteur ne prétend pas proposer une IA de génération ou des déclencheurs webhook/calendrier. Les étapes nécessitant une validation client restent proposées pour examen humain. Les actions d’aperçu manuel exigent une confirmation explicite.
+Relay utilise désormais les connexions réelles pour envoyer un email Gmail/Outlook, créer un événement Google/Outlook Calendar, publier via un webhook entrant Slack et appeler une API HTTPS. Le bloc IA analyse un texte et produit une sortie structurée exploitable par les branches. Les engagements restent proposés pour examen humain. La publication ou la confirmation d’un lancement autorise les actions externes configurées.
+
+## Extension : les huit points mis en œuvre
+
+| Besoin           | Comportement Relay                                                                                                                                                                                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Actions externes | OAuth individuel pour les emails/calendriers ; destinations Slack/API chiffrées et gérées par les administrateurs. Calendrier : création sans invités automatiques.                                                                                                                   |
+| Outbox           | Une entrée unique par exécution et bloc. Le marqueur d’envoi est persisté avant l’appel. Un crash ou une réponse incertaine arrête l’exécution, avec résolution explicite et auditée. Les fournisseurs email ne garantissent pas un « exactement une fois » universel.                |
+| Déclencheurs     | Fiche créée/modifiée/étape, email reçu/répondu après publication, tâche terminée, réunion marquée terminée, engagement en retard, date atteinte, formulaire/webhook signé, heure quotidienne ou jours hebdomadaires avec fuseau. Les emails sont détectés lors de la synchronisation. |
+| Variables        | Informations de la fiche et de ses relations, événement, sorties nommées des blocs précédents. Une variable indisponible produit une erreur explicite.                                                                                                                                |
+| Attente          | Date/heure, condition métier, réponse email du contact après l’entrée dans le bloc ; délai maximal avec arrêt ou poursuite explicite. Vérification périodique sans immobiliser un worker.                                                                                             |
+| IA               | Résumé, intention, prochaine action et confiance. Texte source borné et traité comme donnée non fiable. Aucun pouvoir d’envoi implicite donné au modèle.                                                                                                                              |
+| Observabilité    | Chaque bloc est persisté séparément. Canvas de la version exécutée, branches non parcourues, états réels, sortie du bloc, date de reprise, erreurs et boutons de reprise/résolution. Actualisation toutes les deux secondes tant que le détail est ouvert et actif.                   |
+| Cœur du CRM      | Actions liées à la fiche, tâches, engagements, notes, listes, opportunités, messages/calendriers et notifications ouvrant l’exécution dans À traiter.                                                                                                                                 |
+
+L’idée retenue d’Attio est la lecture des blocs et de leurs résultats. Les délais/conditions de HubSpot et Pipedrive inspirent la séparation entre attente, reprise et échec. Relay ajoute une résolution explicite des envois incertains et une isolation des événements email privés. Cela ne signifie pas une équivalence avec tous les blocs ou toutes les intégrations de ces produits.
+
+Les appels sont bornés par jour UTC et par espace : 200 emails, 100 créations calendrier, 100 analyses IA, 500 appels Slack et 500 webhooks. Chaque tentative est comptée, y compris après une reprise. Les destinations HTTPS ne peuvent pas accéder aux réseaux privés ; l’adresse DNS validée est conservée pour la connexion, et aucune redirection n’est suivie. Les secrets et l’outbox restent hors des tables exposées au navigateur.
+
+### Sources complémentaires consultées
+
+- [Attio — gestion et historique des workflows](https://attio.com/help/reference/automations/workflows/manage-workflows)
+- [HubSpot — types de délais](https://knowledge.hubspot.com/workflows/use-delays)
+- [Pipedrive — délais et attente de conditions](https://intercom.help/pipedrive/en/articles/12096061-how-do-delay-and-wait-for-condition-steps-work-in-pipedrive-automations-and-how-can-they-be-effectively-used)
+- [Google — création d’événements](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert)
+- [Microsoft — création d’événements](https://learn.microsoft.com/en-us/graph/api/user-post-events?view=graph-rest-1.0)
+- [Slack — webhooks entrants](https://api.slack.com/messaging/webhooks)
 
 ## Sources officielles
 

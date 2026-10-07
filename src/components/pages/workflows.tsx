@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Copy, GitBranch, History, Pause, Play, Plus, Search, Zap } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { WorkflowConnections } from "../workflows/connections";
 import { toast } from "sonner";
 import { useRows, useSave, useWorkspace, request } from "../data-provider";
 import { PageHeader, Modal, Empty, ErrorMessage } from "../ui";
@@ -19,7 +21,11 @@ import type { Workflow, Simulation } from "@/lib/domain/types";
 import styles from "../workflows/workflows.module.css";
 export function WorkflowsPage() {
   const { workspace, objects, user } = useWorkspace();
-  const [tab, setTab] = useState<"workflows" | "templates" | "history">("workflows");
+  const focus = useSearchParams().get("focus");
+  const [focusId, setFocusId] = useState<string | undefined>(focus ?? undefined);
+  const [tab, setTab] = useState<"workflows" | "templates" | "history" | "connections">(
+    focus ? "history" : "workflows",
+  );
   const [page, setPage] = useState(0),
     [search, setSearch] = useState(""),
     [filter, setFilter] = useState(""),
@@ -46,7 +52,8 @@ export function WorkflowsPage() {
   }
   async function control(
     row: Workflow,
-    action: "publish" | "pause" | "resume" | "retry" | "cancel",
+    action:
+      "publish" | "pause" | "resume" | "retry" | "cancel" | "resolve_done" | "resolve_not_sent",
     execution?: string,
   ) {
     await request(`/api/${workspace.id}/automation`, "POST", {
@@ -62,6 +69,8 @@ export function WorkflowsPage() {
         pause: "Automatisation en pause.",
         resume: "Automatisation reprise.",
         retry: "Nouvelle tentative planifiée.",
+        resolve_done: "Action confirmée. Le workflow reprend sans nouvel envoi.",
+        resolve_not_sent: "Un nouvel essai est autorisé.",
         cancel: "Exécution arrêtée.",
       }[action],
     );
@@ -118,14 +127,21 @@ export function WorkflowsPage() {
         </div>
       )}
       <div className={styles.tabs} role="group" aria-label="Automatisations">
-        {(["workflows", "templates", "history"] as const).map((key) => (
+        {(["workflows", "templates", "history", "connections"] as const).map((key) => (
           <button
             key={key}
             aria-pressed={tab === key}
-            disabled={key === "history" && readonly}
+            disabled={["history", "connections"].includes(key) && readonly}
             onClick={() => setTab(key)}
           >
-            {{ workflows: "Mes workflows", templates: "Modèles", history: "Historique" }[key]}
+            {
+              {
+                workflows: "Mes workflows",
+                templates: "Modèles",
+                history: "Historique",
+                connections: "Connexions",
+              }[key]
+            }
           </button>
         ))}
       </div>
@@ -140,7 +156,7 @@ export function WorkflowsPage() {
                 des conditions, des délais et des actions attribuées à votre équipe.
               </p>
             </div>
-            <Link href="/docs/automatisations">Comprendre les workflows →</Link>
+            <Link href="/doc?article=automatisations">Comprendre les workflows →</Link>
           </div>
           <div className={styles.toolbar}>
             <form
@@ -323,11 +339,14 @@ export function WorkflowsPage() {
           ))}
         </div>
       )}
+      {tab === "connections" && !readonly && <WorkflowConnections />}
       {tab === "history" && !readonly && (
         <WorkflowHistory
+          key={focusId ?? "history"}
           workflows={q.data?.data ?? []}
           workflowId={historyFilter}
           onFilter={setHistoryFilter}
+          focusId={focusId}
           onControl={control}
         />
       )}
@@ -429,18 +448,19 @@ export function WorkflowsPage() {
             </button>
             <button
               className="button primary"
-              disabled={
-                busy ||
-                !preview.records.length ||
-                preview.records.some((r) => r.changes.some((c) => c.type === "email"))
-              }
+              disabled={busy || !preview.records.length}
               onClick={async () => {
                 setBusy(true);
                 setError("");
                 try {
-                  await request(`/api/${workspace.id}/simulate`, "PATCH", {
-                    preview_id: preview.id,
-                  });
+                  const launched = await request<{ data: { executions: string[] } }>(
+                    `/api/${workspace.id}/simulate`,
+                    "PATCH",
+                    {
+                      preview_id: preview.id,
+                    },
+                  );
+                  setFocusId(launched.data.executions?.[0]);
                   setHistoryFilter(preview.workflow_id);
                   setPreview(null);
                   setTab("history");

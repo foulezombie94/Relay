@@ -40,6 +40,7 @@ export async function GET(req: NextRequest, { params }: Params) {
             "failed",
             "cancelled",
             "skipped",
+            "unknown",
           ])
           .parse(p.get("status")),
       );
@@ -58,7 +59,17 @@ export async function GET(req: NextRequest, { params }: Params) {
           .in("id", ids)
       : { data: [], error: null };
     databaseError(related.error);
+    let inspection: { definition: unknown; steps: unknown[] } | undefined;
+    if (p.get("id") && data?.length) {
+      const { data: detail, error: err } = await client.rpc("workflow_inspect", {
+        w: workspace,
+        execution: data[0].id,
+      });
+      databaseError(err);
+      inspection = detail;
+    }
     return json({
+      ...inspection,
       data: (data ?? []).map((row) => ({
         ...row,
         record_object_id: related.data?.find((record) => record.id === row.record_id)?.object_id,
@@ -102,13 +113,21 @@ export async function POST(req: NextRequest, { params }: Params) {
       .object({
         id: z.uuid(),
         version: z.number().int().positive(),
-        action: z.enum(["publish", "pause", "resume", "retry", "cancel"]),
+        action: z.enum([
+          "publish",
+          "pause",
+          "resume",
+          "retry",
+          "cancel",
+          "resolve_done",
+          "resolve_not_sent",
+        ]),
         execution: z.uuid().optional(),
       })
       .strict()
       .parse(body);
     if (
-      ["publish", "resume", "retry"].includes(input.action) &&
+      ["publish", "resume", "retry", "resolve_done", "resolve_not_sent"].includes(input.action) &&
       !(await workerReady(adminDb(), "workflow_run"))
     )
       throw new ApiError(

@@ -1,5 +1,15 @@
 import type { Condition, CrmRecord, Simulation, Workflow, WorkflowAction } from "./types";
 export function valueOf(record: CrmRecord, field: string): unknown {
+  if (field.startsWith("steps.") || field.startsWith("event."))
+    return field
+      .split(".")
+      .reduce<unknown>(
+        (value, key) =>
+          value && typeof value === "object" && Object.hasOwn(value, key)
+            ? (value as Record<string, unknown>)[key]
+            : undefined,
+        record,
+      );
   return field.startsWith("attributes.") ? record.attributes[field.slice(11)] : record[field];
 }
 export function matches(
@@ -58,7 +68,23 @@ export function actionLabel(a: WorkflowAction): string {
     case "branch":
       return "Vérifier une condition · Oui / Non";
     case "email":
-      return "Email historique · à remplacer";
+      return a.subject || "Envoyer un email";
+    case "calendar":
+      return a.title || "Créer un événement";
+    case "slack":
+      return "Publier dans Slack";
+    case "webhook":
+      return "Appeler un webhook";
+    case "ai":
+      return "Analyser le texte · " + (a.alias || "sortie à nommer");
+    case "wait_until":
+      return a.wait_mode === "date"
+        ? "Attendre jusqu’à une date"
+        : a.wait_mode === "email_reply"
+          ? "Attendre une réponse email"
+          : "Attendre une condition";
+    case "notify":
+      return a.title || "Notifier l’équipe";
   }
 }
 export function simulate(workflow: Workflow, records: CrmRecord[], now = new Date()): Simulation {
@@ -88,9 +114,9 @@ export function simulate(workflow: Workflow, records: CrmRecord[], now = new Dat
         warnings.add(
           "Les délais sont planifiés sans bloquer le serveur. Les critères sont vérifiés à nouveau à la reprise.",
         );
-      if (a.type === "email")
+      if (["email", "calendar", "slack", "webhook", "ai"].includes(a.type))
         warnings.add(
-          "Remplacez les anciennes actions email. Les envois programmés passent par Séquences.",
+          "Ce workflow comprend des actions externes réelles. La confirmation autorise les envois et les appels configurés ; l’aperçu ne les effectue pas.",
         );
       return [
         {

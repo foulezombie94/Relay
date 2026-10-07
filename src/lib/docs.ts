@@ -860,9 +860,9 @@ export const helpArticles: HelpArticle[] = [
         steps: [
           "Ouvrez Automatisations puis Créer un workflow, ou choisissez un modèle.",
           "Sélectionnez Entreprises, Personnes ou Opportunités.",
-          "Choisissez un déclenchement manuel, à la création d’une fiche, à sa modification ou au changement d’étape.",
+          "Choisissez un déclenchement manuel, un événement de fiche, un email reçu/répondu, une tâche ou réunion terminée, une échéance, un formulaire/webhook signé ou une heure planifiée.",
           "Ajoutez des conditions : toutes doivent correspondre (ET) ou au moins une (OU). Les champs standards et personnalisés sont disponibles.",
-          "Ajoutez des actions : créer une tâche, proposer un engagement, ajouter une note partagée, modifier une fiche, l’ajouter à une liste, attendre ou tester une branche Oui/Non.",
+          "Ajoutez les blocs utiles : tâches, engagements, notes, listes, modification de fiche, notifications, emails, calendrier, Slack/API, analyse IA, attente ou branche Oui/Non.",
         ],
       },
       {
@@ -888,9 +888,47 @@ export const helpArticles: HelpArticle[] = [
         ],
       },
       {
+        title: "Connecter les services d’envoi",
+        paragraphs: [
+          "Dans Intégrations, connectez Gmail ou Outlook pour envoyer des emails. Le compte utilisé est celui de la personne qui publie le workflow, ou qui confirme son lancement manuel. Pour créer des événements, reconnectez Google Calendar ou Outlook Calendar et acceptez les permissions d’écriture. Le bloc calendrier crée un rendez-vous dans le calendrier principal sans inviter automatiquement des participants.",
+          "Dans Automatisations → Connexions, un administrateur peut ajouter une destination Slack (URL de webhook entrant) ou une API HTTPS, avec un jeton Bearer facultatif. Donnez-lui un nom reconnaissable. L’URL et le jeton sont chiffrés et ne sont jamais affichés à nouveau. Une destination désactivée bloque les nouveaux appels. Les emails désabonnés ou supprimés des envois sont respectés.",
+        ],
+      },
+      {
+        title: "Variables et analyse IA",
+        paragraphs: [
+          "Utilisez {{record.name}}, {{contact.first_name}}, {{company.name}} ou {{deal.amount}} dans un texte. Les aliases contact, company et deal reprennent les fiches liées quand elles existent ; sinon ils désignent la fiche courante. Si plusieurs fiches du même type sont liées, le moteur choisit un lien déterministe : privilégiez une seule relation principale pour un workflow sensible.",
+          "Nommez la sortie d’un bloc, par exemple analyse, puis utilisez {{steps.analyse.summary}} ou {{steps.analyse.next_action}} dans un bloc suivant. Le bloc IA renvoie summary, intent, next_action et confidence. Dans une condition, utilisez steps.analyse.intent sans accolades, puis comparez à interested, question, not_interested ou other. Le worker doit disposer d’un fournisseur IA configuré ; sans connexion, le bloc échoue explicitement.",
+          "Pour un email reçu, {{event.subject}} et {{event.body}} contiennent l’objet et le texte synchronisé (extrait, pas nécessairement tout l’email). Prévisualiser ce bloc vérifie les valeurs d’une fiche sans appel externe. Les sorties de blocs et événements absents de cet aperçu ne sont pas inventées. Elles deviennent disponibles à l’exécution.",
+        ],
+      },
+      {
+        title: "Événements, planification et attente",
+        paragraphs: [
+          "Les emails sont détectés à leur synchronisation : ils doivent être reçus après publication, depuis l’adresse email de la fiche, sur le compte qui a publié. Les anciennes archives ne déclenchent pas les workflows. Une réponse est identifiée par l’en-tête In-Reply-To. Les résultats d’un workflow issu d’un email privé ne sont visibles que par son propriétaire. Une action configurée pour créer une note partagée ou envoyer le contenu peut toutefois partager ce texte : choisissez ses destinataires explicitement.",
+          "Une tâche terminée ou une réunion marquée terminée déclenche les workflows liés à sa fiche. Les engagements confirmés/en cours en retard et les dates de fiches sont examinés par lots. Une planification choisit une heure, un fuseau et, pour une semaine, les jours. La même fiche n’est pas déclenchée deux fois pour une même occurrence. Les scans et la charge du worker peuvent décaler l’heure réelle de traitement.",
+          "Attendre une date ou un événement propose une date/heure, une condition ou une réponse email du contact après l’entrée dans le bloc. Définissez un délai maximal et choisissez Arrêter ou Continuer quand il expire. Les attentes sont persistées et vérifiées environ chaque minute, sans bloquer un serveur. Les critères d’entrée sont revérifiés à la reprise. Choisissez À chaque nouvel événement pour traiter plusieurs réponses d’un même contact ; Une fois par fiche conserve une seule entrée automatique.",
+        ],
+      },
+      {
+        title: "Brancher un formulaire ou un webhook",
+        paragraphs: [
+          "Choisissez Formulaire signé ou Webhook signé, enregistrez, générez une clé dans le panneau du déclencheur puis publiez. Copiez immédiatement l’endpoint et le secret ; remplacer la clé invalide l’ancienne. Le formulaire doit envoyer la requête depuis son serveur, afin de ne pas exposer la clé aux visiteurs.",
+          'Envoyez POST avec un objet JSON {"record_id":"UUID de la fiche existante","data":{"subject":"Titre","body":"Texte"}}. La fiche doit appartenir à l’espace et au type choisi. Les valeurs texte de data peuvent être utilisées via {{event.payload.nom_du_champ}}. Le webhook ne crée pas implicitement un nouveau contact.',
+          "Ajoutez X-Relay-Timestamp (secondes Unix), X-Relay-Event-Id (UUID unique) et X-Relay-Signature. La signature est le HMAC SHA-256 hexadécimal du texte timestamp.eventId.corpsJSONExact, avec le secret comme clé. En Node : createHmac('sha256', secret).update(`${timestamp}.${eventId}.${rawBody}`).digest('hex'). La requête expire après cinq minutes ; réutiliser l’ID empêche un deuxième déclenchement. Limite : 60 événements par minute et par workflow, et 16 Ko par requête.",
+        ],
+      },
+      {
+        title: "Suivre chaque bloc et résoudre un envoi incertain",
+        paragraphs: [
+          "Après un lancement, le détail s’ouvre sur la version réellement exécutée. Les blocs montrent À venir, En cours, Réussi, En attente, Échec ou Non parcouru. Cliquez sur un bloc pour voir ses dates et sa sortie. Le détail s’actualise toutes les deux secondes pendant une exécution active, puis s’arrête. Les étapes restent enregistrées quand vous fermez la fenêtre.",
+          "Un échec connu permet Réessayer après correction, sans rejouer les actions validées. Si Relay perd la réponse du fournisseur, l’état devient Envoi à vérifier. Aucun nouvel envoi automatique n’a lieu. Vérifiez les messages envoyés, le calendrier, Slack ou les journaux de l’API ; choisissez Action déjà réalisée pour continuer sans renvoi, ou Confirmé non envoyé pour autoriser une nouvelle tentative. Ces décisions sont auditées. Un changement de définition exige une nouvelle version et un nouveau lancement.",
+        ],
+      },
+      {
         title: "Limites et actions sensibles",
         paragraphs: [
-          "Relay accepte 30 workflows actifs et 200 exécutions en attente par espace. Un workflow contient au plus 40 blocs et un lancement manuel traite jusqu’à 100 fiches. Les aperçus expirent après 15 minutes. L’historique est conservé 90 jours. Les envois d’emails restent dans Séquences. La publication exige un worker disponible. Un retrait de droits bloque les exécutions concernées.",
+          "Relay accepte 30 workflows actifs et 200 exécutions en attente par espace. Un workflow contient au plus 40 blocs et un lancement manuel traite jusqu’à 100 fiches. Les aperçus expirent après 15 minutes. L’historique est conservé 90 jours. Par jour UTC et par espace : 200 emails, 100 événements calendrier, 100 analyses IA, 500 appels Slack et 500 webhooks. Chaque tentative est comptée. La publication exige un worker disponible. Un retrait de droits bloque les exécutions concernées. Publier ou confirmer un lancement autorise les actions externes configurées.",
         ],
       },
     ],

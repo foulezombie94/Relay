@@ -15,13 +15,9 @@ export const services = {
     name: "Google Calendar",
     family: "google",
     kind: "calendar",
-    scopes: [
-      "openid",
-      "email",
-      "https://www.googleapis.com/auth/calendar.events.readonly",
-    ],
+    scopes: ["openid", "email", "https://www.googleapis.com/auth/calendar.events.readonly"],
     description:
-      "Lire les événements de votre calendrier principal, sans les modifier.",
+      "Lire votre calendrier principal et créer les événements autorisés par vos workflows.",
   },
   outlook: {
     name: "Outlook",
@@ -36,20 +32,41 @@ export const services = {
     kind: "calendar",
     scopes: ["offline_access", "User.Read", "Calendars.Read"],
     description:
-      "Lire les événements de votre calendrier Outlook, sans les modifier.",
+      "Lire votre calendrier Outlook et créer les événements autorisés par vos workflows.",
   },
 } as const;
 export type Service = keyof typeof services;
+export function requestedScopes(p: Service) {
+  return [
+    ...services[p].scopes,
+    ...(p === "google-calendar"
+      ? ["https://www.googleapis.com/auth/calendar.events"]
+      : p === "outlook-calendar"
+        ? ["Calendars.ReadWrite"]
+        : []),
+  ];
+}
+export function hasCalendarWriteScope(p: Service, scope: string) {
+  const scopes = new Set(scope.toLowerCase().split(/\s+/).filter(Boolean));
+  if (p === "google-calendar") return scopes.has("https://www.googleapis.com/auth/calendar.events");
+  if (p === "outlook-calendar")
+    return (
+      scopes.has("calendars.readwrite") ||
+      scopes.has("https://graph.microsoft.com/calendars.readwrite")
+    );
+  return false;
+}
 export function serviceId(value: string): Service {
-  const legacy =
-    value === "google" ? "gmail" : value === "microsoft" ? "outlook" : value;
+  const legacy = value === "google" ? "gmail" : value === "microsoft" ? "outlook" : value;
   if (!(legacy in services)) throw new Error("Fournisseur inconnu.");
   return legacy as Service;
 }
 export function hasRequiredScopes(p: Service, granted: string[]) {
-  const normalize = (s: string) =>
-    s.toLowerCase().replace("https://graph.microsoft.com/", "");
+  const normalize = (s: string) => s.toLowerCase().replace("https://graph.microsoft.com/", "");
   const set = new Set(granted.map(normalize));
+  if (set.has("calendars.readwrite")) set.add("calendars.read");
+  if (set.has("https://www.googleapis.com/auth/calendar.events"))
+    set.add("https://www.googleapis.com/auth/calendar.events.readonly");
   return services[p].scopes
     .filter((s) => !["openid", "email", "offline_access"].includes(s))
     .every((s) => set.has(normalize(s)));
@@ -69,8 +86,7 @@ export function callbackOrigin(
     (production && base.protocol !== "https:")
   )
     throw new Error("APP_URL doit être une origine HTTPS en production.");
-  if (!["https:", "http:"].includes(base.protocol))
-    throw new Error("Origine invalide.");
+  if (!["https:", "http:"].includes(base.protocol)) throw new Error("Origine invalide.");
   if (!production && origin) {
     const actual = new URL(origin);
     if (

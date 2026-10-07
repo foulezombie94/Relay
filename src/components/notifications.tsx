@@ -8,7 +8,7 @@ import { Modal, ErrorMessage, Empty, Loading, date } from "./ui";
 import { Pagination } from "./pagination";
 type Notice = {
   id: string;
-  entity: "tasks" | "commitments";
+  entity: "tasks" | "commitments" | "workflows";
   entity_id: string;
   kind: "assigned" | "due";
   title: string;
@@ -26,12 +26,7 @@ export function Notifications() {
     queryKey: ["notifications", workspace.id, page, unread],
     queryFn: () =>
       request<{ data: Notice[]; count: number; unread: number }>(
-        "/api/" +
-          workspace.id +
-          "/notifications?page=" +
-          page +
-          "&unread=" +
-          unread,
+        "/api/" + workspace.id + "/notifications?page=" + page + "&unread=" + unread,
       ),
     refetchInterval: 60000,
   });
@@ -93,9 +88,7 @@ export function Notifications() {
               q.data?.data.map((n) => (
                 <article key={n.id} className="detail-card">
                   <strong>
-                    {n.kind === "assigned"
-                      ? "Nouvelle attribution"
-                      : "Échéance à suivre"}
+                    {n.kind === "assigned" ? "Nouvelle attribution" : "Échéance à suivre"}
                   </strong>
                   <p>{n.title}</p>
                   <small>
@@ -135,9 +128,8 @@ export function Notifications() {
               busy={q.isFetching}
             />
             <p className="caption">
-              Vos tâches et engagements attribués. Un rappel apparaît dans les
-              24 heures avant l’échéance ; les échéances dépassées restent à
-              traiter. Actualisation chaque minute.
+              Vos tâches et engagements attribués. Un rappel apparaît dans les 24 heures avant
+              l’échéance ; les échéances dépassées restent à traiter. Actualisation chaque minute.
             </p>
           </div>
         </Modal>

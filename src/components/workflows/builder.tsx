@@ -20,6 +20,8 @@ import {
 import { useWorkspace } from "../data-provider";
 import { Modal } from "../ui";
 import { ActionEditor, ConditionsEditor } from "./fields";
+import { WorkflowHook } from "./connections";
+import { BlockPreview } from "./block-preview";
 import { actionLabel } from "@/lib/domain/workflows";
 import { workflowDefinition } from "@/lib/domain/workflow-schema";
 import {
@@ -40,6 +42,12 @@ export const actionIcons = {
   delay: Clock3,
   branch: GitBranch,
   email: FileText,
+  calendar: Clock3,
+  slack: Zap,
+  webhook: Zap,
+  ai: Zap,
+  wait_until: Clock3,
+  notify: CheckCheck,
 };
 function identify(actions: WorkflowAction[]): WorkflowAction[] {
   return actions.map((a) => ({
@@ -390,11 +398,14 @@ export function WorkflowBuilder({
               <h3>{active ? actionLabel(active) : "Déclenchement et critères"}</h3>
             </div>
             {active ? (
-              <ActionEditor
-                action={active}
-                objectId={draft.definition.object_id}
-                onChange={(next) => edit(active.id!, () => next)}
-              />
+              <>
+                <ActionEditor
+                  action={active}
+                  objectId={draft.definition.object_id}
+                  onChange={(next) => edit(active.id!, () => next)}
+                />
+                <BlockPreview key={active.id} definition={draft.definition} actionId={active.id!} />
+              </>
             ) : (
               <div className={styles.actionEditor}>
                 <label>
@@ -430,6 +441,15 @@ export function WorkflowBuilder({
                           type: e.target.value as NonNullable<
                             WorkflowDefinition["trigger"]
                           >["type"],
+                          ...(e.target.value === "schedule"
+                            ? {
+                                frequency: "daily" as const,
+                                time: "09:00",
+                                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                                weekdays: [1],
+                              }
+                            : {}),
+                          ...(e.target.value === "date_reached" ? { field: "close_date" } : {}),
                         },
                       })
                     }
@@ -441,6 +461,107 @@ export function WorkflowBuilder({
                     ))}
                   </select>
                 </label>
+                {draft.definition.trigger?.type === "schedule" && (
+                  <>
+                    <label>
+                      Fréquence
+                      <select
+                        value={draft.definition.trigger.frequency ?? "daily"}
+                        onChange={(e) =>
+                          define({
+                            trigger: {
+                              ...draft.definition.trigger!,
+                              frequency: e.target.value as "daily" | "weekly",
+                            },
+                          })
+                        }
+                      >
+                        <option value="daily">Chaque jour</option>
+                        <option value="weekly">Chaque semaine</option>
+                      </select>
+                    </label>
+                    <label>
+                      Heure locale
+                      <input
+                        type="time"
+                        value={draft.definition.trigger.time ?? "09:00"}
+                        onChange={(e) =>
+                          define({
+                            trigger: { ...draft.definition.trigger!, time: e.target.value },
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Fuseau horaire
+                      <input
+                        maxLength={100}
+                        value={draft.definition.trigger.timezone ?? "Europe/Paris"}
+                        onChange={(e) =>
+                          define({
+                            trigger: { ...draft.definition.trigger!, timezone: e.target.value },
+                          })
+                        }
+                        placeholder="Europe/Paris, America/New_York…"
+                      />
+                    </label>
+                    {draft.definition.trigger.frequency === "weekly" && (
+                      <div className={styles.presets}>
+                        {["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"].map((day, i) => (
+                          <button
+                            type="button"
+                            className="button small"
+                            aria-pressed={draft.definition.trigger?.weekdays?.includes(i) ?? false}
+                            key={day}
+                            onClick={() => {
+                              const days = draft.definition.trigger?.weekdays ?? [];
+                              define({
+                                trigger: {
+                                  ...draft.definition.trigger!,
+                                  weekdays: days.includes(i)
+                                    ? days.filter((d) => d !== i)
+                                    : [...days, i],
+                                },
+                              });
+                            }}
+                          >
+                            {day}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <p className="caption">
+                      Chaque occurrence traite les fiches correspondant aux critères, avec
+                      déduplication par jour et par version publiée.
+                    </p>
+                  </>
+                )}
+                {draft.definition.trigger?.type === "date_reached" && (
+                  <label>
+                    Date surveillée
+                    <input
+                      required
+                      value={draft.definition.trigger.field ?? "close_date"}
+                      onChange={(e) =>
+                        define({ trigger: { ...draft.definition.trigger!, field: e.target.value } })
+                      }
+                      placeholder="close_date ou attributes.renouvellement"
+                    />
+                  </label>
+                )}
+                {["email_received", "email_replied"].includes(
+                  draft.definition.trigger?.type ?? "",
+                ) && (
+                  <p className={styles.help}>
+                    Nouveaux emails synchronisés après publication, provenant de l’adresse email de
+                    la fiche. L’événement et les résultats privés ne sont visibles que par le
+                    propriétaire du compte. Une note créée par ce workflow peut partager le contenu
+                    : configurez-la explicitement.
+                  </p>
+                )}
+                {["webhook", "form_received"].includes(draft.definition.trigger?.type ?? "") && (
+                  <WorkflowHook key={current?.id ?? "new"} id={current?.id} />
+                )}
                 {draft.definition.trigger?.type === "record_updated" && (
                   <label>
                     Information surveillée
@@ -615,9 +736,7 @@ function Node({
           <Icon size={18} />
         </span>
         <span>
-          <small>
-            {a.type === "email" ? "ANCIENNE ACTION" : workflowActionTypes[a.type].toUpperCase()}
-          </small>
+          <small>{workflowActionTypes[a.type].toUpperCase()}</small>
           <strong>{actionLabel(a)}</strong>
           {a.type === "task" || a.type === "commitment" ? <em>Échéance J+{a.days ?? 1}</em> : null}
         </span>

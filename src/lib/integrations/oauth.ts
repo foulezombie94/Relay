@@ -6,6 +6,7 @@ import {
   services,
   serviceId,
   hasRequiredScopes,
+  requestedScopes,
   callbackOrigin,
   type Service,
 } from "./services";
@@ -22,12 +23,8 @@ export function provider(value: string): Service {
 }
 export function config(p: Service, origin?: string) {
   const google = services[p].family === "google";
-  const clientId = google
-    ? process.env.GOOGLE_CLIENT_ID
-    : process.env.MICROSOFT_CLIENT_ID;
-  const secret = google
-    ? process.env.GOOGLE_CLIENT_SECRET
-    : process.env.MICROSOFT_CLIENT_SECRET;
+  const clientId = google ? process.env.GOOGLE_CLIENT_ID : process.env.MICROSOFT_CLIENT_ID;
+  const secret = google ? process.env.GOOGLE_CLIENT_SECRET : process.env.MICROSOFT_CLIENT_SECRET;
   if (!clientId || !secret)
     throw new ApiError(
       "Ajoutez les identifiants OAuth Google ou Microsoft dans la configuration serveur.",
@@ -38,29 +35,20 @@ export function config(p: Service, origin?: string) {
     throw new ApiError("MICROSOFT_TENANT invalide.", 503);
   let base: string;
   try {
-    base = callbackOrigin(
-      process.env.APP_URL,
-      origin,
-      process.env.NODE_ENV === "production",
-    );
+    base = callbackOrigin(process.env.APP_URL, origin, process.env.NODE_ENV === "production");
   } catch {
-    throw new ApiError(
-      "APP_URL doit correspondre à une origine HTTPS en production.",
-      503,
-    );
+    throw new ApiError("APP_URL doit correspondre à une origine HTTPS en production.", 503);
   }
   return {
     clientId,
     secret,
     authorize: google
       ? "https://accounts.google.com/o/oauth2/v2/auth"
-      : "https://login.microsoftonline.com/" +
-        tenant +
-        "/oauth2/v2.0/authorize",
+      : "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/authorize",
     token: google
       ? "https://oauth2.googleapis.com/token"
       : "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/token",
-    scope: services[p].scopes.join(" "),
+    scope: requestedScopes(p).join(" "),
     redirect: base + "/api/oauth/" + p + "/callback",
   };
 }
@@ -98,10 +86,7 @@ export async function exchange(p: Service, fields: Record<string, string>) {
       signal: AbortSignal.timeout(20000),
     });
   } catch {
-    throw new ApiError(
-      "Le fournisseur est indisponible. Réessayez la connexion.",
-      502,
-    );
+    throw new ApiError("Le fournisseur est indisponible. Réessayez la connexion.", 502);
   }
   if (!response.ok)
     throw new ApiError(
@@ -124,24 +109,14 @@ async function saved(client: SupabaseClient, w: string, p: Service) {
     throw new ApiError("Connectez ce service dans les intégrations.", 409);
   return data as SavedConnection;
 }
-export async function connection(
-  client: SupabaseClient,
-  w: string,
-  p: Service,
-) {
+export async function connection(client: SupabaseClient, w: string, p: Service) {
   let data = await saved(client, w, p);
   let tokens = unseal<Tokens>(data.encrypted_tokens);
-  if (!hasRequiredScopes(p, (tokens.scope || "").split(" ")))
-    throw new ApiError(
-      "Les permissions sont insuffisantes. Reconnectez ce service.",
-      409,
-    );
+  if (!hasRequiredScopes(p, (tokens.scope || "").split(/\s+/).filter(Boolean)))
+    throw new ApiError("Les permissions sont insuffisantes. Reconnectez ce service.", 409);
   if (tokens.expires_at < Date.now() + 60000) {
     if (!tokens.refresh_token)
-      throw new ApiError(
-        "Reconnectez ce service pour renouveler son autorisation.",
-        409,
-      );
+      throw new ApiError("Reconnectez ce service pour renouveler son autorisation.", 409);
     const claimedRevision = data.revision;
     const claim = await client.rpc("integration_refresh_claim", {
       w,
@@ -167,17 +142,14 @@ export async function connection(
         scope: fresh.scope || tokens.scope,
         expires_at: Date.now() + fresh.expires_in * 1000,
       };
-      if (!hasRequiredScopes(p, tokens.scope.split(" ")))
-        throw new ApiError(
-          "Les permissions ont changé. Reconnectez ce service.",
-          409,
-        );
+      if (!hasRequiredScopes(p, tokens.scope.split(/\s+/).filter(Boolean)))
+        throw new ApiError("Les permissions ont changé. Reconnectez ce service.", 409);
       const finish = await client.rpc("integration_refresh_finish", {
         w,
         p,
         expected_revision: data.revision,
         encrypted: seal(tokens),
-        permissions: tokens.scope.split(" "),
+        permissions: tokens.scope.split(/\s+/).filter(Boolean),
       });
       databaseError(finish.error);
       if (!finish.data) {
@@ -208,7 +180,7 @@ export async function storeTokens(
     p,
     mail: tokens.email,
     encrypted: seal(tokens),
-    permissions: tokens.scope.split(" "),
+    permissions: tokens.scope.split(/\s+/).filter(Boolean),
     oauth_hash: oauthHash,
   });
   databaseError(error);
@@ -239,10 +211,7 @@ export async function externalJson(
       signal: AbortSignal.timeout(20000),
     });
   } catch {
-    throw new ApiError(
-      "Le fournisseur est indisponible. Réessayez plus tard.",
-      502,
-    );
+    throw new ApiError("Le fournisseur est indisponible. Réessayez plus tard.", 502);
   }
   if (!response.ok) {
     // Only known error codes influence the message; never expose provider payloads or tokens.
@@ -250,8 +219,7 @@ export async function externalJson(
     const apiName =
       parsed.hostname === "gmail.googleapis.com"
         ? "Gmail"
-        : parsed.hostname === "www.googleapis.com" &&
-            parsed.pathname.startsWith("/calendar/")
+        : parsed.hostname === "www.googleapis.com" && parsed.pathname.startsWith("/calendar/")
           ? "Google Calendar"
           : parsed.hostname === "graph.microsoft.com"
             ? "Microsoft Graph"

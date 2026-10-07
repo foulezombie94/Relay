@@ -11,21 +11,21 @@ type Item = {
   sender: string;
   recipients: string[];
   body: string;
+  is_reply?: boolean;
+  thread_id?: string;
+  sender_email?: string;
+  direction?: "inbound" | "outbound";
+  ends_at?: string | null;
   starts_at?: string | null;
   received_at?: string | null;
 };
-const text = (v: unknown, max = 30000) =>
-  typeof v === "string" ? v.slice(0, max) : "";
-export async function synchronize(
-  client: SupabaseClient,
-  w: string,
-  user: string,
-  p: Service,
-) {
-  const { data: claim, error: claimError } = await client.rpc(
-    "connector_sync",
-    { w, p, operation: "claim" },
-  );
+const text = (v: unknown, max = 30000) => (typeof v === "string" ? v.slice(0, max) : "");
+export async function synchronize(client: SupabaseClient, w: string, user: string, p: Service) {
+  const { data: claim, error: claimError } = await client.rpc("connector_sync", {
+    w,
+    p,
+    operation: "claim",
+  });
   if (claimError)
     throw new ApiError(
       claimError.code === "40001"
@@ -34,12 +34,23 @@ export async function synchronize(
       409,
     );
   const lease = claim.lease;
-  let leaseLost=false;
-  let renewing:Promise<unknown>|undefined;
-  const renewal=setInterval(()=>{
-    if(!renewing) renewing=Promise.resolve(client.rpc("connector_sync",{w,p,operation:"renew",payload:{lease}}))
-      .then(({error})=>{if(error)leaseLost=true;}).catch(()=>{leaseLost=true;}).finally(()=>{renewing=undefined;});
-  },45000);
+  let leaseLost = false;
+  let renewing: Promise<unknown> | undefined;
+  const renewal = setInterval(() => {
+    if (!renewing)
+      renewing = Promise.resolve(
+        client.rpc("connector_sync", { w, p, operation: "renew", payload: { lease } }),
+      )
+        .then(({ error }) => {
+          if (error) leaseLost = true;
+        })
+        .catch(() => {
+          leaseLost = true;
+        })
+        .finally(() => {
+          renewing = undefined;
+        });
+  }, 45000);
   try {
     const { tokens } = await connection(client, w, p);
     const token = tokens.access_token;
@@ -70,14 +81,13 @@ export async function synchronize(
               const m = await externalJson(
                 "https://gmail.googleapis.com/gmail/v1/users/me/messages/" +
                   encodeURIComponent(message.id) +
-                  "?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=To",
+                  "?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=To&metadataHeaders=In-Reply-To",
                 token,
               );
               const header = (name: string) =>
                 text(
                   m.payload?.headers?.find(
-                    (h: { name: string }) =>
-                      h.name.toLowerCase() === name.toLowerCase(),
+                    (h: { name: string }) => h.name.toLowerCase() === name.toLowerCase(),
                   )?.value,
                   1000,
                 );
@@ -86,6 +96,14 @@ export async function synchronize(
                 kind: "email" as const,
                 subject: header("Subject"),
                 sender: header("From"),
+                sender_email: (
+                  header("From").match(/<([^>]+)>/)?.[1] ?? header("From")
+                ).toLowerCase(),
+                thread_id: text(m.threadId, 1000),
+                is_reply: !!header("In-Reply-To"),
+                direction: m.labelIds?.includes("SENT")
+                  ? ("outbound" as const)
+                  : ("inbound" as const),
                 recipients: [header("To")],
                 body: text(m.snippet),
                 received_at: new Date(Number(m.internalDate)).toISOString(),
@@ -104,8 +122,7 @@ export async function synchronize(
       });
       if (window.page) query.set("pageToken", window.page);
       const events = await externalJson(
-        "https://www.googleapis.com/calendar/v3/calendars/primary/events?" +
-          query,
+        "https://www.googleapis.com/calendar/v3/calendars/primary/events?" + query,
         token,
       );
       page = events.nextPageToken;
@@ -116,26 +133,20 @@ export async function synchronize(
           kind: "calendar",
           subject: text(e.summary || "Événement", 1000),
           sender: text(e.organizer?.email, 1000),
-          recipients: (e.attendees ?? []).map((a: { email: string }) =>
-            text(a.email, 1000),
-          ),
+          recipients: (e.attendees ?? []).map((a: { email: string }) => text(a.email, 1000)),
           body: text(e.description),
-          starts_at:
-            e.start?.dateTime ||
-            (e.start?.date ? e.start.date + "T00:00:00Z" : null),
+          starts_at: e.start?.dateTime || (e.start?.date ? e.start.date + "T00:00:00Z" : null),
+          ends_at: e.end?.dateTime ?? (e.end?.date ? e.end.date + "T00:00:00Z" : null),
           received_at: e.updated || null,
         });
       }
     } else if (service.kind === "email") {
       const query = new URLSearchParams({
         $top: "100",
-        $select: "id,subject,from,toRecipients,bodyPreview,receivedDateTime",
+        $select:
+          "id,subject,from,toRecipients,bodyPreview,receivedDateTime,conversationId,internetMessageHeaders",
         $orderby: "receivedDateTime desc",
-        $filter:
-          "receivedDateTime ge " +
-          window.start +
-          " and receivedDateTime lt " +
-          window.end,
+        $filter: "receivedDateTime ge " + window.start + " and receivedDateTime lt " + window.end,
       });
       const list = await externalJson(
         window.page
@@ -151,9 +162,13 @@ export async function synchronize(
           kind: "email",
           subject: text(m.subject, 1000),
           sender: text(m.from?.emailAddress?.address, 1000),
-          recipients: (m.toRecipients ?? []).map(
-            (a: { emailAddress: { address: string } }) =>
-              text(a.emailAddress?.address, 1000),
+          sender_email: text(m.from?.emailAddress?.address, 1000).toLowerCase(),
+          thread_id: text(m.conversationId, 1000),
+          is_reply: !!m.internetMessageHeaders?.some(
+            (h: { name: string }) => h.name.toLowerCase() === "in-reply-to",
+          ),
+          recipients: (m.toRecipients ?? []).map((a: { emailAddress: { address: string } }) =>
+            text(a.emailAddress?.address, 1000),
           ),
           body: text(m.bodyPreview),
           received_at: m.receivedDateTime || null,
@@ -181,15 +196,15 @@ export async function synchronize(
           kind: "calendar",
           subject: text(e.subject, 1000),
           sender: text(e.organizer?.emailAddress?.address, 1000),
-          recipients: (e.attendees ?? []).map(
-            (a: { emailAddress: { address: string } }) =>
-              text(a.emailAddress?.address, 1000),
+          recipients: (e.attendees ?? []).map((a: { emailAddress: { address: string } }) =>
+            text(a.emailAddress?.address, 1000),
           ),
           body: text(e.bodyPreview),
-          starts_at: start
-            ? /[Zz]$|[+-]\d{2}:\d{2}$/.test(start)
-              ? start
-              : start + "Z"
+          starts_at: start ? (/[Zz]$|[+-]\d{2}:\d{2}$/.test(start) ? start : start + "Z") : null,
+          ends_at: e.end?.dateTime
+            ? /[Zz]$|[+-]\d{2}:\d{2}$/.test(e.end.dateTime)
+              ? e.end.dateTime
+              : e.end.dateTime + "Z"
             : null,
           received_at: e.lastModifiedDateTime || null,
         });
@@ -201,7 +216,11 @@ export async function synchronize(
     const cursor = page
       ? { ...window, page }
       : { watermark: service.kind === "email" ? window.end : undefined };
-    if(leaseLost) throw new ApiError("Le verrou de synchronisation a expiré. Réessayez pour reprendre ce lot.",409);
+    if (leaseLost)
+      throw new ApiError(
+        "Le verrou de synchronisation a expiré. Réessayez pour reprendre ce lot.",
+        409,
+      );
     const { data, error } = await client.rpc("connector_sync", {
       w,
       p,
@@ -232,6 +251,7 @@ export async function synchronize(
     });
     throw error;
   } finally {
-    clearInterval(renewal);await renewing;
+    clearInterval(renewal);
+    await renewing;
   }
 }

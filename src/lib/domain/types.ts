@@ -62,8 +62,25 @@ export type WorkflowDefinition = {
   actions: WorkflowAction[];
   condition_mode?: "all" | "any";
   trigger?: {
-    type: "manual" | "record_created" | "record_updated" | "stage_changed";
+    type:
+      | "manual"
+      | "record_created"
+      | "record_updated"
+      | "stage_changed"
+      | "email_received"
+      | "email_replied"
+      | "task_completed"
+      | "commitment_overdue"
+      | "date_reached"
+      | "meeting_completed"
+      | "form_received"
+      | "webhook"
+      | "schedule";
     field?: string;
+    frequency?: "daily" | "weekly";
+    time?: string;
+    timezone?: string;
+    weekdays?: number[];
   };
   reenrollment?: "once" | "on_change";
 };
@@ -82,7 +99,21 @@ export type Condition = {
   value?: string | number;
 };
 export type WorkflowAction = {
-  type: "task" | "set_field" | "email" | "note" | "commitment" | "add_to_list" | "delay" | "branch";
+  type:
+    | "task"
+    | "set_field"
+    | "email"
+    | "note"
+    | "commitment"
+    | "add_to_list"
+    | "delay"
+    | "branch"
+    | "calendar"
+    | "slack"
+    | "webhook"
+    | "ai"
+    | "wait_until"
+    | "notify";
   id?: string;
   title?: string;
   field?: string;
@@ -98,6 +129,19 @@ export type WorkflowAction = {
   then?: WorkflowAction[];
   otherwise?: WorkflowAction[];
   lost_reason?: string;
+  alias?: string;
+  provider?: "gmail" | "outlook" | "google-calendar" | "outlook-calendar";
+  to?: string;
+  subject?: string;
+  destination_id?: string;
+  starts_at?: string;
+  duration_minutes?: number;
+  instruction?: string;
+  input?: string;
+  wait_mode?: "date" | "condition" | "email_reply";
+  until?: string;
+  timeout_minutes?: number;
+  timeout_behavior?: "continue" | "stop";
 };
 export type Simulation = {
   workflow_id: string;

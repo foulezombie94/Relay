@@ -1,13 +1,14 @@
 "use client";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Clock3, ExternalLink, RefreshCw, X } from "lucide-react";
+import { Clock3, ExternalLink, RefreshCw, X } from "lucide-react";
 import Link from "next/link";
 import { request, useWorkspace } from "../data-provider";
 import { ErrorMessage, Modal } from "../ui";
 import { Pagination } from "../pagination";
 import { workflowStatuses, workflowTriggers } from "@/lib/domain/workflow-templates";
-import type { Workflow } from "@/lib/domain/types";
+import type { Workflow, WorkflowDefinition } from "@/lib/domain/types";
+import { ExecutionCanvas, type StepRun } from "./execution-canvas";
 import styles from "./workflows.module.css";
 export type Execution = {
   id: string;
@@ -39,6 +40,16 @@ const errors: Record<string, string> = {
     "Le traitement a échoué après plusieurs tentatives. Réessayez après avoir corrigé la cause.",
   capacity:
     "200 exécutions sont déjà en attente dans cet espace. Libérez la file puis créez un nouvel aperçu.",
+  delivery_uncertain:
+    "Le résultat de l’envoi est incertain. Vérifiez chez le fournisseur, puis confirmez ci-dessous si l’action a eu lieu. Aucun renvoi automatique.",
+  calendar_write_permission:
+    "Reconnectez le calendrier dans Intégrations pour autoriser la création d’événements, puis réessayez.",
+  ai_not_configured: "La clé du fournisseur IA n’est pas configurée sur le worker.",
+  provider_rejected:
+    "Le fournisseur a refusé l’action. Vérifiez ses permissions et les valeurs configurées.",
+  external_not_ready:
+    "Une connexion ou une variable manque. Vérifiez le bloc et le compte d’exécution.",
+  wait_timeout: "La condition attendue ne s’est pas produite avant le délai maximal.",
   criteria_changed:
     "La fiche ne remplit plus les critères d’entrée. Les actions restantes ont été arrêtées.",
 };
@@ -48,16 +59,22 @@ export function WorkflowHistory({
   workflowId = "",
   onFilter,
   onControl,
+  focusId,
 }: {
+  focusId?: string;
   workflows: Workflow[];
   workflowId?: string;
   onFilter: (id: string) => void;
-  onControl: (row: Workflow, action: "retry" | "cancel", execution: string) => Promise<void>;
+  onControl: (
+    row: Workflow,
+    action: "retry" | "cancel" | "resolve_done" | "resolve_not_sent",
+    execution: string,
+  ) => Promise<void>;
 }) {
   const { workspace, objects, user } = useWorkspace();
   const [page, setPage] = useState(0),
     [status, setStatus] = useState(""),
-    [focused, setFocused] = useState<string | null>(null),
+    [focused, setFocused] = useState<string | null>(focusId ?? null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const q = useQuery({
@@ -72,9 +89,12 @@ export function WorkflowHistory({
   const detail = useQuery({
     queryKey: ["workflow-history", workspace.id, "detail", focused],
     enabled: !!focused,
-    queryFn: () => request<{ data: Execution[] }>(`/api/${workspace.id}/automation?id=${focused}`),
+    queryFn: () =>
+      request<{ data: Execution[]; definition: WorkflowDefinition; steps: StepRun[] }>(
+        `/api/${workspace.id}/automation?id=${focused}`,
+      ),
     refetchInterval: (query) =>
-      pending.includes(query.state.data?.data[0]?.status ?? "") ? 15000 : false,
+      pending.includes(query.state.data?.data[0]?.status ?? "") ? 2000 : false,
   });
   const run = detail.data?.data[0];
   const flowLookup = useQuery({
@@ -89,14 +109,18 @@ export function WorkflowHistory({
     (flow.created_by == null ||
       flow.created_by === user.id ||
       ["owner", "admin"].includes(workspace.role));
-  async function control(action: "retry" | "cancel") {
+  async function control(action: "retry" | "cancel" | "resolve_done" | "resolve_not_sent") {
     if (
       !run ||
       !flow ||
       !window.confirm(
-        action === "cancel"
-          ? "Arrêter les actions restantes ? Les actions déjà réalisées seront conservées."
-          : "Reprendre à partir du dernier point enregistré ? Les actions déjà réalisées ne seront pas rejouées.",
+        action === "resolve_done"
+          ? "Confirmer que cette action a bien eu lieu chez le fournisseur ? Elle ne sera pas renvoyée."
+          : action === "resolve_not_sent"
+            ? "Confirmer après vérification que cette action n’a PAS eu lieu ? Cela autorise un nouvel envoi réel."
+            : action === "cancel"
+              ? "Arrêter les actions restantes ? Les actions déjà réalisées seront conservées."
+              : "Reprendre à partir du dernier point enregistré ? Les actions déjà réalisées ne seront pas rejouées.",
       )
     )
       return;
@@ -260,37 +284,50 @@ export function WorkflowHistory({
                   nouveau.
                 </p>
               )}
-              <ol className={styles.trace}>
-                {run.trace.map((step, i) => (
-                  <li key={i}>
-                    <span>
-                      <Check size={15} />
-                    </span>
-                    <div>
-                      <strong>{step.title}</strong>
-                      <small>{new Date(step.at).toLocaleString("fr-FR")}</small>
-                      {step.result && (
-                        <p>Branche suivie : {step.result === "yes" ? "Oui" : "Non"}</p>
-                      )}
-                      {step.resume_at && <p>Délai : {step.minutes} minutes</p>}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-              {!run.trace.length && (
-                <p className="caption">
-                  Aucune action n’a encore été validée. Le worker prend en charge les nouvelles
-                  exécutions sous une minute lorsque le service est disponible.
-                </p>
+              {(detail.data?.steps?.length ?? 0) > 0 ? (
+                <ExecutionCanvas
+                  key={run.id}
+                  definition={detail.data?.definition}
+                  steps={detail.data?.steps ?? []}
+                />
+              ) : (
+                <ol className={styles.trace}>
+                  {run.trace.map((step, i) => (
+                    <li key={i}>
+                      <div>
+                        <strong>{step.title}</strong>
+                        <small>{new Date(step.at).toLocaleString("fr-FR")}</small>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
               )}
               {error && <div className="alert error">{error}</div>}
-              {flow && (
+              {canControl && (
                 <div className="dialog-footer">
-                  {["queued", "waiting", "paused", "failed"].includes(run.status) && (
+                  {["queued", "waiting", "paused", "failed", "unknown"].includes(run.status) && (
                     <button className="button" disabled={busy} onClick={() => control("cancel")}>
                       <X size={14} />
                       Arrêter la suite
                     </button>
+                  )}
+                  {run.status === "unknown" && (
+                    <>
+                      <button
+                        className="button"
+                        disabled={busy}
+                        onClick={() => control("resolve_done")}
+                      >
+                        Action déjà réalisée
+                      </button>
+                      <button
+                        className="button primary"
+                        disabled={busy}
+                        onClick={() => control("resolve_not_sent")}
+                      >
+                        Confirmé non envoyé · réessayer
+                      </button>
+                    </>
                   )}
                   {run.status === "failed" && run.error_code !== "capacity" && (
                     <button
