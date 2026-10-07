@@ -9,10 +9,11 @@ export function recordQuery(
   workspace: string,
   p: URLSearchParams,
   user: string,
+  withCount = true,
 ) {
   let query = client
     .from("records")
-    .select(recordColumns, { count: "exact" })
+    .select(recordColumns, withCount ? { count: "exact" } : {})
     .eq("workspace_id", workspace)
     .eq("archived", p.get("archived") === "true");
   if (p.get("object_id"))

@@ -150,7 +150,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Retrouver votre organisation",
         paragraphs: [
-          "Recherche, tri, responsable et colonnes permettent de composer une vue. Enregistrez-la pour la retrouver et la partager dans votre espace. L’export CSV reprend les filtres de votre sélection.",
+          "Recherche, tri, responsable et colonnes permettent de composer une vue. Enregistrez-la pour la retrouver et la partager dans votre espace. Le bouton Exporter propose Excel, CSV, JSON et TSV et reprend les filtres de votre sélection.",
         ],
       },
     ],
@@ -471,7 +471,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Exporter",
         paragraphs: [
-          "L’export CSV reprend vos filtres. Vérifiez la sélection avant le téléchargement. Les montants du tableau ou du pipeline visuel concernent la page affichée ; utilisez Rapports pour les totaux de toutes les ventes sélectionnées.",
+          "Cliquez sur Exporter dans Entreprises, Personnes ou Opportunités. Choisissez Excel (.xlsx) pour un tableau mis en forme, CSV pour les CRM et Google Sheets, JSON pour des données structurées ou TSV pour un tableau texte. Sélectionnez la vue actuelle (toutes ses pages) ou toutes les fiches actives de cet objet, puis les colonnes de la vue, toutes les propriétés ou une sélection personnalisée. L’identifiant Relay est toujours inclus et la devise accompagne les montants. En CSV, le point-virgule convient à Excel français et la virgule aux CRM internationaux. Pour réimporter, choisissez les identifiants de champs comme en-têtes. Les exports directs sont limités à 10 000 fiches et 4 Mo : affinez les filtres au-delà, aucun fichier partiel n’est téléchargé. Les notes, relations, messages et pièces jointes sont exclus. Les montants affichés dans le tableau concernent la page affichée ; utilisez Rapports pour les totaux.",
         ],
       },
     ],

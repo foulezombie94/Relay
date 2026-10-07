@@ -24,6 +24,7 @@ import { RecordBoard } from "../record-board";
 import { RecordDirectory } from "../record-directory";
 import { RecordTable } from "../record-table";
 import { ImportRecords } from "../record-import";
+import { ExportRecords } from "../record-export";
 import { type Pipeline } from "@/lib/domain/pipelines";
 import type { CrmRecord, Attribute } from "@/lib/domain/types";
 import { stages } from "@/lib/domain/types";
@@ -335,12 +336,16 @@ export function RecordsPage({ slug }: { slug: string }) {
             </button>
           )}
         </div>
-        <a
-          className="button small"
-          href={"/api/" + workspace.id + "/exports?" + exportParams}
-        >
-          Exporter CSV
-        </a>
+        <ExportRecords
+          key={object.id}
+          workspaceId={workspace.id}
+          objectName={object.name}
+          slug={slug}
+          params={exportParams}
+          columns={view.columns}
+          attributes={custom}
+          count={q.data?.count ?? 0}
+        />
         <button
           className="button small"
           disabled={workspace.role === "viewer"}
