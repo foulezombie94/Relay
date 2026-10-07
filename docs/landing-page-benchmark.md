@@ -1,0 +1,27 @@
+# Landing pages CRM : choix pour Relay
+
+Analyse des pages officielles, 7 octobre 2026. Périmètre : onze CRM connus, avec proximité variable. Ces observations décrivent leurs messages et structures ; elles ne prouvent pas les causes de leur croissance ni leurs taux de conversion.
+
+| CRM et source | Ce que la landing met en avant | Adaptation retenue pour Relay |
+|---|---|---|
+| [Attio](https://attio.com/) | Promesse sur le revenu, démonstrations de workflows et du CRM, CTA d’inscription et contact commercial, accès aux ressources. | Montrer le produit tôt ; navigation compacte ; conserver Doc. Ne pas reprendre les agents autonomes ou les chiffres de clients. |
+| [folk](https://www.folk.app/) | Parcours commercial complet, grand pipeline, contexte des contacts, sections articulées autour des actions commerciales. | Aperçu des opportunités et des relations ; vocabulaire concret, exemples de prochaines actions. |
+| [Pipedrive](https://www.pipedrive.com/) | Pipeline, suivi commercial, prévisions et actions de relance ; démo et essai ; réponses aux questions. | Opportunités dans le premier aperçu, distinction pipeline/forecast, FAQ. |
+| [Copper](https://www.copper.com/) | Parcours client de bout en bout, connexion aux outils Google, ventes et projets, métiers de services. | Mettre le suivi après la vente en évidence : engagements et réalisation. Ne pas prétendre que Relay est le seul CRM à le proposer. |
+| [Close](https://close.com/) | Actions de vente, communications, automatisation et démonstrations situées. | Écrire les bénéfices en actions concrètes. Ne pas promettre téléphonie, SMS ou agent d’appels. |
+| [HubSpot CRM](https://www.hubspot.com/products/crm) | CRM comme point d’entrée d’une plateforme de relation client, inscription et ressources. | Accès direct à la création d’espace et à une démonstration sans compte. Ne pas transposer l’offre gratuite de HubSpot à Relay. |
+| [monday CRM](https://monday.com/crm) | Moins d’administration, pipeline et visibilité commerciale, agents spécialisés et personnalisation. | Présenter la visibilité sur le pipeline et le travail d’équipe ; rester précis sur les capacités actuelles de l’assistant Relay. |
+| [Zoho CRM](https://www.zoho.com/crm/) | Relation omnicanale, prévisions, IA et workflows, personnalisation. | Organiser la présentation en usages lisibles plutôt qu’en catalogue de fonctions. |
+| [Freshsales](https://www.freshworks.com/crm/sales/) | Développement du pipeline, productivité et simplicité, visuels Kanban et visites produit. | Grand aperçu du produit et démo secondaire. Ne pas annoncer de gains de conversion non mesurés. |
+| [Creatio](https://www.creatio.com/) | CRM et workflows pour vente, marketing et service ; plateforme configurable. | Montrer les liens entre équipes sans attribuer à Relay leur studio no-code complet. |
+| [Salesforce pour petites entreprises](https://www.salesforce.com/small-business/) | Ambitions des petites équipes, cas clients réels et accès à la plateforme. | Expliquer clairement les usages B2B ; remplacer la preuve sociale indisponible par un aperçu vérifiable. |
+
+## Ventes seules ou ventes et réalisation ?
+
+Le parcours commercial reste le point d’entrée le plus compréhensible pour Relay. La réalisation constitue ensuite une différence utile, particulièrement pour les entreprises de services. Copper confirme qu’un parcours après la vente est pertinent dans cette catégorie ; ce n’est pas une exclusivité. La proposition retenue associe donc une promesse commerciale claire à une preuve concrète des engagements suivis.
+
+## Page construite
+
+Titre : « Faites avancer vos ventes. Tenez vos engagements. » Navigation produit/pourquoi Relay/intégrations/Doc ; CTA création d’espace et démo. Aperçus codés avec les vrais composants partagés de Relay : AppSidebar, RecordBoard, RecordTable, RecordDirectory, ResourceCard, ForecastTotals. Données fictives uniquement, domaines .example, lecture seule et aucun accès aux API privées. Sections relations, prévisions, réalisation, équipe, intégrations, FAQ, CTA final et état des services.
+
+Pas de logos de clients inventés, témoignages, certifications, tarifs ou garanties de résultats. Les aperçus montrent le produit et ne simulent pas d’opérations persistées.

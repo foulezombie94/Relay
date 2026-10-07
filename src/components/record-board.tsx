@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { CalendarDays, GripVertical, Plus } from "lucide-react";
-import { Badge, money, str } from "./ui";
+import { Badge, money, str } from "./ui/display";
 import { stages, type CrmRecord, type Row } from "@/lib/domain/types";
 import styles from "./pages/records.module.css";
 

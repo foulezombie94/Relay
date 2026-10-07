@@ -21,6 +21,7 @@ import {
 } from "../ui";
 import type { Row, CrmRecord } from "@/lib/domain/types";
 import { PortalDetails } from "./portal-details";
+import { ResourceCard } from "../resource-card";
 const titleField: Field = { key: "title", label: "Titre", required: true };
 const statusField = (values: string[]): Field => ({
   key: "status",
@@ -414,153 +415,24 @@ export function ResourcePage({ resource }: { resource: string }) {
       ) : (
         <div className="stack">
           {rows.map((row) => (
-            <article key={row.id} className="detail-card">
-              <div className="card-head">
-                <div>
-                  <h3
-                    onClick={() =>
-                      setExpanded(expanded === row.id ? null : row.id)
-                    }
-                    style={{ cursor: "pointer" }}
-                  >
-                    {str(row.title || row.name) || "Sans titre"}
-                  </h3>
-                  <small>
-                    {date(row.due_date || row.starts_at || row.created_at)}
-                    {row.record_id
-                      ? " · " +
-                        ((row.record as CrmRecord | null)?.display_name ??
-                          "Fiche associée")
-                      : ""}
-                  </small>
-                </div>
-                <div className="row-actions">
-                  {row.status ? <Badge value={row.status} /> : null}
-                  {resource === "portals" && (
-                    <button
-                      className="button small"
-                      onClick={() => setPortal(row)}
-                    >
-                      Gérer le partage
-                    </button>
-                  )}
-                  <button
-                    className="icon-button"
-                    aria-label="Modifier"
-                    disabled={readOnly}
-                    onClick={() => setEditor(row)}
-                  >
-                    <Pencil size={15} />
-                  </button>
-                  <button
-                    className="icon-button"
-                    aria-label="Supprimer"
-                    disabled={readOnly || busy}
-                    onClick={() => {
-                      if (window.confirm("Retirer cet élément ?"))
-                        void remove(resource, row.id).catch(() => {});
-                    }}
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              </div>
-              {(resource === "notes" || expanded === row.id) && (
-                <p>
-                  {str(
-                    row.content ||
-                      row.description ||
-                      row.transcript ||
-                      row.scope,
-                  )}
-                </p>
-              )}
-              {row.source_quote ? (
-                <blockquote className="quote">
-                  {str(row.source_quote)}
-                </blockquote>
-              ) : null}
-              {resource === "conflicts" && (
-                <div className="split">
-                  {["source_a", "source_b"].map((key) => {
-                    const source = (row[key] ?? {}) as Record<string, unknown>;
-                    return (
-                      <blockquote key={key} className="quote">
-                        <strong>{str(source.label)}</strong>
-                        <p>{str(source.quote)}</p>
-                        <Badge value={source.value} />
-                      </blockquote>
-                    );
-                  })}
-                </div>
-              )}
-              {row.evidence ? (
-                <p>
-                  <strong>Preuve :</strong> {str(row.evidence)}
-                </p>
-              ) : null}
-              {row.resolution ? (
-                <p>
-                  <strong>Décision :</strong> {str(row.resolution)}
-                </p>
-              ) : null}
-              {resource === "handovers" && expanded === row.id && (
-                <>
-                  <p>
-                    <strong>Exclusions :</strong> {str(row.exclusions)}
-                  </p>
-                  <h4>Engagements transmis</h4>
-                  <ul>
-                    {(Array.isArray(row.commitments_snapshot)
-                      ? row.commitments_snapshot
-                      : []
-                    ).map(
-                      (commitment: Record<string, unknown>, index: number) => (
-                        <li key={index}>
-                          {str(commitment.title)} ·{" "}
-                          <Badge value={commitment.status} />
-                        </li>
-                      ),
-                    )}
-                  </ul>
-                  <h4>Jalons</h4>
-                  <ul>
-                    {(Array.isArray(row.milestones) ? row.milestones : []).map(
-                      (milestone: Record<string, unknown>, index: number) => (
-                        <li key={index}>
-                          {milestone.done ? "✓ " : ""}
-                          {str(milestone.title)} ·{" "}
-                          {str(milestone.date) || "Sans date"}
-                        </li>
-                      ),
-                    )}
-                  </ul>
-                </>
-              )}
-              {resource === "tasks" &&
-                !["done", "cancelled"].includes(str(row.status)) && (
-                  <div className="card-actions">
-                    <button
-                      className="button small"
-                      disabled={readOnly || busy}
-                      onClick={() =>
-                        save(resource, { status: "done" }, row).catch(() => {})
-                      }
-                    >
-                      <Check size={13} />
-                      Terminer
-                    </button>
-                  </div>
-                )}
-              {resource === "lists" && (
-                <div className="card-actions">
-                  <a className="button small" href={"/app/list-" + row.id}>
-                    <FileText size={13} />
-                    Ouvrir la liste
-                  </a>
-                </div>
-              )}
-            </article>
+            <ResourceCard
+              key={row.id}
+              row={row}
+              resource={resource}
+              expanded={expanded === row.id}
+              readOnly={readOnly}
+              busy={busy}
+              onToggle={() => setExpanded(expanded === row.id ? null : row.id)}
+              onEdit={() => setEditor(row)}
+              onPortal={() => setPortal(row)}
+              onDelete={() => {
+                if (window.confirm("Retirer cet élément ?"))
+                  void remove(resource, row.id).catch(() => {});
+              }}
+              onComplete={() => {
+                void save(resource, { status: "done" }, row).catch(() => {});
+              }}
+            />
           ))}
         </div>
       )}

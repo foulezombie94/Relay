@@ -22,6 +22,7 @@ import {
 import { RecordDetails } from "./record-details";
 import { RecordBoard } from "../record-board";
 import { RecordDirectory } from "../record-directory";
+import { RecordTable } from "../record-table";
 import { ImportRecords } from "../record-import";
 import { type Pipeline } from "@/lib/domain/pipelines";
 import type { CrmRecord, Attribute } from "@/lib/domain/types";
@@ -464,72 +465,13 @@ export function RecordsPage({ slug }: { slug: string }) {
           }}
         />
       ) : (
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                {view.columns.map((key) => (
-                  <th key={key}>
-                    {key.startsWith("attr_")
-                      ? custom.find((a) => a.key === key.slice(5))?.name ||
-                        key.slice(5)
-                      : (
-                          {
-                            display_name: "Nom",
-                            email: "Email",
-                            domain: "Site",
-                            amount: "Montant",
-                            stage: "Étape",
-                            close_date: "Clôture",
-                          } as Record<string, string>
-                        )[key]}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr
-                  key={r.id}
-                  tabIndex={0}
-                  aria-label={"Ouvrir " + r.display_name}
-                  onKeyDown={(e) => {
-                    if (e.target !== e.currentTarget) return;
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setDetail(r);
-                    }
-                  }}
-                  onClick={() => setDetail(r)}
-                >
-                  {view.columns.map((key) => (
-                    <td key={key}>
-                      {key === "display_name" ? (
-                        <span
-                          className={
-                            "name-cell " +
-                            (slug === "people" ? styles.personName : "")
-                          }
-                        >
-                          <Avatar name={r.display_name} />
-                          <strong>{r.display_name}</strong>
-                        </span>
-                      ) : key === "stage" ? (
-                        <Badge value={r.stage} />
-                      ) : key === "amount" ? (
-                        money(r.amount, r.currency)
-                      ) : key.startsWith("attr_") ? (
-                        str(r.attributes?.[key.slice(5)]) || "—"
-                      ) : (
-                        str(r[key]) || "—"
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <RecordTable
+          rows={rows}
+          columns={view.columns}
+          custom={custom}
+          slug={slug}
+          onOpen={setDetail}
+        />
       )}
       <div className="pagination">
         <span>

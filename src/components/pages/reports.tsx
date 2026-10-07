@@ -1,4 +1,5 @@
 "use client";
+import { ForecastTotals } from "../forecast-totals";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRows, useWorkspace, request } from "../data-provider";
@@ -145,24 +146,7 @@ export function ReportsPage() {
               return (
                 <section className="detail-card" key={currency}>
                   <h2>{currency}</h2>
-                  <div className="stats">
-                    <article>
-                      <span>Pipeline total ouvert</span>
-                      <strong>{money(forecast.open, currency)}</strong>
-                    </article>
-                    <article>
-                      <span>Forecast pondéré ouvert</span>
-                      <strong>{money(forecast.weighted, currency)}</strong>
-                    </article>
-                    <article>
-                      <span>Gagné · toutes périodes</span>
-                      <strong>{money(forecast.won, currency)}</strong>
-                    </article>
-                    <article>
-                      <span>Perdu · toutes périodes</span>
-                      <strong>{money(forecast.lost, currency)}</strong>
-                    </article>
-                  </div>
+                  <ForecastTotals forecast={forecast} currency={currency} />
                   {report.history && (
                     <>
                       <h3>

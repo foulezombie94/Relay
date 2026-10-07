@@ -1,61 +1,106 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import localFont from "next/font/local";
 import {
   ArrowRight,
   ArrowUpRight,
-  Building2,
   CalendarDays,
   Check,
-  CheckCheck,
-  ChevronRight,
-  CircleDot,
+  ChevronDown,
   GitMerge,
-  Inbox,
-  Layers3,
-  ListTodo,
+  LockKeyhole,
   Mail,
-  MessageSquare,
-  Search,
+  Menu,
   ShieldCheck,
-  Users,
+  Sparkles,
   Workflow,
 } from "lucide-react";
+import ProductPreview, { ProductScene } from "./landing-preview";
 import styles from "./landing.module.css";
 
+const display = localFont({
+  src: "../../public/fonts/manrope.ttf",
+  variable: "--landing-display",
+  display: "swap",
+  weight: "200 800",
+});
+const body = localFont({
+  src: "../../public/fonts/dm-sans.ttf",
+  variable: "--landing-body",
+  display: "swap",
+  weight: "100 1000",
+});
+
 export const metadata: Metadata = {
-  title: "Relay — Vos relations, la prochaine bonne action",
+  title: "Relay — Le CRM qui fait avancer vos ventes et vos clients",
   description:
-    "Rassemblez vos contacts, vos opportunités et les engagements de votre équipe dans un CRM clair. Découvrez Relay.",
+    "Contacts, pipeline, emails et engagements client dans un même CRM. Découvrez Relay et explorez sa démo sans compte.",
+  openGraph: {
+    title: "Relay — Faites avancer vos ventes. Tenez vos engagements.",
+    description:
+      "Un même espace pour vos relations, vos opportunités et la réalisation client.",
+    type: "website",
+    locale: "fr_FR",
+  },
 };
 
-const features = [
+const integrations = [
   {
-    icon: Users,
-    title: "Toute la relation, au même endroit.",
-    text: "Contacts, entreprises, notes et échanges : retrouvez le contexte avant votre prochain rendez-vous.",
+    name: "Gmail",
+    icon: Mail,
+    description: "Vos échanges email",
+    color: "red",
   },
   {
-    icon: Layers3,
-    title: "Un pipeline qui vous ressemble.",
-    text: "Suivez vos opportunités en tableau ou en Kanban, avec vos étapes, vos champs et vos vues.",
+    name: "Google Calendar",
+    icon: CalendarDays,
+    description: "Vos rendez-vous",
+    color: "blue",
   },
   {
-    icon: GitMerge,
-    title: "Des contacts mieux organisés.",
-    text: "Comparez les doublons, corrigez les fiches et fusionnez avec un historique et la possibilité d’annuler.",
+    name: "Outlook",
+    icon: Mail,
+    description: "Votre messagerie Microsoft",
+    color: "blue",
   },
   {
-    icon: ListTodo,
-    title: "La prochaine action est claire.",
-    text: "Rassemblez les tâches et les engagements, avec leur responsable, leur échéance et leur contexte.",
+    name: "Outlook Calendar",
+    icon: CalendarDays,
+    description: "Votre calendrier Microsoft",
+    color: "violet",
+  },
+  {
+    name: "Zapier",
+    icon: Workflow,
+    description: "Webhooks et intégration privée",
+    color: "orange",
   },
 ];
-const connections = [
-  { label: "Gmail", icon: Mail, color: "coral" },
-  { label: "Google Calendar", icon: CalendarDays, color: "blue" },
-  { label: "Outlook", icon: Inbox, color: "blue" },
-  { label: "Outlook Calendar", icon: CalendarDays, color: "violet" },
-  { label: "Zapier", icon: Workflow, color: "coral" },
+const questions = [
+  {
+    title: "À qui s’adresse Relay ?",
+    text: "Aux équipes B2B qui veulent suivre leurs contacts, leurs ventes et leurs engagements client dans un même espace. Les équipes commerciales, agences et entreprises de services peuvent organiser leurs pipelines et leurs prochaines actions selon leur manière de travailler.",
+  },
+  {
+    title: "Puis-je découvrir le produit sans créer de compte ?",
+    text: "Oui. La démo publique est accessible sans compte, en lecture seule, avec des données entièrement fictives. Pour gérer vos propres clients, créez votre espace de travail.",
+  },
+  {
+    title: "Puis-je importer mes contacts existants ?",
+    text: "Vous pouvez importer des fichiers CSV ou Excel depuis votre espace. Préparez vos colonnes, vérifiez leur correspondance avec les champs de Relay et consultez le guide utilisateur pour les étapes d’import.",
+  },
+  {
+    title: "Quels emails et calendriers puis-je connecter ?",
+    text: "Relay propose Gmail, Google Calendar, Outlook et Outlook Calendar. Vous choisissez les services à connecter et autorisez les permissions nécessaires auprès de Google ou Microsoft. Zapier se connecte via webhooks ou intégration privée.",
+  },
+  {
+    title: "Comment fonctionne l’assistant IA ?",
+    text: "L’assistant aide à retrouver le contexte de votre CRM et à préparer des actions. Sa disponibilité dépend de la configuration de votre espace. Les suggestions restent à examiner avant d’agir : elles ne remplacent pas le jugement de votre équipe.",
+  },
+  {
+    title: "Comment mon équipe garde-t-elle le contrôle ?",
+    text: "Les membres travaillent dans un espace avec des rôles et des permissions. Relay conserve un historique des actions et permet de comparer les doublons avant de les fusionner, avec la possibilité d’annuler une fusion. Le guide détaille ces fonctions.",
+  },
 ];
 
 function Logo() {
@@ -67,391 +112,366 @@ function Logo() {
   );
 }
 
-function ProductPreview() {
-  return (
-    <div className={styles.preview} aria-label="Aperçu fictif du CRM Relay">
-      <aside className={styles.previewSidebar} aria-hidden="true">
-        <Logo />
-        <div className={styles.workspace}>
-          <span>A</span> Atelier Studio <ChevronRight size={13} />
-        </div>
-        <div className={styles.sidebarLabel}>VOTRE ESPACE</div>
-        <div>
-          <Search size={15} /> Rechercher
-        </div>
-        <div>
-          <CircleDot size={15} /> Priorités
-        </div>
-        <div className={styles.selected}>
-          <Building2 size={15} /> Entreprises
-        </div>
-        <div>
-          <Users size={15} /> Personnes
-        </div>
-        <div>
-          <Layers3 size={15} /> Opportunités
-        </div>
-        <div>
-          <CheckCheck size={15} /> Engagements
-        </div>
-        <div className={styles.sidebarBottom}>
-          <span className={styles.avatar}>ML</span> Marie Laurent
-        </div>
-      </aside>
-      <div className={styles.previewMain}>
-        <div className={styles.previewTop}>
-          <span>
-            Entreprises <ChevronRight size={12} /> Maison Noma
-          </span>
-          <span className={styles.demoLabel}>Aperçu fictif</span>
-        </div>
-        <div className={styles.recordHead}>
-          <div className={styles.companyMark}>N</div>
-          <div>
-            <h3>Maison Noma</h3>
-            <span>Design & architecture · Paris</span>
-          </div>
-          <span className={styles.recordStatus}>En discussion</span>
-        </div>
-        <div className={styles.recordTabs}>
-          <span>Vue d’ensemble</span>
-          <span>Activité</span>
-          <span>Engagements</span>
-        </div>
-        <div className={styles.recordBody}>
-          <div className={styles.activity}>
-            <h4>Une relation, tout son contexte</h4>
-            <div className={styles.timelineItem}>
-              <span className={styles.timelineIcon}>
-                <Mail size={15} />
-              </span>
-              <div>
-                <strong>Un échange qui fait avancer</strong>
-                <small>Camille Dubois · Email</small>
-                <p>
-                  « Pourriez-vous nous envoyer une proposition avant jeudi ? »
-                </p>
-              </div>
-            </div>
-            <div className={styles.timelineItem}>
-              <span className={styles.timelineIcon}>
-                <MessageSquare size={15} />
-              </span>
-              <div>
-                <strong>Le contexte reste dans l’équipe</strong>
-                <small>Note partagée · Marie</small>
-                <p>
-                  Le périmètre est confirmé. Prévoir deux options dans la
-                  proposition.
-                </p>
-              </div>
-            </div>
-            <div className={styles.timelineItem}>
-              <span className={styles.timelineIcon}>
-                <CheckCheck size={15} />
-              </span>
-              <div>
-                <strong>Un engagement avec une échéance</strong>
-                <small>Envoyer la proposition · Jeudi</small>
-              </div>
-            </div>
-          </div>
-          <div className={styles.nextAction}>
-            <span className={styles.actionEyebrow}>
-              <CircleDot size={13} /> PROCHAINE ACTION
-            </span>
-            <h4>
-              Envoyer la
-              <br />
-              proposition.
-            </h4>
-            <p>L’échange, la note et l’échéance sont reliés à la même fiche.</p>
-            <div className={styles.actionOwner}>
-              <span className={styles.avatar}>ML</span>
-              <div>
-                <strong>Marie Laurent</strong>
-                <small>Responsable</small>
-              </div>
-            </div>
-            <span className={styles.actionDue}>
-              <CalendarDays size={14} /> Jeudi, 15:00
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
   return (
-    <div className={styles.landing}>
-      <a className={styles.skipLink} href="#contenu">
+    <div className={`${styles.landing} ${display.variable} ${body.variable}`}>
+      <a href="#contenu" className={styles.skipLink}>
         Aller au contenu
       </a>
       <header className={styles.header}>
-        <Link href="/" aria-label="Relay, accueil">
+        <Link prefetch={false} href="/" aria-label="Relay, accueil">
           <Logo />
         </Link>
         <nav className={styles.nav} aria-label="Navigation principale">
-          <a href="#fonctionnalites">Le produit</a>
+          <a href="#produit">Produit</a>
+          <a href="#realisation">Pourquoi Relay</a>
           <a href="#integrations">Intégrations</a>
-          <a href="#methode">Notre approche</a>
+          <Link prefetch={false} href="/doc">
+            Doc
+          </Link>
         </nav>
         <div className={styles.headerActions}>
-          <Link className={styles.login} href="/doc" aria-label="Doc — Guide utilisateur">Doc</Link>
-          <Link className={styles.login} href="/login">
+          <Link prefetch={false} href="/login" className={styles.login}>
             Se connecter
           </Link>
-          <Link className={styles.primary} href="/login?mode=signup">
-            Commencer <ArrowUpRight size={16} />
+          <Link
+            prefetch={false}
+            href="/login?mode=signup"
+            className={styles.primary}
+          >
+            Créer mon espace <ArrowUpRight size={15} />
           </Link>
         </div>
+        <details className={styles.mobileMenu}>
+          <summary aria-label="Ouvrir le menu">
+            <Menu size={23} />
+          </summary>
+          <nav aria-label="Navigation mobile">
+            <a href="#produit">Produit</a>
+            <a href="#realisation">Pourquoi Relay</a>
+            <a href="#integrations">Intégrations</a>
+            <Link prefetch={false} href="/doc">
+              Documentation
+            </Link>
+            <Link prefetch={false} href="/login">
+              Se connecter
+            </Link>
+            <Link prefetch={false} href="/login?mode=signup">
+              Créer mon espace
+            </Link>
+          </nav>
+        </details>
       </header>
       <main id="contenu">
         <section className={styles.hero}>
-          <div className={styles.heroCopy}>
-            <span className={styles.eyebrow}>
-              <span /> LE CRM QUI RELIE LES POINTS
-            </span>
-            <h1>
-              De belles relations.
-              <br />
-              Et la prochaine
-              <br />
-              <span>bonne action.</span>
-            </h1>
-            <p>
-              Vos contacts, vos échanges et vos engagements, enfin au même
-              endroit. Pour avancer ensemble, sans perdre le fil.
-            </p>
-            <div className={styles.heroActions}>
-              <Link className={styles.primary} href="/login?mode=signup">
-                Créer mon espace <ArrowRight size={18} />
-              </Link>
-              <Link className={styles.secondary} href="/demo">
-                Explorer la démo <ArrowUpRight size={17} />
-              </Link>
-            </div>
-            <span className={styles.heroNote}>
-              Une démo accessible sans compte, avec des données fictives.
-            </span>
+          <h1>
+            Faites avancer vos ventes.
+            <br />
+            <span>Tenez vos engagements.</span>
+          </h1>
+          <p>
+            Le CRM qui réunit vos contacts, vos échanges et vos opportunités.
+            <br className={styles.desktopBreak} /> Et garde votre équipe dans le
+            même élan, jusqu’à la réalisation client.
+          </p>
+          <div className={styles.heroActions}>
+            <Link
+              prefetch={false}
+              href="/login?mode=signup"
+              className={styles.primary}
+            >
+              Créer mon espace <ArrowRight size={17} />
+            </Link>
+            <Link prefetch={false} href="/demo" className={styles.secondary}>
+              Explorer la démo <ArrowUpRight size={16} />
+            </Link>
           </div>
-          <div className={styles.relayFlow}>
-            <div className={styles.flowTop}>
-              <span className={styles.flowDot} /> LE FIL DE VOTRE RELATION
-              <span className={styles.flowTag}>Tout est relié</span>
-            </div>
-            <div className={styles.flowContact}>
-              <div className={styles.contactAvatar}>CD</div>
-              <div>
-                <strong>Camille Dubois</strong>
-                <span>Maison Noma</span>
-              </div>
-              <span className={styles.contactLabel}>Votre contact</span>
-            </div>
-            <div className={styles.flowSteps}>
-              <div>
-                <span className={styles.flowStepIcon}>
-                  <Mail size={18} />
-                </span>
-                <div>
-                  <small>UN ÉCHANGE</small>
-                  <strong>« On avance ensemble ? »</strong>
-                </div>
-              </div>
-              <div>
-                <span className={styles.flowStepIcon}>
-                  <CheckCheck size={18} />
-                </span>
-                <div>
-                  <small>UN ENGAGEMENT</small>
-                  <strong>Une proposition pour jeudi.</strong>
-                </div>
-              </div>
-              <div className={styles.flowActive}>
-                <span className={styles.flowStepIcon}>
-                  <ArrowRight size={18} />
-                </span>
-                <div>
-                  <small>UNE ACTION</small>
-                  <strong>Marie prend le relais.</strong>
-                </div>
-                <span className={styles.assignee}>ML</span>
-              </div>
-            </div>
-            <div className={styles.flowFooter}>
-              <ShieldCheck size={15} /> Le contexte reste. Votre équipe avance.
-              <span>Aperçu fictif</span>
-            </div>
+          <div className={styles.heroNote}>
+            <Check size={14} /> Démo sans compte <span /> Données d’exemple
           </div>
         </section>
         <section
           className={styles.productSection}
-          aria-labelledby="apercu-title"
+          id="produit"
+          aria-label="Découvrir les vues du CRM Relay"
         >
-          <div className={styles.previewCaption}>
-            <h2 id="apercu-title">
-              Moins de « où en est-on ? ».
-              <br />
-              Plus de « voilà la suite ».
-            </h2>
-            <p>
-              Un espace commun pour chaque relation.
-              <br />
-              Du premier contact à la prochaine étape.
-            </p>
-          </div>
           <ProductPreview />
-          <div className={styles.benefitStrip}>
-            <span>
-              <Check size={16} /> Contacts & entreprises
-            </span>
-            <span>
-              <Check size={16} /> Pipeline personnalisable
-            </span>
-            <span>
-              <Check size={16} /> Engagements & tâches
-            </span>
-            <span>
-              <Check size={16} /> Travail en équipe
-            </span>
+          <div className={styles.productCaption}>
+            <span>Vos relations. Vos ventes. La suite à donner.</span>
+            <Link prefetch={false} href="/demo">
+              Explorer la démo complète <ArrowRight size={15} />
+            </Link>
           </div>
         </section>
-        <section id="fonctionnalites" className={styles.featuresSection}>
-          <div className={styles.sectionHeading}>
-            <span className={styles.eyebrow}>UN CRM, UN FIL CONDUCTEUR</span>
-            <h2>
-              Tout ce qu’il faut
-              <br />
-              pour faire avancer la relation.
-            </h2>
-            <p>
-              De l’information organisée et des actions concrètes.
-              <br />
-              Chaque membre de l’équipe sait où reprendre.
-            </p>
-          </div>
-          <div className={styles.featuresGrid}>
-            {features.map(({ icon: Icon, title, text }) => (
-              <article key={title}>
-                <span className={styles.featureIcon}>
-                  <Icon size={23} strokeWidth={1.6} />
-                </span>
-                <h3>{title}</h3>
-                <p>{text}</p>
-              </article>
+        <section
+          className={styles.connectionStrip}
+          aria-label="Services proposés"
+        >
+          <p>Avec les outils que votre équipe utilise déjà.</p>
+          <div>
+            {integrations.map(({ name, icon: Icon }) => (
+              <span key={name}>
+                <Icon size={19} strokeWidth={1.7} />
+                {name}
+              </span>
             ))}
           </div>
         </section>
-        <section id="methode" className={styles.methodSection}>
-          <div className={styles.methodCopy}>
-            <span className={styles.eyebrow}>
-              LA PROMESSE NE S’ARRÊTE PAS À LA VENTE
-            </span>
+        <section className={styles.storySection}>
+          <div className={styles.sectionIntro}>
             <h2>
-              Une parole donnée.
+              Moins de dispersion.
               <br />
-              <span>Une suite à suivre.</span>
+              Plus de prochaines étapes.
             </h2>
             <p>
-              Une date annoncée, un document promis, une prochaine étape : Relay
-              vous aide à garder les engagements visibles, jusqu’à leur
+              Un échange dans votre boîte mail. Une opportunité dans un tableau.
+              Une promesse dans vos notes. Relay rassemble le contexte pour que
+              votre équipe sache où reprendre.
+            </p>
+          </div>
+          <div className={styles.storyRow}>
+            <div className={styles.storyCopy}>
+              <h3>
+                Le contexte d’une relation,
+                <br />
+                avant chaque conversation.
+              </h3>
+              <p>
+                Retrouvez les personnes, entreprises, notes et échanges liés à
+                votre client. Une même histoire, accessible à ceux qui en ont
+                besoin.
+              </p>
+              <ul>
+                <li>
+                  <Check size={16} /> Fiches personnes et entreprises reliées
+                </li>
+                <li>
+                  <Check size={16} /> Notes, messages et rendez-vous
+                </li>
+                <li>
+                  <Check size={16} /> Champs et vues adaptés à votre équipe
+                </li>
+              </ul>
+              <Link prefetch={false} href="/doc" className={styles.textLink}>
+                Découvrir le CRM <ArrowRight size={16} />
+              </Link>
+            </div>
+            <ProductScene kind="relations" />
+          </div>
+          <div className={`${styles.storyRow} ${styles.reverseRow}`}>
+            <ProductScene kind="forecast" />
+            <div className={styles.storyCopy}>
+              <h3>
+                Un pipeline lisible.
+                <br />
+                Des prévisions à leur place.
+              </h3>
+              <p>
+                Suivez chaque opportunité avec son montant, son étape, son
+                responsable et sa date de clôture prévue. Distinguez ce qui est
+                en cours, pondéré, gagné ou perdu.
+              </p>
+              <ul>
+                <li>
+                  <Check size={16} /> Vue Kanban ou tableau
+                </li>
+                <li>
+                  <Check size={16} /> Étapes et probabilités personnalisables
+                </li>
+                <li>
+                  <Check size={16} /> Rapports pour suivre l’activité
+                  commerciale
+                </li>
+              </ul>
+              <Link prefetch={false} href="/doc" className={styles.textLink}>
+                Comprendre les opportunités <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+        </section>
+        <section id="realisation" className={styles.deliverySection}>
+          <div className={styles.deliveryIntro}>
+            <h2>
+              La vente est gagnée.
+              <br />
+              <span>La relation continue.</span>
+            </h2>
+            <p>
+              Ce qui a été promis mérite d’être suivi. Relay relie les
+              engagements client à une personne, une échéance et leur
               réalisation.
             </p>
-            <Link href="/demo" className={styles.textLink}>
-              Découvrir les engagements <ArrowRight size={17} />
+            <Link prefetch={false} href="/demo" className={styles.lightButton}>
+              Découvrir Relay <ArrowRight size={17} />
             </Link>
           </div>
-          <div className={styles.commitment}>
-            <div className={styles.commitmentHeading}>
-              <span className={styles.featureIcon}>
-                <CheckCheck size={23} />
-              </span>
-              <span>ENGAGEMENT CLIENT</span>
-              <span className={styles.commitmentBadge}>À suivre</span>
-            </div>
-            <h3>
-              Envoyer la proposition
-              <br />à Maison Noma
-            </h3>
-            <div className={styles.commitmentMeta}>
-              <span>
-                <CalendarDays size={15} /> Jeudi, 15:00
-              </span>
-              <span>
-                <span className={styles.assignee}>ML</span> Marie Laurent
-              </span>
-            </div>
-            <div className={styles.commitmentSource}>
-              <Mail size={17} />
-              <div>
-                <strong>Le pourquoi est toujours là.</strong>
-                <p>
-                  Retrouvez l’échange à l’origine de l’engagement, directement
-                  depuis la fiche.
-                </p>
-              </div>
-            </div>
-            <div className={styles.commitmentBottom}>
-              <Check size={15} /> Un responsable. Une échéance. Une preuve.
-            </div>
-            <small className={styles.exampleNote}>
-              Exemple fictif d’un engagement
-            </small>
+          <ProductScene kind="realisation" />
+        </section>
+        <section className={styles.teamSection}>
+          <div className={styles.sectionIntro}>
+            <h2>
+              Un espace qui aide
+              <br />
+              toute l’équipe à avancer.
+            </h2>
+            <p>
+              Gardez les données utiles, retrouvez le contexte et préparez les
+              actions. Avec le contrôle nécessaire au travail en équipe.
+            </p>
+          </div>
+          <div className={styles.teamFeatures}>
+            <article>
+              <GitMerge size={26} />
+              <h3>Des données plus claires.</h3>
+              <p>
+                Comparez et corrigez les doublons avant la fusion. Retrouvez son
+                historique et annulez-la si nécessaire.
+              </p>
+            </article>
+            <article>
+              <Sparkles size={26} />
+              <h3>Une aide, dans le contexte.</h3>
+              <p>
+                Utilisez l’assistant IA pour retrouver des informations et
+                préparer la suite, selon la configuration de votre espace.
+              </p>
+            </article>
+            <article>
+              <ShieldCheck size={26} />
+              <h3>Le contrôle reste à vous.</h3>
+              <p>
+                Rôles, permissions et historique des actions accompagnent le
+                travail de vos membres dans l’espace.
+              </p>
+            </article>
           </div>
         </section>
         <section id="integrations" className={styles.integrationsSection}>
-          <span className={styles.eyebrow}>VOS OUTILS GARDENT LEUR PLACE</span>
-          <h2>Vos échanges trouvent la leur.</h2>
-          <p>
-            Reliez vos emails et vos calendriers à votre CRM.
-            <br />
-            Connectez vos autres outils avec Zapier.
-          </p>
-          <div className={styles.connections}>
-            {connections.map(({ label, icon: Icon, color }) => (
-              <div key={label}>
-                <span className={`${styles.connectionIcon} ${styles[color]}`}>
-                  <Icon size={24} strokeWidth={1.8} />
+          <div className={styles.sectionIntro}>
+            <h2>
+              Votre CRM s’intègre
+              <br />à votre journée.
+            </h2>
+            <p>
+              Connectez votre messagerie et votre calendrier. Vos échanges
+              trouvent leur place dans le suivi de vos relations.
+            </p>
+          </div>
+          <div className={styles.integrationList}>
+            {integrations.map(({ name, icon: Icon, description, color }) => (
+              <div key={name}>
+                <span className={`${styles.integrationIcon} ${styles[color]}`}>
+                  <Icon size={24} />
                 </span>
-                <strong>{label}</strong>
+                <div>
+                  <strong>{name}</strong>
+                  <small>{description}</small>
+                </div>
+                <Check size={17} />
               </div>
             ))}
           </div>
-          <p className={styles.integrationNote}>
-            Connexion depuis votre espace de travail. Zapier via Webhooks ou
-            intégration privée.
-          </p>
+          <Link prefetch={false} href="/doc" className={styles.textLink}>
+            Consulter le guide des intégrations <ArrowRight size={16} />
+          </Link>
+        </section>
+        <section className={styles.faqSection} id="questions">
+          <div>
+            <h2>
+              Vos questions,
+              <br />
+              avant de commencer.
+            </h2>
+            <p>
+              Les réponses essentielles.
+              <br />
+              Et un guide pour aller plus loin.
+            </p>
+            <Link prefetch={false} href="/doc" className={styles.textLink}>
+              Ouvrir la documentation <ArrowRight size={16} />
+            </Link>
+          </div>
+          <div className={styles.faqList}>
+            {questions.map(({ title, text }) => (
+              <details key={title}>
+                <summary>
+                  {title}
+                  <ChevronDown size={18} />
+                </summary>
+                <p>{text}</p>
+              </details>
+            ))}
+          </div>
         </section>
         <section className={styles.finalCta}>
-          <span className={styles.eyebrow}>
-            VOTRE ÉQUIPE A DÉJÀ DES RELATIONS. DONNEZ-LEUR UN FIL.
-          </span>
           <h2>
-            Prêt à prendre
+            Votre prochain client.
             <br />
-            le relais ?
+            Votre prochaine bonne action.
           </h2>
+          <p>Donnez à votre équipe un espace pour les relier.</p>
           <div className={styles.heroActions}>
-            <Link href="/login?mode=signup" className={styles.primary}>
-              Créer mon espace <ArrowRight size={18} />
+            <Link
+              prefetch={false}
+              href="/login?mode=signup"
+              className={styles.primary}
+            >
+              Créer mon espace <ArrowRight size={17} />
             </Link>
-            <Link href="/demo" className={styles.secondary}>
-              Voir la démo <ArrowUpRight size={17} />
+            <Link prefetch={false} href="/demo" className={styles.secondary}>
+              Explorer la démo <ArrowUpRight size={16} />
             </Link>
           </div>
         </section>
       </main>
       <footer className={styles.footer}>
-        <Link href="/doc">Guide utilisateur</Link>
-        <Link href="/" aria-label="Relay, accueil">
-          <Logo />
-        </Link>
-        <span>Votre contexte. Vos prochaines actions.</span>
         <div>
-          <Link href="/demo">Démonstration</Link>
-          <Link href="/login">Connexion</Link>
+          <Link prefetch={false} href="/" aria-label="Relay, accueil">
+            <Logo />
+          </Link>
+          <p>
+            Les relations avancent.
+            <br />
+            Votre équipe aussi.
+          </p>
+        </div>
+        <nav aria-label="Liens du produit">
+          <strong>Produit</strong>
+          <a href="#produit">Le CRM</a>
+          <a href="#realisation">Réalisation client</a>
+          <a href="#integrations">Intégrations</a>
+        </nav>
+        <nav aria-label="Ressources">
+          <strong>Ressources</strong>
+          <Link prefetch={false} href="/doc">
+            Documentation
+          </Link>
+          <Link prefetch={false} href="/demo">
+            Démonstration
+          </Link>
+          <a
+            href="https://relay-crm-status.betteruptime.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            État des services <ArrowUpRight size={13} />
+          </a>
+        </nav>
+        <nav aria-label="Accès au compte">
+          <strong>Votre espace</strong>
+          <Link prefetch={false} href="/login">
+            Se connecter
+          </Link>
+          <Link prefetch={false} href="/login?mode=signup">
+            Créer un compte
+          </Link>
+        </nav>
+        <div className={styles.footerBottom}>
+          <span>© {new Date().getFullYear()} Relay</span>
+          <span>
+            <LockKeyhole size={13} /> Votre contexte. Vos prochaines actions.
+          </span>
         </div>
       </footer>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 import { Globe, Mail } from "lucide-react";
-import { Avatar, str } from "./ui";
+import { Avatar, str } from "./ui/display";
 import type { CrmRecord, Row } from "@/lib/domain/types";
 import styles from "./pages/records.module.css";
 

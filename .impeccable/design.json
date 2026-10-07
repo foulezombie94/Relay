@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-07T00:00:00Z",
+  "title": "Design System: Relay",
+  "extensions": {
+    "colorMeta": {
+      "relay-blue": { "role": "primary", "displayName": "Bleu Relay" },
+      "paper": { "role": "neutral", "displayName": "Papier blanc" },
+      "delivery": { "role": "neutral", "displayName": "Encre réalisation" }
+    },
+    "shadows": [
+      { "name": "selected-tab", "value": "0 2px 6px #26354d0c", "purpose": "Selected product explorer tab." }
+    ],
+    "motion": [
+      { "name": "control-transition", "value": "0.18s ease", "purpose": "Color and background changes; disabled under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "compact-desktop", "value": "1050px" },
+      { "name": "tablet", "value": "800px" },
+      { "name": "mobile", "value": "600px" },
+      { "name": "wide", "value": "1500px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Dark conversion action with a Relay blue hover state.",
+      "html": "<a class=\"relay-action\" href=\"/login?mode=signup\">Créer mon espace</a>",
+      "css": ".relay-action{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:13px 22px;border-radius:8px;background:#20252d;color:#fff;font:600 14px 'DM Sans',sans-serif;text-decoration:none;transition:background .18s ease,color .18s ease}.relay-action:hover{background:#365de3}.relay-action:focus-visible{outline:3px solid #365de3;outline-offset:5px}@media(prefers-reduced-motion:reduce){.relay-action{transition:none}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Un espace commercial lisible",
+    "overview": "White paper, precise ink, Relay blue and dark delivery surfaces frame real CRM evidence. The approved product identity connects sales context to client commitments.",
+    "keyCharacteristics": ["Self-hosted Manrope and DM Sans", "Actual coded CRM views", "Clearly labelled synthetic fixtures", "Responsive scrollable product canvas"],
+    "rules": [
+      { "name": "Public evidence boundary", "body": "Use pure display components and local fixtures. AppSidebarView is separate from the authenticated adapter; ui/display is separate from editors and date picker. Disable private prefetch. Public / skips Supabase claims refresh. Recursive landing-isolation tests protect this boundary.", "section": "components" }
+    ],
+    "dos": ["Preserve the approved sales-to-delivery positioning and palette.", "Keep product evidence read-only and clearly identified as demonstration data."],
+    "donts": ["Do not invent customer proof or commercial outcomes.", "Do not replace real UI evidence with image mockups or connect public previews to private providers."]
+  }
+}
