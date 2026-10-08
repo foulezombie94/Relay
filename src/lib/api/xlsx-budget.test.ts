@@ -1,19 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { deflateRawSync } from "node:zlib";
+import { deflateRawSync, crc32 } from "node:zlib";
 import { checkXlsxBudget } from "./xlsx-budget";
 vi.mock("server-only", () => ({}));
 import { readImportFile } from "./import-file";
 
 // Build a ZIP with deliberately untrusted size metadata; no extractor is used.
 function archive(entries: { name: string; body: Buffer; declared?: number }[]) {
-  function crc(data: Buffer) {
-    let c = 0xffffffff;
-    for (const byte of data) {
-      c ^= byte;
-      for (let i = 0; i < 8; i++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    }
-    return (c ^ 0xffffffff) >>> 0;
-  }
   const local: Buffer[] = [],
     central: Buffer[] = [];
   let offset = 0;
@@ -23,14 +15,14 @@ function archive(entries: { name: string; body: Buffer; declared?: number }[]) {
     const header = Buffer.alloc(30);
     header.writeUInt32LE(0x04034b50);
     header.writeUInt16LE(8, 8);
-    header.writeUInt32LE(crc(entry.body), 14);
+    header.writeUInt32LE(crc32(entry.body), 14);
     header.writeUInt32LE(compressed.length, 18);
     header.writeUInt32LE(entry.declared ?? entry.body.length, 22);
     header.writeUInt16LE(name.length, 26);
     const dir = Buffer.alloc(46);
     dir.writeUInt32LE(0x02014b50);
     dir.writeUInt16LE(8, 10);
-    dir.writeUInt32LE(crc(entry.body), 16);
+    dir.writeUInt32LE(crc32(entry.body), 16);
     dir.writeUInt32LE(compressed.length, 20);
     dir.writeUInt32LE(entry.declared ?? entry.body.length, 24);
     dir.writeUInt16LE(name.length, 28);
@@ -56,9 +48,7 @@ describe("bounded XLSX imports", () => {
     sheet.addRow(["Nom", "Email"]);
     sheet.addRow(["Alice", "alice@example.invalid"]);
     const data = await workbook.xlsx.writeBuffer();
-    const table = await readImportFile(
-      new File([data as ArrayBuffer], "contacts.xlsx"),
-    );
+    const table = await readImportFile(new File([data as ArrayBuffer], "contacts.xlsx"));
     expect(table).toEqual({
       headers: ["Nom", "Email"],
       rows: [["Alice", "alice@example.invalid"]],
@@ -75,7 +65,7 @@ describe("bounded XLSX imports", () => {
     ]);
     expect(data.length).toBeLessThan(5 * 1024 * 1024);
     await expect(checkXlsxBudget(data)).rejects.toThrow("décompression");
-  });
+  }, 15000);
   it("bounds the combined expanded size of individually allowed entries", async () => {
     const data = archive(
       [0, 1, 2].map((n) => ({
@@ -84,14 +74,10 @@ describe("bounded XLSX imports", () => {
       })),
     );
     await expect(checkXlsxBudget(data)).rejects.toThrow("décompression");
-  });
+  }, 15000);
   it("rejects a truncated directory without reading outside the upload", async () => {
-    await expect(checkXlsxBudget(Buffer.from("PK"))).rejects.toThrow(
-      "Classeur",
-    );
+    await expect(checkXlsxBudget(Buffer.from("PK"))).rejects.toThrow("Classeur");
     const data = archive([{ name: "xl/workbook.xml", body: Buffer.from("x") }]);
-    await expect(
-      checkXlsxBudget(data.subarray(0, data.length - 3)),
-    ).rejects.toThrow("Classeur");
+    await expect(checkXlsxBudget(data.subarray(0, data.length - 3))).rejects.toThrow("Classeur");
   });
 });

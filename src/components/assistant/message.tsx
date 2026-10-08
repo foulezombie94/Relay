@@ -1,4 +1,5 @@
 "use client";
+import { AgentActions } from "./actions";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -25,6 +26,19 @@ function sourceHref(
   objects: { id: string; slug: string; standard: boolean }[],
   workspace: string,
 ) {
+  const destinations: Record<string, string> = {
+    email: "communications",
+    calendar: "communications",
+    task: "tasks",
+    commitment: "commitments",
+    conflict: "conflicts",
+    list: "lists",
+    pipeline: "reports",
+    workflow: "workflows",
+  };
+  if (source.type === "document") return `/api/${workspace}/files?id=${source.id}`;
+  if (destinations[source.type])
+    return `/app/${destinations[source.type]}?focus=${source.id}&workspace=${workspace}`;
   if (source.type === "note" || source.type === "meeting")
     return `/app/${source.type === "note" ? "notes" : "meetings"}?focus=${source.id}&workspace=${workspace}`;
   const object = objects.find((o) => o.id === source.object_id);
@@ -208,6 +222,20 @@ export function ChatMessage({
           })}
         </div>
       )}
+      {!active && !!message.actions?.length && <AgentActions actions={message.actions} />}
+      {!active && !!message.citations?.length && (
+        <section className={styles.proposals} aria-label="Citations vérifiées">
+          {message.citations.map((citation, index) => {
+            const source = message.sources?.find((s) => s.id === citation.source_id);
+            return source ? (
+              <article className={styles.proposal} key={index}>
+                <blockquote>{citation.quote}</blockquote>
+                <Link href={sourceHref(source, objects, workspace.id)}>{source.label}</Link>
+              </article>
+            ) : null;
+          })}
+        </section>
+      )}
       {!active && !!message.proposals?.length && (
         <section className={styles.proposals} aria-label="Propositions à confirmer">
           <div className={styles.proposalHeading}>
@@ -228,7 +256,10 @@ export function ChatMessage({
                 {p.source_b_quote && <blockquote>{p.source_b_quote}</blockquote>}
                 {p.uncertainty && <p>{p.uncertainty}</p>}
                 <footer>
-                  <span>Votre confirmation est nécessaire.</span>
+                  <span>
+                    Votre confirmation est nécessaire. Les propositions issues de sources privées
+                    restent privées.
+                  </span>
                   {accepted ? (
                     <Link
                       className="button small"

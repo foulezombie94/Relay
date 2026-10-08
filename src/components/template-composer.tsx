@@ -8,11 +8,13 @@ import type { CrmRecord, Row } from "@/lib/domain/types";
 export function TemplateComposer({
   accounts,
   initialTemplate = "",
+  reply,
   onClose,
   onSent,
 }: {
   accounts: Row[];
   initialTemplate?: string;
+  reply?: { id: string; to: string; subject: string; provider: string };
   onClose: () => void;
   onSent: () => void;
 }) {
@@ -21,9 +23,10 @@ export function TemplateComposer({
   const [contact, setContact] = useState<CrmRecord | undefined>();
   const [template, setTemplate] = useState(initialTemplate);
 
-  const [provider, setProvider] = useState(str(accounts[0]?.provider));
-  const [to, setTo] = useState("");
-  const [subject, setSubject] = useState("");
+  const [provider, setProvider] = useState(reply?.provider || str(accounts[0]?.provider));
+  const [to, setTo] = useState(reply?.to || "");
+  const [subject, setSubject] = useState(reply?.subject || "");
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [body, setBody] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -40,9 +43,7 @@ export function TemplateComposer({
     };
     const renderedSubject = renderEmailTemplate(str(selected.subject), values);
     const renderedBody = renderEmailTemplate(str(selected.body), values);
-    const missing = [
-      ...new Set([...renderedSubject.missing, ...renderedBody.missing]),
-    ];
+    const missing = [...new Set([...renderedSubject.missing, ...renderedBody.missing])];
     if (missing.length) {
       setError(
         "Données manquantes pour le modèle : " +
@@ -51,11 +52,7 @@ export function TemplateComposer({
       );
       return;
     }
-    if (
-      (subject || body) &&
-      !window.confirm("Remplacer le contenu actuel par ce modèle ?")
-    )
-      return;
+    if ((subject || body) && !window.confirm("Remplacer le contenu actuel par ce modèle ?")) return;
     setSubject(renderedSubject.text);
     setBody(renderedBody.text);
   }
@@ -95,23 +92,19 @@ export function TemplateComposer({
             Appliquer le modèle
           </button>
         </div>
-        <ErrorMessage
-          error={templates.error || (error ? new Error(error) : null)}
-        />
+        <ErrorMessage error={templates.error || (error ? new Error(error) : null)} />
         <form
           className="stack"
           onSubmit={async (e) => {
             e.preventDefault();
             setError("");
-            if (
-              !window.confirm(
-                "Envoyer réellement cet email au destinataire indiqué ?",
-              )
-            )
-              return;
+            if (!window.confirm("Envoyer réellement cet email au destinataire indiqué ?")) return;
             setBusy(true);
             try {
               await request("/api/" + workspace.id + "/send", "POST", {
+                idempotency_key: idempotencyKey,
+                ...(reply ? { reply_to_id: reply.id } : {}),
+                ...(contact ? { record_id: contact.id } : {}),
                 provider,
                 to,
                 subject,
@@ -120,9 +113,7 @@ export function TemplateComposer({
               onSent();
               onClose();
             } catch (err) {
-              setError(
-                err instanceof Error ? err.message : "Envoi impossible.",
-              );
+              setError(err instanceof Error ? err.message : "Envoi impossible.");
             } finally {
               setBusy(false);
             }
@@ -138,8 +129,7 @@ export function TemplateComposer({
             >
               {accounts.map((a) => (
                 <option key={a.id} value={str(a.provider)}>
-                  {a.provider === "gmail" ? "Gmail" : "Outlook"} ·{" "}
-                  {str(a.email)}
+                  {a.provider === "gmail" ? "Gmail" : "Outlook"} · {str(a.email)}
                 </option>
               ))}
             </select>
@@ -177,18 +167,10 @@ export function TemplateComposer({
             />
           </label>
           <div className="dialog-footer">
-            <button
-              type="button"
-              className="button"
-              onClick={onClose}
-              disabled={busy}
-            >
+            <button type="button" className="button" onClick={onClose} disabled={busy}>
               Annuler
             </button>
-            <button
-              className="button primary"
-              disabled={busy || !accounts.length}
-            >
+            <button className="button primary" disabled={busy || !accounts.length}>
               {busy ? "Envoi…" : "Envoyer"}
             </button>
           </div>

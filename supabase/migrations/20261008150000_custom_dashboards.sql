@@ -1,0 +1,12 @@
+begin;
+create table public.report_dashboards(id uuid primary key default gen_random_uuid(),workspace_id uuid not null references public.workspaces(id) on delete cascade,creator_id uuid not null default auth.uid() references auth.users(id),name text not null check(length(name) between 1 and 120),visibility text not null default 'private' check(visibility in ('private','workspace')),config jsonb not null check(jsonb_typeof(config)='array' and jsonb_array_length(config) between 1 and 12 and octet_length(config::text)<20000),created_at timestamptz not null default now(),updated_at timestamptz not null default now(),version integer not null default 1);
+create index report_dashboard_scope on public.report_dashboards(workspace_id,creator_id,created_at);
+alter table public.report_dashboards enable row level security;
+grant select,insert,update,delete on public.report_dashboards to authenticated;
+create policy dashboards_read on public.report_dashboards for select to authenticated using(relay_private.has_role(workspace_id) and (creator_id=auth.uid() or visibility='workspace'));
+create policy dashboards_insert on public.report_dashboards for insert to authenticated with check(relay_private.has_role(workspace_id,array['owner','admin','member']) and creator_id=auth.uid());
+create policy dashboards_update on public.report_dashboards for update to authenticated using(relay_private.has_role(workspace_id,array['owner','admin','member']) and (creator_id=auth.uid() or relay_private.has_role(workspace_id,array['owner','admin']))) with check(relay_private.has_role(workspace_id,array['owner','admin','member']) and (creator_id=auth.uid() or relay_private.has_role(workspace_id,array['owner','admin'])));
+create policy dashboards_delete on public.report_dashboards for delete to authenticated using(relay_private.has_role(workspace_id,array['owner','admin','member']) and (creator_id=auth.uid() or relay_private.has_role(workspace_id,array['owner','admin'])));
+create trigger immutable_workspace before update on public.report_dashboards for each row execute function relay_private.immutable_workspace();
+create trigger touch_version before update on public.report_dashboards for each row execute function relay_private.touch_version();
+commit;

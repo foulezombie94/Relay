@@ -1,4 +1,38 @@
 export const services = {
+  "google-meet": {
+    name: "Google Meet",
+    family: "google",
+    kind: "meeting",
+    scopes: ["openid", "email", "https://www.googleapis.com/auth/meetings.space.readonly"],
+    description:
+      "Importer vos transcriptions disponibles. Leur création dépend de votre abonnement et des réglages Google Meet.",
+  },
+  "microsoft-teams": {
+    name: "Microsoft Teams",
+    family: "microsoft",
+    kind: "meeting",
+    scopes: [
+      "offline_access",
+      "User.Read",
+      "Calendars.Read",
+      "OnlineMeetings.Read",
+      "OnlineMeetingTranscript.Read.All",
+    ],
+    description:
+      "Importer les transcriptions de vos réunions organisées dans Teams. Le consentement administrateur peut être nécessaire.",
+  },
+  zoom: {
+    name: "Zoom",
+    family: "zoom",
+    kind: "meeting",
+    scopes: [
+      "user:read:user",
+      "cloud_recording:read:list_user_recordings",
+      "cloud_recording:read:recording",
+    ],
+    description:
+      "Importer vos transcriptions d’enregistrements cloud Zoom déjà disponibles ; aucune capture n’est lancée par Relay.",
+  },
   gmail: {
     name: "Gmail",
     family: "google",
@@ -58,7 +92,7 @@ export function hasCalendarWriteScope(p: Service, scope: string) {
 }
 export function serviceId(value: string): Service {
   const legacy = value === "google" ? "gmail" : value === "microsoft" ? "outlook" : value;
-  if (!(legacy in services)) throw new Error("Fournisseur inconnu.");
+  if (!Object.hasOwn(services, legacy)) throw new Error("Fournisseur inconnu.");
   return legacy as Service;
 }
 export function hasRequiredScopes(p: Service, granted: string[]) {

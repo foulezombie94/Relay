@@ -1,4 +1,5 @@
 import "server-only";
+import { agentJob } from "./agent";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { queueOperation } from "../client";
@@ -51,6 +52,7 @@ async function providerPost(url: string, token: string, body: unknown) {
   return response.json() as Promise<Record<string, unknown>>;
 }
 export async function workflowJob(admin: SupabaseClient, job: Job): Promise<JobResult> {
+  if (job.payload?.agent_action_id) return agentJob(admin, job);
   const lease = { id: job.id, lease: job.lease };
   const tick = await queueOperation(admin, "execute", lease);
   if (!tick?.external) return { result: tick, committed: true };

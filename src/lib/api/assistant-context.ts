@@ -43,6 +43,7 @@ export async function visibleHistory(
     ...new Set(
       messages.flatMap((m) => [
         ...(m.source_ids ?? []),
+        ...(m.citations ?? []).map((c) => c.source_id),
         ...(m.sources ?? []).map((s) => s.id),
         ...(m.proposals ?? []).flatMap((p) => [
           p.source_id,
@@ -50,50 +51,32 @@ export async function visibleHistory(
         ]),
       ]),
     ),
-  ]
-    .filter((id) => /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(id))
-    .slice(0, 600);
-  if (!ids.length) return messages;
-  const results = await Promise.all([
-    client
-      .from("records")
-      .select("id,display_name,object_id")
-      .eq("workspace_id", workspace)
-      .in("id", ids),
-    client.from("notes").select("id,title,record_id").eq("workspace_id", workspace).in("id", ids),
-    client
-      .from("meetings")
-      .select("id,title,record_id")
-      .eq("workspace_id", workspace)
-      .in("id", ids),
-  ]);
-  for (const r of results) databaseError(r.error);
-  const visible: AssistantSource[] = [
-    ...(results[0].data ?? []).map((r) => ({
-      id: r.id,
-      type: "record" as const,
-      label: r.display_name,
-      record_id: r.id,
-      object_id: r.object_id,
-    })),
-    ...(results[1].data ?? []).map((r) => ({
-      id: r.id,
-      type: "note" as const,
-      label: r.title || "Note",
-      record_id: r.record_id,
-    })),
-    ...(results[2].data ?? []).map((r) => ({
-      id: r.id,
-      type: "meeting" as const,
-      label: r.title,
-      record_id: r.record_id,
-    })),
-  ];
+  ].filter((id) => /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(id));
+  const refs = messages.flatMap((m) => m.sources ?? []).filter((s) => ids.includes(s.id));
+  // Legacy conversations did not necessarily persist every source type.
+  for (const id of ids)
+    if (!refs.some((s) => s.id === id)) {
+      for (const type of ["record", "note", "meeting"] as const)
+        refs.push({ id, type, label: "", record_id: null });
+    }
+  const unique = [...new Map(refs.map((s) => [s.type + ":" + s.id, s])).values()];
+  const visible: AssistantSource[] = [];
+  for (let offset = 0; offset < Math.max(1, unique.length); offset += 600) {
+    const result = await client.rpc("agent_visible_sources", {
+      w: workspace,
+      refs: unique.slice(offset, offset + 600),
+    });
+    databaseError(result.error);
+    visible.push(...(result.data ?? []));
+  }
+  const access = await client.rpc("agent_access_fingerprint", { w: workspace });
+  databaseError(access.error);
   return messages.map((m) => {
     if (m.role !== "assistant") return m;
     const used = [
       ...new Set([
         ...(m.source_ids ?? []),
+        ...(m.citations ?? []).map((c) => c.source_id),
         ...(m.sources ?? []).map((s) => s.id),
         ...(m.proposals ?? []).flatMap((p) => [
           p.source_id,
@@ -101,7 +84,10 @@ export async function visibleHistory(
         ]),
       ]),
     ];
-    if (used.some((id) => !visible.some((s) => s.id === id))) {
+    if (
+      (m.access_fingerprint && m.access_fingerprint !== access.data) ||
+      used.some((id) => !visible.some((s) => s.id === id))
+    ) {
       return {
         ...m,
         answer:
@@ -109,74 +95,12 @@ export async function visibleHistory(
         sources: [],
         source_ids: [],
         proposals: [],
+        citations: [],
         accepted: {},
+        actions: [],
       };
     }
     return { ...m, sources: visible.filter((s) => used.includes(s.id)) };
-  });
-}
-
-export async function assistantSources(client: Client, workspace: string, record?: string) {
-  let rq = client
-    .from("records")
-    .select("id,object_id,display_name,stage,amount,currency,close_date,attributes")
-    .eq("workspace_id", workspace)
-    .eq("archived", false);
-  let nq = client
-    .from("notes")
-    .select("id,record_id,title,content,private")
-    .eq("workspace_id", workspace);
-  let mq = client
-    .from("meetings")
-    .select("id,record_id,title,starts_at,transcript,summary")
-    .eq("workspace_id", workspace);
-  if (record) {
-    rq = rq.eq("id", record);
-    nq = nq.eq("record_id", record);
-    mq = mq.eq("record_id", record);
-  }
-  const results = await Promise.all([
-    rq.order("created_at", { ascending: false }).limit(40),
-    nq.order("created_at", { ascending: false }).limit(30),
-    mq.order("created_at", { ascending: false }).limit(15),
-  ]);
-  for (const r of results) databaseError(r.error);
-  if (record && !results[0].data?.length)
-    throw new ApiError("Cette fiche n’est plus accessible.", 403);
-  const groups: SourceContent[][] = [
-    (results[0].data ?? []).map((r) => ({
-      id: r.id,
-      type: "record",
-      record_id: r.id,
-      object_id: r.object_id,
-      label: r.display_name,
-      content: JSON.stringify(r).slice(0, 1500),
-    })),
-    (results[1].data ?? []).map((r) => ({
-      id: r.id,
-      type: "note",
-      record_id: r.record_id,
-      label: r.title || "Note",
-      content: String(r.content ?? "").slice(0, 4000),
-      private: r.private,
-    })),
-    (results[2].data ?? []).map((r) => ({
-      id: r.id,
-      type: "meeting",
-      record_id: r.record_id,
-      label: r.title,
-      content: String(r.transcript || r.summary || "").slice(0, 6000),
-    })),
-  ];
-  // Reserve a budget for each kind of source so recent notes do not crowd out calls.
-  return groups.flatMap((group) => {
-    let remaining = 20000;
-    return group.flatMap((source) => {
-      if (!remaining || !source.content) return [];
-      const content = source.content.slice(0, remaining);
-      remaining -= content.length;
-      return [{ ...source, content }];
-    });
   });
 }
 
@@ -201,18 +125,34 @@ export async function acceptProposal(
     .unwrap()
     .element.safeParse(message?.proposals?.[index]);
   if (!parsed.success) throw new ApiError("Cette proposition n’est plus disponible.", 404);
+  const safe = await visibleHistory(client, workspace, [message!]);
+  if (!safe[0].proposals?.[index])
+    throw new ApiError("Les permissions de cette proposition ont changé.", 403);
+  const privacy = await client.rpc("agent_sources_private", {
+    w: workspace,
+    refs: (message?.sources ?? []).map(({ id, type }) => ({ id, type })),
+  });
+  databaseError(privacy.error);
   const p = parsed.data;
   const source = async (id: string) => {
     const type = message?.sources?.find((s) => s.id === id)?.type;
     const kinds =
-      type === "meeting" ? ["meetings"] : type === "note" ? ["notes"] : ["notes", "meetings"];
+      type === "email"
+        ? ["communications"]
+        : type === "meeting"
+          ? ["meetings"]
+          : type === "note"
+            ? ["notes"]
+            : ["notes", "meetings"];
     for (const table of kinds) {
       const r = await client
         .from(table)
         .select(
           table === "notes"
             ? "id,title,record_id,content,private"
-            : "id,title,record_id,transcript,summary",
+            : table === "communications"
+              ? "id,subject,record_id,body,user_id"
+              : "id,title,record_id,transcript,summary,private",
         )
         .eq("workspace_id", workspace)
         .eq("id", id)
@@ -220,16 +160,12 @@ export async function acceptProposal(
       databaseError(r.error);
       if (r.data) {
         const data = r.data as unknown as Record<string, unknown>;
-        if (data.private)
-          throw new ApiError(
-            "Une note privée ne peut pas être partagée dans une proposition.",
-            403,
-          );
         return {
-          type: table === "notes" ? "note" : "meeting",
-          label: String(data.title || "Source"),
+          type: table === "communications" ? "email" : table === "notes" ? "note" : "meeting",
+          private: !!data.private || table === "communications",
+          label: String(data.title || data.subject || "Source"),
           record_id: data.record_id as string | null,
-          content: String(data.content ?? (data.transcript || data.summary || "")),
+          content: String(data.content ?? data.body ?? (data.transcript || data.summary || "")),
         };
       }
     }
@@ -260,12 +196,16 @@ export async function acceptProposal(
           source_id: p.source_id,
           source_quote: p.source_quote,
           uncertainty: p.uncertainty ?? "",
+          private: a.private || privacy.data,
+          author_id: user,
         }
       : {
           id,
           workspace_id: workspace,
           title: p.title,
           status: "open",
+          private: a.private || b?.private || privacy.data,
+          author_id: user,
           record_id: a.record_id,
           field: p.field || "À préciser",
           source_a: { label: a.label, quote: p.source_quote, value: p.source_quote },

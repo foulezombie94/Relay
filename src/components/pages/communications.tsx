@@ -1,22 +1,17 @@
 "use client";
 import Link from "next/link";
+import { CommunicationsThread } from "../communications-thread";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Pagination } from "../pagination";
 import { TemplateComposer } from "../template-composer";
 import { useWorkspace, useRows } from "../data-provider";
-import {
-  PageHeader,
-  Empty,
-  Badge,
-  str,
-  date,
-  ErrorMessage,
-  Loading,
-} from "../ui";
+import { PageHeader, Empty, Badge, str, date, ErrorMessage, Loading } from "../ui";
 export function CommunicationsPage() {
   const { workspace } = useWorkspace();
-  const template = useSearchParams().get("template") ?? "";
+  const url = useSearchParams();
+  const template = url.get("template") ?? "";
+  const [thread, setThread] = useState(url.get("focus") ?? "");
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -34,9 +29,7 @@ export function CommunicationsPage() {
   const [message, setMessage] = useState("");
 
   const mail = (connections.data?.data ?? []).filter(
-    (c) =>
-      c.status === "connected" &&
-      ["gmail", "outlook"].includes(str(c.provider)),
+    (c) => c.status === "connected" && ["gmail", "outlook"].includes(str(c.provider)),
   );
   return (
     <>
@@ -85,8 +78,9 @@ export function CommunicationsPage() {
       <ErrorMessage error={connections.error} />
       {message && <div className="alert info">{message}</div>}
       <p className="footer-note">
-        Retrouvez les emails et événements importés depuis Intégrations. Les
-        emails affichent un aperçu. Les calendriers sont accessibles en lecture.
+        Retrouvez les emails et événements importés depuis Intégrations. Les emails proposent leurs
+        fils et un chargement du contenu complet. Les actions calendrier sont accessibles dans Ask
+        Relay.
       </p>
       {q.isPending ? (
         <Loading />
@@ -101,16 +95,21 @@ export function CommunicationsPage() {
               <small>
                 {str(r.sender)} · {date(r.received_at || r.starts_at)}
               </small>
-              <p className="preserve">{str(r.body)}</p>
+              <p className="preserve">{str(r.body).slice(0, 1000)}</p>
+              {r.kind === "email" && (
+                <button className="button small" onClick={() => setThread(r.id)}>
+                  Ouvrir le fil
+                </button>
+              )}
             </article>
           ))}
           {q.data?.data.length === 0 && (
             <Empty
               title="Aucun échange importé"
               action={
-                <a className="button" href="/app/integrations">
+                <Link className="button" href="/app/integrations">
                   Connecter un service
-                </a>
+                </Link>
               }
             />
           )}
@@ -123,13 +122,14 @@ export function CommunicationsPage() {
         busy={q.isFetching}
         onChange={setPage}
       />
+      {thread && <CommunicationsThread id={thread} accounts={mail} onClose={() => setThread("")} />}
       {compose && (
         <TemplateComposer
           accounts={mail}
           initialTemplate={template}
           onClose={() => setCompose(false)}
           onSent={() => {
-            setMessage("Email transmis au fournisseur.");
+            setMessage("Email en attente du worker. L’envoi reste à confirmer par le fournisseur.");
             void q.refetch();
           }}
         />

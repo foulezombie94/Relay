@@ -9,10 +9,7 @@ import {
   digest,
 } from "@/lib/integrations/oauth";
 import { services, hasRequiredScopes } from "@/lib/integrations/services";
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ provider: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ provider: string }> }) {
   const raw = (await params).provider;
   let message = "Connexion impossible. Recommencez depuis les intégrations.";
   let connected = false;
@@ -28,20 +25,17 @@ export async function GET(
       redirect: string;
       expires: number;
     }>(cookie);
-    if (
-      s.expires < Date.now() ||
-      s.state !== req.nextUrl.searchParams.get("state")
-    )
+    if (s.expires < Date.now() || s.state !== req.nextUrl.searchParams.get("state"))
       throw new ApiError("Autorisation invalide ou expirée.");
     const { client, user } = await context(s.workspace, true);
     if (user.id !== s.user) throw new ApiError("La session a changé.");
-    const { data: consumed, error } = await client.rpc(
-      "integration_oauth_consume",
-      { w: s.workspace, p, state_hash: digest(s.state) },
-    );
+    const { data: consumed, error } = await client.rpc("integration_oauth_consume", {
+      w: s.workspace,
+      p,
+      state_hash: digest(s.state),
+    });
     databaseError(error);
-    if (!consumed)
-      throw new ApiError("Cette autorisation a déjà été utilisée ou a expiré.");
+    if (!consumed) throw new ApiError("Cette autorisation a déjà été utilisée ou a expiré.");
     if (req.nextUrl.searchParams.get("error"))
       throw new ApiError("Connexion annulée ou refusée par le fournisseur.");
     const code = req.nextUrl.searchParams.get("code");
@@ -57,15 +51,19 @@ export async function GET(
         "Toutes les permissions nécessaires n’ont pas été accordées. Reconnectez le service.",
       );
     const profile = await externalJson(
-      services[p].family === "google"
-        ? "https://openidconnect.googleapis.com/v1/userinfo"
-        : "https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName",
+      p === "zoom"
+        ? "https://api.zoom.us/v2/users/me"
+        : services[p].family === "google"
+          ? "https://openidconnect.googleapis.com/v1/userinfo"
+          : "https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName",
       fresh.access_token,
     );
     const email =
-      services[p].family === "google"
+      p === "zoom"
         ? profile.email
-        : profile.mail || profile.userPrincipalName;
+        : services[p].family === "google"
+          ? profile.email
+          : profile.mail || profile.userPrincipalName;
     if (
       typeof email !== "string" ||
       !email ||
@@ -94,15 +92,12 @@ export async function GET(
         : "Autorisation invalide. Recommencez depuis les intégrations.";
   }
   const destination = new URL("/app/integrations", req.url);
-  destination.searchParams.set(
-    connected ? "connected" : "connection_error",
-    message,
-  );
+  destination.searchParams.set(connected ? "connected" : "connection_error", message);
   const response = NextResponse.redirect(destination);
   response.headers.set("Cache-Control", "no-store");
   response.headers.set("Referrer-Policy", "no-referrer");
   if (
-    /^(gmail|google-calendar|outlook|outlook-calendar|google|microsoft)$/.test(
+    /^(gmail|google-calendar|outlook|outlook-calendar|google|microsoft|google-meet|microsoft-teams|zoom)$/.test(
       raw,
     )
   )

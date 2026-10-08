@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  context,
-  checkOrigin,
-  ApiError,
-  databaseError,
-  fail,
-} from "@/lib/api/context";
-import { provider, connection, externalJson } from "@/lib/integrations/oauth";
 import { z } from "zod";
+import { context, checkOrigin, fail } from "@/lib/api/context";
+import { workflowBody } from "@/lib/api/workflow-body";
+import { emailDraft } from "@/lib/agent/contracts";
+import { rpc } from "@/lib/agent/tools";
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ workspace: string }> },
@@ -16,67 +12,21 @@ export async function POST(
     checkOrigin(req);
     const { workspace } = await params;
     const { client } = await context(workspace, true);
-    const data = z
-      .object({
-        provider: z.enum(["gmail", "outlook"]),
-        to: z.email(),
-        subject: z
-          .string()
-          .trim()
-          .min(1)
-          .max(300)
-          .refine((s) => !/[\r\n]/.test(s)),
-        body: z.string().min(1).max(30000),
-      })
-      .parse(await req.json());
-    const { data: suppressed, error: se } = await client
-      .from("suppressions")
-      .select("id")
-      .eq("workspace_id", workspace)
-      .eq("email", data.to.toLowerCase())
-      .maybeSingle();
-    databaseError(se);
-    if (suppressed)
-      throw new ApiError("Ce destinataire est sur la liste de suppression.");
-    const p = provider(data.provider);
-    const { tokens } = await connection(client, workspace, p);
-    if (p === "gmail") {
-      const mime =
-        "To: " +
-        data.to +
-        "\r\nSubject: =?UTF-8?B?" +
-        Buffer.from(data.subject).toString("base64") +
-        "?=\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n" +
-        Buffer.from(data.body).toString("base64");
-      await externalJson(
-        "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
-        tokens.access_token,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            raw: Buffer.from(mime).toString("base64url"),
-          }),
-        },
-      );
-    } else
-      await externalJson(
-        "https://graph.microsoft.com/v1.0/me/sendMail",
-        tokens.access_token,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: {
-              subject: data.subject,
-              body: { contentType: "Text", content: data.body },
-              toRecipients: [{ emailAddress: { address: data.to } }],
-            },
-            saveToSentItems: true,
-          }),
-        },
-      );
-    return NextResponse.json({ ok: true });
+    const input = emailDraft
+      .extend({ idempotency_key: z.uuid() })
+      .strict()
+      .parse(JSON.parse(await workflowBody(req, 30000)));
+    const { idempotency_key, ...draft } = input;
+    const proposed = await rpc(client, "agent_action", {
+      w: workspace,
+      operation: "propose",
+      payload: { key: "manual-email:" + idempotency_key, kind: "draft_email", input: draft },
+    });
+    const action = await rpc(client, "agent_apply", { w: workspace, action_id: proposed.id });
+    return NextResponse.json(
+      { data: action },
+      { status: 202, headers: { "Cache-Control": "private, no-store" } },
+    );
   } catch (e) {
     return fail(e);
   }

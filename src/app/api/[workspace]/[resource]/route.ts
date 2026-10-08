@@ -171,6 +171,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         "workflows",
         "pipelines",
         "email_templates",
+        "report_dashboards",
       ].includes(resource) &&
       !Number.isInteger(body.version)
     )

@@ -26,31 +26,32 @@ export function IntegrationsPage() {
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [jobId,setJobId]=useState<string|null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
   const cache = useQueryClient();
   const search = useSearchParams();
   const q = useQuery({
     queryKey: ["connections", workspace.id],
-    queryFn: () =>
-      request<{ data: Connector[] }>("/api/" + workspace.id + "/connections"),
+    queryFn: () => request<{ data: Connector[] }>("/api/" + workspace.id + "/connections"),
   });
-  async function action(
-    p: string,
-    method: "POST" | "DELETE" | "PATCH",
-    enabled?: boolean,
-  ) {
+  async function action(p: string, method: "POST" | "DELETE" | "PATCH", enabled?: boolean) {
     setBusy(p);
     setError("");
     try {
-      const r = await request<{ queued?:boolean;job?:{id:string};data?: { synced: number; complete: boolean } }>(
+      const r = await request<{
+        queued?: boolean;
+        job?: { id: string };
+        data?: { synced: number; complete: boolean };
+      }>(
         "/api/" + workspace.id + "/connections/" + p,
         method,
         method === "PATCH" ? { enabled } : undefined,
       );
-      if(r.queued && r.job) setJobId(r.job.id);
+      if (r.queued && r.job) setJobId(r.job.id);
       setMessage(
         method === "POST"
-          ? r.queued ? "Synchronisation planifiée." : (r.data?.synced ?? 0) +
+          ? r.queued
+            ? "Synchronisation planifiée."
+            : (r.data?.synced ?? 0) +
               (r.data?.complete
                 ? " éléments importés. Synchronisation terminée."
                 : " éléments importés. Cliquez sur Continuer pour importer la suite.")
@@ -70,11 +71,7 @@ export function IntegrationsPage() {
     setBusy(p);
     setError("");
     try {
-      const r = await request<{ url: string }>(
-        "/api/" + workspace.id + "/oauth/" + p,
-        "POST",
-        {},
-      );
+      const r = await request<{ url: string }>("/api/" + workspace.id + "/oauth/" + p, "POST", {});
       window.location.assign(r.url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Connexion impossible");
@@ -85,10 +82,24 @@ export function IntegrationsPage() {
     <>
       <PageHeader
         title="Intégrations"
-        description="Connectez chaque service avec les permissions nécessaires. Vos messages et événements restent privés à votre compte."
+        description="Connectez vos emails, calendriers et transcriptions. Les imports restent privés à votre compte. Meet, Teams et Zoom importent les transcriptions disponibles ; activez leur création chez le fournisseur."
       />
       <ErrorMessage error={q.error} />
-      {jobId && <BackgroundJob id={jobId} onComplete={(data)=>{setMessage(String(data.synced??0)+" éléments importés."+(data.complete?" Synchronisation terminée.":" Continuez pour importer la suite."));void q.refetch();}} />}
+      {jobId && (
+        <BackgroundJob
+          id={jobId}
+          onComplete={(data) => {
+            setMessage(
+              String(data.synced ?? 0) +
+                " éléments importés." +
+                (data.complete
+                  ? " Synchronisation terminée."
+                  : " Continuez pour importer la suite."),
+            );
+            void q.refetch();
+          }}
+        />
+      )}
       {(error || search.get("connection_error")) && (
         <div className="alert error" role="alert">
           {error || search.get("connection_error")}
@@ -109,13 +120,10 @@ export function IntegrationsPage() {
               </div>
               <p>{c.description}</p>
               {c.email && <p>{c.email}</p>}
-              {c.last_sync && (
-                <small>Dernier import : {date(c.last_sync)}</small>
-              )}
+              {c.last_sync && <small>Dernier import : {date(c.last_sync)}</small>}
               <p className="caption">
-                Import par lots de 100 avec reprise. Premier import des emails :
-                30 derniers jours, puis nouveaux messages. Calendrier : 30
-                prochains jours.
+                Import par lots de 100 avec reprise. Premier import des emails : 30 derniers jours,
+                puis nouveaux messages. Calendrier : 30 prochains jours.
               </p>
               {c.last_error && <p className="alert error">{c.last_error}</p>}
               {c.status === "connected" && workspace.role !== "viewer" && (
@@ -124,18 +132,15 @@ export function IntegrationsPage() {
                     type="checkbox"
                     checked={!!c.auto_sync}
                     disabled={!!busy || !c.worker_ready}
-                    onChange={(e) =>
-                      void action(c.provider, "PATCH", e.target.checked)
-                    }
+                    onChange={(e) => void action(c.provider, "PATCH", e.target.checked)}
                   />{" "}
-                  Synchronisation automatique toutes les 5 minutes lorsque le
-                  service est actif
+                  Synchronisation automatique toutes les 5 minutes lorsque le service est actif
                 </label>
               )}
               {!c.configured && (
                 <div className="alert info">
-                  Configuration serveur à compléter : {c.missing.join(", ")}. Le
-                  guide ci-dessous indique les étapes.
+                  Configuration serveur à compléter : {c.missing.join(", ")}. Le guide ci-dessous
+                  indique les étapes.
                 </div>
               )}
               {workspace.role !== "viewer" && (
@@ -180,26 +185,22 @@ export function IntegrationsPage() {
       <details className="detail-card">
         <summary>Configurer Google et Microsoft</summary>
         <p>
-          Créez une application OAuth Web dans Google Cloud et une inscription
-          d’application Web dans Microsoft Entra. Ajoutez les identifiants
-          serveur dans .env.local ou les variables de votre hébergeur, puis
-          redémarrez le serveur. Aucun secret ne doit être ajouté dans une
+          Créez une application OAuth Web dans Google Cloud et une inscription d’application Web
+          dans Microsoft Entra. Ajoutez les identifiants serveur dans .env.local ou les variables de
+          votre hébergeur, puis redémarrez le serveur. Aucun secret ne doit être ajouté dans une
           variable NEXT_PUBLIC.
         </p>
-        <p>
-          Ajoutez les quatre redirections exactes sous votre origine APP_URL :
-        </p>
+        <p>Ajoutez les quatre redirections exactes sous votre origine APP_URL :</p>
         <pre>
           /api/oauth/gmail/callback{"\n"}/api/oauth/google-calendar/callback
           {"\n"}/api/oauth/outlook/callback{"\n"}
           /api/oauth/outlook-calendar/callback
         </pre>
         <p>
-          En local, autorisez localhost:3000 et 127.0.0.1:3000. Activez Gmail
-          API et Google Calendar API ; ajoutez votre adresse comme utilisateur
-          test tant que Google OAuth est en mode Test. Pour les comptes Outlook
-          personnels, choisissez les comptes professionnels et personnels dans
-          Entra et MICROSOFT_TENANT=common.
+          En local, autorisez localhost:3000 et 127.0.0.1:3000. Activez Gmail API et Google Calendar
+          API ; ajoutez votre adresse comme utilisateur test tant que Google OAuth est en mode Test.
+          Pour les comptes Outlook personnels, choisissez les comptes professionnels et personnels
+          dans Entra et MICROSOFT_TENANT=common.
         </p>
         <p>
           <a

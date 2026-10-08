@@ -60,6 +60,7 @@ function AssistantSession() {
   const [busy, setBusy] = useState(false),
     [loading, setLoading] = useState(false),
     [error, setError] = useState("");
+  const [deepen, setDeepen] = useState(false);
   const [search, setSearch] = useState(""),
     [historyOpen, setHistoryOpen] = useState<boolean | "auto">("auto");
   const [rename, setRename] = useState(false),
@@ -143,7 +144,7 @@ function AssistantSession() {
       if (version === readVersion.current) setLoading(false);
     }
   }
-  async function ask(text = message, scope = context) {
+  async function ask(text = message, scope = context, requestKey?: string) {
     if (active.current || !text.trim() || !status.data?.configured || loading) return;
     const abort = new AbortController();
     active.current = abort;
@@ -154,6 +155,7 @@ function AssistantSession() {
       id: crypto.randomUUID(),
       role: "user",
       content: text.trim(),
+      request_id: requestKey ?? crypto.randomUUID(),
       record_id: scope?.id,
     };
     const placeholder: AssistantMessage = {
@@ -173,7 +175,9 @@ function AssistantSession() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "ask",
+          deepen,
           message: text.trim(),
+          request_id: user.request_id,
           ...(conversation ? { conversation_id: conversation } : {}),
           ...(scope ? { record_id: scope.id } : {}),
         }),
@@ -494,7 +498,7 @@ function AssistantSession() {
                           }
                         : null;
                       setContext(scope);
-                      void ask(user.content, scope);
+                      void ask(user.content, scope, user.request_id);
                     }
                   }}
                 />
@@ -507,6 +511,15 @@ function AssistantSession() {
             </div>
           )}
         </div>
+        <label className="footer-note">
+          <input
+            type="checkbox"
+            checked={deepen}
+            disabled={busy}
+            onChange={(e) => setDeepen(e.target.checked)}
+          />{" "}
+          Approfondir la recherche (budget étendu)
+        </label>
         <AssistantComposer
           message={message}
           setMessage={setMessage}

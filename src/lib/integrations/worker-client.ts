@@ -14,6 +14,7 @@ export function workerClient(
           "integration_refresh_claim",
           "integration_refresh_finish",
           "connector_sync",
+          "meeting_sync_finish",
         ].includes(operation)
       )
         throw new Error("Opération worker invalide");

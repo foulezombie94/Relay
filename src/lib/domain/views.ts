@@ -1,13 +1,13 @@
 import { z } from "zod";
+import { recordFilters } from "./record-filters";
 export const viewConfigSchema = z.object({
+  filters: recordFilters.optional(),
   pipeline_id: z.union([z.uuid(), z.literal("")]).default(""),
   layout: z.enum(["table", "cards", "kanban"]).optional(),
   search: z.string().max(300).default(""),
   stage: z.string().max(80).default(""),
   owner: z.union([z.uuid(), z.enum(["", "me", "unassigned"])]).default(""),
-  sort: z
-    .enum(["updated_at", "created_at", "display_name", "amount"])
-    .default("updated_at"),
+  sort: z.enum(["updated_at", "created_at", "display_name", "amount"]).default("updated_at"),
   direction: z.enum(["asc", "desc"]).default("desc"),
   minimum: z
     .string()
@@ -17,9 +17,7 @@ export const viewConfigSchema = z.object({
     .array(
       z
         .string()
-        .regex(
-          /^(display_name|email|domain|amount|stage|close_date|attr_[a-z][a-z0-9_]{0,49})$/,
-        ),
+        .regex(/^(display_name|email|domain|amount|stage|close_date|attr_[a-z][a-z0-9_]{0,49})$/),
     )
     .min(1)
     .max(100)
@@ -46,11 +44,9 @@ export function normalizeView(value: unknown, deals = false) {
 
 export function defaultRecordView(slug: string): ViewConfig {
   const view = defaultView(slug === "deals");
-  view.layout =
-    slug === "deals" ? "kanban" : slug === "companies" ? "cards" : "table";
+  view.layout = slug === "deals" ? "kanban" : slug === "companies" ? "cards" : "table";
   if (slug === "companies") view.columns = ["display_name", "domain", "email"];
   if (slug === "people") view.columns = ["display_name", "email"];
-  if (slug === "deals")
-    view.columns = ["display_name", "amount", "stage", "close_date"];
+  if (slug === "deals") view.columns = ["display_name", "amount", "stage", "close_date"];
   return view;
 }

@@ -3,15 +3,8 @@ import { context, databaseError, fail } from "@/lib/api/context";
 import { adminDb } from "@/lib/supabase/admin";
 import { workerReady } from "@/lib/jobs/client";
 import { backgroundJobsEnabled } from "@/lib/jobs/flags";
-import {
-  services,
-  hasRequiredScopes,
-  type Service,
-} from "@/lib/integrations/services";
-export async function GET(
-  _: NextRequest,
-  { params }: { params: Promise<{ workspace: string }> },
-) {
+import { services, hasRequiredScopes, type Service } from "@/lib/integrations/services";
+export async function GET(_: NextRequest, { params }: { params: Promise<{ workspace: string }> }) {
   try {
     const { workspace } = await params;
     const { client, user } = await context(workspace);
@@ -33,33 +26,36 @@ export async function GET(
       }),
     );
     const ready = backgroundJobsEnabled()
-      ? await Promise.all([workerReady(adminDb(),"email_sync"),workerReady(adminDb(),"calendar_sync")])
-      : [false,false];
+      ? await Promise.all([
+          workerReady(adminDb(), "email_sync"),
+          workerReady(adminDb(), "calendar_sync"),
+        ])
+      : [false, false];
     const data = Object.entries(services).map(([provider, s]) => {
       const row = connections?.find((c) => c.provider === provider);
       const missing = [
-        !process.env.INTEGRATION_ENCRYPTION_KEY
-          ? "INTEGRATION_ENCRYPTION_KEY"
-          : "",
-        s.family === "google"
-          ? !process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET
-            ? "GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET"
+        !process.env.INTEGRATION_ENCRYPTION_KEY ? "INTEGRATION_ENCRYPTION_KEY" : "",
+        s.family === "zoom"
+          ? !process.env.ZOOM_CLIENT_ID || !process.env.ZOOM_CLIENT_SECRET
+            ? "ZOOM_CLIENT_ID / ZOOM_CLIENT_SECRET"
             : ""
-          : !process.env.MICROSOFT_CLIENT_ID ||
-              !process.env.MICROSOFT_CLIENT_SECRET
-            ? "MICROSOFT_CLIENT_ID / MICROSOFT_CLIENT_SECRET"
-            : "",
+          : s.family === "google"
+            ? !process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET
+              ? "GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET"
+              : ""
+            : !process.env.MICROSOFT_CLIENT_ID || !process.env.MICROSOFT_CLIENT_SECRET
+              ? "MICROSOFT_CLIENT_ID / MICROSOFT_CLIENT_SECRET"
+              : "",
       ].filter(Boolean);
       return {
         ...states.find((state) => state.provider === provider),
-        worker_ready: ready[s.kind==="email"?0:1],
+        worker_ready: ready[s.kind === "email" ? 0 : 1],
         provider,
         name: s.name,
         configured: missing.length === 0,
         missing,
         status:
-          row?.status === "connected" &&
-          !hasRequiredScopes(provider as Service, row.scopes)
+          row?.status === "connected" && !hasRequiredScopes(provider as Service, row.scopes)
             ? "error"
             : (row?.status ?? "disconnected"),
         email: row?.email,
@@ -68,10 +64,7 @@ export async function GET(
         scopes: s.scopes,
       };
     });
-    return NextResponse.json(
-      { data },
-      { headers: { "Cache-Control": "private, no-store" } },
-    );
+    return NextResponse.json({ data }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (e) {
     return fail(e);
   }

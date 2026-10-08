@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { dashboardSchema } from "@/lib/domain/dashboards";
 import { pipelineSchema } from "@/lib/domain/pipelines";
 import { emailTemplateSchema } from "@/lib/domain/email-templates";
 import { viewConfigSchema } from "@/lib/domain/views";
@@ -8,6 +9,7 @@ const text = z.string().trim().min(1).max(300);
 export { workflowDefinition } from "@/lib/domain/workflow-schema";
 import { workflowDefinition } from "@/lib/domain/workflow-schema";
 export const resources = {
+  report_dashboards: dashboardSchema,
   pipelines: pipelineSchema,
   email_templates: emailTemplateSchema,
   records: z.object({
