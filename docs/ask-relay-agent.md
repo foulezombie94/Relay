@@ -6,11 +6,11 @@ Ask Relay utilise un registre Zod strict de recherches, agrégations et actions.
 
 Les recherches utilisent PostgreSQL Full Text Search, un curseur UUID et 20 résultats maximum. `total` est calculé indépendamment de la page. `get_source` lit 6 000 caractères à un offset explicite. Les agrégations se font en SQL sur tous les résultats autorisés et séparent les devises. Les emails couvrent uniquement la synchronisation importée ; les analyses signalent les pages manquantes, aperçus et textes tronqués. Les transcriptions importées sont recherchées avec les réunions. Les TXT/CSV/PDF textuels sont indexés à l’upload (200 000 caractères maximum, PDF 300 pages et durée bornée). Les images et les PDF scannés sans texte nécessitent encore un OCR ; les documents existants nécessitent une réindexation.
 
-Les fiches, relations, emails, calendriers, notes, réunions, tâches, engagements, contradictions, documents, listes, pipelines et workflows disposent de recherches contrôlées. Les comptes expéditeurs restent propres à l’utilisateur. Les écritures CRM, les brouillons de workflows et les rendez-vous produisent des aperçus à confirmer. Publier un workflow n’est jamais un outil de l’agent.
+Les fiches, relations, emails, calendriers, notes, réunions, tâches, engagements, contradictions, documents, listes, pipelines et workflows disposent de recherches contrôlées. Les comptes expéditeurs restent propres à l’utilisateur. Les écritures CRM, les brouillons de workflows et les rendez-vous produisent des aperçus à confirmer. Les commandes simples « Crée une tâche : titre exact » et « Ajoute une note privée : contenu exact », sans rattachement, attribution, date ou contexte de source, peuvent s’exécuter automatiquement après validation serveur. Publier un workflow n’est jamais un outil de l’agent.
 
 ## Emails et actions durables
 
-`draft_email` conserve un brouillon privé. `send_email` ne reçoit que son identifiant. Le serveur accepte une commande directe actuelle et déterministe, avec une adresse ou un nom exact résolu vers une seule fiche, un compte détenu par l’utilisateur et un contenu sans signal sensible. Les autres situations nécessitent une confirmation dans l’aperçu. Les rappels, horaires et rendez-vous exigent une confirmation de leur date et du fuseau dans l’aperçu. Les sources privées appartenant à une autre relation exigent aussi cet aperçu. Les formulations complexes ou ambiguës passent également par cet aperçu.
+`draft_email` conserve un brouillon privé. `send_email` ne reçoit que son identifiant. Le serveur accepte une commande directe actuelle et déterministe, avec une adresse ou un nom exact résolu vers une seule fiche, un compte détenu par l’utilisateur et un contenu sans signal sensible. Les autres situations nécessitent une confirmation dans l’aperçu. Les rappels, horaires et rendez-vous exigent une confirmation de leur date et du fuseau dans l’aperçu. Tout contenu influencé par des sources, des résultats de recherche ou l’historique impose une confirmation, y compris lorsque la source appartient au bon contact. Les formulations complexes ou ambiguës passent également par cet aperçu.
 
 L’envoi direct reste désactivé par défaut (`FEATURE_AGENT_DIRECT_SEND=false`) jusqu’à la validation fournisseurs ci-dessous. L’envoi confirmé manuellement utilise déjà la même file privée. Ne pas activer ce drapeau sur une instance sans ses migrations, son worker et les tests fournisseurs.
 
@@ -21,6 +21,24 @@ Les nouvelles tentatives depuis l’interface réutilisent l’identifiant de de
 Les actions calendrier créent, modifient ou annulent un événement du compte connecté, avec droits d’écriture OAuth revérifiés. Elles ne garantissent pas encore une résolution des conflits de modifications simultanées chez le fournisseur.
 
 ## Confidentialité et rétention
+
+### Instructions externes et confirmations exactes
+
+Les emails, documents, transcriptions, notes et résultats de recherche sont des données non fiables. La demande originale est immuable dans le tour privé, protégée par la capacité serveur et séparée des messages d’outils et de l’historique. Aucun argument du modèle ne peut fournir une autorisation, une capacité serveur ou une confirmation.
+
+Une détection déterministe produit des avertissements pour les instructions visant l’assistant (y compris certaines variations Unicode), mais elle n’est pas la frontière de sécurité : une instruction non détectée reste une donnée incapable d’autoriser un effet. Les suggestions métier sont présentées comme telles. Aucun outil d’export ou d’envoi de listes n’est exposé. Plusieurs brouillons d’emails dans un tour nécessitent une demande actuelle reconnue d’envoi multiple ; chaque envoi exige son propre aperçu et sa propre confirmation.
+
+Les cartes montrent le risque, les raisons, l’expéditeur exact, le destinataire, le contenu et l’intégralité des paramètres et sources. Elles permettent de lire les sources dans le chat sous les RLS actuelles, par extraits, sans HTML actif. Une source partielle est signalée. Lire une source ou masquer un avertissement n’autorise rien. « Refuser » annule seulement cette action ; les autres tâches et cartes restent disponibles.
+
+Les engagements et contradictions extraits de la réponse deviennent aussi des actions durables à confirmer. L’ancien endpoint d’acceptation par indice retourne 410 ; une ancienne suggestion non acceptée demande de relancer l’analyse pour obtenir un aperçu actuel. Leurs citations, sources déclarées et confidentialité sont revérifiées dans la transaction d’écriture. Les demandes simples répétées utilisent une seule clé d’action pour le titre/contenu explicitement demandé.
+
+Une empreinte SHA-256 lie l’identifiant, l’utilisateur, le workspace, le tour, l’action, tous ses paramètres, les sources, le compte expéditeur, le risque et l’expiration. Le bouton transmet l’empreinte affichée : l’API et PostgreSQL la vérifient sous verrou avant l’application. Les paramètres et le compte sont immuables ; l’empreinte ne constitue pas une autorisation de modifier le contenu. L’autorisation automatique utilise en plus la capacité privée du tour, inaccessible au modèle et au navigateur. Consulter le statut d’un ancien brouillon ne le rend pas utilisable dans le tour actuel.
+
+Les confirmations expirent après 30 minutes, y compris avant une exécution différée. Permissions, dépendances, destinataire actuel, suppression, compte et quotas sont revérifiés avant confirmation et dans le worker. Les compteurs atomiques et l’outbox existants empêchent la double exécution. L’audit privé conserve propositions, autorisations, refus et résultats avec identifiants, risque et empreinte, sans corps d’email ni secrets ; les refus de confirmation sont également journalisés avec une limite de volume.
+
+Outlook : le brouillon de réponse remplace explicitement les destinataires hérités de Reply-To, CC/BCC, l’objet et le corps. Le worker relit ces champs et refuse l’envoi s’ils diffèrent de l’aperçu ; il revérifie l’autorisation juste avant `/send`. Les retours texte peuvent normaliser CRLF en LF ; aucune autre différence de contenu n’est acceptée. La validation sur de vrais comptes Graph reste requise.
+
+Appliquer la migration `20261008160000_agent_confirmation_security.sql` avec le code correspondant. Les actions anciennes reçoivent des aperçus à examiner ; les envois déjà en file sans empreinte de confirmation doivent être refusés et préparés à nouveau, jamais automatiquement réautorisés.
 
 Les emails demeurent privés. Les engagements et contradictions acceptés depuis des sources privées restent privés, ainsi que leurs événements d’audit. Les citations structurées de la réponse sont vérifiées sur le contenu autorisé actuel, même après plusieurs lectures par offsets. Les notes et engagements issus d’un contexte privé restent privés ; une tâche ou un workflow partagé affiche un avertissement avant confirmation. Les sources sont revérifiées avant la réponse ; les réponses antérieures sont masquées si une dépendance disparaît ou si l’empreinte des accès change. Les anciens textes du modèle ne sont jamais réutilisés comme preuves ou autorisations.
 
@@ -43,7 +61,7 @@ Le scheduler supprime les brouillons après 30 jours, les actions terminées et 
 
 ## Installation et vérifications
 
-1. Appliquer les migrations `20261008140000` à `20261008153000` dans un environnement de test, puis production après revue. Aucun déploiement production n’est effectué par cette PR.
+1. Appliquer les migrations `20261008140000` à `20261008160000` dans un environnement de test, puis production après revue. Aucun déploiement production n’est effectué par cette PR.
 2. Installer les dépendances, configurer OpenAI, Supabase et OAuth existants, ajouter les URLs de callback `/api/oauth/google-meet/callback`, `/api/oauth/microsoft-teams/callback`, `/api/oauth/zoom/callback` dans les applications fournisseurs, configurer `ZOOM_CLIENT_ID` / `ZOOM_CLIENT_SECRET` pour Zoom, puis lancer le worker avec `workflow_run` activé. Les anciens comptes calendrier sans écriture doivent être reconnectés.
 3. Exécuter `npm run typecheck`, `npm test`, `npm run build`, et les tests SQL ci-dessous.
 4. Sur une base jetable : `RELAY_TEST_DATABASE_URL=... npm run test:agent:db` et `npm run test:agent:concurrency`. `scripts/tests/migrate-local.mts` crée une base de test à partir de tous les fichiers de migration ; son bootstrap local simule uniquement les schémas plateforme et omet le cron historique remplacé par le worker. Ne jamais l’utiliser sur une base existante.

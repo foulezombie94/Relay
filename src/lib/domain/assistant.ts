@@ -67,6 +67,7 @@ export type AssistantMessage = {
   model?: string;
   elapsed_ms?: number;
   actions?: import("@/lib/agent/contracts").AgentAction[];
+  security_notices?: import("@/lib/agent/security").SecurityNotice[];
   access_fingerprint?: string;
   partial?: boolean;
   accepted?: Record<string, { id: string; resource: string }>;

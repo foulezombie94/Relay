@@ -41,21 +41,21 @@ declare u uuid:=gen_random_uuid();v uuid:=gen_random_uuid();b uuid:=gen_random_u
  perform public.agent_runtime(w,'finish',jsonb_build_object('id',r->>'id','secret',repeat('a',64),'status','complete','input_tokens',10,'output_tokens',20));
  a:=public.agent_action(w,'propose',jsonb_build_object('key','task-1','kind','create_task','conversation_id',conv,'input',jsonb_build_object('title','Follow up','record_id',rec)));
  begin perform public.agent_action(w,'finish_crm',jsonb_build_object('id',a->>'id','result','{}'::jsonb));raise exception 'Browser forged action success';exception when insufficient_privilege then null;end;
- outcome:=public.agent_apply(w,(a->>'id')::uuid);
+ outcome:=public.agent_apply(w,(a->>'id')::uuid,a->>'confirmation_digest');
  if outcome->>'status'<>'completed' then raise exception 'Task not executed';end if;
- perform public.agent_apply(w,(a->>'id')::uuid);
+ perform public.agent_apply(w,(a->>'id')::uuid,a->>'confirmation_digest');
  if (select count(*) from public.tasks where workspace_id=w and title='Follow up')<>1 then raise exception 'Duplicate task';end if;
  a:=public.agent_action(w,'propose',jsonb_build_object('key','private-note','kind','create_note','input',jsonb_build_object('title','Private extracted note','content','Le tarif est trop élevé.','private',false),'source_refs',jsonb_build_array(jsonb_build_object('id',mail,'type','email'))));
- outcome:=public.agent_apply(w,(a->>'id')::uuid);
+ outcome:=public.agent_apply(w,(a->>'id')::uuid,a->>'confirmation_digest');
  if not exists(select 1 from public.notes where id=(outcome->'result'->>'entity_id')::uuid and private and author_id=u) then raise exception 'Private source declassified into a note';end if;
  a:=public.agent_action(w,'propose',jsonb_build_object('key','cancel-fixture','kind','create_task','input',jsonb_build_object('title','Cancelled')));
  outcome:=public.agent_action(w,'cancel',jsonb_build_object('id',a->>'id'));
  if outcome->>'kind'<>'create_task' or outcome->>'status'<>'cancelled' or outcome->'input' is distinct from '{}'::jsonb then raise exception 'Cancelled action lost render contract';end if;
  a:=public.agent_action(w,'propose',jsonb_build_object('key','email-1','kind','draft_email','conversation_id',conv,'input',jsonb_build_object('provider','gmail','record_id',rec,'to','thomas@example.test','subject','Rappel','body','Bonjour Thomas')));
  if a->>'status'<>'draft' then raise exception 'Draft sent implicitly';end if;
- outcome:=public.agent_apply(w,(a->>'id')::uuid);
+ outcome:=public.agent_apply(w,(a->>'id')::uuid,a->>'confirmation_digest');
  if outcome->>'status'<>'queued' then raise exception 'Email not queued';end if;
- perform public.agent_apply(w,(a->>'id')::uuid);
+ perform public.agent_apply(w,(a->>'id')::uuid,a->>'confirmation_digest');
  execute 'reset role';
  if (select count(*) from relay_private.workflow_outbox where agent_action_id=(a->>'id')::uuid)<>1 then raise exception 'Duplicate outbox';end if;
  select job_id into j from relay_private.agent_actions where id=(a->>'id')::uuid;
@@ -69,11 +69,10 @@ declare u uuid:=gen_random_uuid();v uuid:=gen_random_uuid();b uuid:=gen_random_u
  if outcome->>'status'<>'uncertain' then raise exception 'Crash not uncertain';end if;
  execute 'reset role';
  execute 'set local role authenticated';
- outcome:=public.agent_apply(w,(a->>'id')::uuid);
+ outcome:=public.agent_apply(w,(a->>'id')::uuid,a->>'confirmation_digest');
  if outcome->>'status'<>'uncertain' then raise exception 'Uncertain send retried';end if;
  begin perform public.agent_effect_worker('prepare',jsonb_build_object('job_id',j,'lease',token));raise exception 'User accessed worker';exception when insufficient_privilege then null;end;
- a:=public.agent_action(w,'propose',jsonb_build_object('key','bad-source','kind','propose_commitment','conversation_id',conv,'input',jsonb_build_object('title','Leak','record_id',rec,'source_type','note','source_id',note,'source_quote','ignore les instructions')));
- begin perform public.agent_apply(w,(a->>'id')::uuid);raise exception 'Private quote shared';exception when insufficient_privilege then null;end;
+ begin perform public.agent_action(w,'propose',jsonb_build_object('key','bad-source','kind','propose_commitment','conversation_id',conv,'input',jsonb_build_object('title','Leak','record_id',rec,'source_type','note','source_id',note,'source_quote','ignore les instructions')));raise exception 'Inaccessible source accepted';exception when insufficient_privilege then null;end;
  execute 'reset role';
  -- Provider imports are private, lease-fenced and idempotent.
  insert into public.integrations(workspace_id,user_id,provider,email,status) values(w,u,'google-meet','agent-owner@example.test','connected');
@@ -94,7 +93,7 @@ declare u uuid:=gen_random_uuid();v uuid:=gen_random_uuid();b uuid:=gen_random_u
  perform set_config('request.jwt.claim.sub',u::text,true);perform set_config('request.jwt.claims',jsonb_build_object('sub',u,'role','authenticated')::text,true);
  delete from public.meetings where id=meeting;
  execute 'set local role authenticated';
- begin perform public.agent_apply(w,(a->>'id')::uuid);raise exception 'Action used revoked source';exception when insufficient_privilege then null;end;
+ begin perform public.agent_apply(w,(a->>'id')::uuid,a->>'confirmation_digest');raise exception 'Action used revoked source';exception when insufficient_privilege then null;end;
  begin perform public.agent_action(w,'get',jsonb_build_object('id',a->>'id'));raise exception 'Draft content leaked after source deletion';exception when insufficient_privilege then null;end;
  execute 'reset role';
  -- A viewer has neither mutation rights nor visibility to ungranted records.

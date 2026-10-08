@@ -10,6 +10,7 @@ await db.connect();
 db.on("notice", (n) => console.log(n.message));
 try {
   await db.query(await readFile("supabase/tests/agent.sql", "utf8"));
+  await db.query(await readFile("supabase/tests/agent-confirmations.sql", "utf8"));
 } finally {
   await db.end();
 }

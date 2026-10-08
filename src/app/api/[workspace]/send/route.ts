@@ -22,7 +22,11 @@ export async function POST(
       operation: "propose",
       payload: { key: "manual-email:" + idempotency_key, kind: "draft_email", input: draft },
     });
-    const action = await rpc(client, "agent_apply", { w: workspace, action_id: proposed.id });
+    const action = await rpc(client, "agent_apply", {
+      w: workspace,
+      action_id: proposed.id,
+      expected_digest: proposed.confirmation_digest,
+    });
     return NextResponse.json(
       { data: action },
       { status: 202, headers: { "Cache-Control": "private, no-store" } },

@@ -969,8 +969,8 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Garder le contrôle",
         paragraphs: [
-          "Une réponse peut être incomplète ou incorrecte. Vérifiez les échanges originaux. Ajouter pour examen humain crée une proposition à examiner ; cela ne valide pas définitivement une promesse ou une contradiction.",
-          "L’ajout vérifie les citations dans les sources actuelles et empêche de créer deux fois la même proposition. Les lecteurs ne peuvent pas ajouter de proposition. Une note privée ne devient pas un engagement ou une contradiction partagée.",
+          "Une réponse peut être incomplète ou incorrecte. Vérifiez les échanges originaux, puis le risque et tous les paramètres dans la carte. Confirmer l’action ajoute une proposition à examiner ; cela ne valide pas définitivement une promesse ou une contradiction. Refuser laisse les autres actions disponibles.",
+          "La confirmation expire après 30 minutes et autorise uniquement l’action affichée. Vous pouvez lire l’email ou la source directement dans le chat. Le serveur revérifie les citations, les permissions et les paramètres, puis empêche la double exécution. Les anciennes suggestions nécessitent un nouvel aperçu. Les lecteurs ne peuvent pas ajouter de proposition. Une note privée ne devient pas un engagement ou une contradiction partagée.",
           "Relay recherche dans les données CRM autorisées, avec des résultats paginés. Les emails, calendriers et transcriptions couvrent les données importées ; leur synchronisation ne garantit pas un historique complet. Les actions CRM et calendriers produisent un aperçu à confirmer. Les workflows restent des brouillons. L’envoi direct d’un email exige une demande explicite non ambiguë et l’activation par l’administrateur après les tests fournisseurs ; sinon, confirmez l’aperçu. Approfondir augmente le budget de recherche. Les anciennes réponses ne sont jamais utilisées comme preuves ou autorisations.",
         ],
       },
