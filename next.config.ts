@@ -7,6 +7,7 @@ function config(phase: string): NextConfig {
     throw new Error("RELAY_BUILD_DIR must be a local .next-check-* directory");
   return {
     poweredByHeader: false,
+    serverExternalPackages: ["pdfjs-dist"],
     distDir: process.env.VERCEL === "1" ? ".next" : phase === PHASE_DEVELOPMENT_SERVER
       ? process.platform === "win32" ? ".next-local" : ".next"
       : process.platform === "win32" ? localBuildDir ?? ".next-build" : ".next-production",

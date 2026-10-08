@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { context, checkOrigin, databaseError, fail } from "@/lib/api/context";
-import {
-  config,
-  provider,
-  seal,
-  state,
-  digest,
-} from "@/lib/integrations/oauth";
+import { config, provider, seal, state, digest } from "@/lib/integrations/oauth";
 import { services } from "@/lib/integrations/services";
 export async function POST(
   req: NextRequest,
@@ -18,7 +12,7 @@ export async function POST(
     const { user, client } = await context(workspace, true);
     const name = provider(p);
     // Next may canonicalize the request URL to localhost; preserve the validated browser origin for OAuth cookies.
-    const c = config(name, req.headers.get('origin') || req.nextUrl.origin);
+    const c = config(name, req.headers.get("origin") || req.nextUrl.origin);
     const s = state();
     const { error } = await client.rpc("integration_oauth_begin", {
       w: workspace,
@@ -36,7 +30,9 @@ export async function POST(
       code_challenge_method: "S256",
       ...(services[name].family === "google"
         ? { access_type: "offline", prompt: "consent select_account" }
-        : { prompt: "select_account", response_mode: "query" }),
+        : services[name].family === "microsoft"
+          ? { prompt: "select_account", response_mode: "query" }
+          : {}),
     });
     const response = NextResponse.json(
       { url: c.authorize + "?" + query },

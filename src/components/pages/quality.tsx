@@ -1,18 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { request, useRows, useWorkspace } from "../data-provider";
-import {
-  PageHeader,
-  Modal,
-  Loading,
-  Empty,
-  ErrorMessage,
-  str,
-  date,
-  Badge,
-} from "../ui";
+import { PageHeader, Modal, Loading, Empty, ErrorMessage, str, date, Badge } from "../ui";
 import { RecordEditor } from "../record-editor";
 import { mergeFields, mergeValues } from "@/lib/domain/duplicates";
 import type { DuplicatePair } from "@/lib/domain/duplicate-pairs";
@@ -36,6 +27,11 @@ const labels: Record<string, string> = {
   close_date: "Clôture",
 };
 export function QualityPage() {
+  const [clock, setClock] = useState(Date.now);
+  useEffect(() => {
+    const timer = setInterval(() => setClock(Date.now()), 60000);
+    return () => clearInterval(timer);
+  }, []);
   const { workspace, objects } = useWorkspace();
   const cache = useQueryClient();
   const [object, setObject] = useState("");
@@ -50,10 +46,7 @@ export function QualityPage() {
     queryKey: ["rows", workspace.id, "duplicates", object],
     queryFn: () =>
       request<{ data: DuplicatePair[]; total: number; truncated: boolean }>(
-        "/api/" +
-          workspace.id +
-          "/duplicates" +
-          (object ? "?object_id=" + object : ""),
+        "/api/" + workspace.id + "/duplicates" + (object ? "?object_id=" + object : ""),
       ),
   });
   const history = useRows("merge_history", { size: 20 });
@@ -96,11 +89,7 @@ export function QualityPage() {
         title="Qualité des données"
         description="Comparer, corriger, puis décider. Aucune fusion automatique."
         action={
-          <button
-            className="button"
-            onClick={() => q.refetch()}
-            disabled={q.isFetching}
-          >
+          <button className="button" onClick={() => q.refetch()} disabled={q.isFetching}>
             Actualiser
           </button>
         }
@@ -119,21 +108,18 @@ export function QualityPage() {
           ))}
         </select>
         <span className="pill">{q.data?.total ?? 0} fiches analysées</span>
-        <span className="pill">
-          {q.data?.data.length ?? 0} paires proposées
-        </span>
+        <span className="pill">{q.data?.data.length ?? 0} paires proposées</span>
       </div>
       <div className="alert info">
-        Un nom, email ou domaine identique est un signal à examiner. Comparer et
-        garder séparés sont accessibles aux membres ; fusionner et annuler une
-        fusion sont réservés aux administrateurs.
+        Un nom, email ou domaine identique est un signal à examiner. Comparer et garder séparés sont
+        accessibles aux membres ; fusionner et annuler une fusion sont réservés aux administrateurs.
       </div>
       <ErrorMessage error={q.error} />
       <ErrorMessage error={error ? new Error(error) : null} />
       {q.data?.truncated && (
         <div className="alert info">
-          La liste est limitée à 250 paires et 50 000 rapprochements par calcul.
-          Restreignez par objet ou traitez ces suggestions puis actualisez.
+          La liste est limitée à 250 paires et 50 000 rapprochements par calcul. Restreignez par
+          objet ou traitez ces suggestions puis actualisez.
         </div>
       )}
       {q.isPending ? (
@@ -144,11 +130,7 @@ export function QualityPage() {
             <article className="detail-card" key={p.key}>
               <div className="card-head">
                 <strong>Doublon potentiel détecté</strong>
-                <Badge
-                  value={
-                    p.strength === "fort" ? "Email identique" : "À examiner"
-                  }
-                />
+                <Badge value={p.strength === "fort" ? "Email identique" : "À examiner"} />
               </div>
               <div className="comparison-mini">
                 {[p.a, p.b].map((r) => (
@@ -161,10 +143,7 @@ export function QualityPage() {
               </div>
               <p>{p.reasons.join(" · ")}</p>
               <div className="row-actions">
-                <button
-                  className="button small"
-                  onClick={() => setPair({ a: p.a.id, b: p.b.id })}
-                >
+                <button className="button small" onClick={() => setPair({ a: p.a.id, b: p.b.id })}>
                   Comparer
                 </button>
                 <button
@@ -177,18 +156,14 @@ export function QualityPage() {
                 <button
                   className="button small"
                   disabled={!writer || working}
-                  onClick={() =>
-                    decide(p.a.id, p.b.id, "separate", p.a.version, p.b.version)
-                  }
+                  onClick={() => decide(p.a.id, p.b.id, "separate", p.a.version, p.b.version)}
                 >
                   Garder séparés
                 </button>
                 <button
                   className="button small"
                   disabled={!writer || working}
-                  onClick={() =>
-                    decide(p.a.id, p.b.id, "deferred", p.a.version, p.b.version)
-                  }
+                  onClick={() => decide(p.a.id, p.b.id, "deferred", p.a.version, p.b.version)}
                 >
                   Ignorer
                 </button>
@@ -210,13 +185,12 @@ export function QualityPage() {
           <article className="detail-card card-head" key={d.id}>
             <div>
               <strong>
-                {str(d.a_name) || str(d.record_a)} /{" "}
-                {str(d.b_name) || str(d.record_b)}
+                {str(d.a_name) || str(d.record_a)} / {str(d.b_name) || str(d.record_b)}
               </strong>
               <p>
                 {d.status === "separate"
                   ? "Gardés séparés"
-                  : Date.parse(str(d.defer_until)) > Date.now()
+                  : Date.parse(str(d.defer_until)) > clock
                     ? "Reporté jusqu’au " + date(d.defer_until)
                     : "Report expiré · la paire peut être reproposée"}
               </p>
@@ -230,9 +204,7 @@ export function QualityPage() {
             </button>
           </article>
         ))}
-        {decisions.data?.data.length === 0 && (
-          <p className="muted">Aucune décision enregistrée.</p>
-        )}
+        {decisions.data?.data.length === 0 && <p className="muted">Aucune décision enregistrée.</p>}
       </div>
       <div className="pagination">
         <button
@@ -264,8 +236,7 @@ export function QualityPage() {
             <article className="detail-card card-head" key={r.id}>
               <div>
                 <strong>
-                  {snapshot.source?.display_name} →{" "}
-                  {snapshot.target?.display_name}
+                  {snapshot.source?.display_name} → {snapshot.target?.display_name}
                 </strong>
                 <p>
                   {date(r.created_at)} ·{" "}
@@ -307,17 +278,9 @@ export function QualityPage() {
             </article>
           );
         })}
-        {history.data?.data.length === 0 && (
-          <p className="muted">Aucune fusion enregistrée.</p>
-        )}
+        {history.data?.data.length === 0 && <p className="muted">Aucune fusion enregistrée.</p>}
       </div>
-      {pair && (
-        <ComparisonDialog
-          aId={pair.a}
-          bId={pair.b}
-          onClose={() => setPair(null)}
-        />
-      )}{" "}
+      {pair && <ComparisonDialog aId={pair.a} bId={pair.b} onClose={() => setPair(null)} />}{" "}
       {undo && <UndoDialog id={undo} onClose={() => setUndo(null)} />}
     </>
   );
@@ -348,14 +311,10 @@ function ComparisonDialog({
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
     queryFn: () =>
-      request<Comparison>(
-        "/api/" + workspace.id + "/duplicates/compare?a=" + aId + "&b=" + bId,
-      ),
+      request<Comparison>("/api/" + workspace.id + "/duplicates/compare?a=" + aId + "&b=" + bId),
   });
   const data = q.data;
-  const version = data
-    ? [data.a.id, data.a.version, data.b.id, data.b.version].join(":")
-    : "";
+  const version = data ? [data.a.id, data.a.version, data.b.id, data.b.version].join(":") : "";
   const selection = selectionVersion === version ? picked : {};
   const target = data && (data.a.id === targetId ? data.a : data.b);
   const source = data && (data.a.id === targetId ? data.b : data.a);
@@ -363,10 +322,9 @@ function ComparisonDialog({
     ? [
         ...mergeFields,
         ...new Set(
-          [
-            ...Object.keys(data.a.attributes),
-            ...Object.keys(data.b.attributes),
-          ].map((k) => "attr:" + k),
+          [...Object.keys(data.a.attributes), ...Object.keys(data.b.attributes)].map(
+            (k) => "attr:" + k,
+          ),
         ),
       ]
     : [];
@@ -376,9 +334,8 @@ function ComparisonDialog({
   function chosen(key: string) {
     if (selection[key]) return selection[key];
     if (!target || !source) return targetId;
-    return [null, undefined, ""].includes(
-      value(target, key) as null | undefined | "",
-    ) && ![null, undefined].includes(value(source, key) as null | undefined)
+    return [null, undefined, ""].includes(value(target, key) as null | undefined | "") &&
+      ![null, undefined].includes(value(source, key) as null | undefined)
       ? source.id
       : target.id;
   }
@@ -386,18 +343,14 @@ function ComparisonDialog({
     keys.map((k) => [k, chosen(k) === source?.id ? "source" : "target"]),
   ) as Record<string, "source" | "target">;
   const approval = version + ":" + targetId + ":" + JSON.stringify(choices);
-  const preview =
-    source && target ? mergeValues(source, target, choices) : null;
-  const ready =
-    !!data?.is_candidate && !q.isFetching && !q.error && !working && !editing;
+  const preview = source && target ? mergeValues(source, target, choices) : null;
+  const ready = !!data?.is_candidate && !q.isFetching && !q.error && !working && !editing;
   const showPreview = phase === "preview" && selectionVersion === version;
   function pick(key: string, id: string) {
     setPicked({
       ...selection,
       [key]: id,
-      ...(["amount", "currency"].includes(key)
-        ? { amount: id, currency: id }
-        : {}),
+      ...(["amount", "currency"].includes(key) ? { amount: id, currency: id } : {}),
     });
     setSelectionVersion(version);
     setApprovedVersion("");
@@ -422,9 +375,7 @@ function ComparisonDialog({
         choices,
       });
       await cache.invalidateQueries({ queryKey: ["rows", workspace.id] });
-      toast.success(
-        "Fusion enregistrée. Annulation disponible dans le journal.",
-      );
+      toast.success("Fusion enregistrée. Annulation disponible dans le journal.");
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Fusion impossible");
@@ -461,9 +412,7 @@ function ComparisonDialog({
                 <div className="row-actions">
                   <button
                     className="button small"
-                    disabled={
-                      workspace.role === "viewer" || working || q.isFetching
-                    }
+                    disabled={workspace.role === "viewer" || working || q.isFetching}
                     onClick={() => {
                       setPhase("compare");
                       setApprovedVersion("");
@@ -491,21 +440,16 @@ function ComparisonDialog({
             ))}
           </div>
           <p>
-            {data.reasons.length
-              ? data.reasons.join(" · ")
-              : "Aucun signal commun après recalcul."}
+            {data.reasons.length ? data.reasons.join(" · ") : "Aucun signal commun après recalcul."}
           </p>
           {!data.is_candidate && (
             <div className="alert info">
-              La comparaison recalculée ne propose plus cette paire à la fusion
-              : les critères ont changé ou une décision de séparation/report est
-              active.
+              La comparaison recalculée ne propose plus cette paire à la fusion : les critères ont
+              changé ou une décision de séparation/report est active.
             </div>
           )}
           {q.isFetching && (
-            <div className="alert info">
-              Recalcul de la comparaison… Fusion désactivée.
-            </div>
+            <div className="alert info">Recalcul de la comparaison… Fusion désactivée.</div>
           )}
           <div className="table-wrap">
             <table className="merge-table">
@@ -527,17 +471,14 @@ function ComparisonDialog({
                   <tr key={k}>
                     <th>
                       {labels[k] ||
-                        data.attributes.find((a) => a.key === k.slice(5))
-                          ?.name ||
+                        data.attributes.find((a) => a.key === k.slice(5))?.name ||
                         k.slice(5)}
                     </th>
                     {showPreview ? (
                       <td>
                         {str(
                           k.startsWith("attr:")
-                            ? (
-                                preview?.attributes as Record<string, unknown>
-                              )?.[k.slice(5)]
+                            ? (preview?.attributes as Record<string, unknown>)?.[k.slice(5)]
                             : preview?.[k],
                         ) || "Vide"}
                       </td>
@@ -565,23 +506,19 @@ function ComparisonDialog({
           {showPreview && (
             <>
               <div className="alert info">
-                « {source.display_name} » sera archivée vers «{" "}
-                {target.display_name} ». Les tâches, notes, documents, réunions,
-                engagements, portails et relations seront transférés. Les notes
-                privées restent privées. L’annulation est possible tant que les
-                fiches et leur contexte n’ont pas changé après la fusion.
+                « {source.display_name} » sera archivée vers « {target.display_name} ». Les tâches,
+                notes, documents, réunions, engagements, portails et relations seront transférés.
+                Les notes privées restent privées. L’annulation est possible tant que les fiches et
+                leur contexte n’ont pas changé après la fusion.
               </div>
               <label className="inline-check">
                 <input
                   type="checkbox"
                   checked={approvedVersion === approval}
                   disabled={!ready}
-                  onChange={(e) =>
-                    setApprovedVersion(e.target.checked ? approval : "")
-                  }
+                  onChange={(e) => setApprovedVersion(e.target.checked ? approval : "")}
                 />
-                J’ai vérifié cette comparaison actualisée et les valeurs à
-                conserver.
+                J’ai vérifié cette comparaison actualisée et les valeurs à conserver.
               </label>
             </>
           )}
@@ -598,11 +535,7 @@ function ComparisonDialog({
             </button>
             {showPreview ? (
               <>
-                <button
-                  className="button"
-                  disabled={working}
-                  onClick={() => setPhase("compare")}
-                >
+                <button className="button" disabled={working} onClick={() => setPhase("compare")}>
                   Retour à la comparaison
                 </button>
                 <button
@@ -660,10 +593,7 @@ function UndoDialog({ id, onClose }: { id: string; onClose: () => void }) {
   const q = useQuery({
     queryKey: ["rows", workspace.id, "undo-preview", id],
     staleTime: 0,
-    queryFn: () =>
-      request<{ data: UndoPreview }>(
-        "/api/" + workspace.id + "/merges?id=" + id,
-      ),
+    queryFn: () => request<{ data: UndoPreview }>("/api/" + workspace.id + "/merges?id=" + id),
   });
   return (
     <Modal open onClose={() => !busy && onClose()} title="Annuler la fusion">
@@ -674,13 +604,10 @@ function UndoDialog({ id, onClose }: { id: string; onClose: () => void }) {
         q.data && (
           <>
             <p>
-              Restaurer « {q.data.data.source_name} » et «{" "}
-              {q.data.data.target_name} » avec leurs champs, listes, relations
-              et contexte d’avant fusion.
+              Restaurer « {q.data.data.source_name} » et « {q.data.data.target_name} » avec leurs
+              champs, listes, relations et contexte d’avant fusion.
             </p>
-            <div
-              className={"alert " + (q.data.data.available ? "info" : "error")}
-            >
+            <div className={"alert " + (q.data.data.available ? "info" : "error")}>
               {q.data.data.reason ||
                 "Aucun changement détecté après fusion. Les compteurs de version continueront à augmenter et l’annulation sera ajoutée au journal."}
             </div>
@@ -691,9 +618,7 @@ function UndoDialog({ id, onClose }: { id: string; onClose: () => void }) {
               </button>
               <button
                 className="button primary"
-                disabled={
-                  busy || q.isFetching || !q.data.data.available || !!q.error
-                }
+                disabled={busy || q.isFetching || !q.data.data.available || !!q.error}
                 onClick={async () => {
                   setBusy(true);
                   setError("");
@@ -706,14 +631,10 @@ function UndoDialog({ id, onClose }: { id: string; onClose: () => void }) {
                     await cache.invalidateQueries({
                       queryKey: ["rows", workspace.id],
                     });
-                    toast.success(
-                      "Fusion annulée. Les deux fiches sont restaurées.",
-                    );
+                    toast.success("Fusion annulée. Les deux fiches sont restaurées.");
                     onClose();
                   } catch (e) {
-                    setError(
-                      e instanceof Error ? e.message : "Annulation impossible",
-                    );
+                    setError(e instanceof Error ? e.message : "Annulation impossible");
                     await q.refetch();
                   } finally {
                     setBusy(false);

@@ -15,12 +15,13 @@ Installez Node.js 24 et les dépendances avec `npm ci`. Copiez `.env.example` ve
 - Listes privées ou partagées, notes, tâches, activités, transcriptions importées et documents privés (20 Mo maximum).
 - Engagements avec preuves, contradictions à examiner, portail client isolé et dossier de réalisation des ventes gagnées.
 - Simulation de workflows avec snapshot serveur, versions, expiration et confirmation avant écriture ; guides d’action à adapter.
-- Assistant IA avec contexte autorisé et propositions à approuver, nécessitant une clé OpenAI.
+- Ask Relay : agent CRM avec outils Zod, recherches paginées, agrégations exactes, citations vérifiées, aperçus d’actions et outbox privée. Nécessite une clé OpenAI. Voir [architecture et validation](docs/ask-relay-agent.md).
 - Import CSV / Excel avec association des colonnes, aperçu, validation, historique et écriture atomique/idempotente (5 Mo, 1 000 lignes). Export filtré.
+- Dashboards privés ou partagés composables et sauvegardés ; segments dynamiques cumulatifs appliqués aux vues et exports.
 - Pipelines configurables, probabilités par étape et par opportunité, raisons de perte. Rapports par devise : pipeline ouvert, forecast pondéré, gagné/perdu, dates prévues et résultats mensuels issus du journal. Comparaison des hypothèses avec les taux de victoire observés, échantillons faibles signalés.
 - Recherche globale textuelle dans fiches, notes, tâches, engagements et réunions avec les droits RLS. Modèles email partagés avec variables et envoi manuel confirmé via le compte connecté.
 - Centre d’aide public `/doc` : 25 guides avec recherche et limites explicites.
-- Gmail, Google Calendar, Outlook et Outlook Calendar : OAuth séparé, import manuel de 25 éléments par service, emails confirmés et calendriers en lecture. Identifiants fournisseur à configurer. Zapier : clé API révocable, lecture des fiches/tâches et création optionnelle, expiration, contrôle des permissions et idempotence.
+- Gmail, Google Calendar, Outlook et Outlook Calendar : OAuth séparé, synchronisation paginée, fils d’emails, pièces jointes privées, envoi durable et actions calendrier confirmées. Meet, Teams et Zoom : import privé des transcriptions disponibles, sans bot d’enregistrement. Identifiants fournisseur à configurer. Zapier : clé API révocable, lecture des fiches/tâches et création optionnelle, expiration, contrôle des permissions et idempotence.
 - Priorités expliquées, contexte chronologique et relations entre fiches.
 - Doublons : comparaison côte à côte, modification et recalcul, aperçu et confirmation ; séparation persistante ou report de sept jours. Fusion et annulation administrateur, versions serveur, transaction atomique et journal durable.
 

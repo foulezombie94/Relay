@@ -23,11 +23,20 @@ export function provider(value: string): Service {
 }
 export function config(p: Service, origin?: string) {
   const google = services[p].family === "google";
-  const clientId = google ? process.env.GOOGLE_CLIENT_ID : process.env.MICROSOFT_CLIENT_ID;
-  const secret = google ? process.env.GOOGLE_CLIENT_SECRET : process.env.MICROSOFT_CLIENT_SECRET;
+  const zoom = services[p].family === "zoom";
+  const clientId = zoom
+    ? process.env.ZOOM_CLIENT_ID
+    : google
+      ? process.env.GOOGLE_CLIENT_ID
+      : process.env.MICROSOFT_CLIENT_ID;
+  const secret = zoom
+    ? process.env.ZOOM_CLIENT_SECRET
+    : google
+      ? process.env.GOOGLE_CLIENT_SECRET
+      : process.env.MICROSOFT_CLIENT_SECRET;
   if (!clientId || !secret)
     throw new ApiError(
-      "Ajoutez les identifiants OAuth Google ou Microsoft dans la configuration serveur.",
+      "Ajoutez les identifiants OAuth du fournisseur dans la configuration serveur.",
       503,
     );
   const tenant = process.env.MICROSOFT_TENANT || "common";
@@ -42,12 +51,16 @@ export function config(p: Service, origin?: string) {
   return {
     clientId,
     secret,
-    authorize: google
-      ? "https://accounts.google.com/o/oauth2/v2/auth"
-      : "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/authorize",
-    token: google
-      ? "https://oauth2.googleapis.com/token"
-      : "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/token",
+    authorize: zoom
+      ? "https://zoom.us/oauth/authorize"
+      : google
+        ? "https://accounts.google.com/o/oauth2/v2/auth"
+        : "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/authorize",
+    token: zoom
+      ? "https://zoom.us/oauth/token"
+      : google
+        ? "https://oauth2.googleapis.com/token"
+        : "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/token",
     scope: requestedScopes(p).join(" "),
     redirect: base + "/api/oauth/" + p + "/callback",
   };
@@ -75,10 +88,16 @@ export async function exchange(p: Service, fields: Record<string, string>) {
   try {
     response = await fetch(c.token, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        ...(p === "zoom"
+          ? {
+              Authorization: "Basic " + Buffer.from(c.clientId + ":" + c.secret).toString("base64"),
+            }
+          : {}),
+      },
       body: new URLSearchParams({
-        client_id: c.clientId,
-        client_secret: c.secret,
+        ...(p === "zoom" ? {} : { client_id: c.clientId, client_secret: c.secret }),
         ...fields,
       }),
       redirect: "error",
@@ -93,7 +112,7 @@ export async function exchange(p: Service, fields: Record<string, string>) {
       "L’autorisation du fournisseur a expiré ou a été refusée. Reconnectez le compte.",
       409,
     );
-  const parsed = tokenResponse.safeParse(await response.json());
+  const parsed = tokenResponse.safeParse(await boundedProviderJSON(response, 65536));
   if (!parsed.success) throw new ApiError("Réponse OAuth invalide.", 502);
   return parsed.data;
 }
@@ -189,15 +208,25 @@ export async function externalJson(
   url: string,
   token: string,
   init: RequestInit = {},
+  responseLimit = 2000000,
+  // Provider schemas are validated at the adapters; this boundary accepts their
+  // heterogeneous JSON shapes without allowing caller-selected network hosts.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<Record<string, any>> {
   const parsed = new URL(url);
   if (
     parsed.protocol !== "https:" ||
+    parsed.port ||
+    parsed.username ||
+    parsed.password ||
+    parsed.hash ||
     ![
       "gmail.googleapis.com",
       "www.googleapis.com",
       "openidconnect.googleapis.com",
       "graph.microsoft.com",
+      "meet.googleapis.com",
+      "api.zoom.us",
     ].includes(parsed.hostname)
   )
     throw new ApiError("Adresse fournisseur invalide.");
@@ -208,14 +237,16 @@ export async function externalJson(
       headers: { ...init.headers, Authorization: "Bearer " + token },
       cache: "no-store",
       redirect: "error",
-      signal: AbortSignal.timeout(20000),
+      signal: init.signal
+        ? AbortSignal.any([init.signal, AbortSignal.timeout(20000)])
+        : AbortSignal.timeout(20000),
     });
   } catch {
     throw new ApiError("Le fournisseur est indisponible. Réessayez plus tard.", 502);
   }
   if (!response.ok) {
     // Only known error codes influence the message; never expose provider payloads or tokens.
-    const payload: unknown = await response.json().catch(() => null);
+    const payload: unknown = await boundedProviderJSON(response, 65536).catch(() => null);
     const apiName =
       parsed.hostname === "gmail.googleapis.com"
         ? "Gmail"
@@ -228,5 +259,32 @@ export async function externalJson(
     throw new ApiError(failure.message, failure.status);
   }
   if (response.status === 202 || response.status === 204) return {};
-  return response.json();
+  const maximum =
+    parsed.hostname === "gmail.googleapis.com" &&
+    /^\/gmail\/v1\/users\/me\/messages\/[^/]+\/attachments\/[^/]+$/.test(parsed.pathname)
+      ? 28000000
+      : 2000000;
+  if (!Number.isSafeInteger(responseLimit) || responseLimit < 1024 || responseLimit > maximum) {
+    await response.body?.cancel();
+    throw new ApiError("Limite fournisseur invalide.");
+  }
+  return boundedProviderJSON(response, responseLimit);
+}
+async function boundedProviderJSON(response: Response, limit: number) {
+  if (!response.body) throw new ApiError("Réponse fournisseur vide.", 502);
+  const reader = response.body.getReader(),
+    decoder = new TextDecoder();
+  let text = "";
+  try {
+    while (true) {
+      const chunk = await reader.read();
+      text += decoder.decode(chunk.value, { stream: !chunk.done });
+      if (text.length > limit) throw new ApiError("Réponse fournisseur trop volumineuse.", 413);
+      if (chunk.done) break;
+    }
+  } finally {
+    await reader.cancel().catch(() => {});
+    reader.releaseLock();
+  }
+  return JSON.parse(text);
 }

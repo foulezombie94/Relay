@@ -3,6 +3,10 @@ import { z } from "zod";
 export const assistantOutput = z.object({
   answer: z.string().min(1).max(20000),
   source_ids: z.array(z.uuid()).max(30).default([]),
+  citations: z
+    .array(z.object({ source_id: z.uuid(), quote: z.string().trim().min(1).max(2000) }).strict())
+    .max(30)
+    .default([]),
   proposals: z
     .array(
       z.object({
@@ -22,7 +26,19 @@ export const assistantOutput = z.object({
 export type AssistantProposal = z.infer<typeof assistantOutput>["proposals"][number];
 export type AssistantSource = {
   id: string;
-  type: "record" | "note" | "meeting";
+  type:
+    | "record"
+    | "note"
+    | "meeting"
+    | "email"
+    | "calendar"
+    | "task"
+    | "commitment"
+    | "document"
+    | "conflict"
+    | "list"
+    | "pipeline"
+    | "workflow";
   label: string;
   record_id: string | null;
   object_id?: string;
@@ -40,14 +56,19 @@ export type AssistantMessage = {
   content?: string;
   answer?: string;
   created_at?: string;
+  request_id?: string;
   record_id?: string | null;
   state?: "pending" | "complete" | "stopped" | "error";
   source_ids?: string[];
+  citations?: z.infer<typeof assistantOutput>["citations"];
   proposals?: AssistantProposal[];
   sources?: AssistantSource[];
   steps?: AssistantStep[];
   model?: string;
   elapsed_ms?: number;
+  actions?: import("@/lib/agent/contracts").AgentAction[];
+  access_fingerprint?: string;
+  partial?: boolean;
   accepted?: Record<string, { id: string; resource: string }>;
 };
 export type AssistantConversation = {
@@ -109,7 +130,10 @@ export function conversationMessages(value: unknown): AssistantMessage[] {
               (s: unknown) =>
                 s && typeof s === "object" && typeof (s as AssistantSource).id === "string",
             )
-            .slice(0, 70)
+            .slice(0, 400)
+        : [],
+      citations: assistantOutput.shape.citations.safeParse(m.citations).success
+        ? assistantOutput.shape.citations.parse(m.citations)
         : [],
       proposals: Array.isArray(m.proposals)
         ? m.proposals.slice(0, 20).flatMap((p: unknown) => {
@@ -123,7 +147,7 @@ export function conversationMessages(value: unknown): AssistantMessage[] {
               (s: unknown) =>
                 s && typeof s === "object" && typeof (s as AssistantStep).id === "string",
             )
-            .slice(0, 10)
+            .slice(0, 40)
         : [],
     }));
 }

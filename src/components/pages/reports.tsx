@@ -1,17 +1,10 @@
 "use client";
+import { ReportBuilder } from "../report-builder";
 import { ForecastTotals } from "../forecast-totals";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRows, useWorkspace, request } from "../data-provider";
-import {
-  PageHeader,
-  Loading,
-  ErrorMessage,
-  money,
-  Badge,
-  Empty,
-  str,
-} from "../ui";
+import { PageHeader, Loading, ErrorMessage, money, Badge, Empty, str } from "../ui";
 import type { forecastDeals } from "@/lib/domain/pipelines";
 import type { salesHistory } from "@/lib/domain/sales-history";
 type Report = {
@@ -27,19 +20,14 @@ export function ReportsPage() {
   const { workspace } = useWorkspace();
   const [pipeline, setPipeline] = useState("");
   const [owner, setOwner] = useState("");
-  const [month, setMonth] = useState(() =>
-    new Date().toISOString().slice(0, 7),
-  );
+  const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const pipelines = useRows("pipelines", { size: 100 });
   const members = useRows("memberships", { size: 100 });
   const q = useQuery({
     queryKey: ["rows", workspace.id, "reports", pipeline, owner, month],
     queryFn: () =>
       request<{ data: Report }>(
-        "/api/" +
-          workspace.id +
-          "/reports?" +
-          new URLSearchParams({ pipeline, owner, month }),
+        "/api/" + workspace.id + "/reports?" + new URLSearchParams({ pipeline, owner, month }),
       ),
   });
   const report = q.data?.data;
@@ -47,14 +35,12 @@ export function ReportsPage() {
   const years = Array.from(
     new Set([
       Number(month.slice(0, 4)),
-      ...Array.from(
-        { length: 12 },
-        (_, i) => new Date().getUTCFullYear() + 1 - i,
-      ),
+      ...Array.from({ length: 12 }, (_, i) => new Date().getUTCFullYear() + 1 - i),
     ]),
   ).sort((a, b) => b - a);
   return (
     <>
+      <ReportBuilder />
       <PageHeader
         title="Rapports et prévisions"
         description="Distinguez vos ventes ouvertes, vos résultats et vos hypothèses de conversion."
@@ -151,10 +137,11 @@ export function ReportsPage() {
                     <>
                       <h3>
                         Résultats du mois ·{" "}
-                        {new Date(month + "-15T12:00:00Z").toLocaleDateString(
-                          "fr-FR",
-                          { month: "long", year: "numeric", timeZone: "UTC" },
-                        )}
+                        {new Date(month + "-15T12:00:00Z").toLocaleDateString("fr-FR", {
+                          month: "long",
+                          year: "numeric",
+                          timeZone: "UTC",
+                        })}
                       </h3>
                       <div className="stats">
                         <article>
@@ -162,17 +149,14 @@ export function ReportsPage() {
                           <strong>{money(outcome?.won ?? 0, currency)}</strong>
                         </article>
                         <article>
-                          <span>
-                            Perdu · {outcome?.lostCount ?? 0} vente(s)
-                          </span>
+                          <span>Perdu · {outcome?.lostCount ?? 0} vente(s)</span>
                           <strong>{money(outcome?.lost ?? 0, currency)}</strong>
                         </article>
                       </div>
                       {!!outcome?.undated && (
                         <p>
-                          {outcome.undated} vente(s) clôturée(s) sans date
-                          d’issue fiable dans le journal : exclue(s) des
-                          résultats mensuels.
+                          {outcome.undated} vente(s) clôturée(s) sans date d’issue fiable dans le
+                          journal : exclue(s) des résultats mensuels.
                         </p>
                       )}
                     </>
@@ -196,9 +180,7 @@ export function ReportsPage() {
                               <td>
                                 {m === "Sans date"
                                   ? m
-                                  : new Date(
-                                      m + "-15T12:00:00Z",
-                                    ).toLocaleDateString("fr-FR", {
+                                  : new Date(m + "-15T12:00:00Z").toLocaleDateString("fr-FR", {
                                       month: "long",
                                       year: "numeric",
                                       timeZone: "UTC",
@@ -211,45 +193,34 @@ export function ReportsPage() {
                           ))}
                         {!Object.keys(forecast.months).length && (
                           <tr>
-                            <td colSpan={4}>
-                              Aucune opportunité ouverte dans cette devise.
-                            </td>
+                            <td colSpan={4}>Aucune opportunité ouverte dans cette devise.</td>
                           </tr>
                         )}
                       </tbody>
                     </table>
                   </div>
-                  <h3 className="section-title">
-                    Valeurs par étape · toutes périodes
-                  </h3>
-                  {Object.entries(report.totals[currency] ?? {}).map(
-                    ([stage, value]) => (
-                      <div className="report-bar" key={stage}>
-                        <Badge value={stage} />
-                        <div className="bar-track">
-                          <div
-                            style={{
-                              width:
-                                Math.max(
-                                  2,
-                                  (100 * value) /
-                                    Math.max(
-                                      1,
-                                      ...Object.values(report.totals[currency]),
-                                    ),
-                                ) + "%",
-                            }}
-                          />
-                        </div>
-                        <strong>{money(value, currency)}</strong>
+                  <h3 className="section-title">Valeurs par étape · toutes périodes</h3>
+                  {Object.entries(report.totals[currency] ?? {}).map(([stage, value]) => (
+                    <div className="report-bar" key={stage}>
+                      <Badge value={stage} />
+                      <div className="bar-track">
+                        <div
+                          style={{
+                            width:
+                              Math.max(
+                                2,
+                                (100 * value) /
+                                  Math.max(1, ...Object.values(report.totals[currency])),
+                              ) + "%",
+                          }}
+                        />
                       </div>
-                    ),
-                  )}
+                      <strong>{money(value, currency)}</strong>
+                    </div>
+                  ))}
                   {Object.keys(forecast.reasons).length > 0 && (
                     <>
-                      <h3 className="section-title">
-                        Raisons de perte · toutes périodes
-                      </h3>
+                      <h3 className="section-title">Raisons de perte · toutes périodes</h3>
                       <ul>
                         {Object.entries(forecast.reasons)
                           .sort((a, b) => b[1] - a[1])
@@ -267,20 +238,18 @@ export function ReportsPage() {
             })}
             {report.historyLimited && (
               <p role="status">
-                Historique trop volumineux pour ce rapport (100 000 événements
-                maximum). Les résultats mensuels et les taux historiques ne sont
-                pas affichés avec des données partielles.
+                Historique trop volumineux pour ce rapport (100 000 événements maximum). Les
+                résultats mensuels et les taux historiques ne sont pas affichés avec des données
+                partielles.
               </p>
             )}
             {report.history && !!report.total && (
               <section className="detail-card">
                 <h2>Hypothèses et taux de victoire observés</h2>
                 <p>
-                  Parmi les ventes actuellement clôturées ayant réellement
-                  traversé cette étape dans le pipeline actuel : gagnées ÷
-                  (gagnées + perdues). Une vente compte une seule fois par
-                  étape. Les ventes ouvertes et les étapes non observées sont
-                  exclues.
+                  Parmi les ventes actuellement clôturées ayant réellement traversé cette étape dans
+                  le pipeline actuel : gagnées ÷ (gagnées + perdues). Une vente compte une seule
+                  fois par étape. Les ventes ouvertes et les étapes non observées sont exclues.
                 </p>
                 <div className="table-wrap">
                   <table className="data-table">
@@ -300,11 +269,7 @@ export function ReportsPage() {
                             {cell.pipeline} · {cell.label}
                           </td>
                           <td>{cell.configured} %</td>
-                          <td>
-                            {cell.rate === null
-                              ? "Non disponible"
-                              : cell.rate + " %"}
-                          </td>
+                          <td>{cell.rate === null ? "Non disponible" : cell.rate + " %"}</td>
                           <td>
                             {cell.won} gagnée(s) / {cell.lost} perdue(s)
                           </td>
@@ -321,21 +286,19 @@ export function ReportsPage() {
                   </table>
                 </div>
                 <p className="footer-note">
-                  Historique disponible, toutes périodes confondues, filtré par
-                  pipeline et responsable actuels. La comparaison ne modifie
-                  jamais automatiquement les probabilités. Ce taux descriptif
-                  n’est pas une prédiction individuelle.
+                  Historique disponible, toutes périodes confondues, filtré par pipeline et
+                  responsable actuels. La comparaison ne modifie jamais automatiquement les
+                  probabilités. Ce taux descriptif n’est pas une prédiction individuelle.
                 </p>
               </section>
             )}
             <p className="footer-note">
-              Forecast = montant × probabilité définie par votre équipe,
-              uniquement pour les ventes ouvertes. Le mois sélectionné concerne
-              les issues gagnées/perdues : date du dernier passage effectif au
-              statut actuel dans le journal (UTC), montants actuels des fiches.
-              La date de clôture prévue sert seulement au forecast. Les devises
-              restent séparées. Les ventes archivées sont exclues ; les tâches
-              sont filtrées par responsable, tous pipelines confondus.
+              Forecast = montant × probabilité définie par votre équipe, uniquement pour les ventes
+              ouvertes. Le mois sélectionné concerne les issues gagnées/perdues : date du dernier
+              passage effectif au statut actuel dans le journal (UTC), montants actuels des fiches.
+              La date de clôture prévue sert seulement au forecast. Les devises restent séparées.
+              Les ventes archivées sont exclues ; les tâches sont filtrées par responsable, tous
+              pipelines confondus.
             </p>
           </>
         )

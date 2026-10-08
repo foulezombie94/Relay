@@ -31,29 +31,19 @@ function TimePart({
 }) {
   return (
     <Select.Root value={value} onValueChange={onChange}>
-      <Select.Trigger
-        type="button"
-        className={styles.timeTrigger}
-        aria-label={label}
-      >
+      <Select.Trigger type="button" className={styles.timeTrigger} aria-label={label}>
         <Select.Value />
         <Select.Icon>
           <ChevronDown size={13} />
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal>
-        <Select.Content
-          position="popper"
-          sideOffset={5}
-          className={styles.timeMenu}
-        >
+        <Select.Content position="popper" sideOffset={5} className={styles.timeMenu}>
           <Select.ScrollUpButton className={styles.scrollButton}>
             <ChevronLeft size={12} />
           </Select.ScrollUpButton>
           <Select.Viewport>
-            {Array.from({ length: count }, (_, i) =>
-              String(i).padStart(2, "0"),
-            ).map((item) => (
+            {Array.from({ length: count }, (_, i) => String(i).padStart(2, "0")).map((item) => (
               <Select.Item value={item} key={item} className={styles.timeItem}>
                 <Select.ItemText>{item}</Select.ItemText>
                 <Select.ItemIndicator>
@@ -96,9 +86,8 @@ export function DatePicker({
   });
   const [month, setMonth] = useState(selected ?? new Date());
   const [open, setOpen] = useState(false);
-  const value = selected
-    ? format(selected, withTime ? "yyyy-MM-dd'T'HH:mm" : "yyyy-MM-dd")
-    : "";
+  const [boundary, setBoundary] = useState<HTMLElement | undefined>();
+  const value = selected ? format(selected, withTime ? "yyyy-MM-dd'T'HH:mm" : "yyyy-MM-dd") : "";
   const display = selected
     ? format(selected, withTime ? "d MMM yyyy 'à' HH:mm" : "d MMMM yyyy", {
         locale: fr,
@@ -108,17 +97,9 @@ export function DatePicker({
   function choose(day: Date | undefined) {
     if (!day) return;
     const next = new Date(day);
-    if (withTime)
-      next.setHours(
-        selected?.getHours() ?? 9,
-        selected?.getMinutes() ?? 0,
-        0,
-        0,
-      );
+    if (withTime) next.setHours(selected?.getHours() ?? 9, selected?.getMinutes() ?? 0, 0, 0);
     setSelected(next);
-    onValueChange?.(
-      format(next, withTime ? "yyyy-MM-dd\u0027T\u0027HH:mm" : "yyyy-MM-dd"),
-    );
+    onValueChange?.(format(next, withTime ? "yyyy-MM-dd\u0027T\u0027HH:mm" : "yyyy-MM-dd"));
     setMonth(next);
     if (!withTime) setOpen(false);
   }
@@ -128,13 +109,17 @@ export function DatePicker({
     if (part === "hours") updated.setHours(Number(next));
     else updated.setMinutes(Number(next));
     setSelected(updated);
-    onValueChange?.(
-      format(updated, withTime ? "yyyy-MM-dd\u0027T\u0027HH:mm" : "yyyy-MM-dd"),
-    );
+    onValueChange?.(format(updated, withTime ? "yyyy-MM-dd\u0027T\u0027HH:mm" : "yyyy-MM-dd"));
   }
 
   return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
+    <Popover.Root
+      open={open}
+      onOpenChange={(next) => {
+        setBoundary(triggerRef.current?.closest<HTMLElement>("[role=dialog]") ?? undefined);
+        setOpen(next);
+      }}
+    >
       <input type="hidden" name={name} value={value} disabled={disabled} />
       <Popover.Trigger asChild>
         <button
@@ -150,33 +135,21 @@ export function DatePicker({
           <ChevronDown size={14} />
         </button>
       </Popover.Trigger>
-      <Popover.Portal
-        container={
-          triggerRef.current?.closest<HTMLElement>("[role=dialog]") ?? undefined
-        }
-      >
+      <Popover.Portal container={boundary}>
         <Popover.Content
           sideOffset={8}
           collisionPadding={14}
-          collisionBoundary={
-            triggerRef.current?.closest<HTMLElement>("[role=dialog]") ??
-            undefined
-          }
+          collisionBoundary={boundary}
           align="start"
           className={styles.content}
           aria-labelledby={headingId}
         >
           <div className={styles.heading}>
             <div>
-              <span className={styles.eyebrow}>
-                {withTime ? "DATE ET HEURE" : "CALENDRIER"}
-              </span>
+              <span className={styles.eyebrow}>{withTime ? "DATE ET HEURE" : "CALENDRIER"}</span>
               <h3 id={headingId}>{label}</h3>
             </div>
-            <Popover.Close
-              className={styles.close}
-              aria-label="Fermer le calendrier"
-            >
+            <Popover.Close className={styles.close} aria-label="Fermer le calendrier">
               <X size={16} />
             </Popover.Close>
           </div>
@@ -186,11 +159,7 @@ export function DatePicker({
               { text: "Demain", days: 1 },
               { text: "+ 7 jours", days: 7 },
             ].map(({ text, days }) => (
-              <button
-                key={days}
-                type="button"
-                onClick={() => choose(addDays(new Date(), days))}
-              >
+              <button key={days} type="button" onClick={() => choose(addDays(new Date(), days))}>
                 {text}
               </button>
             ))}
@@ -265,9 +234,7 @@ export function DatePicker({
               </button>
             ) : (
               <span>
-                {selected
-                  ? format(selected, "d MMM yyyy", { locale: fr })
-                  : "Sélectionnez un jour"}
+                {selected ? format(selected, "d MMM yyyy", { locale: fr }) : "Sélectionnez un jour"}
               </span>
             )}
           </div>

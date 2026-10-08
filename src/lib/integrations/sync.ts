@@ -1,9 +1,11 @@
 import "server-only";
+import { gmailContent } from "./email-content";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { connection, externalJson } from "./oauth";
 import { services, type Service } from "./services";
 import { ApiError, databaseError } from "@/lib/api/context";
 import { syncWindow, graphPage } from "./sync-window";
+import { meetingBatch } from "./meetings";
 type Item = {
   provider_id: string;
   kind: "email" | "calendar";
@@ -11,6 +13,9 @@ type Item = {
   sender: string;
   recipients: string[];
   body: string;
+  content_complete?: boolean;
+  internet_message_id?: string;
+  attachments?: unknown[];
   is_reply?: boolean;
   thread_id?: string;
   sender_email?: string;
@@ -54,6 +59,17 @@ export async function synchronize(client: SupabaseClient, w: string, user: strin
   try {
     const { tokens } = await connection(client, w, p);
     const token = tokens.access_token;
+    if (p === "google-meet" || p === "microsoft-teams" || p === "zoom") {
+      const batch = await meetingBatch(p, token, tokens.email, claim.cursor);
+      if (leaseLost) throw new ApiError("Le verrou de synchronisation a expiré.", 409);
+      const result = await client.rpc("meeting_sync_finish", {
+        w,
+        p,
+        payload: { ...batch, lease },
+      });
+      databaseError(result.error);
+      return { ...result.data, kind: "meeting" };
+    }
     const service = services[p];
     const window = syncWindow(claim.cursor, service.kind);
     const items: Item[] = [];
@@ -81,7 +97,7 @@ export async function synchronize(client: SupabaseClient, w: string, user: strin
               const m = await externalJson(
                 "https://gmail.googleapis.com/gmail/v1/users/me/messages/" +
                   encodeURIComponent(message.id) +
-                  "?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=To&metadataHeaders=In-Reply-To",
+                  "?format=full",
                 token,
               );
               const header = (name: string) =>
@@ -104,8 +120,11 @@ export async function synchronize(client: SupabaseClient, w: string, user: strin
                 direction: m.labelIds?.includes("SENT")
                   ? ("outbound" as const)
                   : ("inbound" as const),
-                recipients: [header("To")],
-                body: text(m.snippet),
+                recipients: header("To")
+                  .split(",")
+                  .map((v) => (v.match(/<([^>]+)>/)?.[1] ?? v.trim()).toLowerCase()),
+                ...gmailContent(m.payload ?? {}),
+                internet_message_id: header("Message-ID"),
                 received_at: new Date(Number(m.internalDate)).toISOString(),
               };
             }),
@@ -144,7 +163,7 @@ export async function synchronize(client: SupabaseClient, w: string, user: strin
       const query = new URLSearchParams({
         $top: "100",
         $select:
-          "id,subject,from,toRecipients,bodyPreview,receivedDateTime,conversationId,internetMessageHeaders",
+          "id,subject,from,toRecipients,body,receivedDateTime,conversationId,internetMessageHeaders,internetMessageId",
         $orderby: "receivedDateTime desc",
         $filter: "receivedDateTime ge " + window.start + " and receivedDateTime lt " + window.end,
       });
@@ -153,7 +172,7 @@ export async function synchronize(client: SupabaseClient, w: string, user: strin
           ? graphPage(window.page, "messages")
           : "https://graph.microsoft.com/v1.0/me/messages?" + query,
         token,
-        { headers: { Prefer: 'IdType="ImmutableId"' } },
+        { headers: { Prefer: 'outlook.body-content-type="text", IdType="ImmutableId"' } },
       );
       page = list["@odata.nextLink"];
       for (const m of (list.value ?? []).slice(0, 100))
@@ -170,7 +189,9 @@ export async function synchronize(client: SupabaseClient, w: string, user: strin
           recipients: (m.toRecipients ?? []).map((a: { emailAddress: { address: string } }) =>
             text(a.emailAddress?.address, 1000),
           ),
-          body: text(m.bodyPreview),
+          body: text(m.body?.content),
+          content_complete: String(m.body?.content ?? "").length <= 30000,
+          internet_message_id: text(m.internetMessageId, 1000),
           received_at: m.receivedDateTime || null,
         });
     } else {

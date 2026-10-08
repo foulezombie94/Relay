@@ -1,4 +1,6 @@
 "use client";
+import Link from "next/link";
+import { RecordSegments } from "../record-segments";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -31,6 +33,16 @@ import { stages } from "@/lib/domain/types";
 import { Building2, Users, Layers3 } from "lucide-react";
 import styles from "./records.module.css";
 export function RecordsPage({ slug }: { slug: string }) {
+  const { workspace } = useWorkspace();
+  const url = useSearchParams();
+  return (
+    <RecordsPageContents
+      key={workspace.id + ":" + slug + ":" + (url.get("pipeline") ?? "")}
+      slug={slug}
+    />
+  );
+}
+function RecordsPageContents({ slug }: { slug: string }) {
   const { objects, workspace } = useWorkspace();
   const object = objects.find((o) => o.slug === slug);
   const router = useRouter();
@@ -39,21 +51,13 @@ export function RecordsPage({ slug }: { slug: string }) {
   const pipelineFromUrl = url.get("pipeline") ?? "";
   const pipelines = useRows<Pipeline>("pipelines", { size: 100 });
   const [page, setPage] = useState(1);
-  const [view, setView] = useState<ViewConfig>(() => defaultRecordView(slug));
-  useEffect(() => {
-    setView({
-      ...defaultRecordView(slug),
-      pipeline_id: slug === "deals" ? pipelineFromUrl : "",
-    });
-    setPage(1);
-    setMode(
-      slug === "deals" ? "kanban" : slug === "companies" ? "cards" : "table",
-    );
-  }, [slug, workspace.id, pipelineFromUrl]);
+  const [view, setView] = useState<ViewConfig>(() => ({
+    ...defaultRecordView(slug),
+    pipeline_id: slug === "deals" ? pipelineFromUrl : "",
+  }));
   const pageContent = {
     companies: {
-      description:
-        "Vos comptes clients et prospects, avec leur contexte et leurs coordonnées.",
+      description: "Vos comptes clients et prospects, avec leur contexte et leurs coordonnées.",
       action: "Nouvelle entreprise",
       single: "entreprise",
       plural: "entreprises",
@@ -70,8 +74,7 @@ export function RecordsPage({ slug }: { slug: string }) {
       icon: Users,
     },
     deals: {
-      description:
-        "Votre pipeline commercial, de la qualification à la signature.",
+      description: "Votre pipeline commercial, de la qualification à la signature.",
       action: "Nouvelle opportunité",
       single: "opportunité",
       plural: "opportunités",
@@ -101,7 +104,7 @@ export function RecordsPage({ slug }: { slug: string }) {
   }
   const [newStage, setNewStage] = useState("Nouveau");
   const [edit, setEdit] = useState<CrmRecord | true | null>(null);
-  const [detail, setDetail] = useState<CrmRecord | null>(null);
+  const [selectedDetail, setDetail] = useState<CrmRecord | null>(null);
   const linked = useQuery({
     queryKey: ["rows", workspace.id, "record-link", linkedId],
     enabled: !!linkedId,
@@ -112,14 +115,20 @@ export function RecordsPage({ slug }: { slug: string }) {
       return active.data.length
         ? active
         : request<{ data: CrmRecord[] }>(
-            "/api/" +
-              workspace.id +
-              "/records?id=" +
-              linkedId +
-              "&archived=true",
+            "/api/" + workspace.id + "/records?id=" + linkedId + "&archived=true",
           );
     },
   });
+  const [dismissedLink, setDismissedLink] = useState<string | null>(null);
+  const linkedRecord = linked.data?.data[0];
+  const detail =
+    selectedDetail ??
+    (linkedId !== dismissedLink &&
+    linkedRecord?.object_id === object?.id &&
+    !linkedRecord?.archived &&
+    !linkedRecord?.merged_into
+      ? (linkedRecord ?? null)
+      : null);
   useEffect(() => {
     const r = linked.data?.data[0];
     if (r && r.object_id === object?.id) {
@@ -130,7 +139,6 @@ export function RecordsPage({ slug }: { slug: string }) {
             "?record=" +
             r.merged_into,
         );
-      else if (!r.archived) setDetail(r);
     }
   }, [linked.data, object, router]);
   const [importing, setImporting] = useState(false);
@@ -143,6 +151,7 @@ export function RecordsPage({ slug }: { slug: string }) {
     stage: view.stage || undefined,
     owner: view.owner || undefined,
     minimum: view.minimum || undefined,
+    filters: view.filters?.length ? JSON.stringify(view.filters) : undefined,
     sort: view.sort,
     direction: view.direction,
     page: page - 1,
@@ -240,6 +249,7 @@ export function RecordsPage({ slug }: { slug: string }) {
     sort: view.sort,
     direction: view.direction,
     columns: view.columns.join(","),
+    filters: JSON.stringify(view.filters ?? []),
     pipeline_id: slug === "deals" ? view.pipeline_id : "",
   });
   return (
@@ -302,6 +312,13 @@ export function RecordsPage({ slug }: { slug: string }) {
           </button>
         ))}
       </div>
+      <RecordSegments
+        value={view.filters ?? []}
+        onChange={(filters) => {
+          setPage(1);
+          setView((current) => ({ ...current, filters }));
+        }}
+      />
       <div className="toolbar">
         <SearchBox
           value={search}
@@ -314,10 +331,7 @@ export function RecordsPage({ slug }: { slug: string }) {
           {q.data?.count ?? 0} {pageContent.plural}
         </span>
         <div className="segmented">
-          <button
-            className={mode === "table" ? "active" : ""}
-            onClick={() => chooseMode("table")}
-          >
+          <button className={mode === "table" ? "active" : ""} onClick={() => chooseMode("table")}>
             Tableau
           </button>
           {slug === "deals" ? (
@@ -377,9 +391,9 @@ export function RecordsPage({ slug }: { slug: string }) {
               ))}
             </select>
           </label>
-          <a className="button small" href="/app/pipelines">
+          <Link className="button small" href="/app/pipelines">
             Paramètres du pipeline
-          </a>
+          </Link>
         </div>
       )}
       <RecordViews
@@ -395,17 +409,12 @@ export function RecordsPage({ slug }: { slug: string }) {
         }}
       />
       {error && <div className="alert info">{error}</div>}
-      <ErrorMessage
-        error={q.error || linked.error || attrs.error || members.error}
-      />
+      <ErrorMessage error={q.error || linked.error || attrs.error || members.error} />
       {linkedId &&
         linked.data &&
         (!linked.data.data.length ||
-          (linked.data.data[0]?.archived &&
-            !linked.data.data[0]?.merged_into)) && (
-          <div className="alert info">
-            Cette fiche est archivée ou inaccessible.
-          </div>
+          (linked.data.data[0]?.archived && !linked.data.data[0]?.merged_into)) && (
+          <div className="alert info">Cette fiche est archivée ou inaccessible.</div>
         )}
       {q.isPending ? (
         <Loading />
@@ -448,9 +457,7 @@ export function RecordsPage({ slug }: { slug: string }) {
             setNewStage(stage);
             setEdit(true);
           }}
-          stageLabels={
-            pipelines.data?.data.find((p) => p.id === view.pipeline_id)?.labels
-          }
+          stageLabels={pipelines.data?.data.find((p) => p.id === view.pipeline_id)?.labels}
           onMove={async (record, stage) => {
             if (stage === "Perdu" && !record.lost_reason?.trim()) {
               setLost(record);
@@ -460,11 +467,7 @@ export function RecordsPage({ slug }: { slug: string }) {
             try {
               await save("records", { stage }, record);
             } catch (err) {
-              setError(
-                err instanceof Error
-                  ? err.message
-                  : "Changement d’étape impossible.",
-              );
+              setError(err instanceof Error ? err.message : "Changement d’étape impossible.");
               throw err;
             }
           }}
@@ -481,9 +484,7 @@ export function RecordsPage({ slug }: { slug: string }) {
       <div className="pagination">
         <span>
           Page {page}
-          {mode === "kanban"
-            ? " · Pipeline limité aux 50 résultats de cette page"
-            : ""}
+          {mode === "kanban" ? " · Pipeline limité aux 50 résultats de cette page" : ""}
         </span>
         <button
           className="button small"
@@ -505,11 +506,7 @@ export function RecordsPage({ slug }: { slug: string }) {
           key={edit === true ? "new" : edit.id}
           open
           onClose={() => setEdit(null)}
-          title={
-            edit === true
-              ? pageContent.action
-              : "Modifier · " + edit.display_name
-          }
+          title={edit === true ? pageContent.action : "Modifier · " + edit.display_name}
           fields={fields}
           initial={
             edit === true
@@ -523,25 +520,14 @@ export function RecordsPage({ slug }: { slug: string }) {
                   ...edit,
                   use_stage_probability: edit.probability == null,
                   ...Object.fromEntries(
-                    custom.map((a) => [
-                      "attr_" + a.key,
-                      edit.attributes?.[a.key],
-                    ]),
+                    custom.map((a) => ["attr_" + a.key, edit.attributes?.[a.key]]),
                   ),
                 }
           }
-          busy={
-            busy ||
-            attrs.isPending ||
-            members.isPending ||
-            !!attrs.error ||
-            !!members.error
-          }
+          busy={busy || attrs.isPending || members.isPending || !!attrs.error || !!members.error}
           onSave={async (values) => {
             if (slug === "deals") {
-              values.probability = values.use_stage_probability
-                ? null
-                : values.probability;
+              values.probability = values.use_stage_probability ? null : values.probability;
               delete values.use_stage_probability;
             }
             const attributes: Record<string, unknown> = {
@@ -573,9 +559,7 @@ export function RecordsPage({ slug }: { slug: string }) {
           object={object}
           attributes={custom}
           pipelineId={
-            slug === "deals"
-              ? view.pipeline_id || pipelines.data?.data[0]?.id
-              : undefined
+            slug === "deals" ? view.pipeline_id || pipelines.data?.data[0]?.id : undefined
           }
           onClose={() => setImporting(false)}
         />
@@ -595,11 +579,7 @@ export function RecordsPage({ slug }: { slug: string }) {
           ]}
           busy={busy}
           onSave={async (values) => {
-            await save(
-              "records",
-              { stage: "Perdu", lost_reason: values.lost_reason },
-              lost,
-            );
+            await save("records", { stage: "Perdu", lost_reason: values.lost_reason }, lost);
             setLost(null);
           }}
         />
@@ -609,14 +589,13 @@ export function RecordsPage({ slug }: { slug: string }) {
           key={detail.id}
           record={detail}
           onClose={() => {
+            setDismissedLink(linkedId);
             setDetail(null);
             if (linkedId)
-              router.replace(
-                "/app/" +
-                  (object.standard ? object.slug : "object-" + object.slug),
-              );
+              router.replace("/app/" + (object.standard ? object.slug : "object-" + object.slug));
           }}
           onEdit={() => {
+            setDismissedLink(linkedId);
             setEdit(detail);
             setDetail(null);
           }}

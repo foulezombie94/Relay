@@ -947,7 +947,7 @@ export const helpArticles: HelpArticle[] = [
         ],
         steps: [
           "Ouvrez Assistant IA.",
-          "Choisissez une fiche ou conservez le contexte récent de l’espace.",
+          "Choisissez une fiche ou recherchez dans les données CRM auxquelles vous avez accès.",
           "Écrivez une question précise, ou cliquez sur un raccourci pour préparer votre message. Entrée envoie le message ; Maj + Entrée ajoute une ligne.",
           "Lisez la réponse et vérifiez ses sources.",
         ],
@@ -955,7 +955,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Suivre l’activité de l’assistant",
         paragraphs: [
-          "La réponse apparaît progressivement. Ouvrez Activité de l’assistant pour voir les étapes réelles : vérification des accès, recherche des sources, analyse, contrôle des citations et enregistrement. Les compteurs décrivent les sources consultées dans cet échantillon. Ils ne représentent pas tout votre CRM.",
+          "Ouvrez Activité de l’assistant pour suivre ses recherches, lectures, calculs, vérifications et actions préparées. La réponse est affichée après vérification des accès et citations. Les limites de pages et de contenu sont signalées ; les volumes utilisent des calculs en base.",
           "Le bouton carré arrête la génération en cours. Copier récupère la réponse. Réessayer ajoute une nouvelle tentative à la conversation, avec le contexte de la question d’origine.",
         ],
       },
@@ -963,7 +963,7 @@ export const helpArticles: HelpArticle[] = [
         title: "Retrouver une conversation et ses sources",
         paragraphs: [
           "L’historique privé affiche les 40 conversations les plus récentes. Recherchez un titre et cliquez dessus pour rouvrir les messages, sources et propositions. Cliquez sur le titre pour le renommer, ou sur la corbeille pour supprimer la conversation. Les éléments déjà ajoutés au CRM restent disponibles.",
-          "Une source ouvre sa fiche, note ou réunion. Les accès sont vérifiés à nouveau à l’ouverture : une réponse dont les sources sont devenues inaccessibles est masquée. Modifier une question prépare une nouvelle conversation pour conserver l’échange original.",
+          "Une source ouvre sa fiche, note, réunion, email ou document. Les accès sont vérifiés à nouveau à l’ouverture : une réponse dont les sources sont devenues inaccessibles est masquée. Modifier une question prépare une nouvelle conversation pour conserver l’échange original.",
         ],
       },
       {
@@ -971,7 +971,7 @@ export const helpArticles: HelpArticle[] = [
         paragraphs: [
           "Une réponse peut être incomplète ou incorrecte. Vérifiez les échanges originaux. Ajouter pour examen humain crée une proposition à examiner ; cela ne valide pas définitivement une promesse ou une contradiction.",
           "L’ajout vérifie les citations dans les sources actuelles et empêche de créer deux fois la même proposition. Les lecteurs ne peuvent pas ajouter de proposition. Une note privée ne devient pas un engagement ou une contradiction partagée.",
-          "Relay utilise un échantillon des fiches, notes et réunions accessibles, limité aux informations les plus récentes. Cet assistant ne recherche pas sur Internet, ne lit pas les boîtes email et n’exécute pas les workflows. Une conversation contient jusqu’à 20 échanges ; les dix derniers messages servent de contexte à la réponse suivante.",
+          "Relay recherche dans les données CRM autorisées, avec des résultats paginés. Les emails, calendriers et transcriptions couvrent les données importées ; leur synchronisation ne garantit pas un historique complet. Les actions CRM et calendriers produisent un aperçu à confirmer. Les workflows restent des brouillons. L’envoi direct d’un email exige une demande explicite non ambiguë et l’activation par l’administrateur après les tests fournisseurs ; sinon, confirmez l’aperçu. Approfondir augmente le budget de recherche. Les anciennes réponses ne sont jamais utilisées comme preuves ou autorisations.",
         ],
       },
       {
