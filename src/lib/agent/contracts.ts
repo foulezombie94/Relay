@@ -168,6 +168,15 @@ export const actionSchemas = {
     })
     .omit({ status: true })
     .strict(),
+  propose_conflict: resources.conflicts
+    .extend({
+      source_a_id: z.uuid(),
+      source_a_type: z.enum(["note", "meeting", "email"]),
+      source_b_id: z.uuid(),
+      source_b_type: z.enum(["note", "meeting", "email"]),
+    })
+    .omit({ status: true })
+    .strict(),
   update_commitment: z
     .object({
       id: z.uuid(),
@@ -253,6 +262,14 @@ export type AgentAction = {
   created_at?: string;
   error_code?: string;
   private_context?: boolean;
+  run_id?: string;
+  conversation_id?: string;
+  confirmation_digest?: string;
+  confirmation_expires_at?: string;
+  account_id?: string;
+  account_email?: string;
+  source_refs?: Array<{ id: string; type: (typeof sourceKinds)[number] }>;
+  security?: import("./security").ActionSecurity;
 };
 export function toolsForModel() {
   return Object.entries(toolSchemas).map(([name, schema]) => ({
@@ -264,7 +281,7 @@ export function toolsForModel() {
         : name === "send_email"
           ? "Demander l’envoi d’un brouillon existant. Le serveur contrôle l’autorisation de l’utilisateur ; sinon une confirmation est requise."
           : name in actionSchemas
-            ? "Préparer une action durable à examiner. Aucune écriture CRM avant confirmation de l’utilisateur."
+            ? "Préparer une action durable. Le serveur vérifie la demande exacte ; les suggestions et actions risquées nécessitent une confirmation dans le chat."
             : name === "aggregate_crm_data"
               ? "Calcul exact SQL sur les données autorisées, indépendant des pages ; sommes séparées par devise."
               : "Lire uniquement les données autorisées ; aucun secret.",

@@ -75,7 +75,11 @@ try {
       ])
     ).rows[0].data;
     const queued = (
-      await db.query("select public.agent_apply($1,$2) as data", [workspace, action.id])
+      await db.query("select public.agent_apply($1,$2,$3) as data", [
+        workspace,
+        action.id,
+        action.confirmation_digest,
+      ])
     ).rows[0].data;
     await db.query("commit");
     const lease = randomUUID();
@@ -113,7 +117,8 @@ try {
   );
   if (
     sends.filter((r) => r.ok).length !== 1 ||
-    sends.filter((r) => !r.ok).some((r) => r.code !== "53300")
+    // A bounded lock timeout under load is also a safe refusal, not an admission.
+    sends.filter((r) => !r.ok).some((r) => !["53300", "55P03"].includes(r.code))
   )
     throw new Error("Atomic send quota failed: " + JSON.stringify(sends));
   const attempts = (
@@ -125,6 +130,11 @@ try {
   if (attempts !== 200) throw new Error("Shared email quota exceeded");
   console.log(
     "32 simultaneous email reservations with 1 remaining: exactly 1 admitted; shared counter stays at 200. No provider called.",
+  );
+  // The duplicate-confirmation scenario has its own available quota.
+  await db.query(
+    "update relay_private.workflow_io_usage set attempts=0 where workspace_id=$1 and kind='email'",
+    [workspace],
   );
   const duplicate = (
     await db.query("select public.agent_action($1,'propose',$2::jsonb) as data", [
@@ -153,7 +163,11 @@ try {
         );
         await client.query("set local role authenticated");
         const data = (
-          await client.query("select public.agent_apply($1,$2) as data", [workspace, duplicate.id])
+          await client.query("select public.agent_apply($1,$2,$3) as data", [
+            workspace,
+            duplicate.id,
+            duplicate.confirmation_digest,
+          ])
         ).rows[0].data;
         await client.query("commit");
         return data.job_id;

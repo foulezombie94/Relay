@@ -1,9 +1,7 @@
 import "server-only";
-import { createHash } from "node:crypto";
 import { ApiError, databaseError } from "./context";
 import { db } from "@/lib/supabase/server";
 import {
-  assistantOutput,
   conversationMessages,
   type AssistantConversation,
   type AssistantMessage,
@@ -98,150 +96,9 @@ export async function visibleHistory(
         citations: [],
         accepted: {},
         actions: [],
+        security_notices: [],
       };
     }
     return { ...m, sources: visible.filter((s) => used.includes(s.id)) };
   });
-}
-
-export function proposalId(conversation: string, message: string, index: number) {
-  const hash = createHash("sha256")
-    .update(`relay-assistant:${conversation}:${message}:${index}`)
-    .digest("hex");
-  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-5${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
-}
-
-export async function acceptProposal(
-  client: Client,
-  workspace: string,
-  user: string,
-  conversationId: string,
-  messageId: string,
-  index: number,
-) {
-  const conversation = await ownedConversation(client, workspace, user, conversationId);
-  const message = conversation.messages.find((m) => m.id === messageId && m.state !== "pending");
-  const parsed = assistantOutput.shape.proposals
-    .unwrap()
-    .element.safeParse(message?.proposals?.[index]);
-  if (!parsed.success) throw new ApiError("Cette proposition n’est plus disponible.", 404);
-  const safe = await visibleHistory(client, workspace, [message!]);
-  if (!safe[0].proposals?.[index])
-    throw new ApiError("Les permissions de cette proposition ont changé.", 403);
-  const privacy = await client.rpc("agent_sources_private", {
-    w: workspace,
-    refs: (message?.sources ?? []).map(({ id, type }) => ({ id, type })),
-  });
-  databaseError(privacy.error);
-  const p = parsed.data;
-  const source = async (id: string) => {
-    const type = message?.sources?.find((s) => s.id === id)?.type;
-    const kinds =
-      type === "email"
-        ? ["communications"]
-        : type === "meeting"
-          ? ["meetings"]
-          : type === "note"
-            ? ["notes"]
-            : ["notes", "meetings"];
-    for (const table of kinds) {
-      const r = await client
-        .from(table)
-        .select(
-          table === "notes"
-            ? "id,title,record_id,content,private"
-            : table === "communications"
-              ? "id,subject,record_id,body,user_id"
-              : "id,title,record_id,transcript,summary,private",
-        )
-        .eq("workspace_id", workspace)
-        .eq("id", id)
-        .maybeSingle();
-      databaseError(r.error);
-      if (r.data) {
-        const data = r.data as unknown as Record<string, unknown>;
-        return {
-          type: table === "communications" ? "email" : table === "notes" ? "note" : "meeting",
-          private: !!data.private || table === "communications",
-          label: String(data.title || data.subject || "Source"),
-          record_id: data.record_id as string | null,
-          content: String(data.content ?? data.body ?? (data.transcript || data.summary || "")),
-        };
-      }
-    }
-    throw new ApiError("La source n’est plus accessible.", 403);
-  };
-  const a = await source(p.source_id);
-  const b = p.type === "conflict" && p.source_b_id ? await source(p.source_b_id) : null;
-  if (
-    !p.source_quote ||
-    !a.content.includes(p.source_quote) ||
-    (p.type === "conflict" && (!b || !p.source_b_quote || !b.content.includes(p.source_b_quote)))
-  )
-    throw new ApiError(
-      "Les sources ont changé. Relancez l’analyse avant d’ajouter cette proposition.",
-      409,
-    );
-  const resource = p.type === "commitment" ? "commitments" : "conflicts";
-  const id = proposalId(conversationId, messageId, index);
-  const values: Record<string, unknown> =
-    p.type === "commitment"
-      ? {
-          id,
-          workspace_id: workspace,
-          title: p.title,
-          status: "proposed",
-          record_id: a.record_id,
-          source_type: a.type,
-          source_id: p.source_id,
-          source_quote: p.source_quote,
-          uncertainty: p.uncertainty ?? "",
-          private: a.private || privacy.data,
-          author_id: user,
-        }
-      : {
-          id,
-          workspace_id: workspace,
-          title: p.title,
-          status: "open",
-          private: a.private || b?.private || privacy.data,
-          author_id: user,
-          record_id: a.record_id,
-          field: p.field || "À préciser",
-          source_a: { label: a.label, quote: p.source_quote, value: p.source_quote },
-          source_b: { label: b!.label, quote: p.source_b_quote!, value: p.source_b_quote! },
-        };
-  const existing = await client
-    .from(resource)
-    .select("id")
-    .eq("id", id)
-    .eq("workspace_id", workspace)
-    .maybeSingle();
-  databaseError(existing.error);
-  if (!existing.data) {
-    const created = await client.from(resource).insert(values);
-    if (created.error?.code === "23505") {
-      const duplicate = await client
-        .from(resource)
-        .select("id")
-        .eq("id", id)
-        .eq("workspace_id", workspace)
-        .maybeSingle();
-      databaseError(duplicate.error);
-      if (!duplicate.data) databaseError(created.error);
-    } else databaseError(created.error);
-  }
-  const messages = conversation.messages.map((m) =>
-    m.id === messageId ? { ...m, accepted: { ...m.accepted, [index]: { id, resource } } } : m,
-  );
-  // A concurrent chat update wins. The stable entity id still prevents a duplicate on retry.
-  const saved = await client
-    .from("ai_conversations")
-    .update({ messages, updated_at: new Date().toISOString() })
-    .eq("workspace_id", workspace)
-    .eq("user_id", user)
-    .eq("id", conversationId)
-    .eq("updated_at", conversation.updated_at);
-  databaseError(saved.error);
-  return { id, resource };
 }

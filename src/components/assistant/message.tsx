@@ -1,5 +1,6 @@
 "use client";
 import { AgentActions } from "./actions";
+import { SecurityNotices } from "./source-reader";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -153,16 +154,13 @@ export function ChatMessage({
   busy,
   onRetry,
   onEdit,
-  onAccept,
 }: {
   message: AssistantMessage;
   busy: boolean;
   onRetry: () => void;
   onEdit: () => void;
-  onAccept: (index: number) => Promise<void>;
 }) {
   const { workspace, objects } = useWorkspace();
-  const [accepting, setAccepting] = useState<number | null>(null);
   const active = message.state === "pending" && busy;
   if (message.role === "user")
     return (
@@ -222,7 +220,12 @@ export function ChatMessage({
           })}
         </div>
       )}
-      {!active && !!message.actions?.length && <AgentActions actions={message.actions} />}
+      {!active && !!message.security_notices?.length && (
+        <SecurityNotices notices={message.security_notices} sources={message.sources ?? []} />
+      )}
+      {!active && !!message.actions?.length && (
+        <AgentActions actions={message.actions} sources={message.sources} />
+      )}
       {!active && !!message.citations?.length && (
         <section className={styles.proposals} aria-label="Citations vérifiées">
           {message.citations.map((citation, index) => {
@@ -272,24 +275,11 @@ export function ChatMessage({
                     <button
                       type="button"
                       className="button small"
-                      disabled={busy || accepting !== null || workspace.role === "viewer"}
-                      onClick={async () => {
-                        setAccepting(i);
-                        try {
-                          await onAccept(i);
-                        } catch (e) {
-                          toast.error(e instanceof Error ? e.message : "Ajout impossible");
-                        } finally {
-                          setAccepting(null);
-                        }
-                      }}
+                      disabled={busy}
+                      onClick={onRetry}
                     >
-                      {accepting === i ? (
-                        <LoaderCircle size={13} className={styles.spin} />
-                      ) : (
-                        <Check size={13} />
-                      )}
-                      Ajouter pour examen
+                      <RotateCcw size={13} />
+                      Actualiser l’analyse pour préparer un aperçu
                     </button>
                   )}
                 </footer>

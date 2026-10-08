@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -46,7 +46,6 @@ export function AssistantPage() {
 function AssistantSession() {
   const { workspace } = useWorkspace();
   const url = useSearchParams();
-  const cache = useQueryClient();
   const endpoint = `/api/${workspace.id}/assistant`;
   const status = useQuery({
     queryKey: ["assistant-status", workspace.id],
@@ -235,21 +234,6 @@ function AssistantSession() {
       setBusy(false);
       void status.refetch();
     }
-  }
-  async function accept(messageId: string, index: number) {
-    const result = await request<{ data: { id: string; resource: string } }>(endpoint, "POST", {
-      action: "accept",
-      conversation_id: conversation,
-      message_id: messageId,
-      index,
-    });
-    setMessages((current) =>
-      current.map((m) =>
-        m.id === messageId ? { ...m, accepted: { ...m.accepted, [index]: result.data } } : m,
-      ),
-    );
-    await cache.invalidateQueries({ queryKey: ["rows", workspace.id, result.data.resource] });
-    toast.success("Proposition ajoutée pour examen");
   }
   const conversations = (status.data?.conversations ?? []).filter((c) =>
     c.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
@@ -470,7 +454,6 @@ function AssistantSession() {
                   key={m.id}
                   message={m}
                   busy={busy}
-                  onAccept={(index) => accept(m.id, index)}
                   onEdit={() => {
                     newChat();
                     setMessage(m.content || "");

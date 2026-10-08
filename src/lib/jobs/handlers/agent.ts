@@ -14,7 +14,7 @@ async function request(url: string, token: string, body: unknown, method = "POST
     headers: {
       Authorization: "Bearer " + token,
       "Content-Type": "application/json",
-      Prefer: 'IdType="ImmutableId"',
+      Prefer: 'IdType="ImmutableId", outlook.body-content-type="text"',
     },
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     redirect: "error",
@@ -141,6 +141,54 @@ export async function agentJob(admin: SupabaseClient, job: Job): Promise<JobResu
               internetMessageHeaders: [{ name: "x-relay-action-id", value: action.id }],
             });
         if (typeof draft.id !== "string") throw new Error("missing_draft_id");
+        // Graph createReply may inherit Reply-To and copied recipients. Always
+        // replace the complete destination and content with the approved artifact.
+        if (data.reply_to_id)
+          await request(
+            "https://graph.microsoft.com/v1.0/me/messages/" + encodeURIComponent(draft.id),
+            tokens.access_token,
+            {
+              subject: data.subject,
+              body: { contentType: "Text", content: data.body },
+              toRecipients: [{ emailAddress: { address: data.to } }],
+              ccRecipients: [],
+              bccRecipients: [],
+            },
+            "PATCH",
+          );
+        const exact = await request(
+          "https://graph.microsoft.com/v1.0/me/messages/" +
+            encodeURIComponent(draft.id) +
+            "?$select=subject,toRecipients,ccRecipients,bccRecipients,body",
+          tokens.access_token,
+          undefined,
+          "GET",
+        );
+        const recipient = z
+          .array(z.object({ emailAddress: z.object({ address: z.string() }) }))
+          .parse(exact.toRecipients);
+        const exactBody = z
+          .object({ contentType: z.string(), content: z.string() })
+          .parse(exact.body);
+        if (
+          exact.subject !== data.subject ||
+          recipient.length !== 1 ||
+          recipient[0].emailAddress.address.toLowerCase() !== data.to ||
+          !Array.isArray(exact.ccRecipients) ||
+          exact.ccRecipients.length ||
+          !Array.isArray(exact.bccRecipients) ||
+          exact.bccRecipients.length ||
+          exactBody.contentType.toLowerCase() !== "text" ||
+          exactBody.content.replace(/\r\n/g, "\n") !== data.body.replace(/\r\n/g, "\n")
+        )
+          throw new Rejected("reply_scope_mismatch");
+        try {
+          await operation("verify_dispatch");
+        } catch (error) {
+          if (["42501", "40001"].includes((error as { code?: string }).code ?? ""))
+            throw new Rejected("authorization_revoked_before_send");
+          throw error;
+        }
         await request(
           "https://graph.microsoft.com/v1.0/me/messages/" + encodeURIComponent(draft.id) + "/send",
           tokens.access_token,

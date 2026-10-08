@@ -3,7 +3,7 @@ import { z } from "zod";
 import { context, checkOrigin, fail } from "@/lib/api/context";
 import { workflowBody } from "@/lib/api/workflow-body";
 import { rpc } from "@/lib/agent/tools";
-import { actionSchemas, type AgentAction } from "@/lib/agent/contracts";
+import { actionSchemas, sourceKinds, type AgentAction } from "@/lib/agent/contracts";
 import { validateAttributes } from "@/lib/domain/attributes";
 import type { Attribute } from "@/lib/domain/types";
 import { ApiError, databaseError } from "@/lib/api/context";
@@ -12,6 +12,25 @@ export async function GET(req: NextRequest, { params }: P) {
   try {
     const { workspace } = await params;
     const { client } = await context(workspace);
+    const source = req.nextUrl.searchParams.get("source_id");
+    if (source) {
+      const kind = z.enum(sourceKinds).parse(req.nextUrl.searchParams.get("source_type"));
+      const offset = z.coerce
+        .number()
+        .int()
+        .min(0)
+        .max(200000)
+        .parse(req.nextUrl.searchParams.get("offset") ?? 0);
+      return NextResponse.json(
+        await rpc(client, "agent_search", {
+          w: workspace,
+          kind,
+          source: z.uuid().parse(source),
+          content_offset: offset,
+        }),
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
     const id = z.uuid().parse(req.nextUrl.searchParams.get("id"));
     return NextResponse.json(
       {
@@ -32,8 +51,15 @@ export async function POST(req: NextRequest, { params }: P) {
     checkOrigin(req);
     const { workspace } = await params;
     const { client } = await context(workspace, true);
-    const { id, operation } = z
-      .object({ id: z.uuid(), operation: z.enum(["confirm", "cancel"]) })
+    const { id, operation, expected_digest } = z
+      .object({
+        id: z.uuid(),
+        operation: z.enum(["confirm", "cancel"]),
+        expected_digest: z
+          .string()
+          .regex(/^[a-f0-9]{64}$/)
+          .optional(),
+      })
       .strict()
       .parse(JSON.parse(await workflowBody(req, 2000)));
     if (operation === "cancel")
@@ -49,6 +75,10 @@ export async function POST(req: NextRequest, { params }: P) {
       operation: "get",
       payload: { id },
     })) as AgentAction;
+    if (!expected_digest || a.confirmation_digest !== expected_digest) {
+      await rpc(client, "agent_confirmation_denied", { w: workspace, action_id: id });
+      throw new ApiError("L’aperçu a changé. Relisez l’action avant de la confirmer.", 409);
+    }
     actionSchemas[a.kind].parse(a.input);
     if (a.kind === "create_record" || a.kind === "update_record") {
       const previous =
@@ -79,9 +109,16 @@ export async function POST(req: NextRequest, { params }: P) {
       );
       if (issues.length) throw new ApiError(issues.join(" "));
     }
-    return NextResponse.json({
-      data: await rpc(client, "agent_apply", { w: workspace, action_id: id }),
-    });
+    try {
+      return NextResponse.json({
+        data: await rpc(client, "agent_apply", { w: workspace, action_id: id, expected_digest }),
+      });
+    } catch (e) {
+      await rpc(client, "agent_confirmation_denied", { w: workspace, action_id: id }).catch(
+        () => {},
+      );
+      throw e;
+    }
   } catch (e) {
     return fail(e);
   }

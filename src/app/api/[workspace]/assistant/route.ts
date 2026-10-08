@@ -6,7 +6,7 @@ import { rpc } from "@/lib/agent/tools";
 import * as Sentry from "@sentry/nextjs";
 import { context, checkOrigin, ApiError, databaseError, fail } from "@/lib/api/context";
 import { workflowBody } from "@/lib/api/workflow-body";
-import { acceptProposal, ownedConversation, visibleHistory } from "@/lib/api/assistant-context";
+import { ownedConversation, visibleHistory } from "@/lib/api/assistant-context";
 import {
   type AssistantEvent,
   type AssistantMessage,
@@ -139,16 +139,10 @@ export async function POST(req: NextRequest, { params }: P) {
     const input = requestSchema.parse(JSON.parse(await workflowBody(req, 10000)));
     const { client, user } = await context(workspace, input.action === "accept");
     if (input.action === "accept")
-      return NextResponse.json({
-        data: await acceptProposal(
-          client,
-          workspace,
-          user.id,
-          input.conversation_id,
-          input.message_id,
-          input.index,
-        ),
-      });
+      throw new ApiError(
+        "Actualisez l’analyse pour confirmer cette proposition dans une carte d’action sécurisée.",
+        410,
+      );
     if (!process.env.OPENAI_API_KEY)
       throw new ApiError(
         "L’assistant n’est pas encore activé. Contactez votre administrateur.",
@@ -300,6 +294,12 @@ export async function POST(req: NextRequest, { params }: P) {
               secret: runSecret,
             },
           });
+          await rpc(client, "agent_register_request", {
+            w: workspace,
+            run_id: admitted.id,
+            run_secret: runSecret,
+            original_request: input.message,
+          });
           const data = await runAgent(
             {
               client,
@@ -309,6 +309,7 @@ export async function POST(req: NextRequest, { params }: P) {
               run: admitted.id,
               runSecret,
               question: input.message,
+              untrustedContext: oldMessages.length > 0,
               requestKey: userMessage.request_id!,
               actionSequence: new Map(),
               sources: new Map(),

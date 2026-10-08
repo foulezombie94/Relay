@@ -15,6 +15,8 @@ import {
   type ActionKind,
 } from "./contracts";
 import type { SourceContent } from "@/lib/api/assistant-context";
+import { actionSecurity, explicitBulkRequest } from "./security";
+import type { ActionSecurity } from "./security";
 
 export type ToolContext = {
   client: SupabaseClient;
@@ -23,7 +25,8 @@ export type ToolContext = {
   conversation: string;
   run: string;
   runSecret?: string;
-  question: string;
+  readonly question: string;
+  untrustedContext?: boolean;
   requestKey?: string;
   actionSequence?: Map<string, number>;
   sources: Map<string, SourceContent>;
@@ -101,6 +104,44 @@ function remember(
     });
   }
   return result;
+}
+async function reviewForAction(
+  c: ToolContext,
+  kind: ActionKind,
+  values: Record<string, unknown>,
+): Promise<ActionSecurity> {
+  const policy = actionSecurity(c.question, kind, values, c.sources.values(), c.untrustedContext);
+  if (kind !== "draft_email") return policy;
+  const draft = actionSchemas.draft_email.parse(values);
+  const requested = explicitEmailRecipient(c.question);
+  const name = explicitContactName(c.question);
+  let lookup = c.client
+    .from("records")
+    .select("id,email", { count: "exact" })
+    .eq("workspace_id", c.workspace)
+    .eq("archived", false);
+  lookup = name
+    ? lookup.ilike("display_name", name.replace(/[\\%_]/g, "\\$&"))
+    : lookup.ilike("email", draft.to.replace(/[\\%_]/g, "\\$&"));
+  const candidates = await lookup.limit(2);
+  databaseError(candidates.error);
+  if (
+    candidates.count !== 1 ||
+    candidates.data?.[0]?.email?.toLowerCase() !== draft.to ||
+    (draft.record_id && candidates.data?.[0]?.id !== draft.record_id) ||
+    (!name && requested !== draft.to)
+  ) {
+    return {
+      ...policy,
+      automatic: false,
+      risk: policy.risk === "high" ? "high" : "medium",
+      reasons: [
+        ...policy.reasons,
+        "Le destinataire est ambigu ou ne correspond pas exactement à la demande reconnue. Vérifiez l’adresse affichée.",
+      ],
+    };
+  }
+  return policy;
 }
 export async function propose(c: ToolContext, kind: ActionKind, input: unknown, key: string) {
   await guard(c, true);
@@ -201,7 +242,28 @@ export async function propose(c: ToolContext, kind: ActionKind, input: unknown, 
     )
       throw new ApiError("Une citation autorisée et partageable est requise.", 403);
   }
-  const a = (await rpc(c.client, "agent_action", {
+  if (kind === "propose_conflict") {
+    const conflict = actionSchemas.propose_conflict.parse(parsed);
+    if (conflict.source_a_id === conflict.source_b_id)
+      throw new ApiError("Deux sources distinctes sont requises.", 400);
+    for (const [id, type, quote] of [
+      [conflict.source_a_id, conflict.source_a_type, conflict.source_a.quote],
+      [conflict.source_b_id, conflict.source_b_type, conflict.source_b.quote],
+    ]) {
+      if (
+        !c.sources.has(id) ||
+        c.sources.get(id)?.type !== type ||
+        !(await rpc(c.client, "agent_validate_quote", {
+          w: c.workspace,
+          kind: type,
+          source: id,
+          quote,
+        }))
+      )
+        throw new ApiError("Une citation actuelle autorisée est requise pour chaque source.", 403);
+    }
+  }
+  const proposed = (await rpc(c.client, "agent_action", {
     w: c.workspace,
     operation: "propose",
     payload: {
@@ -213,6 +275,12 @@ export async function propose(c: ToolContext, kind: ActionKind, input: unknown, 
       source_refs: [...c.sources.values()].map(({ id, type }) => ({ id, type })),
     },
   })) as AgentAction;
+  const a = (await rpc(c.client, "agent_review_action", {
+    w: c.workspace,
+    action_id: proposed.id,
+    run_secret: c.runSecret,
+    review: await reviewForAction(c, kind, values),
+  })) as AgentAction;
   c.actions.set(a.id, a);
   return a;
 }
@@ -220,6 +288,17 @@ export async function executeTool(c: ToolContext, name: string, raw: unknown, ca
   if (!Object.hasOwn(toolSchemas, name)) throw new ApiError("Outil inconnu.", 400);
   await guard(c);
   const input = toolSchemas[name as ToolName].parse(raw) as Record<string, unknown>;
+  if (
+    name in searchKinds ||
+    name === "aggregate_crm_data" ||
+    name === "get_crm_schema" ||
+    name === "get_source" ||
+    name === "get_record" ||
+    name === "get_email_thread" ||
+    name === "get_action_status" ||
+    name === "get_accounts"
+  )
+    c.untrustedContext = true;
   if (name in searchKinds)
     return remember(
       c,
@@ -296,6 +375,17 @@ export async function executeTool(c: ToolContext, name: string, raw: unknown, ca
       operation: "get",
       payload: { id: input.id },
     })) as AgentAction;
+    for (const ref of a.source_refs ?? []) {
+      if (!c.sources.has(ref.id))
+        c.sources.set(ref.id, {
+          id: ref.id,
+          type: ref.type,
+          record_id: null,
+          label: "Source d’une action consultée",
+          content: "",
+          private: a.private_context,
+        });
+    }
     c.actions.set(a.id, a);
     return a;
   }
@@ -306,9 +396,18 @@ export async function executeTool(c: ToolContext, name: string, raw: unknown, ca
       operation: "get",
       payload: { id: input.draft_id },
     })) as AgentAction;
-    if (a.kind !== "draft_email" || !c.actions.has(a.id))
+    if (a.kind !== "draft_email" || a.run_id !== c.run || !c.actions.has(a.id))
       throw new ApiError("Utilisez un brouillon préparé dans ce tour.", 403);
     const draft = actionSchemas.draft_email.parse(a.input);
+    const policy = actionSecurity(
+      c.question,
+      "draft_email",
+      draft,
+      c.sources.values(),
+      c.untrustedContext,
+    );
+    if (!policy.automatic || !a.security?.automatic)
+      return { ...a, confirmation_required: true, reason: policy.reasons.join(" ") };
     // Deterministic direct authorization is intentionally narrow. Names, bulk,
     // sensitive text and old conversational consent always use the concrete preview.
     if (process.env.FEATURE_AGENT_DIRECT_SEND !== "true")
@@ -362,16 +461,46 @@ export async function executeTool(c: ToolContext, name: string, raw: unknown, ca
     const executed = (await rpc(c.client, "agent_apply", {
       w: c.workspace,
       action_id: a.id,
+      expected_digest: a.confirmation_digest,
+      run_secret: c.runSecret,
     })) as AgentAction;
     c.actions.set(executed.id, executed);
     return executed;
   }
   if (Object.hasOwn(actionSchemas, name)) {
     const sequence = c.actionSequence?.get(name) ?? 0;
+    if (name === "draft_email" && sequence > 0 && !explicitBulkRequest(c.question))
+      throw new ApiError(
+        "Plusieurs emails nécessitent une demande explicite d’envoi multiple. Aucun envoi supplémentaire n’est autorisé.",
+        400,
+      );
     c.actionSequence?.set(name, sequence + 1);
     // A UI retry keeps the same request key. Different content for the same
     // logical action is refused, instead of producing a second external send.
-    return propose(c, name as ActionKind, input, `${c.requestKey ?? c.run}:${name}:${sequence}`);
+    const singularAutomatic =
+      (name === "create_task" || name === "create_note") &&
+      actionSecurity(c.question, name, input, c.sources.values(), c.untrustedContext).automatic;
+    const a = await propose(
+      c,
+      name as ActionKind,
+      input,
+      `${c.requestKey ?? c.run}:${name}:${singularAutomatic ? "explicit" : sequence}`,
+    );
+    if (
+      name !== "draft_email" &&
+      a.security?.automatic &&
+      ["pending", "draft"].includes(a.status)
+    ) {
+      const executed = (await rpc(c.client, "agent_apply", {
+        w: c.workspace,
+        action_id: a.id,
+        expected_digest: a.confirmation_digest,
+        run_secret: c.runSecret,
+      })) as AgentAction;
+      c.actions.set(a.id, executed);
+      return executed;
+    }
+    return a;
   }
   throw new ApiError("Outil inconnu : " + callKey, 400);
 }
