@@ -41,7 +41,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuBadge,
   SidebarRail,
   useSidebar,
 } from "./ui/sidebar";
@@ -73,10 +72,7 @@ const groups = [
     id: "intelligence",
     label: "Intelligence",
     icon: Sparkles,
-    items: [
-      ["assistant", "Assistant IA", Sparkles],
-      ["quality", "Qualité des données", TriangleAlert],
-    ],
+    items: [["quality", "Qualité des données", TriangleAlert]],
   },
   {
     id: "realisation",
@@ -115,9 +111,7 @@ function itemActive(slug: string, path: string) {
 }
 function currentGroup(path: string) {
   if (path.startsWith("/app/object-")) return "crm";
-  return groups.find((group) =>
-    group.items.some(([slug]) => itemActive(slug, path)),
-  )?.id;
+  return groups.find((group) => group.items.some(([slug]) => itemActive(slug, path)))?.id;
 }
 export function AppSidebarView({
   workspace,
@@ -147,9 +141,7 @@ export function AppSidebarView({
     const saved: Record<string, boolean> = {};
     try {
       const value: unknown = JSON.parse(
-        persistPreferences
-          ? (localStorage.getItem(preferenceKey) ?? "{}")
-          : "{}",
+        persistPreferences ? (localStorage.getItem(preferenceKey) ?? "{}") : "{}",
       );
       if (value && typeof value === "object" && !Array.isArray(value)) {
         for (const group of groups) {
@@ -172,8 +164,7 @@ export function AppSidebarView({
     };
     setExpanded(next);
     try {
-      if (persistPreferences)
-        localStorage.setItem(preferenceKey, JSON.stringify(next));
+      if (persistPreferences) localStorage.setItem(preferenceKey, JSON.stringify(next));
     } catch {
       /* Navigation remains usable without storage. */
     }
@@ -192,7 +183,7 @@ export function AppSidebarView({
       <SidebarHeader>
         <Link
           prefetch={persistPreferences ? undefined : false}
-          href="/app/companies"
+          href="/app/dashboard"
           className="sb-brand"
           onClick={close}
           aria-label="Relay CRM"
@@ -207,9 +198,7 @@ export function AppSidebarView({
             className="sb-workspace-button"
             aria-label={"Changer d’espace : " + workspace.name}
           >
-            <span className="sb-workspace-avatar">
-              {workspace.name.slice(0, 1).toUpperCase()}
-            </span>
+            <span className="sb-workspace-avatar">{workspace.name.slice(0, 1).toUpperCase()}</span>
             <span className="sb-workspace-copy">
               <strong>{workspace.name}</strong>
               <small>Espace de travail</small>
@@ -217,15 +206,8 @@ export function AppSidebarView({
             <ChevronsUpDown size={15} className="sb-workspace-chevron" />
           </Dropdown.Trigger>
           <Dropdown.Portal>
-            <Dropdown.Content
-              className="sb-dropdown"
-              side="right"
-              align="start"
-              sideOffset={9}
-            >
-              <Dropdown.Label className="sb-dropdown-label">
-                Vos espaces de travail
-              </Dropdown.Label>
+            <Dropdown.Content className="sb-dropdown" side="right" align="start" sideOffset={9}>
+              <Dropdown.Label className="sb-dropdown-label">Vos espaces de travail</Dropdown.Label>
               {workspaces.map((w) => (
                 <Dropdown.Item
                   key={w.id}
@@ -235,9 +217,7 @@ export function AppSidebarView({
                     close();
                   }}
                 >
-                  <span className="sb-workspace-avatar">
-                    {w.name.slice(0, 1).toUpperCase()}
-                  </span>
+                  <span className="sb-workspace-avatar">{w.name.slice(0, 1).toUpperCase()}</span>
                   <span>{w.name}</span>
                   {w.id === workspace.id && <Check size={15} />}
                 </Dropdown.Item>
@@ -261,10 +241,7 @@ export function AppSidebarView({
           <SidebarMenuItem>
             <SidebarMenuButton
               render={
-                <Link
-                  prefetch={persistPreferences ? undefined : false}
-                  href="/app/search"
-                >
+                <Link prefetch={persistPreferences ? undefined : false} href="/app/search">
                   {null}
                 </Link>
               }
@@ -284,13 +261,32 @@ export function AppSidebarView({
           <SidebarGroup>
             <SidebarGroupLabel>Accueil</SidebarGroupLabel>
             <SidebarMenu>
+              {(
+                [
+                  ["dashboard", "Dashboard", BarChart3],
+                  ["assistant", "Ask Relay", Sparkles],
+                ] as const
+              ).map(([slug, label, Icon]) => (
+                <SidebarMenuItem key={slug}>
+                  <SidebarMenuButton
+                    render={
+                      <Link prefetch={persistPreferences ? undefined : false} href={"/app/" + slug}>
+                        {null}
+                      </Link>
+                    }
+                    tooltip={label}
+                    isActive={path === "/app/" + slug}
+                    onClick={close}
+                  >
+                    <Icon size={18} />
+                    <span>{label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   render={
-                    <Link
-                      prefetch={persistPreferences ? undefined : false}
-                      href="/app/priorities"
-                    >
+                    <Link prefetch={persistPreferences ? undefined : false} href="/app/priorities">
                       {null}
                     </Link>
                   }
@@ -323,19 +319,11 @@ export function AppSidebarView({
                     >
                       <Icon size={18} />
                       <span>{group.label}</span>
-                      <ChevronDown
-                        aria-hidden="true"
-                        className={styles.chevron}
-                        data-open={open}
-                      />
+                      <ChevronDown aria-hidden="true" className={styles.chevron} data-open={open} />
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
-                <SidebarGroupContent
-                  id={panelId}
-                  hidden={!open}
-                  className={styles.content}
-                >
+                <SidebarGroupContent id={panelId} hidden={!open} className={styles.content}>
                   <SidebarMenu>
                     {group.items.map(([slug, label, ItemIcon]) => (
                       <SidebarMenuItem key={slug}>
@@ -355,9 +343,6 @@ export function AppSidebarView({
                           <ItemIcon size={18} />
                           <span>{label}</span>
                         </SidebarMenuButton>
-                        {slug === "assistant" && (
-                          <SidebarMenuBadge>IA</SidebarMenuBadge>
-                        )}
                       </SidebarMenuItem>
                     ))}
                     {group.id === "crm" && objects.some((o) => !o.standard) && (
@@ -370,9 +355,7 @@ export function AppSidebarView({
                               <SidebarMenuButton
                                 render={
                                   <Link
-                                    prefetch={
-                                      persistPreferences ? undefined : false
-                                    }
+                                    prefetch={persistPreferences ? undefined : false}
                                     href={"/app/object-" + o.slug}
                                   >
                                     {null}
@@ -410,10 +393,7 @@ export function AppSidebarView({
               <SidebarMenuItem key={String(href)}>
                 <SidebarMenuButton
                   render={
-                    <Link
-                      prefetch={persistPreferences ? undefined : false}
-                      href={String(href)}
-                    >
+                    <Link prefetch={persistPreferences ? undefined : false} href={String(href)}>
                       {null}
                     </Link>
                   }
@@ -429,13 +409,8 @@ export function AppSidebarView({
           })}
         </SidebarMenu>
         <Dropdown.Root>
-          <Dropdown.Trigger
-            className="sb-user-button"
-            aria-label="Ouvrir le menu de mon compte"
-          >
-            <span className="sb-user-avatar">
-              {(user.email ?? "U").slice(0, 1).toUpperCase()}
-            </span>
+          <Dropdown.Trigger className="sb-user-button" aria-label="Ouvrir le menu de mon compte">
+            <span className="sb-user-avatar">{(user.email ?? "U").slice(0, 1).toUpperCase()}</span>
             <span className="sb-user-copy">
               <strong>{user.email?.split("@")[0] ?? "Mon compte"}</strong>
               <small>
@@ -451,15 +426,8 @@ export function AppSidebarView({
             <ChevronsUpDown size={15} className="sb-workspace-chevron" />
           </Dropdown.Trigger>
           <Dropdown.Portal>
-            <Dropdown.Content
-              className="sb-dropdown"
-              side="right"
-              align="end"
-              sideOffset={9}
-            >
-              <Dropdown.Label className="sb-dropdown-label">
-                {user.email}
-              </Dropdown.Label>
+            <Dropdown.Content className="sb-dropdown" side="right" align="end" sideOffset={9}>
+              <Dropdown.Label className="sb-dropdown-label">{user.email}</Dropdown.Label>
               <Dropdown.Item asChild>
                 <Link
                   prefetch={persistPreferences ? undefined : false}
@@ -483,10 +451,7 @@ export function AppSidebarView({
                 </Link>
               </Dropdown.Item>
               <Dropdown.Separator className="sb-separator" />
-              <Dropdown.Item
-                className="sb-dropdown-item sb-signout"
-                onSelect={onSignOut}
-              >
+              <Dropdown.Item className="sb-dropdown-item sb-signout" onSelect={onSignOut}>
                 <LogOut size={15} />
                 Se déconnecter
               </Dropdown.Item>

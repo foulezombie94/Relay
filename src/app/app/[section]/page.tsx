@@ -6,6 +6,7 @@ import { ResourcePage } from "@/components/pages/resource-page";
 import { WorkflowsPage } from "@/components/pages/workflows";
 import { AssistantPage } from "@/components/pages/assistant";
 import { ReportsPage } from "@/components/pages/reports";
+import { DashboardPage } from "@/components/dashboard/page";
 import { SettingsPage } from "@/components/pages/settings";
 import { IntegrationsPage } from "@/components/pages/integrations";
 import { SearchPage } from "@/components/pages/search";
@@ -15,16 +16,10 @@ import { PrioritiesPage } from "@/components/pages/priorities";
 import { PlaybooksPage } from "@/components/pages/playbooks";
 import { QualityPage } from "@/components/pages/quality";
 import { notFound } from "next/navigation";
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ section: string }>;
-}) {
+export default async function Page({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
-  if (["people", "companies", "deals"].includes(section))
-    return <RecordsPage slug={section} />;
-  if (section.startsWith("object-"))
-    return <RecordsPage slug={section.slice(7)} />;
+  if (["people", "companies", "deals"].includes(section)) return <RecordsPage slug={section} />;
+  if (section.startsWith("object-")) return <RecordsPage slug={section.slice(7)} />;
   if (section.startsWith("list-")) return <ListPage id={section.slice(5)} />;
   if (
     [
@@ -41,6 +36,8 @@ export default async function Page({
   )
     return <ResourcePage resource={section} />;
   switch (section) {
+    case "dashboard":
+      return <DashboardPage />;
     case "sequences":
       return <SequencesPage />;
     case "pipelines":

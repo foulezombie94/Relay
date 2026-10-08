@@ -7,7 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 function LoginForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const destination = searchParams.get("next") === "/invite" ? "/invite" : "/app/companies";
+  const destination = searchParams.get("next") === "/invite" ? "/invite" : "/app/dashboard";
   const [mode, setMode] = useState<"login" | "signup" | "reset">(
     searchParams.get("mode") === "signup" ? "signup" : "login",
   );
@@ -28,9 +28,7 @@ function LoginForm() {
           redirectTo: `${window.location.origin}/auth/confirm?next=/reset-password`,
         });
         if (error) throw error;
-        setMessage(
-          "Si ce compte existe, un lien de récupération a été envoyé.",
-        );
+        setMessage("Si ce compte existe, un lien de récupération a été envoyé.");
       } else if (mode === "signup") {
         const { data, error } = await client.auth.signUp({
           email,
@@ -41,7 +39,12 @@ function LoginForm() {
         });
         if (error) throw error;
         if (data.session) router.push(destination);
-        else setMessage(destination === "/invite" ? "Vérifiez votre email, puis revenez ici ou rouvrez votre lien d’invitation pour accepter." : "Vérifiez votre email pour confirmer votre compte.");
+        else
+          setMessage(
+            destination === "/invite"
+              ? "Vérifiez votre email, puis revenez ici ou rouvrez votre lien d’invitation pour accepter."
+              : "Vérifiez votre email pour confirmer votre compte.",
+          );
       } else {
         const { error } = await client.auth.signInWithPassword({
           email,
@@ -73,8 +76,7 @@ function LoginForm() {
             <span>bonne action.</span>
           </h1>
           <p>
-            Les clients, les échanges et les engagements de votre équipe, enfin
-            au même endroit.
+            Les clients, les échanges et les engagements de votre équipe, enfin au même endroit.
           </p>
           <div className="auth-proof">
             <Layers size={20} />
@@ -119,9 +121,7 @@ function LoginForm() {
                   type="password"
                   required
                   minLength={8}
-                  autoComplete={
-                    mode === "signup" ? "new-password" : "current-password"
-                  }
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Au moins 8 caractères"
@@ -163,10 +163,7 @@ function LoginForm() {
               : "Vous avez un compte ? Se connecter"}
           </button>
           {mode === "login" && (
-            <button
-              className="link-button muted"
-              onClick={() => setMode("reset")}
-            >
+            <button className="link-button muted" onClick={() => setMode("reset")}>
               Mot de passe oublié
             </button>
           )}
@@ -174,9 +171,7 @@ function LoginForm() {
           <Link href="/demo" className="button full">
             Explorer la démonstration <ArrowRight size={16} />
           </Link>
-          <p className="caption">
-            La démonstration utilise uniquement des données fictives.
-          </p>
+          <p className="caption">La démonstration utilise uniquement des données fictives.</p>
         </div>
       </main>
     </div>

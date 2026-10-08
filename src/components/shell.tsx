@@ -6,6 +6,7 @@ import { Notifications } from "./notifications";
 import { AppSidebar } from "./app-sidebar";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "./ui/sidebar";
 const names: Record<string, string> = {
+  dashboard: "Dashboard",
   priorities: "À traiter",
   playbooks: "Modèles de processus",
   quality: "Qualité des données",
@@ -15,7 +16,7 @@ const names: Record<string, string> = {
   lists: "Listes",
   tasks: "Tâches",
   communications: "Messages",
-  assistant: "Assistant IA",
+  assistant: "Ask Relay",
   meetings: "Réunions",
   notes: "Notes",
   workflows: "Automatisations",
