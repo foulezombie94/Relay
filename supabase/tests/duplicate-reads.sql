@@ -1,0 +1,35 @@
+begin;
+do $$
+declare u uuid:=gen_random_uuid();v uuid:=gen_random_uuid();w uuid;other uuid;obj uuid;a uuid;b uuid;r jsonb;
+begin
+ insert into auth.users(id,email) values(u,'dup-read@example.test'),(v,'dup-reader@example.test');
+ perform set_config('request.jwt.claim.sub',u::text,true);w:=public.create_workspace('Duplicate reads');other:=public.create_workspace('Duplicate other');
+ select id into obj from public.objects where workspace_id=w and slug='people';
+ insert into public.memberships(workspace_id,user_id,role) values(w,v,'viewer');
+ insert into public.records(workspace_id,object_id,display_name,email,domain) values(w,obj,'José Dupont','a@example.test','https://www.acme.example/path') returning id into a;
+ insert into public.records(workspace_id,object_id,display_name,email,domain) values(w,obj,'JOSE DUPONT','A@example.test','acme.example') returning id into b;
+ insert into public.records(workspace_id,object_id,display_name,domain) values(w,obj,'International','éxample.test');
+ execute 'set local role authenticated';
+ r:=public.crm_duplicate_candidates(w);
+ if jsonb_array_length(r->'data')<>1 or (r->>'total')::integer<>3 or r->>'normalization_partial'<>'true' then raise exception 'Bounded duplicate candidate contract incorrect %',r;end if;
+ if relay_private.crm_duplicate_key('name','José Dupont')<>relay_private.crm_duplicate_key('name','JOSE DUPONT') then raise exception 'Unicode name normalization lost';end if;
+ execute 'reset role';
+ insert into public.duplicate_decisions(workspace_id,record_a,record_b,status,defer_until,actor_id,version_a,version_b) values(w,least(a,b),greatest(a,b),'deferred',now()+interval '1 day',u,1,1);
+ execute 'set local role authenticated';
+ if jsonb_array_length(public.crm_duplicate_candidates(w)->'data')<>0 then raise exception 'Deferred decision ignored';end if;
+ execute 'reset role';
+ update public.duplicate_decisions set defer_until=now()-interval '1 day' where workspace_id=w;
+ execute 'set local role authenticated';
+ if jsonb_array_length(public.crm_duplicate_candidates(w)->'data')<>1 then raise exception 'Expired decision still blocks';end if;
+ execute 'reset role';
+ insert into public.records(workspace_id,object_id,display_name,email) select w,obj,'Shared '||n,'shared@example.test' from generate_series(1,30) n;
+ execute 'set local role authenticated';
+ r:=public.crm_duplicate_candidates(w);
+ if jsonb_array_length(r->'data')<>250 or r->>'truncated'<>'true' then raise exception 'Duplicate fanout not bounded';end if;
+ perform set_config('request.jwt.claim.sub',v::text,true);
+ if jsonb_array_length(public.crm_duplicate_candidates(w)->'data')<>0 then raise exception 'Restricted reader duplicate leak';end if;
+ begin perform public.crm_duplicate_candidates(other);raise exception 'Cross-workspace duplicates leaked';exception when insufficient_privilege then null;end;
+ execute 'reset role';
+ raise notice 'Duplicate reads: normalization, decisions, bounded fanout, reader RLS and workspace isolation passed';
+end $$;
+rollback;

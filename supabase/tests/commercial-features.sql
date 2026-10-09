@@ -5,6 +5,9 @@ declare u uuid;v uuid:=gen_random_uuid();w uuid:=gen_random_uuid();other uuid:=g
  insert into auth.users(id,email,aud,role) values(v,'relay-validation-'||v||'@example.invalid','authenticated','authenticated');
  insert into public.workspaces(id,name,owner_id) values(w,'Relay validation rollback',u),(other,'Outside validation rollback',v);
  insert into public.memberships(workspace_id,user_id,role) values(w,u,'owner'),(w,v,'viewer'),(other,v,'owner');
+ -- This legacy suite tests note privacy for an explicitly unrestricted reader.
+ -- Selected/default-reader denial is covered by reader-visibility.sql.
+ update public.memberships set reader_scope='all' where workspace_id=w and user_id=v;
  insert into public.objects(id,workspace_id,name,slug) values(obj,w,'Contacts test','people'),(deal,w,'Ventes test','deals');
  insert into public.notes(workspace_id,title,content,private,author_id) values(w,'relayscope shared','Visible',false,u),(w,'relayscope owner','Privé',true,u),(w,'relayscope other','Invisible',true,v);
  perform set_config('relay_test.workspace',w::text,true);perform set_config('relay_test.other',other::text,true);perform set_config('relay_test.object',obj::text,true);perform set_config('relay_test.deal',deal::text,true);perform set_config('relay_test.user',u::text,true);perform set_config('relay_test.viewer',v::text,true);

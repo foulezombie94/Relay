@@ -24,7 +24,7 @@ begin
  insert into public.lists(workspace_id,object_id,name) values(w,obj,'Authorized list') returning id into shared_list;
  insert into public.lists(workspace_id,object_id,name) values(w,obj,'Hidden list') returning id into hidden_list;
  insert into public.list_entries(workspace_id,list_id,record_id) values(w,shared_list,a),(w,shared_list,b),(w,hidden_list,b);
- insert into public.workflows(workspace_id,name,definition) values(w,'Hidden automation','{"steps":[]}') returning id into wf;
+ insert into public.workflows(workspace_id,name,definition) values(w,'Hidden automation',jsonb_build_object('object_id',obj,'trigger',jsonb_build_object('type','manual'),'conditions','[]'::jsonb,'actions',jsonb_build_array(jsonb_build_object('type','task','title','Hidden follow-up')))) returning id into wf;
  insert into public.workflow_runs(workspace_id,workflow_id,workflow_version,mode,snapshot) values(w,wf,1,'simulation',jsonb_build_object('hidden_record',b));
  insert into public.import_jobs(workspace_id,object_id,filename,digest,inserted,skipped) values(w,obj,'Hidden.csv',repeat('f',64),0,0);
  insert into public.portals(workspace_id,record_id,name,enabled) values(w,a,'Portal fixture',true) returning id into portal;
