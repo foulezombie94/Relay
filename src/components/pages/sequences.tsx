@@ -2,25 +2,11 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWorkspace, useRows, useSave, request } from "../providers/data-provider";
-import {
-  PageHeader,
-  AddButton,
-  Editor,
-  Modal,
-  Empty,
-  ErrorMessage,
-  Badge,
-  str,
-  date,
-} from "../ui";
+import { PageHeader, AddButton, Editor, Modal, Empty, ErrorMessage, Badge, str, date } from "../ui";
 import { RecordPicker } from "../records/picker";
 import { RepeatFields } from "../ui/structured-fields";
 import { Pagination } from "../ui/pagination";
-import {
-  sequenceMessage,
-  sequenceSteps,
-  nextSequenceDate,
-} from "@/lib/domain/sequences";
+import { sequenceMessage, sequenceSteps, nextSequenceDate } from "@/lib/domain/sequences";
 import type { Row, CrmRecord } from "@/lib/domain/types";
 export function SequencesPage() {
   const { workspace } = useWorkspace();
@@ -45,9 +31,9 @@ export function SequencesPage() {
         }
       />
       <p className="alert info">
-        Envoi du lundi au vendredi, entre 9 h et 17 h dans le fuseau de la
-        séquence. Chaque inscription nécessite un aperçu et votre confirmation.
-        Un domaine HTTPS public et le service de suivi sont nécessaires.
+        Envoi du lundi au vendredi, entre 9 h et 17 h dans le fuseau de la séquence. Chaque
+        inscription nécessite un aperçu et votre confirmation. Un domaine HTTPS public et le service
+        de suivi sont nécessaires.
       </p>
       <input
         aria-label="Rechercher une séquence"
@@ -65,20 +51,13 @@ export function SequencesPage() {
           <article className="detail-card" key={row.id}>
             <div className="card-head">
               <h3>{str(row.name)}</h3>
-              <span className="pill">
-                {row.enabled ? "Active" : "En pause"}
-              </span>
+              <span className="pill">{row.enabled ? "Active" : "En pause"}</span>
             </div>
             <p>
-              {Array.isArray(row.steps) ? row.steps.length : 0} messages ·{" "}
-              {str(row.timezone)}
+              {Array.isArray(row.steps) ? row.steps.length : 0} messages · {str(row.timezone)}
             </p>
             <div className="card-actions">
-              <button
-                className="button small"
-                disabled={readonly}
-                onClick={() => setEditing(row)}
-              >
+              <button className="button small" disabled={readonly} onClick={() => setEditing(row)}>
                 Modifier
               </button>
               <button className="button small" onClick={() => setSelected(row)}>
@@ -88,9 +67,7 @@ export function SequencesPage() {
                 className="button small"
                 disabled={readonly || busy}
                 onClick={() =>
-                  void save("sequences", { enabled: !row.enabled }, row).catch(
-                    () => {},
-                  )
+                  void save("sequences", { enabled: !row.enabled }, row).catch(() => {})
                 }
               >
                 {row.enabled ? "Mettre en pause" : "Activer"}
@@ -161,18 +138,11 @@ export function SequencesPage() {
               : editing
           }
           busy={busy}
-          onSave={(values) =>
-            save("sequences", values, editing === true ? undefined : editing)
-          }
+          onSave={(values) => save("sequences", values, editing === true ? undefined : editing)}
         />
       )}
       {selected && (
-        <Modal
-          open
-          wide
-          onClose={() => setSelected(null)}
-          title={str(selected.name)}
-        >
+        <Modal open wide onClose={() => setSelected(null)} title={str(selected.name)}>
           <SequenceContacts key={selected.id} sequence={selected} />
         </Modal>
       )}
@@ -191,15 +161,11 @@ function SequenceContacts({ sequence }: { sequence: Row }) {
   });
   const connections = useRows("integrations", { size: 10 });
   const accounts = (connections.data?.data ?? []).filter(
-    (c) =>
-      c.status === "connected" &&
-      ["gmail", "outlook"].includes(str(c.provider)),
+    (c) => c.status === "connected" && ["gmail", "outlook"].includes(str(c.provider)),
   );
   const [record, setRecord] = useState<CrmRecord | undefined>();
   const [sender, setSender] = useState("");
-  const [preview, setPreview] = useState<
-    { subject: string; body: string }[] | null
-  >(null);
+  const [preview, setPreview] = useState<{ subject: string; body: string }[] | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const readonly = workspace.role === "viewer";
@@ -222,9 +188,9 @@ function SequenceContacts({ sequence }: { sequence: Row }) {
     <div className="stack">
       <h3>Inscrire un contact</h3>
       <p className="caption">
-        Les messages et l’adresse sont figés à l’inscription. Modifier la
-        séquence concerne les futures inscriptions. Une réponse du contact
-        arrête le suivi. Une adresse exclue bloque l’envoi.
+        Les messages et l’adresse sont figés à l’inscription. Modifier la séquence concerne les
+        futures inscriptions. Une réponse du contact arrête le suivi. Une adresse exclue bloque
+        l’envoi.
       </p>
       <RecordPicker
         name="contact"
@@ -255,9 +221,7 @@ function SequenceContacts({ sequence }: { sequence: Row }) {
       {error && <div className="alert error">{error}</div>}
       <button
         className="button"
-        disabled={
-          readonly || !record?.email || !sender || !sequence.enabled || busy
-        }
+        disabled={readonly || !record?.email || !sender || !sequence.enabled || busy}
         onClick={() => {
           setError("");
           try {
@@ -290,9 +254,8 @@ function SequenceContacts({ sequence }: { sequence: Row }) {
             </div>
           ))}
           <p className="caption">
-            Un lien de désabonnement sera ajouté à chaque message. L’arrêt prend
-            effet avant le prochain envoi ; un message déjà transmis ne peut pas
-            être rappelé.
+            Un lien de désabonnement sera ajouté à chaque message. L’arrêt prend effet avant le
+            prochain envoi ; un message déjà transmis ne peut pas être rappelé.
           </p>
           <button
             className="button primary"
@@ -300,35 +263,27 @@ function SequenceContacts({ sequence }: { sequence: Row }) {
             onClick={async () => {
               if (
                 !window.confirm(
-                  "Autoriser les envois planifiés à " +
-                    record.email +
-                    " selon cet aperçu ?",
+                  "Autoriser les envois planifiés à " + record.email + " selon cet aperçu ?",
                 )
               )
                 return;
               setBusy(true);
               setError("");
               try {
-                await request(
-                  "/api/" + workspace.id + "/sequence-enroll",
-                  "POST",
-                  {
-                    sequence_id: sequence.id,
-                    record_id: record.id,
-                    provider: sender,
-                    confirmed: true,
-                    sequence_version: sequence.version,
-                    record_version: record.version,
-                  },
-                );
+                await request("/api/" + workspace.id + "/sequence-enroll", "POST", {
+                  sequence_id: sequence.id,
+                  record_id: record.id,
+                  provider: sender,
+                  confirmed: true,
+                  sequence_version: sequence.version,
+                  record_version: record.version,
+                });
                 setPreview(null);
                 await cache.invalidateQueries({
                   queryKey: ["rows", workspace.id],
                 });
               } catch (e) {
-                setError(
-                  e instanceof Error ? e.message : "Inscription impossible",
-                );
+                setError(e instanceof Error ? e.message : "Inscription impossible");
               } finally {
                 setBusy(false);
               }
@@ -342,9 +297,7 @@ function SequenceContacts({ sequence }: { sequence: Row }) {
       {enrollments.data?.data.map((e) => (
         <article className="detail-card" key={e.id}>
           <div className="card-head">
-            <strong>
-              {str((e.record as Row | undefined)?.display_name) || "Contact"}
-            </strong>
+            <strong>{str((e.record as Row | undefined)?.display_name) || "Contact"}</strong>
             <Badge value={e.status} />
           </div>
           <p>
@@ -407,11 +360,7 @@ function Suppressions() {
     <section className="detail-card">
       <div className="card-head">
         <h3>Adresses exclues de l’envoi</h3>
-        <AddButton
-          disabled={readonly}
-          label="Exclure une adresse"
-          onClick={() => setOpen(true)}
-        />
+        <AddButton disabled={readonly} label="Exclure une adresse" onClick={() => setOpen(true)} />
       </div>
       <ErrorMessage error={q.error} />
       {q.data?.data.map((row) => (
@@ -474,9 +423,7 @@ function DeliveryHistory({ enrollment }: { enrollment: string }) {
       <button className="button small" onClick={() => setOpen(!open)}>
         {open ? "Masquer" : "Voir"} l’historique d’envoi
       </button>
-      {open && (
-        <DeliveryRows enrollment={enrollment} page={page} onPage={setPage} />
-      )}
+      {open && <DeliveryRows enrollment={enrollment} page={page} onPage={setPage} />}
     </div>
   );
 }

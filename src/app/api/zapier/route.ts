@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { fail, ApiError } from "@/lib/api/context";
-import {
-  zapierRequest,
-  zapierResource,
-  zapierRecord,
-  zapierTask,
-} from "@/lib/integrations/zapier";
+import { zapierRequest, zapierResource, zapierRecord, zapierTask } from "@/lib/integrations/zapier";
 const headers = { "Cache-Control": "no-store" };
 function failure(e: unknown) {
   const r = fail(e);
@@ -15,12 +10,7 @@ function failure(e: unknown) {
   return r;
 }
 async function boundedJson(req: NextRequest) {
-  if (
-    !req.headers
-      .get("content-type")
-      ?.toLowerCase()
-      .startsWith("application/json")
-  )
+  if (!req.headers.get("content-type")?.toLowerCase().startsWith("application/json"))
     throw new ApiError("Content-Type application/json requis.", 415);
   if (Number(req.headers.get("content-length") || 0) > 20000)
     throw new ApiError("Payload trop volumineux.", 413);
@@ -50,19 +40,14 @@ async function boundedJson(req: NextRequest) {
 }
 export async function GET(req: NextRequest) {
   try {
-    const resource = zapierResource.parse(
-      req.nextUrl.searchParams.get("resource") || "people",
-    );
+    const resource = zapierResource.parse(req.nextUrl.searchParams.get("resource") || "people");
     const page = z.coerce
       .number()
       .int()
       .min(0)
       .max(100000)
       .parse(req.nextUrl.searchParams.get("page") || 0);
-    return NextResponse.json(
-      await zapierRequest(req, "list", resource, {}, page),
-      { headers },
-    );
+    return NextResponse.json(await zapierRequest(req, "list", resource, {}, page), { headers });
   } catch (e) {
     return failure(e);
   }
@@ -73,9 +58,7 @@ export async function POST(req: NextRequest) {
       .object({ resource: zapierResource, values: z.unknown() })
       .strict()
       .parse(await boundedJson(req));
-    const values = (
-      payload.resource === "tasks" ? zapierTask : zapierRecord
-    ).parse(payload.values);
+    const values = (payload.resource === "tasks" ? zapierTask : zapierRecord).parse(payload.values);
     const id = z
       .string()
       .min(1)
@@ -84,14 +67,7 @@ export async function POST(req: NextRequest) {
       .parse(req.headers.get("idempotency-key"));
     return NextResponse.json(
       {
-        data: await zapierRequest(
-          req,
-          "create",
-          payload.resource,
-          values,
-          0,
-          id,
-        ),
+        data: await zapierRequest(req, "create", payload.resource, values, 0, id),
       },
       { status: 201, headers },
     );

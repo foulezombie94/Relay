@@ -23,9 +23,7 @@ export function Documentation() {
         " " +
         a.description +
         " " +
-        a.sections
-          .map((s) => [s.title, ...s.paragraphs, ...(s.steps ?? [])].join(" "))
-          .join(" "),
+        a.sections.map((s) => [s.title, ...s.paragraphs, ...(s.steps ?? [])].join(" ")).join(" "),
     ).includes(normalize(term)),
   );
   const categories = [...new Set(helpArticles.map((a) => a.category))];
@@ -33,8 +31,7 @@ export function Documentation() {
     <div className={styles.root}>
       <header className={styles.header}>
         <Link href="/" className="brand">
-          <span className="brand-mark">r</span>relay{" "}
-          <small>Guide utilisateur</small>
+          <span className="brand-mark">r</span>relay <small>Guide utilisateur</small>
         </Link>
         <nav>
           <Link href="/doc" onNavigate={() => setTerm("")}>
@@ -81,11 +78,7 @@ export function Documentation() {
         <main className={styles.main}>
           {article ? (
             <>
-              <Link
-                className={styles.back}
-                href="/doc"
-                onNavigate={() => setTerm("")}
-              >
+              <Link className={styles.back} href="/doc" onNavigate={() => setTerm("")}>
                 ← Tous les guides
               </Link>
               <span className={styles.category}>{article.category}</span>
@@ -99,11 +92,7 @@ export function Documentation() {
                 ))}
               </nav>
               {article.sections.map((section, index) => (
-                <section
-                  className={styles.section}
-                  id={"section-" + index}
-                  key={index}
-                >
+                <section className={styles.section} id={"section-" + index} key={index}>
                   <h2>{section.title}</h2>
                   {section.paragraphs.map((p, i) => (
                     <p key={i}>{p}</p>
@@ -122,9 +111,7 @@ export function Documentation() {
                   Ouvrir cette fonction <ArrowRight size={14} />
                 </Link>
               )}
-              <footer className={styles.footer}>
-                Guide Relay · Mis à jour le 6 octobre 2026
-              </footer>
+              <footer className={styles.footer}>Guide Relay · Mis à jour le 6 octobre 2026</footer>
             </>
           ) : (
             <>
@@ -137,37 +124,28 @@ export function Documentation() {
                 Une action à la fois.
               </h1>
               <p className={styles.lead}>
-                Des guides concrets pour organiser vos relations, suivre vos
-                ventes et travailler avec votre équipe.
+                Des guides concrets pour organiser vos relations, suivre vos ventes et travailler
+                avec votre équipe.
               </p>
               <p role="status" className={styles.resultCount}>
                 {term
                   ? filtered.length + " guide(s) pour « " + term + " »"
-                  : helpArticles.length +
-                    " guides pour utiliser Relay au quotidien"}
+                  : helpArticles.length + " guides pour utiliser Relay au quotidien"}
               </p>
               {!filtered.length && (
                 <div className={styles.contents}>
                   <p>
-                    Aucun guide ne correspond à votre recherche. Essayez «
-                    contact », « importer », « email » ou « vente ».
+                    Aucun guide ne correspond à votre recherche. Essayez « contact », « importer »,
+                    « email » ou « vente ».
                   </p>
-                  <button
-                    type="button"
-                    className="button"
-                    onClick={() => setTerm("")}
-                  >
+                  <button type="button" className="button" onClick={() => setTerm("")}>
                     Afficher tous les guides
                   </button>
                 </div>
               )}
               <div className={styles.cards}>
                 {filtered.map((a) => (
-                  <Link
-                    onNavigate={() => setTerm("")}
-                    href={"/doc?article=" + a.id}
-                    key={a.id}
-                  >
+                  <Link onNavigate={() => setTerm("")} href={"/doc?article=" + a.id} key={a.id}>
                     <small>{a.category}</small>
                     <h2>{a.title}</h2>
                     <p>{a.description}</p>

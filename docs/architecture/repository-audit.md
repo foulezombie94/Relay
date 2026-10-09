@@ -6,15 +6,15 @@ Référence initiale : `6330a135226c0e07f1e06ff47d88d5e175211716`. Analyse de l'
 
 Intervalle : `3d157af..6330a13`, avant le présent rangement. Commande reproductible : `git diff --numstat 3d157af 6330a13`. La différence compare les deux états finaux ; elle ne recompte pas plusieurs fois une ligne modifiée dans des commits intermédiaires.
 
-| Nature | Ajoutées | Supprimées | Différence nette |
-| --- | ---: | ---: | ---: |
-| Code applicatif TypeScript/React/worker | 942 | 797 | +145 |
-| Migrations SQL | 600 | 0 | +600 |
-| Tests et lanceurs de validation | 1 029 | 90 | +939 |
-| Documentation | 79 | 6 | +73 |
-| Résultats JSON des mesures locales | 1 914 | 0 | +1 914 |
-| Configuration et autres fichiers | 27 | 6 | +21 |
-| **Total** | **4 591** | **899** | **+3 692** |
+| Nature                                  |  Ajoutées | Supprimées | Différence nette |
+| --------------------------------------- | --------: | ---------: | ---------------: |
+| Code applicatif TypeScript/React/worker |       942 |        797 |             +145 |
+| Migrations SQL                          |       600 |          0 |             +600 |
+| Tests et lanceurs de validation         |     1 029 |         90 |             +939 |
+| Documentation                           |        79 |          6 |              +73 |
+| Résultats JSON des mesures locales      |     1 914 |          0 |           +1 914 |
+| Configuration et autres fichiers        |        27 |          6 |              +21 |
+| **Total**                               | **4 591** |    **899** |       **+3 692** |
 
 Le code applicatif et SQL a donc augmenté de **745 lignes nettes**, avec remplacement d'une partie des collectes TypeScript par des agrégations SQL. Les six commits ont des responsabilités distinctes : base, agent, lectures CRM, worker, validation et déploiement. Les résultats JSON ne sont pas des lignes de logique applicative.
 
@@ -22,26 +22,26 @@ Le code applicatif et SQL a donc augmenté de **745 lignes nettes**, avec rempla
 
 Comptage des fichiers suivis `.ts`, `.tsx`, `.mts`, `.css`, `.sql`, en lignes physiques incluant commentaires et lignes vides. Hors dépendances, build, lockfile, documentation Markdown et artefacts JSON. Ce n'est pas un nombre de SLOC ni une mesure de complexité. Les tests `.test.*` sont séparés de leur module.
 
-| Ensemble | Fichiers | Lignes physiques |
-| --- | ---: | ---: |
-| Interface React et CSS associés | 83 | 24 769 |
-| Routes Next.js et styles globaux | 67 | 7 311 |
-| Domaine métier | 27 | 3 195 |
-| Moteur agent IA, hors tests/UI/SQL | 10 | 2 108 |
-| Intégrations fournisseurs | 13 | 1 687 |
-| Adaptateurs API | 13 | 1 290 |
-| Textes de l'aide utilisateur | 1 | 1 154 |
-| Queue et handlers de jobs | 11 | 744 |
-| Session/clients Supabase | 4 | 95 |
-| Observabilité | 3 | 89 |
-| Invitations équipe | 1 | 10 |
-| Configurations TypeScript et scripts hors tests | 7 | 283 |
-| Migrations SQL | 42 | 5 551 |
-| Tests TypeScript | 46 | 3 926 |
-| Scripts de validation et bootstrap | 10 | 1 022 |
-| Tests SQL | 16 | 1 293 |
-| SQL historique conservé | 7 | 680 |
-| **Total de ce périmètre** | **361** | **55 207** |
+| Ensemble                                        | Fichiers | Lignes physiques |
+| ----------------------------------------------- | -------: | ---------------: |
+| Interface React et CSS associés                 |       83 |           24 769 |
+| Routes Next.js et styles globaux                |       67 |            7 311 |
+| Domaine métier                                  |       27 |            3 195 |
+| Moteur agent IA, hors tests/UI/SQL              |       10 |            2 108 |
+| Intégrations fournisseurs                       |       13 |            1 687 |
+| Adaptateurs API                                 |       13 |            1 290 |
+| Textes de l'aide utilisateur                    |        1 |            1 154 |
+| Queue et handlers de jobs                       |       11 |              744 |
+| Session/clients Supabase                        |        4 |               95 |
+| Observabilité                                   |        3 |               89 |
+| Invitations équipe                              |        1 |               10 |
+| Configurations TypeScript et scripts hors tests |        7 |              283 |
+| Migrations SQL                                  |       42 |            5 551 |
+| Tests TypeScript                                |       46 |            3 926 |
+| Scripts de validation et bootstrap              |       10 |            1 022 |
+| Tests SQL                                       |       16 |            1 293 |
+| SQL historique conservé                         |        7 |              680 |
+| **Total de ce périmètre**                       |  **361** |       **55 207** |
 
 Les lignes d'agent SQL sont imbriquées dans des migrations communes ; ce tableau ne les attribue pas artificiellement toutes au moteur IA. Le rangement conserve le contenu des fonctions ; Git reconnaît les déplacements comme renommages lorsque leur contenu reste équivalent.
 
@@ -55,15 +55,15 @@ Le rangement déplace 73 fichiers : groupes fonctionnels de composants et CSS, a
 
 ## Points à travailler progressivement
 
-| Point observé | Conséquence et suite raisonnable |
-| --- | --- |
-| Grandes pages : paramètres 743 lignes, assistant 677, qualité 661, fiches 606 au point de départ | Extraire progressivement les sous-sections vers leur fonctionnalité, en conservant leur comportement et leurs contrats de données. |
-| Agent : outils 533, runner 523, contrats 521 lignes | Modules centraux couplés aux droits et confirmations ; tout découpage demande une revue de sécurité et leurs tests dédiés. |
-| Schémas, calculs et SQL partagés par plusieurs fonctionnalités | Modifier un type après avoir identifié routes, worker et RPC qui le consomment. Éviter une extraction massive de services sans bénéfice démontré. |
-| Exports synchrones ; performances mesurées surtout côté SQL | Tester mémoire et latence réelles à volume représentatif avant de promettre une capacité d'entreprise. |
-| Cache, coût IA et jobs dépendent de PostgreSQL et de la configuration | Surveiller invalidation, réservations incertaines, leases et erreurs fournisseur ; ne pas confondre code de monitoring et moniteurs externes configurés. |
-| OAuth et fournisseur IA configurés sur deux services | Vérifier variables web et worker séparément, avec comptes de test réels. Le succès d'un build ne valide pas ces secrets. |
-| Recherches/audits historiques conservés | Les lire comme contexte daté ; architecture, code et validations récentes déterminent l'état actuel. |
+| Point observé                                                                                    | Conséquence et suite raisonnable                                                                                                                         |
+| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Grandes pages : paramètres 743 lignes, assistant 677, qualité 661, fiches 606 au point de départ | Extraire progressivement les sous-sections vers leur fonctionnalité, en conservant leur comportement et leurs contrats de données.                       |
+| Agent : outils 533, runner 523, contrats 521 lignes                                              | Modules centraux couplés aux droits et confirmations ; tout découpage demande une revue de sécurité et leurs tests dédiés.                               |
+| Schémas, calculs et SQL partagés par plusieurs fonctionnalités                                   | Modifier un type après avoir identifié routes, worker et RPC qui le consomment. Éviter une extraction massive de services sans bénéfice démontré.        |
+| Exports synchrones ; performances mesurées surtout côté SQL                                      | Tester mémoire et latence réelles à volume représentatif avant de promettre une capacité d'entreprise.                                                   |
+| Cache, coût IA et jobs dépendent de PostgreSQL et de la configuration                            | Surveiller invalidation, réservations incertaines, leases et erreurs fournisseur ; ne pas confondre code de monitoring et moniteurs externes configurés. |
+| OAuth et fournisseur IA configurés sur deux services                                             | Vérifier variables web et worker séparément, avec comptes de test réels. Le succès d'un build ne valide pas ces secrets.                                 |
+| Recherches/audits historiques conservés                                                          | Les lire comme contexte daté ; architecture, code et validations récentes déterminent l'état actuel.                                                     |
 
 Les responsabilités opérationnelles sont définies, mais aucun propriétaire humain, règle CODEOWNERS ou obligation de revue n'est inventé pour une équipe inexistante. Les branches protégées et personnes responsables devront être configurées lorsque l'équipe sera constituée.
 

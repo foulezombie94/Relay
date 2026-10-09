@@ -1,13 +1,7 @@
 import type { CrmRecord, ObjectDefinition, Row } from "./types";
-export function relatedRecords(
-  related: CrmRecord[],
-  objects: ObjectDefinition[],
-  slug: string,
-) {
+export function relatedRecords(related: CrmRecord[], objects: ObjectDefinition[], slug: string) {
   const ids = new Set(objects.filter((o) => o.slug === slug).map((o) => o.id));
-  return related.filter(
-    (r) => ids.has(r.object_id) && !r.archived && !r.merged_into,
-  );
+  return related.filter((r) => ids.has(r.object_id) && !r.archived && !r.merged_into);
 }
 export function nextRecordAction(timeline: (Row & { resource: string })[]) {
   return timeline
@@ -25,8 +19,7 @@ export function nextRecordAction(timeline: (Row & { resource: string })[]) {
     })[0];
 }
 export function linkedDealTotals(deals: CrmRecord[]) {
-  const totals: Record<string, { open: number; won: number; count: number }> =
-    {};
+  const totals: Record<string, { open: number; won: number; count: number }> = {};
   for (const deal of deals) {
     if (deal.archived || deal.merged_into) continue;
     const value = Number(deal.amount);

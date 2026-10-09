@@ -1,13 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import {
-  context,
-  requireAdmin,
-  checkOrigin,
-  databaseError,
-  fail,
-} from "@/lib/api/context";
+import { context, requireAdmin, checkOrigin, databaseError, fail } from "@/lib/api/context";
 import { digest } from "@/lib/integrations/crypto";
 const headers = { "Cache-Control": "private, no-store" };
 type P = { params: Promise<{ workspace: string }> };
@@ -18,17 +12,12 @@ export async function GET(_: NextRequest, { params }: P) {
     requireAdmin(role);
     const { data, error } = await client
       .from("zapier_keys")
-      .select(
-        "id,name,suffix,scopes,expires_at,revoked_at,last_used_at,created_at",
-      )
+      .select("id,name,suffix,scopes,expires_at,revoked_at,last_used_at,created_at")
       .eq("workspace_id", workspace)
       .order("created_at", { ascending: false })
       .limit(50);
     databaseError(error);
-    return NextResponse.json(
-      { data, configured: !!process.env.SUPABASE_SECRET_KEY },
-      { headers },
-    );
+    return NextResponse.json({ data, configured: !!process.env.SUPABASE_SECRET_KEY }, { headers });
   } catch (e) {
     return fail(e);
   }

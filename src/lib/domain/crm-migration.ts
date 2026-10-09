@@ -1,10 +1,6 @@
 import { automaticMapping, type ImportTable } from "./imports";
 export { crmSources, type CrmSource } from "./crm-sources";
-export const migrationFields = [
-  "_source_id",
-  "_company_ids",
-  "_person_ids",
-] as const;
+export const migrationFields = ["_source_id", "_company_ids", "_person_ids"] as const;
 export const importLabels: Record<string, string> = {
   display_name: "Nom",
   email: "Email",
@@ -84,27 +80,17 @@ export function crmMapping(headers: string[], kind: string) {
 export function withFullName(table: ImportTable): ImportTable {
   const norm = table.headers.map(normalizedHeader);
   if (
-    norm.some((h) =>
-      ["name", "fullname", "displayname", "contactname", "nomcomplet"].includes(
-        h,
-      ),
-    )
+    norm.some((h) => ["name", "fullname", "displayname", "contactname", "nomcomplet"].includes(h))
   )
     return table;
-  const first = norm.findIndex((h) =>
-      ["firstname", "prenom", "givenname"].includes(h),
-    ),
-    last = norm.findIndex((h) =>
-      ["lastname", "nomdefamille", "surname"].includes(h),
-    );
+  const first = norm.findIndex((h) => ["firstname", "prenom", "givenname"].includes(h)),
+    last = norm.findIndex((h) => ["lastname", "nomdefamille", "surname"].includes(h));
   if (first < 0 && last < 0) return table;
   return {
     ...table,
     headers: ["Nom complet (Relay)", ...table.headers],
     rows: table.rows.map((r) => [
-      [first >= 0 ? r[first] : "", last >= 0 ? r[last] : ""]
-        .filter(Boolean)
-        .join(" "),
+      [first >= 0 ? r[first] : "", last >= 0 ? r[last] : ""].filter(Boolean).join(" "),
       ...r,
     ]),
   };
@@ -120,11 +106,7 @@ export function referenceIds(cell: string) {
     !Array.isArray(values) ||
     values.length > 20 ||
     values.some(
-      (v) =>
-        typeof v !== "string" ||
-        !v.trim() ||
-        v.length > 200 ||
-        /[\x00-\x1f]/.test(v),
+      (v) => typeof v !== "string" || !v.trim() || v.length > 200 || /[\x00-\x1f]/.test(v),
     )
   )
     throw new Error(

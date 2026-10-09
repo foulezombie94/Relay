@@ -52,10 +52,6 @@ export function businessTime(now: Date, timezone: string) {
   }
   throw new Error("Fuseau horaire invalide");
 }
-export function nextSequenceDate(
-  days: number,
-  timezone: string,
-  now = new Date(),
-) {
+export function nextSequenceDate(days: number, timezone: string, now = new Date()) {
   return businessTime(new Date(now.getTime() + days * 86400000), timezone);
 }

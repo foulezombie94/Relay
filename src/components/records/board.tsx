@@ -26,24 +26,16 @@ export function RecordBoard({
 }) {
   const [dragging, setDragging] = useState<string | null>(null);
   const [dropStage, setDropStage] = useState<string | null>(null);
-  const owners = new Map(
-    members.map((member) => [str(member.user_id), str(member.display_name)]),
-  );
+  const owners = new Map(members.map((member) => [str(member.user_id), str(member.display_name)]));
   return (
-    <div
-      className={`kanban ${styles.pipeline}`}
-      aria-label="Pipeline des opportunités"
-    >
+    <div className={`kanban ${styles.pipeline}`} aria-label="Pipeline des opportunités">
       {stages.map((stage) => {
         const deals = rows.filter((record) => record.stage === stage);
         const totals = new Map<string, number>();
         for (const deal of deals) {
           const amount = Number(deal.amount);
           if (Number.isFinite(amount))
-            totals.set(
-              deal.currency || "EUR",
-              (totals.get(deal.currency || "EUR") ?? 0) + amount,
-            );
+            totals.set(deal.currency || "EUR", (totals.get(deal.currency || "EUR") ?? 0) + amount);
         }
         return (
           <section
@@ -58,11 +50,7 @@ export function RecordBoard({
               }
             }}
             onDragLeave={(event) => {
-              if (
-                !event.currentTarget.contains(
-                  event.relatedTarget as Node | null,
-                )
-              )
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null))
                 setDropStage(null);
             }}
             onDrop={(event) => {
@@ -128,25 +116,19 @@ export function RecordBoard({
                 {record.close_date && (
                   <span className={styles.dealDate}>
                     <CalendarDays size={12} /> Clôture :{" "}
-                    {new Date(
-                      record.close_date + "T12:00:00",
-                    ).toLocaleDateString("fr-FR")}
+                    {new Date(record.close_date + "T12:00:00").toLocaleDateString("fr-FR")}
                   </span>
                 )}
                 <div className={styles.dealOwner}>
                   {owners.get(record.owner_id || "") ||
-                    (record.owner_id
-                      ? "Responsable assigné"
-                      : "Sans responsable")}
+                    (record.owner_id ? "Responsable assigné" : "Sans responsable")}
                 </div>
                 <select
                   aria-label={`Étape de ${record.display_name}`}
                   value={record.stage}
                   disabled={readonly || busy}
                   onClick={(event) => event.stopPropagation()}
-                  onChange={(event) =>
-                    void onMove(record, event.target.value).catch(() => {})
-                  }
+                  onChange={(event) => void onMove(record, event.target.value).catch(() => {})}
                 >
                   {stages.map((value) => (
                     <option key={value} value={value}>
@@ -159,11 +141,7 @@ export function RecordBoard({
             {!deals.length && (
               <div className={styles.stageEmpty}>
                 <span>Aucune opportunité</span>
-                <button
-                  type="button"
-                  disabled={readonly || busy}
-                  onClick={() => onCreate(stage)}
-                >
+                <button type="button" disabled={readonly || busy} onClick={() => onCreate(stage)}>
                   <Plus size={13} /> Ajouter ici
                 </button>
               </div>

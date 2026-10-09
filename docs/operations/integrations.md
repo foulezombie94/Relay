@@ -65,7 +65,10 @@ Votre Relay doit être hébergé en HTTPS et accessible à Zapier ; localhost n�
 Exemple :
 
 ```json
-{"resource":"people","values":{"display_name":"Contact exemple","email":"contact@example.com"}}
+{
+  "resource": "people",
+  "values": { "display_name": "Contact exemple", "email": "contact@example.com" }
+}
 ```
 
 Pour tasks, values accepte title, description, record_id, due_date ISO avec fuseau et priority low/normal/high. La fiche liée doit appartenir au workspace et être active. Les fiches ayant des attributs personnalisés obligatoires doivent être créées dans Relay ; l’API ne contourne pas ces obligations.

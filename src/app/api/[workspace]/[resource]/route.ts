@@ -22,32 +22,23 @@ export async function GET(request: NextRequest, { params }: Params) {
     const { client, user } = await context(workspace);
     const p = request.nextUrl.searchParams;
     const page = Math.max(0, Math.floor(Number(p.get("page") ?? 0) || 0)),
-      size = Math.min(
-        100,
-        Math.max(1, Math.floor(Number(p.get("size") ?? 50) || 50)),
-      );
+      size = Math.min(100, Math.max(1, Math.floor(Number(p.get("size") ?? 50) || 50)));
     if (resource === "records") {
-      const { data, error, count } = await recordQuery(
-        client,
-        workspace,
-        p,
-        user.id,
-      ).range(page * size, (page + 1) * size - 1);
+      const { data, error, count } = await recordQuery(client, workspace, p, user.id).range(
+        page * size,
+        (page + 1) * size - 1,
+      );
       databaseError(error);
       return NextResponse.json({ data, count, page, size });
     }
-    const { data, error, count } = await resourceQuery(
-      client,
-      workspace,
-      resource,
-      p,
-      user.id,
-    ).range(page * size, (page + 1) * size - 1)
-      .overrideTypes<(Record<string, unknown> & { record_id?: string | null })[], { merge: false }>();
+    const { data, error, count } = await resourceQuery(client, workspace, resource, p, user.id)
+      .range(page * size, (page + 1) * size - 1)
+      .overrideTypes<
+        (Record<string, unknown> & { record_id?: string | null })[],
+        { merge: false }
+      >();
     databaseError(error);
-    const ids = [
-      ...new Set((data ?? []).map((row) => row.record_id).filter(Boolean)),
-    ];
+    const ids = [...new Set((data ?? []).map((row) => row.record_id).filter(Boolean))];
     let result = data;
     if (ids.length) {
       const { data: related, error: re } = await client
@@ -72,15 +63,10 @@ export async function POST(request: NextRequest, { params }: Params) {
     const { workspace, resource } = await params;
     if (!isResource(resource)) throw new ApiError("Ressource inconnue.", 404);
     const { client, role } = await context(workspace, true);
-    if (
-      ["objects", "attributes", "portal_members", "pipelines"].includes(
-        resource,
-      )
-    )
+    if (["objects", "attributes", "portal_members", "pipelines"].includes(resource))
       requireAdmin(role);
     const result = resources[resource].safeParse(await request.json());
-    if (!result.success)
-      throw new ApiError(result.error.issues.map((i) => i.message).join(" "));
+    if (!result.success) throw new ApiError(result.error.issues.map((i) => i.message).join(" "));
     const values: Record<string, unknown> = {
       ...result.data,
       workspace_id: workspace,
@@ -108,9 +94,7 @@ export async function POST(request: NextRequest, { params }: Params) {
         .eq("id", values.record_id)
         .single();
       if (deal?.stage !== "Gagné")
-        throw new ApiError(
-          "Le dossier de réalisation nécessite une opportunité gagnée.",
-        );
+        throw new ApiError("Le dossier de réalisation nécessite une opportunité gagnée.");
       const { data: commitments } = await client
         .from("commitments")
         .select("id,title,status,due_date,source_quote")
@@ -119,11 +103,7 @@ export async function POST(request: NextRequest, { params }: Params) {
         .in("status", ["confirmed", "in_progress", "done"]);
       values.commitments_snapshot = commitments ?? [];
     }
-    const { data, error } = await client
-      .from(resource)
-      .insert(values)
-      .select()
-      .single();
+    const { data, error } = await client.from(resource).insert(values).select().single();
     databaseError(error);
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
@@ -136,18 +116,13 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const { workspace, resource } = await params;
     if (!isResource(resource)) throw new ApiError("Ressource inconnue.", 404);
     const { client, role } = await context(workspace, true);
-    if (
-      ["objects", "attributes", "portal_members", "pipelines"].includes(
-        resource,
-      )
-    )
+    if (["objects", "attributes", "portal_members", "pipelines"].includes(resource))
       requireAdmin(role);
     const body = await request.json();
     const rowId = z.uuid().parse(body.id);
     const schema = resources[resource].partial();
     const parsed = schema.safeParse(body.values);
-    if (!parsed.success)
-      throw new ApiError(parsed.error.issues.map((i) => i.message).join(" "));
+    if (!parsed.success) throw new ApiError(parsed.error.issues.map((i) => i.message).join(" "));
     const values: Record<string, unknown> = { ...parsed.data };
     for (const immutable of [
       "object_id",
@@ -157,8 +132,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       "source_id",
       "target_id",
     ])
-      if (immutable in values)
-        throw new ApiError("Cette relation ne peut pas être déplacée.");
+      if (immutable in values) throw new ApiError("Cette relation ne peut pas être déplacée.");
     if (
       [
         "tasks",
@@ -215,15 +189,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         .eq("workspace_id", workspace)
         .single();
       if (!String(values.evidence ?? old?.evidence ?? "").trim())
-        throw new ApiError(
-          "Ajoutez une preuve avant de clôturer cet engagement.",
-        );
+        throw new ApiError("Ajoutez une preuve avant de clôturer cet engagement.");
     }
-    let query = client
-      .from(resource)
-      .update(values)
-      .eq("workspace_id", workspace)
-      .eq("id", rowId);
+    let query = client.from(resource).update(values).eq("workspace_id", workspace).eq("id", rowId);
     if (body.version !== undefined) query = query.eq("version", body.version);
     const { data, error } = await query.select().maybeSingle();
     databaseError(error);
@@ -265,8 +233,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
         .select("id")
         .maybeSingle();
       databaseError(error);
-      if (!data)
-        throw new ApiError("Élément inaccessible ou déjà retiré.", 404);
+      if (!data) throw new ApiError("Élément inaccessible ou déjà retiré.", 404);
     }
     return NextResponse.json({ ok: true });
   } catch (error) {

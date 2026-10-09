@@ -25,20 +25,14 @@ export function csvTable(content: string): ImportTable {
   const result = Papa.parse<string[]>(content.replace(/^\uFEFF/, ""), {
     skipEmptyLines: "greedy",
   });
-  if (result.errors.length)
-    throw new Error("CSV mal formé : " + result.errors[0].message);
+  if (result.errors.length) throw new Error("CSV mal formé : " + result.errors[0].message);
   const headers = (result.data[0] ?? []).map((h) => h.trim());
-  if (
-    !headers.length ||
-    headers.some((h) => !h) ||
-    new Set(headers).size !== headers.length
-  )
+  if (!headers.length || headers.some((h) => !h) || new Set(headers).size !== headers.length)
     throw new Error("Chaque colonne doit avoir un nom unique et non vide.");
   if (headers.length > 100) throw new Error("Maximum 100 colonnes.");
   const rows = result.data.slice(1);
   if (rows.length > 1000) throw new Error("Maximum 1 000 lignes.");
-  if (!rows.length)
-    throw new Error("Le fichier ne contient aucune ligne à importer.");
+  if (!rows.length) throw new Error("Le fichier ne contient aucune ligne à importer.");
   if (rows.some((r) => r.length > headers.length))
     throw new Error("Certaines lignes contiennent trop de colonnes.");
   return { headers, rows };
@@ -75,13 +69,8 @@ export function automaticMapping(headers: string[]) {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[\s_-]/g, "");
-      const known = importFields.find(
-        (f) => f.replaceAll("_", "") === normalized,
-      );
-      return [
-        h,
-        known || aliases[normalized] || (h.startsWith("attr_") ? h : ""),
-      ];
+      const known = importFields.find((f) => f.replaceAll("_", "") === normalized);
+      return [h, known || aliases[normalized] || (h.startsWith("attr_") ? h : "")];
     }),
   );
 }
@@ -123,9 +112,7 @@ export function prepareImport(
     ...importFields,
     ...migrationFields,
     ...attributes
-      .filter(
-        (a) => !a.archived && !["formula", "relation", "user"].includes(a.type),
-      )
+      .filter((a) => !a.archived && !["formula", "relation", "user"].includes(a.type))
       .map((a) => "attr_" + a.key),
   ]);
   const targets = Object.values(mapping).filter(Boolean);
@@ -136,8 +123,7 @@ export function prepareImport(
     throw new Error("Correspondance de colonnes invalide.");
   if (new Set(targets).size !== targets.length)
     throw new Error("Un champ ne peut être associé à deux colonnes.");
-  if (!targets.includes("display_name"))
-    throw new Error("Associez une colonne au nom.");
+  if (!targets.includes("display_name")) throw new Error("Associez une colonne au nom.");
   const valid: Record<string, unknown>[] = [];
   const errors: ImportError[] = [];
   table.rows.forEach((cells, index) => {
@@ -154,9 +140,7 @@ export function prepareImport(
             if (cell.length > 200 || /[\x00-\x1f]/.test(cell))
               throw new Error("ID source invalide.");
             migration.id = cell;
-          } else
-            migration[target === "_company_ids" ? "companies" : "people"] =
-              referenceIds(cell);
+          } else migration[target === "_company_ids" ? "companies" : "people"] = referenceIds(cell);
           return;
         }
         if (target === "attributes") {
@@ -165,9 +149,7 @@ export function prepareImport(
             !data ||
             typeof data !== "object" ||
             Array.isArray(data) ||
-            Object.keys(data).some((k) =>
-              ["__proto__", "prototype", "constructor"].includes(k),
-            )
+            Object.keys(data).some((k) => ["__proto__", "prototype", "constructor"].includes(k))
           )
             throw new Error("Attributs JSON invalides.");
           Object.assign(custom, data);
@@ -210,21 +192,16 @@ export function prepareImport(
       if (values.stage && options.stageMap) {
         const mapped = options.stageMap[String(values.stage)];
         if (!mapped && options.deal)
-          throw new Error(
-            "Associez l’étape « " + values.stage + " » à une étape Relay.",
-          );
+          throw new Error("Associez l’étape « " + values.stage + " » à une étape Relay.");
         if (mapped) values.stage = mapped;
       }
       if (options.deal && values.stage === "Perdu" && !values.lost_reason)
-        values.lost_reason =
-          "Import CRM : raison de perte non renseignée dans l’export";
+        values.lost_reason = "Import CRM : raison de perte non renseignée dans l’export";
       values.attributes = custom;
       values.stage ??= "Nouveau";
       values.currency ??= "EUR";
       if (values.stage === "Perdu" && !String(values.lost_reason ?? "").trim())
-        throw new Error(
-          "Raison de perte obligatoire pour une opportunité perdue.",
-        );
+        throw new Error("Raison de perte obligatoire pour une opportunité perdue.");
       const parsed = resources.records.safeParse(values);
       if (!parsed.success)
         throw new Error(
@@ -239,9 +216,7 @@ export function prepareImport(
       const issues = validateAttributes(custom, attributes);
       if (issues.length) throw new Error(issues.join(" ; "));
       if ((migration.companies || migration.people) && !migration.id)
-        throw new Error(
-          "Associez l’ID source de cette fiche pour conserver ses relations.",
-        );
+        throw new Error("Associez l’ID source de cette fiche pour conserver ses relations.");
       valid.push({
         ...parsed.data,
         ...(options.sourceKey && migration.id

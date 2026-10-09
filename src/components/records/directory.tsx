@@ -15,9 +15,7 @@ export function RecordDirectory({
   slug: string;
   onOpen: (record: CrmRecord) => void;
 }) {
-  const owners = new Map(
-    members.map((member) => [str(member.user_id), str(member.display_name)]),
-  );
+  const owners = new Map(members.map((member) => [str(member.user_id), str(member.display_name)]));
   return (
     <div className={styles.directory}>
       {rows.map((record) => (
@@ -30,11 +28,7 @@ export function RecordDirectory({
           <div className={styles.cardTop}>
             <Avatar name={record.display_name} />
             <span>
-              {slug === "companies"
-                ? "ENTREPRISE"
-                : slug === "people"
-                  ? "CONTACT"
-                  : "FICHE"}
+              {slug === "companies" ? "ENTREPRISE" : slug === "people" ? "CONTACT" : "FICHE"}
             </span>
           </div>
           <strong>{record.display_name}</strong>
@@ -51,9 +45,7 @@ export function RecordDirectory({
                 {record.email}
               </span>
             )}
-            {!record.domain && !record.email && (
-              <span>Coordonnées à compléter</span>
-            )}
+            {!record.domain && !record.email && <span>Coordonnées à compléter</span>}
           </div>
           <div className={styles.cardFooter}>
             <span>

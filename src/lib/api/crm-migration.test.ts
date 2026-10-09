@@ -11,9 +11,7 @@ describe("CRM migration files", () => {
     async (source) => {
       const bundle = await inspectImportFile(
         new File(
-          [
-            "Record ID,Company Name,Website\ncompany-1,Acme,https://acme.example\n",
-          ],
+          ["Record ID,Company Name,Website\ncompany-1,Acme,https://acme.example\n"],
           "export.csv",
         ),
         { source },
@@ -39,7 +37,7 @@ describe("CRM migration files", () => {
     const t = csvTable(
       "Record ID,First Name,Last Name,Email,Associated Company IDs\ncontact-1,Ada,Lovelace,ada@example.invalid,company-1;company-2",
     );
-    const map:Record<string,string> = {
+    const map: Record<string, string> = {
       ...crmMapping(t.headers, "people"),
       "First Name": "display_name",
     };
@@ -122,22 +120,16 @@ describe("CRM migration files", () => {
     b.addRow(["Title"]);
     b.addRow(["First Name", "Last Name"]);
     b.addRow(["Ada", "Lovelace"]);
-    const f = new File(
-      [(await book.xlsx.writeBuffer()) as ArrayBuffer],
-      "monday.xlsx",
-    );
+    const f = new File([(await book.xlsx.writeBuffer()) as ArrayBuffer], "monday.xlsx");
     expect((await inspectImportFile(f)).selections).toHaveLength(2);
     const r = await inspectImportFile(f, { selection: "1", headerRow: 2 });
     expect(r.table!.rows[0][0]).toBe("Ada Lovelace");
     b.getCell("A3").value = { formula: "1+1", result: 2 };
     await expect(
-      inspectImportFile(
-        new File(
-          [(await book.xlsx.writeBuffer()) as ArrayBuffer],
-          "unsafe.xlsx",
-        ),
-        { selection: "1", headerRow: 2 },
-      ),
+      inspectImportFile(new File([(await book.xlsx.writeBuffer()) as ArrayBuffer], "unsafe.xlsx"), {
+        selection: "1",
+        headerRow: 2,
+      }),
     ).rejects.toThrow("formules");
   }, 15000);
   it("selects CSV tables from a real ZIP and refuses traversal / corruption", async () => {
@@ -151,14 +143,10 @@ describe("CRM migration files", () => {
     const catalog = await inspectImportFile(f);
     expect(catalog.selections).toHaveLength(2);
     expect(catalog.ignored).toEqual(["attachment.pdf"]);
-    expect(
-      (await inspectImportFile(f, { selection: "1" })).table!.rows,
-    ).toEqual([["p1", "Ada"]]);
+    expect((await inspectImportFile(f, { selection: "1" })).table!.rows).toEqual([["p1", "Ada"]]);
     const bad = new JSZip();
     bad.file("../secret.csv", "ID,Name\nc1,Acme");
-    await expect(
-      readZipEntries(await bad.generateAsync({ type: "nodebuffer" })),
-    ).rejects.toThrow();
+    await expect(readZipEntries(await bad.generateAsync({ type: "nodebuffer" }))).rejects.toThrow();
     const corrupt = Buffer.from(data);
     corrupt[50] ^= 1;
     await expect(readZipEntries(corrupt)).rejects.toThrow();
@@ -167,13 +155,9 @@ describe("CRM migration files", () => {
     await expect(
       inspectImportFile(new File([new Uint8Array(4_000_001)], "large.csv")),
     ).rejects.toThrow("4 Mo");
-    await expect(
-      inspectImportFile(new File(["[1,2]"], "bad.json")),
-    ).rejects.toThrow("objet");
+    await expect(inspectImportFile(new File(["[1,2]"], "bad.json"))).rejects.toThrow("objet");
     expect(() => referenceIds('["ok",42]')).toThrow();
-    expect(() =>
-      referenceIds(Array.from({ length: 21 }, (_, i) => "id" + i).join(";")),
-    ).toThrow();
+    expect(() => referenceIds(Array.from({ length: 21 }, (_, i) => "id" + i).join(";"))).toThrow();
     const t = {
       headers: ["Name", "Attributes"],
       rows: [["Acme", '{"__proto__":{"admin":true}}']],
@@ -192,26 +176,16 @@ describe("CRM migration files", () => {
   it("requires an explicit stage translation before accepting deals", () => {
     const t = csvTable("Name,Deal Stage\nRenewal,Contract sent");
     expect(
-      prepareImport(
-        t,
-        crmMapping(t.headers, "deals"),
-        [],
-        objectId,
-        undefined,
-        "dot",
-        { deal: true, stageMap: {} },
-      ).valid,
+      prepareImport(t, crmMapping(t.headers, "deals"), [], objectId, undefined, "dot", {
+        deal: true,
+        stageMap: {},
+      }).valid,
     ).toHaveLength(0);
     expect(
-      prepareImport(
-        t,
-        crmMapping(t.headers, "deals"),
-        [],
-        objectId,
-        undefined,
-        "dot",
-        { deal: true, stageMap: { "Contract sent": "Proposition" } },
-      ).valid[0],
+      prepareImport(t, crmMapping(t.headers, "deals"), [], objectId, undefined, "dot", {
+        deal: true,
+        stageMap: { "Contract sent": "Proposition" },
+      }).valid[0],
     ).toMatchObject({ stage: "Proposition" });
   });
 });

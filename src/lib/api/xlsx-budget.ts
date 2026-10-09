@@ -5,19 +5,14 @@ const inflate = promisify(inflateRaw);
 const MAX_ENTRY = 8 * 1024 * 1024;
 const MAX_TOTAL = 20 * 1024 * 1024;
 const invalid = () =>
-  new Error(
-    "Classeur invalide ou trop volumineux après décompression (20 Mo maximum).",
-  );
+  new Error("Classeur invalide ou trop volumineux après décompression (20 Mo maximum).");
 
 /** Validate ZIP structure and actual inflated sizes before ExcelJS accumulates entries. */
 export async function readZipEntries(data: Buffer) {
   const entries: { name: string; data: Buffer }[] = [];
   let end = -1;
   for (let p = data.length - 22; p >= Math.max(0, data.length - 65557); p--) {
-    if (
-      data.readUInt32LE(p) === 0x06054b50 &&
-      p + 22 + data.readUInt16LE(p + 20) === data.length
-    ) {
+    if (data.readUInt32LE(p) === 0x06054b50 && p + 22 + data.readUInt16LE(p + 20) === data.length) {
       end = p;
       break;
     }
@@ -39,8 +34,7 @@ export async function readZipEntries(data: Buffer) {
   let total = 0;
   const names = new Set<string>();
   for (let n = 0; n < count; n++) {
-    if (offset + 46 > end || data.readUInt32LE(offset) !== 0x02014b50)
-      throw invalid();
+    if (offset + 46 > end || data.readUInt32LE(offset) !== 0x02014b50) throw invalid();
     const flags = data.readUInt16LE(offset + 8),
       method = data.readUInt16LE(offset + 10);
     const compressed = data.readUInt32LE(offset + 20),
@@ -59,9 +53,7 @@ export async function readZipEntries(data: Buffer) {
       data.readUInt16LE(offset + 34) !== 0
     )
       throw invalid();
-    const name = data
-      .subarray(offset + 46, offset + 46 + nameLength)
-      .toString("utf8");
+    const name = data.subarray(offset + 46, offset + 46 + nameLength).toString("utf8");
     if (
       !name ||
       names.has(name) ||
@@ -92,21 +84,13 @@ export async function readZipEntries(data: Buffer) {
         method === 0
           ? input
           : await inflate(input, {
-              maxOutputLength: Math.max(
-                1,
-                Math.min(MAX_ENTRY, MAX_TOTAL - total),
-              ),
+              maxOutputLength: Math.max(1, Math.min(MAX_ENTRY, MAX_TOTAL - total)),
             });
       const outputSize = output.length;
       if (crc32(output) !== data.readUInt32LE(offset + 16)) throw invalid();
       entries.push({ name, data: output });
       total += outputSize;
-      if (
-        outputSize !== declared ||
-        outputSize > MAX_ENTRY ||
-        total > MAX_TOTAL
-      )
-        throw invalid();
+      if (outputSize !== declared || outputSize > MAX_ENTRY || total > MAX_TOTAL) throw invalid();
     } catch {
       throw invalid();
     }
@@ -135,15 +119,12 @@ export async function checkXlsxBudget(data: Buffer) {
     const xml = entry.data.toString("utf8");
     if (/<!DOCTYPE|<!ENTITY/i.test(xml)) throw invalid();
     if (/^xl\/worksheets\/[^/]+\.xml$/.test(entry.name)) {
-      if (++sheets > 25)
-        throw new Error("Maximum 25 feuilles Excel par classeur.");
+      if (++sheets > 25) throw new Error("Maximum 25 feuilles Excel par classeur.");
       let rows = 0;
       for (const match of xml.matchAll(/<row(?:\s|>)/g)) {
         void match;
         if (++rows > 1025)
-          throw new Error(
-            "Maximum 1 000 lignes par feuille (hors en-tête et introduction).",
-          );
+          throw new Error("Maximum 1 000 lignes par feuille (hors en-tête et introduction).");
       }
       for (const match of xml.matchAll(/<c(?:\s|>)/g)) {
         void match;

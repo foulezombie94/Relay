@@ -3,13 +3,7 @@ import { useState } from "react";
 import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import { Modal, Editor, Badge, str, date, Empty, type Field } from "../ui";
 import type { Row } from "@/lib/domain/types";
-export function PortalDetails({
-  portal,
-  onClose,
-}: {
-  portal: Row;
-  onClose: () => void;
-}) {
+export function PortalDetails({ portal, onClose }: { portal: Row; onClose: () => void }) {
   const { workspace } = useWorkspace();
   const items = useRows("portal_items", { portal_id: portal.id, size: 100 });
   const members = useRows("portal_members", {
@@ -21,9 +15,7 @@ export function PortalDetails({
     size: 100,
   });
   const { save, remove, busy } = useSave();
-  const [editor, setEditor] = useState<{ resource: string; row?: Row } | null>(
-    null,
-  );
+  const [editor, setEditor] = useState<{ resource: string; row?: Row } | null>(null);
   const admin = ["owner", "admin"].includes(workspace.role);
   const fields: Field[] =
     editor?.resource === "portal_members"
@@ -82,16 +74,13 @@ export function PortalDetails({
           {portal.id}
         </a>
         <p>
-          Le client doit créer un compte et vérifier l’adresse invitée. L’ajout
-          d’un accès n’envoie pas d’e-mail.
+          Le client doit créer un compte et vérifier l’adresse invitée. L’ajout d’un accès n’envoie
+          pas d’e-mail.
         </p>
       </div>
       <h3>Personnes autorisées</h3>
       {admin && (
-        <button
-          className="button small"
-          onClick={() => setEditor({ resource: "portal_members" })}
-        >
+        <button className="button small" onClick={() => setEditor({ resource: "portal_members" })}>
           Autoriser un client
         </button>
       )}
@@ -103,19 +92,13 @@ export function PortalDetails({
             {admin && (
               <button
                 className="button small"
-                onClick={() =>
-                  setEditor({ resource: "portal_members", row: m })
-                }
+                onClick={() => setEditor({ resource: "portal_members", row: m })}
               >
                 Modifier
               </button>
             )}
           </div>
-          <small>
-            {m.expires_at
-              ? "Expire le " + date(m.expires_at)
-              : "Sans expiration"}
-          </small>
+          <small>{m.expires_at ? "Expire le " + date(m.expires_at) : "Sans expiration"}</small>
         </div>
       ))}
       <h3>Éléments visibles du client</h3>
@@ -142,9 +125,7 @@ export function PortalDetails({
               <button
                 className="button small"
                 disabled={workspace.role === "viewer"}
-                onClick={() =>
-                  void remove("portal_items", i.id).catch(() => {})
-                }
+                onClick={() => void remove("portal_items", i.id).catch(() => {})}
               >
                 Retirer
               </button>
@@ -161,15 +142,9 @@ export function PortalDetails({
           key={editor.row?.id ?? editor.resource}
           open
           onClose={() => setEditor(null)}
-          title={
-            editor.resource === "portal_members"
-              ? "Accès client"
-              : "Élément partagé"
-          }
+          title={editor.resource === "portal_members" ? "Accès client" : "Élément partagé"}
           fields={fields}
-          initial={
-            editor.row ?? { type: "update", status: "open", can_comment: true }
-          }
+          initial={editor.row ?? { type: "update", status: "open", can_comment: true }}
           busy={busy}
           onSave={(v) =>
             save(

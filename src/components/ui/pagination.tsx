@@ -15,8 +15,8 @@ export function Pagination({
   return (
     <nav className="toolbar" aria-label="Pagination">
       <span className="caption">
-        {total ? Math.min(page * size + 1, total) : 0}–
-        {Math.min((page + 1) * size, total)} sur {total}
+        {total ? Math.min(page * size + 1, total) : 0}–{Math.min((page + 1) * size, total)} sur{" "}
+        {total}
       </span>
       <button
         type="button"

@@ -17,4 +17,5 @@ FORM : choix de la convention CRM premium explicitement demandée par l’utilis
 FINISH : unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
 
 ## Frontière des aperçus publics
+
 Les aperçus réutilisent les vues UI du CRM et des fixtures locales en lecture seule. AppSidebarView reçoit ses propriétés sans session : aucun import Supabase, fournisseur de données, React Query ou page CRM. Le wrapper AppSidebar conserve les fonctions privées dans l’application. Les liens des aperçus ne préchargent pas les routes privées. La route / évite le rafraîchissement de session dans le proxy. Les primitives visuelles sont extraites des formulaires et du calendrier. Un test récursif protège ces frontières.

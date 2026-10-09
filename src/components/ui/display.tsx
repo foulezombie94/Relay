@@ -25,14 +25,7 @@ export function Badge({ value }: { value: unknown }) {
     <span
       className={
         "badge " +
-        ([
-          "Gagné",
-          "done",
-          "approved",
-          "completed",
-          "confirmed",
-          "connected",
-        ].includes(s)
+        (["Gagné", "done", "approved", "completed", "confirmed", "connected"].includes(s)
           ? "green"
           : ["Perdu", "cancelled", "failed", "error"].includes(s)
             ? "red"
@@ -45,9 +38,7 @@ export function Badge({ value }: { value: unknown }) {
   );
 }
 export function Avatar({ name }: { name: string }) {
-  const hue = [217, 168, 277, 31, 340, 193][
-    [...name].reduce((s, c) => s + c.charCodeAt(0), 0) % 6
-  ];
+  const hue = [217, 168, 277, 31, 340, 193][[...name].reduce((s, c) => s + c.charCodeAt(0), 0) % 6];
   return (
     <span
       className="avatar"
@@ -80,8 +71,4 @@ export const date = (v: unknown) =>
       })
     : "—";
 export const str = (v: unknown) =>
-  v === null || v === undefined
-    ? ""
-    : typeof v === "object"
-      ? JSON.stringify(v)
-      : String(v);
+  v === null || v === undefined ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);

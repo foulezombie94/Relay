@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
-import {
-  LayoutDashboard,
-  Users,
-  CheckCheck,
-  Plus,
-  Search,
-  PanelLeft,
-} from "lucide-react";
+import { LayoutDashboard, Users, CheckCheck, Plus, Search, PanelLeft } from "lucide-react";
 import { AppSidebarView } from "@/components/layout/app-sidebar-view";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { RecordBoard } from "@/components/records/board";
@@ -42,11 +35,7 @@ const members: Row[] = [
     display_name: "Marie Laurent",
   },
 ];
-function record(
-  id: string,
-  name: string,
-  extra: Partial<CrmRecord> = {},
-): CrmRecord {
+function record(id: string, name: string, extra: Partial<CrmRecord> = {}): CrmRecord {
   return {
     id,
     workspace_id: workspace.id,
@@ -140,11 +129,7 @@ function CommitmentCards({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function ProductScene({
-  kind,
-}: {
-  kind: "relations" | "forecast" | "realisation";
-}) {
+export function ProductScene({ kind }: { kind: "relations" | "forecast" | "realisation" }) {
   return (
     <figure className={styles.actualScene}>
       <div className={styles.realUI} inert>
@@ -154,12 +139,7 @@ export function ProductScene({
               title="Entreprises"
               description="Vos comptes clients et prospects, avec leur contexte et leurs coordonnées."
             />
-            <RecordDirectory
-              rows={companies}
-              members={members}
-              slug="companies"
-              onOpen={noop}
-            />
+            <RecordDirectory rows={companies} members={members} slug="companies" onOpen={noop} />
           </>
         ) : kind === "forecast" ? (
           <>
@@ -183,9 +163,7 @@ export function ProductScene({
           </>
         )}
       </div>
-      <figcaption>
-        Interface Relay · Données de démonstration · Lecture seule
-      </figcaption>
+      <figcaption>Interface Relay · Données de démonstration · Lecture seule</figcaption>
     </figure>
   );
 }
@@ -193,27 +171,12 @@ export function ProductScene({
 export default function ProductPreview() {
   const [view, setView] = useState("pipeline");
   const title =
-    view === "pipeline"
-      ? "Opportunités"
-      : view === "relations"
-        ? "Personnes"
-        : "Engagements";
+    view === "pipeline" ? "Opportunités" : view === "relations" ? "Personnes" : "Engagements";
   const path =
-    view === "pipeline"
-      ? "/app/deals"
-      : view === "relations"
-        ? "/app/people"
-        : "/app/commitments";
+    view === "pipeline" ? "/app/deals" : view === "relations" ? "/app/people" : "/app/commitments";
   return (
-    <Tabs.Root
-      value={view}
-      onValueChange={setView}
-      className={styles.productExplorer}
-    >
-      <Tabs.List
-        className={styles.explorerTabs}
-        aria-label="Choisir un aperçu du produit"
-      >
+    <Tabs.Root value={view} onValueChange={setView} className={styles.productExplorer}>
+      <Tabs.List className={styles.explorerTabs} aria-label="Choisir un aperçu du produit">
         <Tabs.Trigger value="pipeline">
           <LayoutDashboard size={16} />
           Vos opportunités
@@ -244,14 +207,10 @@ export default function ProductPreview() {
               <header className="sb-topbar">
                 <PanelLeft size={18} />
                 <span className="sb-topbar-divider" />
-                <span className="sb-breadcrumb-workspace">
-                  {workspace.name}
-                </span>
+                <span className="sb-breadcrumb-workspace">{workspace.name}</span>
                 <span className="sb-breadcrumb-slash">/</span>
                 <span className="sb-breadcrumb-current">{title}</span>
-                <span className={styles.actualExample}>
-                  Données de démonstration
-                </span>
+                <span className={styles.actualExample}>Données de démonstration</span>
               </header>
               <div className="page-content">
                 <Tabs.Content value="pipeline">
@@ -265,10 +224,7 @@ export default function ProductPreview() {
                       </button>
                     }
                   />
-                  <div
-                    className={recordStyles.quickViews}
-                    aria-label="Vues rapides"
-                  >
+                  <div className={recordStyles.quickViews} aria-label="Vues rapides">
                     <button aria-pressed="true">Toutes les opportunités</button>
                     <button>Mon pipeline</button>
                     <button>Sans responsable</button>

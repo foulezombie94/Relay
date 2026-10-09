@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  salesHistory,
-  type HistoricalDeal,
-  type SalesAudit,
-} from "./sales-history";
+import { salesHistory, type HistoricalDeal, type SalesAudit } from "./sales-history";
 import type { Pipeline } from "./pipelines";
 const pipeline: Pipeline = {
   id: "p",
@@ -105,11 +101,7 @@ describe("audited sales outcomes", () => {
       [old, event("a", "Négociation", "Gagné")],
       "2026-10",
     );
-    expect(
-      result.calibration.find((c) => c.stage === "Proposition")!.rate,
-    ).toBeNull();
-    expect(
-      result.calibration.find((c) => c.stage === "Négociation")!.rate,
-    ).toBe(100);
+    expect(result.calibration.find((c) => c.stage === "Proposition")!.rate).toBeNull();
+    expect(result.calibration.find((c) => c.stage === "Négociation")!.rate).toBe(100);
   });
 });

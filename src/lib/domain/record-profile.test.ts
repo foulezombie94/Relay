@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  relatedRecords,
-  nextRecordAction,
-  linkedDealTotals,
-} from "./record-profile";
+import { relatedRecords, nextRecordAction, linkedDealTotals } from "./record-profile";
 import type { CrmRecord, ObjectDefinition, Row } from "./types";
 const record = (extra: Partial<CrmRecord>) =>
   ({
@@ -37,12 +33,8 @@ describe("record-specific overview data", () => {
       record({ id: "a", object_id: "person", archived: true }),
       record({ id: "m", object_id: "person", merged_into: "p" }),
     ];
-    expect(relatedRecords(rows, objects, "people").map((r) => r.id)).toEqual([
-      "p",
-    ]);
-    expect(relatedRecords(rows, objects, "companies").map((r) => r.id)).toEqual(
-      ["c"],
-    );
+    expect(relatedRecords(rows, objects, "people").map((r) => r.id)).toEqual(["p"]);
+    expect(relatedRecords(rows, objects, "companies").map((r) => r.id)).toEqual(["c"]);
   });
   it("chooses the nearest open action without mistaking completed tasks or notes for next steps", () => {
     const rows = [
@@ -66,12 +58,12 @@ describe("record-specific overview data", () => {
         status: "open",
         due_date: "2026-10-09",
       },
-    ].map(row => ({...row, workspace_id:"w", created_at:"2026-10-01"})) satisfies (Row & {resource:string})[];
+    ].map((row) => ({ ...row, workspace_id: "w", created_at: "2026-10-01" })) satisfies (Row & {
+      resource: string;
+    })[];
     expect(nextRecordAction(rows)?.id).toBe("next");
     expect(rows[0].id).toBe("note");
-    expect(
-      nextRecordAction([{ ...rows[1], status: "completed" }]),
-    ).toBeUndefined();
+    expect(nextRecordAction([{ ...rows[1], status: "completed" }])).toBeUndefined();
   });
   it("keeps currencies separate and excludes won/lost and archived deals from open pipeline", () => {
     const totals = linkedDealTotals([

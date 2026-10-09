@@ -7,9 +7,7 @@ export const metadata = {
 };
 export default function DocumentationPage() {
   return (
-    <Suspense
-      fallback={<main className="page-content">Chargement des guides…</main>}
-    >
+    <Suspense fallback={<main className="page-content">Chargement des guides…</main>}>
       <Documentation />
     </Suspense>
   );

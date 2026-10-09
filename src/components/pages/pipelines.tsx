@@ -42,18 +42,13 @@ export function PipelinesPage() {
         title="Pipelines"
         description="Distinguez vos cycles de vente et configurez vos hypothèses de prévision."
         action={
-          <AddButton
-            label="Nouveau pipeline"
-            disabled={!admin}
-            onClick={() => setEdit(true)}
-          />
+          <AddButton label="Nouveau pipeline" disabled={!admin} onClick={() => setEdit(true)} />
         }
       />
       <ErrorMessage error={q.error || (error ? new Error(error) : null)} />
       <p className="footer-note">
-        Les probabilités sont des hypothèses définies par votre équipe, pas des
-        prédictions IA. Gagné reste à 100 % et Perdu à 0 %. Les six étapes
-        peuvent être renommées.
+        Les probabilités sont des hypothèses définies par votre équipe, pas des prédictions IA.
+        Gagné reste à 100 % et Perdu à 0 %. Les six étapes peuvent être renommées.
       </p>
       {q.isPending ? (
         <Loading />
@@ -70,17 +65,10 @@ export function PipelinesPage() {
                 ))}
               </ol>
               <div className="row-actions">
-                <a
-                  className="button small"
-                  href={"/app/deals?pipeline=" + p.id}
-                >
+                <a className="button small" href={"/app/deals?pipeline=" + p.id}>
                   Voir les opportunités
                 </a>
-                <button
-                  className="button small"
-                  disabled={!admin}
-                  onClick={() => setEdit(p)}
-                >
+                <button className="button small" disabled={!admin} onClick={() => setEdit(p)}>
                   Configurer
                 </button>
                 <button
@@ -95,11 +83,7 @@ export function PipelinesPage() {
                       try {
                         await remove("pipelines", p.id);
                       } catch (e) {
-                        setError(
-                          e instanceof Error
-                            ? e.message
-                            : "Suppression impossible.",
-                        );
+                        setError(e instanceof Error ? e.message : "Suppression impossible.");
                       }
                   }}
                 >
@@ -124,12 +108,7 @@ export function PipelinesPage() {
             ...Object.fromEntries(
               stages.flatMap((s, i) => [
                 ["label_" + i, edit === true ? s : edit.labels[s] || s],
-                [
-                  "prob_" + i,
-                  edit === true
-                    ? defaultProbabilities[s]
-                    : edit.probabilities[s],
-                ],
+                ["prob_" + i, edit === true ? defaultProbabilities[s] : edit.probabilities[s]],
               ]),
             ),
           }}
@@ -138,8 +117,7 @@ export function PipelinesPage() {
             const labels: Record<string, string> = {};
             stages.forEach((s, i) => {
               labels[s] = str(values["label_" + i]) || s;
-              if (!["Gagné", "Perdu"].includes(s))
-                probabilities[s] = Number(values["prob_" + i]);
+              if (!["Gagné", "Perdu"].includes(s)) probabilities[s] = Number(values["prob_" + i]);
             });
             await save(
               "pipelines",

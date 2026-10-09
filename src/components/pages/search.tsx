@@ -3,14 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useWorkspace, request } from "../providers/data-provider";
-import {
-  PageHeader,
-  SearchBox,
-  Empty,
-  Loading,
-  ErrorMessage,
-  date,
-} from "../ui";
+import { PageHeader, SearchBox, Empty, Loading, ErrorMessage, date } from "../ui";
 type SearchResult = {
   id: string;
   object_id?: string;
@@ -46,19 +39,13 @@ export function SearchPage() {
     enabled: debounced.length >= 2,
     queryFn: () =>
       request<SearchResponse>(
-        "/api/" +
-          workspace.id +
-          "/search?" +
-          new URLSearchParams({ q: debounced, scope }),
+        "/api/" + workspace.id + "/search?" + new URLSearchParams({ q: debounced, scope }),
       ),
   });
   function recordLink(id: string, objectId: string) {
     const object = objects.find((o) => o.id === objectId);
     return object
-      ? "/app/" +
-          (object.standard ? object.slug : "object-" + object.slug) +
-          "?record=" +
-          id
+      ? "/app/" + (object.standard ? object.slug : "object-" + object.slug) + "?record=" + id
       : null;
   }
   return (
@@ -94,9 +81,7 @@ export function SearchPage() {
       ) : (
         q.data && (
           <>
-            {q.data.groups.every((g) => !g.count) && (
-              <Empty title="Aucun résultat accessible" />
-            )}
+            {q.data.groups.every((g) => !g.count) && <Empty title="Aucun résultat accessible" />}
             {q.data.groups
               .filter((g) => g.count > 0)
               .map((group) => (
@@ -116,18 +101,14 @@ export function SearchPage() {
                             display_name: result.title,
                           }
                         : q.data.related.find((r) => r.id === result.record_id);
-                      const href = linked
-                        ? recordLink(linked.id, linked.object_id)
-                        : null;
+                      const href = linked ? recordLink(linked.id, linked.object_id) : null;
                       return (
                         <article key={result.id} className="detail-card">
                           <div className="card-head">
                             <h3>{result.title}</h3>
                             <small>{date(result.date)}</small>
                           </div>
-                          {result.private && (
-                            <span className="pill">Votre note privée</span>
-                          )}
+                          {result.private && <span className="pill">Votre note privée</span>}
                           <p className="preserve-lines">
                             {result.excerpt}
                             {result.excerpt.length === 500 ? "…" : ""}
@@ -141,10 +122,7 @@ export function SearchPage() {
                               </Link>
                             )}
                             {group.resource !== "records" && (
-                              <Link
-                                className="button small"
-                                href={"/app/" + group.resource}
-                              >
+                              <Link className="button small" href={"/app/" + group.resource}>
                                 Ouvrir {labels[group.resource].toLowerCase()}
                               </Link>
                             )}
@@ -155,8 +133,7 @@ export function SearchPage() {
                   </div>
                   {group.count > 25 && (
                     <p className="footer-note">
-                      25 résultats affichés dans cette catégorie. Affinez votre
-                      recherche.
+                      25 résultats affichés dans cette catégorie. Affinez votre recherche.
                     </p>
                   )}
                 </section>
@@ -165,8 +142,7 @@ export function SearchPage() {
         )
       )}
       <p className="footer-note">
-        Les résultats suivent vos droits actuels. Les notes privées des autres
-        membres sont exclues.
+        Les résultats suivent vos droits actuels. Les notes privées des autres membres sont exclues.
       </p>
     </>
   );

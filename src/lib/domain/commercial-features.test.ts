@@ -1,18 +1,11 @@
 import { describe, it, expect } from "vitest";
-import {
-  csvTable,
-  automaticMapping,
-  prepareImport,
-  importedNumber,
-} from "./imports";
+import { csvTable, automaticMapping, prepareImport, importedNumber } from "./imports";
 import { forecastDeals, type Pipeline } from "./pipelines";
 import { emailTemplateSchema, renderEmailTemplate } from "./email-templates";
 const objectId = "11111111-1111-4111-8111-111111111111";
 describe("import validation before database writes", () => {
   it("maps French headers and validates dates and decimal numbers", () => {
-    const table = csvTable(
-      "Nom;Montant;Devise;Date de clôture\nContrat A;1 234,56;eur;31/10/2026",
-    );
+    const table = csvTable("Nom;Montant;Devise;Date de clôture\nContrat A;1 234,56;eur;31/10/2026");
     const result = prepareImport(
       table,
       automaticMapping(table.headers),
@@ -30,9 +23,7 @@ describe("import validation before database writes", () => {
     });
   });
   it("rejects duplicate mappings and impossible dates", () => {
-    const table = csvTable(
-      "Nom;Email;Date\nAlice;alice@example.com;31/02/2026",
-    );
+    const table = csvTable("Nom;Email;Date\nAlice;alice@example.com;31/02/2026");
     expect(() =>
       prepareImport(
         table,
@@ -55,9 +46,7 @@ describe("import validation before database writes", () => {
     ).toHaveLength(1);
   });
   it("requires a loss reason and rejects an overlong record name", () => {
-    const table = csvTable(
-      "Nom;Étape\nContrat A;Perdu\n" + "a".repeat(201) + ";Nouveau",
-    );
+    const table = csvTable("Nom;Étape\nContrat A;Perdu\n" + "a".repeat(201) + ";Nouveau");
     const result = prepareImport(
       table,
       automaticMapping(table.headers),
@@ -134,9 +123,10 @@ describe("forecast calculations", () => {
 });
 describe("email template rendering", () => {
   it("reports missing values without silently deleting them", () => {
-    expect(
-      renderEmailTemplate("Bonjour {{name}}, {{workspace}}", { name: "Alice" }),
-    ).toEqual({ text: "Bonjour Alice, {{workspace}}", missing: ["workspace"] });
+    expect(renderEmailTemplate("Bonjour {{name}}, {{workspace}}", { name: "Alice" })).toEqual({
+      text: "Bonjour Alice, {{workspace}}",
+      missing: ["workspace"],
+    });
   });
   it("rejects unsupported template expressions", () => {
     expect(

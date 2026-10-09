@@ -21,11 +21,7 @@ import {
   migrationFields,
   type CrmSource,
 } from "@/lib/domain/crm-migration";
-import {
-  stages,
-  type Attribute,
-  type ObjectDefinition,
-} from "@/lib/domain/types";
+import { stages, type Attribute, type ObjectDefinition } from "@/lib/domain/types";
 import { BackgroundJob } from "../jobs/background-job";
 import styles from "./import.module.css";
 type Inspection = {
@@ -60,13 +56,7 @@ function errorDownload(errors: ImportError[]) {
     encodeURIComponent(
       "ligne;erreur\r\n" +
         errors
-          .map(
-            (e) =>
-              e.line +
-              ';"' +
-              e.message.replaceAll('"', '""').replace(/^[=+@-]/, "'") +
-              '"',
-          )
+          .map((e) => e.line + ';"' + e.message.replaceAll('"', '""').replace(/^[=+@-]/, "'") + '"')
           .join("\r\n"),
     )
   );
@@ -86,14 +76,12 @@ export function ImportRecords({
   const cache = useQueryClient();
   const objects = useRows<ObjectDefinition>("objects", { size: 100 });
   const [objectId, setObjectId] = useState(object.id);
-  const destination =
-    objects.data?.data.find((o) => o.id === objectId) ?? object;
+  const destination = objects.data?.data.find((o) => o.id === objectId) ?? object;
   const importedAttrs = useRows<Attribute>("attributes", {
     object_id: objectId,
     size: 100,
   });
-  const availableAttrs =
-    objectId === object.id ? attributes : (importedAttrs.data?.data ?? []);
+  const availableAttrs = objectId === object.id ? attributes : (importedAttrs.data?.data ?? []);
   const pipelines = useRows("pipelines", { size: 100 });
   const [selectedPipeline, setSelectedPipeline] = useState(pipelineId ?? "");
   const jobs = useRows("import_jobs", { object_id: objectId, size: 20 });
@@ -120,18 +108,9 @@ export function ImportRecords({
     ...importFields.filter(
       (f) =>
         destination.slug === "deals" ||
-        ![
-          "stage",
-          "amount",
-          "currency",
-          "close_date",
-          "lost_reason",
-          "probability",
-        ].includes(f),
+        !["stage", "amount", "currency", "close_date", "lost_reason", "probability"].includes(f),
     ),
-    ...migrationFields.filter(
-      (f) => f !== "_person_ids" || destination.slug === "deals",
-    ),
+    ...migrationFields.filter((f) => f !== "_person_ids" || destination.slug === "deals"),
   ];
   function invalidatePreview() {
     setPreview(null);
@@ -146,9 +125,7 @@ export function ImportRecords({
   ) {
     if (!input) return;
     if (mode === "inspect") {
-      setInspection((current) =>
-        current ? { ...current, headers: undefined } : null,
-      );
+      setInspection((current) => (current ? { ...current, headers: undefined } : null));
       invalidatePreview();
     }
     setBusy(true);
@@ -174,28 +151,24 @@ export function ImportRecords({
         body: form,
       });
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Import impossible. Réessayez.");
+      if (!response.ok) throw new Error(data.error || "Import impossible. Réessayez.");
       if (mode === "inspect") {
         setInspection(data);
         setSelection(data.selection ?? choice);
         invalidatePreview();
         const next = Object.fromEntries(
-          Object.entries(data.mapping ?? ({} as Record<string, string>)).map(
-            ([h, v]) => [
-              h,
-              targets.includes(v as (typeof targets)[number]) ||
-              availableAttrs.some((a) => "attr_" + a.key === v)
-                ? v
-                : "",
-            ],
-          ),
+          Object.entries(data.mapping ?? ({} as Record<string, string>)).map(([h, v]) => [
+            h,
+            targets.includes(v as (typeof targets)[number]) ||
+            availableAttrs.some((a) => "attr_" + a.key === v)
+              ? v
+              : "",
+          ]),
         );
         setMapping(next as Record<string, string>);
         const nextStages: Record<string, string> = {};
         for (const stage of data.stages ?? [])
-          if (stages.includes(stage as (typeof stages)[number]))
-            nextStages[stage] = stage;
+          if (stages.includes(stage as (typeof stages)[number])) nextStages[stage] = stage;
         setStageMap(nextStages);
       } else if (mode === "preview") {
         setPreview(data);
@@ -247,8 +220,8 @@ export function ImportRecords({
           <>
             <h3>Votre import est en cours</h3>
             <p>
-              Le traitement continue si vous fermez cette fenêtre. Le résultat
-              apparaîtra dans l’historique.
+              Le traitement continue si vous fermez cette fenêtre. Le résultat apparaîtra dans
+              l’historique.
             </p>
             <BackgroundJob
               id={jobId!}
@@ -269,11 +242,7 @@ export function ImportRecords({
               <span>
                 <Check size={25} />
               </span>
-              <h3>
-                {result.replayed
-                  ? "Cet import a déjà été traité"
-                  : "Vos fiches sont prêtes"}
-              </h3>
+              <h3>{result.replayed ? "Cet import a déjà été traité" : "Vos fiches sont prêtes"}</h3>
               <p>
                 {result.inserted} créées · {result.skipped} doublons ignorés ·{" "}
                 {result.errors.length} lignes rejetées
@@ -281,9 +250,9 @@ export function ImportRecords({
             </div>
             <p className={styles.notice}>
               <Link2 size={17} />
-              {result.linked ?? 0} relations créées pendant cet import.{" "}
-              {result.pending ?? 0} relations restent en attente dans ce lot ;
-              importez les fiches cibles avec leurs ID pour les compléter.
+              {result.linked ?? 0} relations créées pendant cet import. {result.pending ?? 0}{" "}
+              relations restent en attente dans ce lot ; importez les fiches cibles avec leurs ID
+              pour les compléter.
             </p>
             {result.errors.length > 0 && (
               <a
@@ -316,10 +285,7 @@ export function ImportRecords({
             {step === 0 && (
               <>
                 <h3>D’où viennent vos données ?</h3>
-                <p>
-                  Choisissez votre CRM pour retrouver les instructions d’export
-                  adaptées.
-                </p>
+                <p>Choisissez votre CRM pour retrouver les instructions d’export adaptées.</p>
                 <div className={styles.sources}>
                   {crmSources.map((c) => (
                     <button
@@ -358,8 +324,7 @@ export function ImportRecords({
                   </ol>
                   {profile.url && (
                     <a href={profile.url} target="_blank" rel="noreferrer">
-                      Consulter la documentation {profile.name}{" "}
-                      <ArrowRight size={13} />
+                      Consulter la documentation {profile.name} <ArrowRight size={13} />
                     </a>
                   )}
                 </details>
@@ -380,8 +345,7 @@ export function ImportRecords({
                       {(objects.data?.data ?? [object])
                         .filter(
                           (o) =>
-                            ["people", "companies", "deals"].includes(o.slug) ||
-                            o.id === object.id,
+                            ["people", "companies", "deals"].includes(o.slug) || o.id === object.id,
                         )
                         .map((o) => (
                           <option key={o.id} value={o.id}>
@@ -402,16 +366,14 @@ export function ImportRecords({
                       }}
                     />
                     <small>
-                      Gardez le même nom pour les fichiers du même compte{" "}
-                      {profile.name}. Changez-le pour un autre compte.
+                      Gardez le même nom pour les fichiers du même compte {profile.name}. Changez-le
+                      pour un autre compte.
                     </small>
                   </label>
                 </div>
                 <label className={styles.upload}>
                   <FileUp size={28} />
-                  <strong>
-                    {file ? file.name : "Choisissez votre fichier d’export"}
-                  </strong>
+                  <strong>{file ? file.name : "Choisissez votre fichier d’export"}</strong>
                   <span>CSV, Excel .xlsx, JSON ou ZIP · 4 Mo maximum</span>
                   <input
                     type="file"
@@ -479,30 +441,23 @@ export function ImportRecords({
                   </div>
                 )}
                 {file && !inspection?.headers && (
-                  <button
-                    className="button"
-                    disabled={busy}
-                    onClick={() => void run("inspect")}
-                  >
+                  <button className="button" disabled={busy} onClick={() => void run("inspect")}>
                     Analyser le fichier sélectionné
                   </button>
                 )}
                 {inspection?.headers && (
                   <p className={styles.notice}>
                     <FileSpreadsheet size={17} />
-                    {inspection.total} lignes · {inspection.headers.length}{" "}
-                    colonnes · {destination.name}
+                    {inspection.total} lignes · {inspection.headers.length} colonnes ·{" "}
+                    {destination.name}
                   </p>
                 )}
                 {!!inspection?.ignored.length && (
                   <details className={styles.instructions}>
-                    <summary>
-                      {inspection.ignored.length} fichiers non importés
-                    </summary>
+                    <summary>{inspection.ignored.length} fichiers non importés</summary>
                     <p>
-                      Ces fichiers ne sont pas des tables CSV, Excel ou JSON.
-                      Les pièces jointes, configurations et activités ne sont
-                      pas restaurées par cet import.
+                      Ces fichiers ne sont pas des tables CSV, Excel ou JSON. Les pièces jointes,
+                      configurations et activités ne sont pas restaurées par cet import.
                     </p>
                     <ul>
                       {inspection.ignored.slice(0, 20).map((name) => (
@@ -512,22 +467,16 @@ export function ImportRecords({
                   </details>
                 )}
                 <p className={styles.security}>
-                  <ShieldCheck size={16} /> Aucune fiche n’est créée avant votre
-                  confirmation. Un ZIP est lu sans extraction sur le disque.
+                  <ShieldCheck size={16} /> Aucune fiche n’est créée avant votre confirmation. Un
+                  ZIP est lu sans extraction sur le disque.
                 </p>
                 <div className={styles.footer}>
-                  <button
-                    className="button"
-                    disabled={busy}
-                    onClick={() => setStep(0)}
-                  >
+                  <button className="button" disabled={busy} onClick={() => setStep(0)}>
                     <ArrowLeft size={15} /> Retour
                   </button>
                   <button
                     className="button primary"
-                    disabled={
-                      busy || !inspection?.headers || !migrationKey.trim()
-                    }
+                    disabled={busy || !inspection?.headers || !migrationKey.trim()}
                     onClick={() => setStep(2)}
                   >
                     Associer les colonnes <ArrowRight size={15} />
@@ -539,9 +488,8 @@ export function ImportRecords({
               <>
                 <h3>Chaque colonne, au bon endroit</h3>
                 <p>
-                  Vérifiez les suggestions. Les colonnes ignorées ne seront pas
-                  importées. Pour les relations, associez des ID de fiches,
-                  jamais leur nom.
+                  Vérifiez les suggestions. Les colonnes ignorées ne seront pas importées. Pour les
+                  relations, associez des ID de fiches, jamais leur nom.
                 </p>
                 <div className="table-wrap">
                   <table className="data-table">
@@ -582,9 +530,7 @@ export function ImportRecords({
                                 .filter(
                                   (a) =>
                                     !a.archived &&
-                                    !["formula", "user", "relation"].includes(
-                                      a.type,
-                                    ),
+                                    !["formula", "user", "relation"].includes(a.type),
                                 )
                                 .map((a) => (
                                   <option key={a.id} value={"attr_" + a.key}>
@@ -622,9 +568,8 @@ export function ImportRecords({
                       <section className={styles.stageSection}>
                         <h4>Correspondance des étapes</h4>
                         <p>
-                          Les étapes restent celles de votre pipeline Relay. Une
-                          vente perdue sans motif reçoit la mention « raison non
-                          renseignée dans l’export ».
+                          Les étapes restent celles de votre pipeline Relay. Une vente perdue sans
+                          motif reçoit la mention « raison non renseignée dans l’export ».
                         </p>
                         {sourceStages.map((stage) => (
                           <label key={stage}>
@@ -676,31 +621,22 @@ export function ImportRecords({
                         invalidatePreview();
                       }}
                     >
-                      <option value="skip">
-                        Ignorer les fiches existantes
-                      </option>
+                      <option value="skip">Ignorer les fiches existantes</option>
                       <option value="create">Créer de nouvelles fiches</option>
                     </select>
                   </label>
                 </div>
                 <p className={styles.security}>
-                  <ShieldCheck size={16} /> Les fiches existantes restent
-                  inchangées. Un ID source déjà importé sera toujours ignoré,
-                  même avec l’option « créer ».
+                  <ShieldCheck size={16} /> Les fiches existantes restent inchangées. Un ID source
+                  déjà importé sera toujours ignoré, même avec l’option « créer ».
                 </p>
                 <div className={styles.footer}>
-                  <button
-                    className="button"
-                    disabled={busy}
-                    onClick={() => setStep(1)}
-                  >
+                  <button className="button" disabled={busy} onClick={() => setStep(1)}>
                     <ArrowLeft size={15} /> Retour
                   </button>
                   <button
                     className="button primary"
-                    disabled={
-                      busy || !Object.values(mapping).includes("display_name")
-                    }
+                    disabled={busy || !Object.values(mapping).includes("display_name")}
                     onClick={() => void run("preview")}
                   >
                     Vérifier l’import <ArrowRight size={15} />
@@ -764,22 +700,13 @@ export function ImportRecords({
                           ) : (
                             <td>{str(r.domain)}</td>
                           )}
-                          <td>
-                            {str(
-                              (r._import as Record<string, unknown> | undefined)
-                                ?.id,
-                            )}
-                          </td>
+                          <td>{str((r._import as Record<string, unknown> | undefined)?.id)}</td>
                           <td>
                             {[
                               (
-                                r._import as
-                                  | { companies?: string[]; people?: string[] }
-                                  | undefined
+                                r._import as { companies?: string[]; people?: string[] } | undefined
                               )?.companies?.join(" ; "),
-                              (
-                                r._import as { people?: string[] } | undefined
-                              )?.people?.join(" ; "),
+                              (r._import as { people?: string[] } | undefined)?.people?.join(" ; "),
                             ]
                               .filter(Boolean)
                               .join(" · ") || "—"}
@@ -790,9 +717,8 @@ export function ImportRecords({
                   </table>
                 </div>
                 <small>
-                  20 premières lignes valides. La confirmation revalide le
-                  fichier et les droits d’accès. Les doublons exacts sont
-                  comptés lors de l’enregistrement.
+                  20 premières lignes valides. La confirmation revalide le fichier et les droits
+                  d’accès. Les doublons exacts sont comptés lors de l’enregistrement.
                 </small>
                 {preview.errors.length > 0 && (
                   <section className={styles.errors}>
@@ -818,8 +744,7 @@ export function ImportRecords({
                         disabled={busy}
                         onChange={(e) => setAccepted(e.target.checked)}
                       />
-                      Rejeter explicitement les {preview.errors.length} lignes
-                      invalides
+                      Rejeter explicitement les {preview.errors.length} lignes invalides
                     </label>
                   </section>
                 )}
@@ -830,15 +755,11 @@ export function ImportRecords({
                     disabled={busy}
                     onChange={(e) => setConfirmed(e.target.checked)}
                   />
-                  J’ai vérifié la destination, les champs et les étapes. Je
-                  confirme l’import des lignes valides.
+                  J’ai vérifié la destination, les champs et les étapes. Je confirme l’import des
+                  lignes valides.
                 </label>
                 <div className={styles.footer}>
-                  <button
-                    className="button"
-                    disabled={busy}
-                    onClick={() => setStep(2)}
-                  >
+                  <button className="button" disabled={busy} onClick={() => setStep(2)}>
                     <ArrowLeft size={15} /> Modifier la correspondance
                   </button>
                   <button
@@ -864,22 +785,17 @@ export function ImportRecords({
           </>
         )}
         <details className={styles.history}>
-          <summary>
-            Historique des 20 derniers imports · {destination.name}
-          </summary>
+          <summary>Historique des 20 derniers imports · {destination.name}</summary>
           <ErrorMessage error={jobs.error} />
           {jobs.data?.data.map((j) => (
             <div key={j.id}>
               <strong>{str(j.filename)}</strong>
               <small>
-                {date(j.created_at)} · {str(j.inserted)} créées ·{" "}
-                {str(j.skipped)} ignorées · {str(j.linked)} relations
+                {date(j.created_at)} · {str(j.inserted)} créées · {str(j.skipped)} ignorées ·{" "}
+                {str(j.linked)} relations
               </small>
               {Array.isArray(j.errors) && j.errors.length > 0 && (
-                <a
-                  href={errorDownload(j.errors as ImportError[])}
-                  download="erreurs-import.csv"
-                >
+                <a href={errorDownload(j.errors as ImportError[])} download="erreurs-import.csv">
                   Rapport d’erreurs
                 </a>
               )}

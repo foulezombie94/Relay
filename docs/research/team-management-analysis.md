@@ -4,19 +4,19 @@ Date : 7 octobre 2026. Analyse des documentations officielles, pas des comptes c
 
 ## Ce qui revient chez les CRM comparables
 
-| CRM | Idée utile pour Relay | Source officielle |
-| --- | --- | --- |
-| Attio | Séparer membres et invitations, renouveler/annuler, protéger les données lors d’un départ | [Gestion des membres et équipes](https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins) |
-| folk | Rôles faciles à comprendre et gestion des collaborateurs cohérente avec les permissions | [Rôles](https://help.folk.app/en/articles/10063725-workspace-roles-permissions) |
-| Close | Retirer un utilisateur sans effacer l’activité commerciale historique | [Gestion des utilisateurs](https://help.close.com/account-management/plans-and-billing/adding-and-removing-users) |
-| HubSpot | Examiner et réattribuer le travail avant la désactivation d’un utilisateur | [Désactivation et suppression](https://knowledge.hubspot.com/user-management/remove-hubspot-users) |
-| Pipedrive | Distinguer gestion des utilisateurs, permissions d’action et visibilité | [Gestion globale des utilisateurs](https://support.pipedrive.com/en/article/global-user-management?category=account-settings) |
-| Copper | Distinguer les droits administratifs et la visibilité par équipe | [Droits administratifs](https://support.copper.com/en/articles/8823478-enable-disable-admin-access), [Visibilité](https://support.copper.com/en/articles/8823343-team-visibility-permissions) |
-| monday CRM | Présenter clairement les types d’utilisateurs et les accès externes | [Types d’utilisateurs](https://support.monday.com/hc/en-us/articles/360002144900-User-types-explained) |
-| Zoho CRM | Séparer la hiérarchie des rôles et les profils de permissions | [Rôles et profils](https://help.zoho.com/portal/en/kb/crm/faqs/roles-and-profiles/articles/faqs-roles-and-profiles) |
-| Freshsales | Centraliser l’attribution des rôles et expliquer les droits associés | [Rôles et permissions](https://crmsupport.freshworks.com/support/solutions/articles/50000002412-how-to-configure-roles-and-manage-user-permissions-in-freshworks-crm-) |
-| Salesforce | Donner les permissions nécessaires au travail, avec une administration distincte | [Sécurité des objets](https://trailhead.salesforce.com/content/learn/modules/data_security/data_security_objects) |
-| Creatio | Structurer l’administration des utilisateurs, rôles et droits d’accès | [Gestion des accès](https://academy.creatio.com/docs/user/access_management) |
+| CRM        | Idée utile pour Relay                                                                     | Source officielle                                                                                                                                                                             |
+| ---------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Attio      | Séparer membres et invitations, renouveler/annuler, protéger les données lors d’un départ | [Gestion des membres et équipes](https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins)                                                                       |
+| folk       | Rôles faciles à comprendre et gestion des collaborateurs cohérente avec les permissions   | [Rôles](https://help.folk.app/en/articles/10063725-workspace-roles-permissions)                                                                                                               |
+| Close      | Retirer un utilisateur sans effacer l’activité commerciale historique                     | [Gestion des utilisateurs](https://help.close.com/account-management/plans-and-billing/adding-and-removing-users)                                                                             |
+| HubSpot    | Examiner et réattribuer le travail avant la désactivation d’un utilisateur                | [Désactivation et suppression](https://knowledge.hubspot.com/user-management/remove-hubspot-users)                                                                                            |
+| Pipedrive  | Distinguer gestion des utilisateurs, permissions d’action et visibilité                   | [Gestion globale des utilisateurs](https://support.pipedrive.com/en/article/global-user-management?category=account-settings)                                                                 |
+| Copper     | Distinguer les droits administratifs et la visibilité par équipe                          | [Droits administratifs](https://support.copper.com/en/articles/8823478-enable-disable-admin-access), [Visibilité](https://support.copper.com/en/articles/8823343-team-visibility-permissions) |
+| monday CRM | Présenter clairement les types d’utilisateurs et les accès externes                       | [Types d’utilisateurs](https://support.monday.com/hc/en-us/articles/360002144900-User-types-explained)                                                                                        |
+| Zoho CRM   | Séparer la hiérarchie des rôles et les profils de permissions                             | [Rôles et profils](https://help.zoho.com/portal/en/kb/crm/faqs/roles-and-profiles/articles/faqs-roles-and-profiles)                                                                           |
+| Freshsales | Centraliser l’attribution des rôles et expliquer les droits associés                      | [Rôles et permissions](https://crmsupport.freshworks.com/support/solutions/articles/50000002412-how-to-configure-roles-and-manage-user-permissions-in-freshworks-crm-)                        |
+| Salesforce | Donner les permissions nécessaires au travail, avec une administration distincte          | [Sécurité des objets](https://trailhead.salesforce.com/content/learn/modules/data_security/data_security_objects)                                                                             |
+| Creatio    | Structurer l’administration des utilisateurs, rôles et droits d’accès                     | [Gestion des accès](https://academy.creatio.com/docs/user/access_management)                                                                                                                  |
 
 ## Adaptations réalisées
 

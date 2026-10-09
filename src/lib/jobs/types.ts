@@ -1,10 +1,21 @@
 export const jobTypes = [
-  "email_sync", "calendar_sync", "sequence_send", "workflow_run", "notifications", "imports",
+  "email_sync",
+  "calendar_sync",
+  "sequence_send",
+  "workflow_run",
+  "notifications",
+  "imports",
 ] as const;
 export type JobType = (typeof jobTypes)[number];
 export type Job = {
-  id: string; workspace_id: string; user_id: string | null; type: JobType;
-  payload: Record<string, unknown>; lease: string; attempts: number; max_attempts: number;
+  id: string;
+  workspace_id: string;
+  user_id: string | null;
+  type: JobType;
+  payload: Record<string, unknown>;
+  lease: string;
+  attempts: number;
+  max_attempts: number;
 };
 export class PermanentJobError extends Error {}
 export type JobResult = { result?: Record<string, unknown>; runAt?: string; committed?: boolean };

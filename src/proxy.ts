@@ -1,56 +1,75 @@
-import { createServerClient } from '@supabase/ssr';
-import { NextRequest, NextResponse } from 'next/server';
-import { loginDestination, sessionCookieOptions } from '@/lib/supabase/session';
-export async function proxy(request:NextRequest) {
-  let response=NextResponse.next({request});
-  if (request.nextUrl.pathname==='/api/health' || request.nextUrl.pathname==='/api/jobs/run') return response;
-  const isHome=request.nextUrl.pathname==='/';
+import { createServerClient } from "@supabase/ssr";
+import { NextRequest, NextResponse } from "next/server";
+import { loginDestination, sessionCookieOptions } from "@/lib/supabase/session";
+export async function proxy(request: NextRequest) {
+  let response = NextResponse.next({ request });
+  if (request.nextUrl.pathname === "/api/health" || request.nextUrl.pathname === "/api/jobs/run")
+    return response;
+  const isHome = request.nextUrl.pathname === "/";
   // The home route varies by session. Even its anonymous response must not be
   // cached, or reopening the site could reuse the landing page after sign-in.
-  if(isHome)response.headers.set('Cache-Control','private, no-store');
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) return response;
-  if(isHome){
-    const cookieName=`sb-${new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.split('.')[0]}-auth-token`;
-    const hasSessionCookie=request.cookies.getAll().some(({name,value})=>value && (
-      name===cookieName || (name.startsWith(cookieName+'.') && /^\d+$/.test(name.slice(cookieName.length+1)))
-    ));
+  if (isHome) response.headers.set("Cache-Control", "private, no-store");
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+    return response;
+  if (isHome) {
+    const cookieName = `sb-${new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0]}-auth-token`;
+    const hasSessionCookie = request.cookies
+      .getAll()
+      .some(
+        ({ name, value }) =>
+          value &&
+          (name === cookieName ||
+            (name.startsWith(cookieName + ".") && /^\d+$/.test(name.slice(cookieName.length + 1)))),
+      );
     // A cookie is only a hint to attempt verification, never authorization.
-    if(!hasSessionCookie)return response;
+    if (!hasSessionCookie) return response;
   }
-  const client=createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,{
-    cookieOptions:sessionCookieOptions(),
-    cookies:{
-      getAll:()=>request.cookies.getAll(),
-      setAll(items,headers){
-        items.forEach(({name,value})=>request.cookies.set(name,value));
-        const previous=response;
-        response=NextResponse.next({request});
-        previous.cookies.getAll().forEach(cookie=>response.cookies.set(cookie));
-        items.forEach(({name,value,options})=>response.cookies.set(name,value,options));
-        for(const key of ['Cache-Control','Expires','Pragma']){
-          const value=previous.headers.get(key);
-          if(value)response.headers.set(key,value);
-        }
-        if(headers)for(const [key,value] of Object.entries(headers))response.headers.set(key,value);
+  const client = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookieOptions: sessionCookieOptions(),
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll(items, headers) {
+          items.forEach(({ name, value }) => request.cookies.set(name, value));
+          const previous = response;
+          response = NextResponse.next({ request });
+          previous.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+          items.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+          for (const key of ["Cache-Control", "Expires", "Pragma"]) {
+            const value = previous.headers.get(key);
+            if (value) response.headers.set(key, value);
+          }
+          if (headers)
+            for (const [key, value] of Object.entries(headers)) response.headers.set(key, value);
+        },
       },
     },
-  });
-  const mode=request.nextUrl.searchParams.get('mode');
-  if(isHome || (request.nextUrl.pathname==='/login' && mode!=='signup' && mode!=='reset')){
+  );
+  const mode = request.nextUrl.searchParams.get("mode");
+  if (isHome || (request.nextUrl.pathname === "/login" && mode !== "signup" && mode !== "reset")) {
     // A cookie or locally valid JWT alone is not enough to restore a session.
-    const {data:{user},error}=await client.auth.getUser();
-    if(user && !error){
-      const destination=isHome?'/app/dashboard':loginDestination(request.nextUrl.searchParams.get('next'));
-      const redirect=NextResponse.redirect(new URL(destination,request.url));
-      response.cookies.getAll().forEach(cookie=>redirect.cookies.set(cookie));
-      for(const key of ['Cache-Control','Expires','Pragma']){
-        const value=response.headers.get(key);
-        if(value)redirect.headers.set(key,value);
+    const {
+      data: { user },
+      error,
+    } = await client.auth.getUser();
+    if (user && !error) {
+      const destination = isHome
+        ? "/app/dashboard"
+        : loginDestination(request.nextUrl.searchParams.get("next"));
+      const redirect = NextResponse.redirect(new URL(destination, request.url));
+      response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+      for (const key of ["Cache-Control", "Expires", "Pragma"]) {
+        const value = response.headers.get(key);
+        if (value) redirect.headers.set(key, value);
       }
-      response=redirect;
+      response = redirect;
     }
-  }else await client.auth.getClaims();
-  response.headers.set('Cache-Control','private, no-store');
+  } else await client.auth.getClaims();
+  response.headers.set("Cache-Control", "private, no-store");
   return response;
 }
-export const config={matcher:['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)']};
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+};

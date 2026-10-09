@@ -7,16 +7,12 @@ describe("Integration boundaries", () => {
     expect(services.gmail.scopes.join(" ")).not.toContain("calendar");
     expect(services["google-calendar"].scopes.join(" ")).not.toContain("gmail");
     expect(services.outlook.scopes.join(" ")).not.toContain("Calendars");
-    expect(services["outlook-calendar"].scopes.join(" ")).not.toContain(
-      "Mail.",
-    );
+    expect(services["outlook-calendar"].scopes.join(" ")).not.toContain("Mail.");
   });
   it("rejects partial consent and accepts qualified Microsoft scopes", () => {
-    expect(
-      hasRequiredScopes("gmail", [
-        "https://www.googleapis.com/auth/gmail.readonly",
-      ]),
-    ).toBe(false);
+    expect(hasRequiredScopes("gmail", ["https://www.googleapis.com/auth/gmail.readonly"])).toBe(
+      false,
+    );
     expect(
       hasRequiredScopes("outlook", [
         "https://graph.microsoft.com/User.Read",
@@ -26,21 +22,14 @@ describe("Integration boundaries", () => {
     ).toBe(true);
   });
   it("preserves local cookie origin and enforces HTTPS in production", () => {
-    expect(
-      callbackOrigin("http://localhost:3000", "http://127.0.0.1:3000"),
-    ).toBe("http://127.0.0.1:3000");
-    expect(() =>
-      callbackOrigin("http://crm.example.com", undefined, true),
-    ).toThrow();
-    expect(() =>
-      callbackOrigin("https://user:pass@crm.example.com", undefined, true),
-    ).toThrow();
+    expect(callbackOrigin("http://localhost:3000", "http://127.0.0.1:3000")).toBe(
+      "http://127.0.0.1:3000",
+    );
+    expect(() => callbackOrigin("http://crm.example.com", undefined, true)).toThrow();
+    expect(() => callbackOrigin("https://user:pass@crm.example.com", undefined, true)).toThrow();
   });
   it("encrypts tokens and rejects altered ciphertext", () => {
-    vi.stubEnv(
-      "INTEGRATION_ENCRYPTION_KEY",
-      Buffer.alloc(32, 7).toString("base64"),
-    );
+    vi.stubEnv("INTEGRATION_ENCRYPTION_KEY", Buffer.alloc(32, 7).toString("base64"));
     const encrypted = seal({ refresh_token: "fixture-token" });
     expect(encrypted).not.toContain("fixture-token");
     expect(unseal(encrypted)).toEqual({ refresh_token: "fixture-token" });

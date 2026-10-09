@@ -21,9 +21,7 @@ export function RecordPicker({
   onChange?: (id: string, record?: CrmRecord) => void;
 }) {
   const { workspace } = useWorkspace();
-  const [selected, setSelected] = useState(
-    typeof initial === "string" ? initial : "",
-  );
+  const [selected, setSelected] = useState(typeof initial === "string" ? initial : "");
   const [term, setTerm] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
@@ -36,15 +34,7 @@ export function RecordPicker({
     return () => clearTimeout(timer);
   }, [term]);
   const q = useQuery({
-    queryKey: [
-      "rows",
-      workspace.id,
-      "record-picker",
-      search,
-      page,
-      objectId,
-      stage,
-    ],
+    queryKey: ["rows", workspace.id, "record-picker", search, page, objectId, stage],
     enabled: open,
     queryFn: () =>
       request<{ data: CrmRecord[]; count: number }>(
@@ -67,26 +57,13 @@ export function RecordPicker({
     enabled: !!selected,
     queryFn: () =>
       request<{ data: CrmRecord[] }>(
-        "/api/" +
-          workspace.id +
-          "/records?id=" +
-          encodeURIComponent(selected) +
-          "&size=1",
+        "/api/" + workspace.id + "/records?id=" + encodeURIComponent(selected) + "&size=1",
       ),
   });
   return (
     <div>
-      <input
-        type="hidden"
-        name={name}
-        value={JSON.stringify(selected || null)}
-      />
-      <button
-        type="button"
-        className="button"
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-      >
+      <input type="hidden" name={name} value={JSON.stringify(selected || null)} />
+      <button type="button" className="button" aria-expanded={open} onClick={() => setOpen(!open)}>
         {current.data?.data[0]?.display_name ||
           (selected ? "Fiche sélectionnée" : "Choisir une fiche…")}
       </button>

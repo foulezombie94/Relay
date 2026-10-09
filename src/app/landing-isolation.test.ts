@@ -9,16 +9,9 @@ function publicModules(entry: string, seen = new Set<string>()) {
   if (seen.has(file)) return seen;
   seen.add(file);
   const source = fs.readFileSync(file, "utf8");
-  const ast = ts.createSourceFile(
-    file,
-    source,
-    ts.ScriptTarget.Latest,
-    true,
-    ts.ScriptKind.TSX,
-  );
+  const ast = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   for (const node of ast.statements) {
-    if (!ts.isImportDeclaration(node) && !ts.isExportDeclaration(node))
-      continue;
+    if (!ts.isImportDeclaration(node) && !ts.isExportDeclaration(node)) continue;
     if (ts.isImportDeclaration(node) && node.importClause?.isTypeOnly) continue;
     if (ts.isExportDeclaration(node) && node.isTypeOnly) continue;
     const spec = node.moduleSpecifier;
@@ -45,16 +38,11 @@ function publicModules(entry: string, seen = new Set<string>()) {
 }
 describe("public landing preview isolation", () => {
   it("disables automatic private route prefetch in previews", () => {
-    const source = fs.readFileSync(
-      "src/components/layout/app-sidebar-view.tsx",
-      "utf8",
-    );
+    const source = fs.readFileSync("src/components/layout/app-sidebar-view.tsx", "utf8");
     const count = (source.match(/<Link\b/g) ?? []).length;
     expect(
-      (
-        source.match(/prefetch=\{\s*persistPreferences\s*\?\s*undefined\s*:\s*false\s*\}/g) ??
-        []
-      ).length,
+      (source.match(/prefetch=\{\s*persistPreferences\s*\?\s*undefined\s*:\s*false\s*\}/g) ?? [])
+        .length,
     ).toBe(count);
   });
   it("loads presentation components without database, auth, queries or CRM pages", () => {

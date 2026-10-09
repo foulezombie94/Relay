@@ -11,14 +11,7 @@ export const zapierRecord = z
     email: z.email().max(320).optional(),
     domain: z.string().max(500).optional(),
     stage: z
-      .enum([
-        "Nouveau",
-        "Qualifié",
-        "Proposition",
-        "Négociation",
-        "Gagné",
-        "Perdu",
-      ])
+      .enum(["Nouveau", "Qualifié", "Proposition", "Négociation", "Gagné", "Perdu"])
       .optional(),
     amount: z.number().nonnegative().max(999999999999999).optional(),
     currency: z

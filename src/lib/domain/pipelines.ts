@@ -19,10 +19,7 @@ export const pipelineSchema = z.object({
     Perdu: z.literal(0),
   }),
   labels: z
-    .record(
-      z.enum(stages as [string, ...string[]]),
-      z.string().trim().min(1).max(80),
-    )
+    .record(z.enum(stages as [string, ...string[]]), z.string().trim().min(1).max(80))
     .default({}),
 });
 export type Pipeline = Row & {
@@ -43,12 +40,9 @@ export type ForecastDeal = {
 export function dealProbability(deal: ForecastDeal, pipelines: Pipeline[]) {
   if (deal.stage === "Gagné") return 100;
   if (deal.stage === "Perdu") return 0;
-  if (deal.probability !== null && deal.probability !== undefined)
-    return Number(deal.probability);
+  if (deal.probability !== null && deal.probability !== undefined) return Number(deal.probability);
   return (
-    pipelines.find((p) => p.id === deal.pipeline_id)?.probabilities[
-      deal.stage
-    ] ??
+    pipelines.find((p) => p.id === deal.pipeline_id)?.probabilities[deal.stage] ??
     defaultProbabilities[deal.stage] ??
     0
   );

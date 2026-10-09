@@ -9,7 +9,12 @@ import { browserDb } from "@/lib/supabase/client";
 import { observeSession } from "@/lib/supabase/session";
 
 export class RequestError extends Error {
-  constructor(message: string, public status: number) { super(message); }
+  constructor(
+    message: string,
+    public status: number,
+  ) {
+    super(message);
+  }
 }
 export async function request<T = Record<string, unknown>>(
   url: string,
@@ -96,13 +101,17 @@ export function AppProvider({ children, userId }: { children: ReactNode; userId:
         },
       }),
   );
-  useEffect(() => observeSession(
-    browserDb().auth,
-    userId,
-    () => client.clear(),
-    () => window.location.replace("/login"),
-    () => window.location.reload(),
-  ), [client, userId]);
+  useEffect(
+    () =>
+      observeSession(
+        browserDb().auth,
+        userId,
+        () => client.clear(),
+        () => window.location.replace("/login"),
+        () => window.location.reload(),
+      ),
+    [client, userId],
+  );
   return (
     <QueryClientProvider client={client}>
       <Gate>{children}</Gate>
@@ -135,9 +144,13 @@ function Gate({ children }: { children: ReactNode }) {
     return (
       <div className="page-loader">
         <p>{q.error.message}</p>
-        {q.error instanceof RequestError && q.error.status === 401
-          ? <a href="/login">Se reconnecter</a>
-          : <button className="button" onClick={() => void q.refetch()}>Réessayer</button>}
+        {q.error instanceof RequestError && q.error.status === 401 ? (
+          <a href="/login">Se reconnecter</a>
+        ) : (
+          <button className="button" onClick={() => void q.refetch()}>
+            Réessayer
+          </button>
+        )}
       </div>
     );
   if (!workspace)

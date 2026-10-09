@@ -11,13 +11,9 @@ export async function collect(
 ): Promise<Row[]> {
   const rows: Row[] = [];
   for (let start = 0; start <= 10000; start += 500) {
-    let query = client
-      .from(table)
-      .select(columns)
-      .eq("workspace_id", workspace);
+    let query = client.from(table).select(columns).eq("workspace_id", workspace);
     if (table === "records") query = query.eq("archived", false);
-    for (const [key, value] of Object.entries(filters))
-      query = query.eq(key, value);
+    for (const [key, value] of Object.entries(filters)) query = query.eq(key, value);
     const { data, error } = await query
       .order("id")
       .range(start, start + (start === 10000 ? 0 : 499));

@@ -9,7 +9,9 @@ const files = execFileSync(
   "git",
   ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
   { cwd: root, encoding: "utf8" },
-).split("\0").filter((file) => file && existsSync(path.join(root, file)));
+)
+  .split("\0")
+  .filter((file) => file && existsSync(path.join(root, file)));
 const failures: string[] = [];
 let imports = 0;
 let links = 0;
@@ -19,7 +21,9 @@ function isFile(file: string) {
 }
 
 function resolves(base: string) {
-  return [base, ...[".ts", ".tsx", ".mts", ".js", ".mjs"].map((ext) => base + ext),
+  return [
+    base,
+    ...[".ts", ".tsx", ".mts", ".js", ".mjs"].map((ext) => base + ext),
     ...["index.ts", "index.tsx", "index.mts", "index.js"].map((name) => path.join(base, name)),
   ].some(isFile);
 }

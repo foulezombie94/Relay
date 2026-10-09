@@ -1,9 +1,5 @@
 import { stages } from "./types";
-import {
-  defaultProbabilities,
-  type Pipeline,
-  type ForecastDeal,
-} from "./pipelines";
+import { defaultProbabilities, type Pipeline, type ForecastDeal } from "./pipelines";
 export type HistoricalDeal = ForecastDeal & { id: string };
 export type SalesSnapshot = {
   stage?: string;
@@ -86,9 +82,7 @@ export function salesHistory(
       rate: null as number | null,
     })),
   );
-  const cells = new Map(
-    calibration.map((row) => [row.pipelineId + ":" + row.stage, row]),
-  );
+  const cells = new Map(calibration.map((row) => [row.pipelineId + ":" + row.stage, row]));
   for (const deal of deals) {
     if (!terminal(deal.stage)) continue;
     const seen = observations.get(deal.id);
@@ -123,7 +117,6 @@ export function salesHistory(
     }
   }
   for (const cell of calibration)
-    if (cell.resolved)
-      cell.rate = Math.round((1000 * cell.won) / cell.resolved) / 10;
+    if (cell.resolved) cell.rate = Math.round((1000 * cell.won) / cell.resolved) / 10;
   return { month, outcomes, calibration };
 }

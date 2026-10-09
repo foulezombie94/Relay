@@ -23,8 +23,7 @@ export function RecordTable({
             {columns.map((key) => (
               <th key={key}>
                 {key.startsWith("attr_")
-                  ? custom.find((a) => a.key === key.slice(5))?.name ||
-                    key.slice(5)
+                  ? custom.find((a) => a.key === key.slice(5))?.name || key.slice(5)
                   : (
                       {
                         display_name: "Nom",
@@ -57,12 +56,7 @@ export function RecordTable({
               {columns.map((key) => (
                 <td key={key}>
                   {key === "display_name" ? (
-                    <span
-                      className={
-                        "name-cell " +
-                        (slug === "people" ? styles.personName : "")
-                      }
-                    >
+                    <span className={"name-cell " + (slug === "people" ? styles.personName : "")}>
                       <Avatar name={r.display_name} />
                       <strong>{r.display_name}</strong>
                     </span>

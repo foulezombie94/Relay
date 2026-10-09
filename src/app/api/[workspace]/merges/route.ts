@@ -14,10 +14,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       mid,
     });
     mergeError(error);
-    return NextResponse.json(
-      { data },
-      { headers: { "Cache-Control": "private, no-store" } },
-    );
+    return NextResponse.json({ data }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (e) {
     return fail(e);
   }

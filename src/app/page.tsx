@@ -37,8 +37,7 @@ export const metadata: Metadata = {
     "Contacts, pipeline, emails et engagements client dans un même CRM. Découvrez Relay et explorez sa démo sans compte.",
   openGraph: {
     title: "Relay — Faites avancer vos ventes. Tenez vos engagements.",
-    description:
-      "Un même espace pour vos relations, vos opportunités et la réalisation client.",
+    description: "Un même espace pour vos relations, vos opportunités et la réalisation client.",
     type: "website",
     locale: "fr_FR",
   },
@@ -134,11 +133,7 @@ export default function Home() {
           <Link prefetch={false} href="/login" className={styles.login}>
             Se connecter
           </Link>
-          <Link
-            prefetch={false}
-            href="/login?mode=signup"
-            className={styles.primary}
-          >
+          <Link prefetch={false} href="/login?mode=signup" className={styles.primary}>
             Créer mon espace <ArrowUpRight size={15} />
           </Link>
         </div>
@@ -171,15 +166,11 @@ export default function Home() {
           </h1>
           <p>
             Le CRM qui réunit vos contacts, vos échanges et vos opportunités.
-            <br className={styles.desktopBreak} /> Et garde votre équipe dans le
-            même élan, jusqu’à la réalisation client.
+            <br className={styles.desktopBreak} /> Et garde votre équipe dans le même élan, jusqu’à
+            la réalisation client.
           </p>
           <div className={styles.heroActions}>
-            <Link
-              prefetch={false}
-              href="/login?mode=signup"
-              className={styles.primary}
-            >
+            <Link prefetch={false} href="/login?mode=signup" className={styles.primary}>
               Créer mon espace <ArrowRight size={17} />
             </Link>
             <Link prefetch={false} href="/demo" className={styles.secondary}>
@@ -203,10 +194,7 @@ export default function Home() {
             </Link>
           </div>
         </section>
-        <section
-          className={styles.connectionStrip}
-          aria-label="Services proposés"
-        >
+        <section className={styles.connectionStrip} aria-label="Services proposés">
           <p>Avec les outils que votre équipe utilise déjà.</p>
           <div>
             {integrations.map(({ name, icon: Icon }) => (
@@ -225,9 +213,8 @@ export default function Home() {
               Plus de prochaines étapes.
             </h2>
             <p>
-              Un échange dans votre boîte mail. Une opportunité dans un tableau.
-              Une promesse dans vos notes. Relay rassemble le contexte pour que
-              votre équipe sache où reprendre.
+              Un échange dans votre boîte mail. Une opportunité dans un tableau. Une promesse dans
+              vos notes. Relay rassemble le contexte pour que votre équipe sache où reprendre.
             </p>
           </div>
           <div className={styles.storyRow}>
@@ -238,9 +225,8 @@ export default function Home() {
                 avant chaque conversation.
               </h3>
               <p>
-                Retrouvez les personnes, entreprises, notes et échanges liés à
-                votre client. Une même histoire, accessible à ceux qui en ont
-                besoin.
+                Retrouvez les personnes, entreprises, notes et échanges liés à votre client. Une
+                même histoire, accessible à ceux qui en ont besoin.
               </p>
               <ul>
                 <li>
@@ -268,9 +254,8 @@ export default function Home() {
                 Des prévisions à leur place.
               </h3>
               <p>
-                Suivez chaque opportunité avec son montant, son étape, son
-                responsable et sa date de clôture prévue. Distinguez ce qui est
-                en cours, pondéré, gagné ou perdu.
+                Suivez chaque opportunité avec son montant, son étape, son responsable et sa date de
+                clôture prévue. Distinguez ce qui est en cours, pondéré, gagné ou perdu.
               </p>
               <ul>
                 <li>
@@ -280,8 +265,7 @@ export default function Home() {
                   <Check size={16} /> Étapes et probabilités personnalisables
                 </li>
                 <li>
-                  <Check size={16} /> Rapports pour suivre l’activité
-                  commerciale
+                  <Check size={16} /> Rapports pour suivre l’activité commerciale
                 </li>
               </ul>
               <Link prefetch={false} href="/doc" className={styles.textLink}>
@@ -298,9 +282,8 @@ export default function Home() {
               <span>La relation continue.</span>
             </h2>
             <p>
-              Ce qui a été promis mérite d’être suivi. Relay relie les
-              engagements client à une personne, une échéance et leur
-              réalisation.
+              Ce qui a été promis mérite d’être suivi. Relay relie les engagements client à une
+              personne, une échéance et leur réalisation.
             </p>
             <Link prefetch={false} href="/demo" className={styles.lightButton}>
               Découvrir Relay <ArrowRight size={17} />
@@ -316,8 +299,8 @@ export default function Home() {
               toute l’équipe à avancer.
             </h2>
             <p>
-              Gardez les données utiles, retrouvez le contexte et préparez les
-              actions. Avec le contrôle nécessaire au travail en équipe.
+              Gardez les données utiles, retrouvez le contexte et préparez les actions. Avec le
+              contrôle nécessaire au travail en équipe.
             </p>
           </div>
           <div className={styles.teamFeatures}>
@@ -325,24 +308,24 @@ export default function Home() {
               <GitMerge size={26} />
               <h3>Des données plus claires.</h3>
               <p>
-                Comparez et corrigez les doublons avant la fusion. Retrouvez son
-                historique et annulez-la si nécessaire.
+                Comparez et corrigez les doublons avant la fusion. Retrouvez son historique et
+                annulez-la si nécessaire.
               </p>
             </article>
             <article>
               <Sparkles size={26} />
               <h3>Une aide, dans le contexte.</h3>
               <p>
-                Utilisez l’assistant IA pour retrouver des informations et
-                préparer la suite, selon la configuration de votre espace.
+                Utilisez l’assistant IA pour retrouver des informations et préparer la suite, selon
+                la configuration de votre espace.
               </p>
             </article>
             <article>
               <ShieldCheck size={26} />
               <h3>Le contrôle reste à vous.</h3>
               <p>
-                Rôles, permissions et historique des actions accompagnent le
-                travail de vos membres dans l’espace.
+                Rôles, permissions et historique des actions accompagnent le travail de vos membres
+                dans l’espace.
               </p>
             </article>
           </div>
@@ -354,8 +337,8 @@ export default function Home() {
               <br />à votre journée.
             </h2>
             <p>
-              Connectez votre messagerie et votre calendrier. Vos échanges
-              trouvent leur place dans le suivi de vos relations.
+              Connectez votre messagerie et votre calendrier. Vos échanges trouvent leur place dans
+              le suivi de vos relations.
             </p>
           </div>
           <div className={styles.integrationList}>
@@ -412,11 +395,7 @@ export default function Home() {
           </h2>
           <p>Donnez à votre équipe un espace pour les relier.</p>
           <div className={styles.heroActions}>
-            <Link
-              prefetch={false}
-              href="/login?mode=signup"
-              className={styles.primary}
-            >
+            <Link prefetch={false} href="/login?mode=signup" className={styles.primary}>
               Créer mon espace <ArrowRight size={17} />
             </Link>
             <Link prefetch={false} href="/demo" className={styles.secondary}>

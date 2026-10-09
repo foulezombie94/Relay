@@ -3,8 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { createElement, type ReactNode } from "react";
 const state = vi.hoisted(() => ({ term: "", article: "" }));
 vi.mock("next/navigation", () => ({
-  useSearchParams: () =>
-    new URLSearchParams(state.article ? { article: state.article } : {}),
+  useSearchParams: () => new URLSearchParams(state.article ? { article: state.article } : {}),
   useRouter: () => ({ replace: vi.fn() }),
 }));
 vi.mock("next/link", () => ({
@@ -35,9 +34,7 @@ describe("user guide navigation after searching", () => {
     state.term = "email";
     state.article = "integrations";
     const html = renderToStaticMarkup(<Documentation />);
-    expect(html).toContain(
-      "<h1>Connecter Gmail, Outlook et les calendriers</h1>",
-    );
+    expect(html).toContain("<h1>Connecter Gmail, Outlook et les calendriers</h1>");
     expect(html).toContain("Déconnecter");
     expect(html).not.toContain("Le guide de votre CRM.");
   });

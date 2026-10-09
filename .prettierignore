@@ -1,0 +1,12 @@
+node_modules/
+.git/
+.next/
+.next-*/
+coverage/
+test-results/
+playwright-report/
+work/
+package-lock.json
+next-env.d.ts
+docs/performance/*.json
+supabase/**/*.sql

@@ -41,26 +41,17 @@ describe("Duplicate suggestions and human decisions", () => {
       defer_until: "2026-10-13T10:00:00Z",
     };
     expect(
-      findDuplicatePairs(
-        [record("a"), record("b")],
-        [decision],
-        Date.parse("2026-10-12T10:00:00Z"),
-      ).pairs,
+      findDuplicatePairs([record("a"), record("b")], [decision], Date.parse("2026-10-12T10:00:00Z"))
+        .pairs,
     ).toHaveLength(0);
     expect(
-      findDuplicatePairs(
-        [record("a"), record("b")],
-        [decision],
-        Date.parse("2026-10-14T10:00:00Z"),
-      ).pairs,
+      findDuplicatePairs([record("a"), record("b")], [decision], Date.parse("2026-10-14T10:00:00Z"))
+        .pairs,
     ).toHaveLength(1);
   });
   it("does not combine records from different objects", () => {
     expect(
-      findDuplicatePairs(
-        [record("a"), record("b", { object_id: "companies" })],
-        [],
-      ).pairs,
+      findDuplicatePairs([record("a"), record("b", { object_id: "companies" })], []).pairs,
     ).toHaveLength(0);
   });
   it("recalculates after changes remove all matching criteria", () => {
@@ -78,12 +69,7 @@ describe("Duplicate suggestions and human decisions", () => {
     ).toHaveLength(0);
   });
   it("reports truncation rather than suggesting a complete diagnostic", () => {
-    const result = findDuplicatePairs(
-      [record("a"), record("b"), record("c")],
-      [],
-      Date.now(),
-      1,
-    );
+    const result = findDuplicatePairs([record("a"), record("b"), record("c")], [], Date.now(), 1);
     expect(result.pairs).toHaveLength(1);
     expect(result.truncated).toBe(true);
   });

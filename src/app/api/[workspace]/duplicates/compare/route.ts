@@ -26,10 +26,7 @@ export async function GET(
     const first = data?.find((r) => r.id === a) as CrmRecord | undefined,
       second = data?.find((r) => r.id === b) as CrmRecord | undefined;
     if (!first || !second || first.object_id !== second.object_id)
-      throw new ApiError(
-        "Une fiche a été archivée, fusionnée ou n’est plus accessible.",
-        404,
-      );
+      throw new ApiError("Une fiche a été archivée, fusionnée ou n’est plus accessible.", 404);
     const ids = [a, b].sort();
     const [attrs, decision] = await Promise.all([
       client
@@ -57,10 +54,7 @@ export async function GET(
         reasons: matches.map((g) => g.reason),
         is_candidate:
           matches.length > 0 &&
-          !decisionBlocks(
-            decision.data as DuplicateDecision | undefined,
-            Date.now(),
-          ),
+          !decisionBlocks(decision.data as DuplicateDecision | undefined, Date.now()),
         decision: decision.data,
       },
       { headers: { "Cache-Control": "private, no-store" } },

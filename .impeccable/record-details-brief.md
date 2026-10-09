@@ -1,4 +1,5 @@
 # Fiches CRM — Operate
+
 Extension de l’identité Relay, construction directe en code déjà approuvée. But : comprendre une personne, gérer un compte ou faire avancer une vente. Trois compositions distinctes dans le même panneau de détail, sans inventer de données ou de fonctions.
 THESIS : l’objet détermine la hiérarchie, pas seulement le titre.
 OWN-WORLD : UI Relay, blanc, bleu, encre, surfaces froides ; polices et contrôles existants.

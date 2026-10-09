@@ -16,19 +16,19 @@ Un nouveau développeur commence par [CONTRIBUTING](CONTRIBUTING.md), puis [l'ar
 
 ## Où intervenir
 
-| Besoin | Emplacement |
-| --- | --- |
-| Routes, layouts, endpoints HTTP | `src/app/`, `src/proxy.ts` |
-| Écrans du CRM | `src/components/pages/` et composants de la fonctionnalité |
-| Fiches et vues CRM | `src/components/records/`, `src/lib/domain/` |
-| Ask Relay | `src/components/assistant/`, `src/lib/agent/`, routes `assistant/` |
-| Dashboard et rapports | `src/components/dashboard/`, `src/components/reports/`, `src/lib/api/dashboards.ts` |
-| Paramètres, équipe et droits | `src/components/settings/`, `src/lib/team/`, routes `team/` |
-| OAuth, emails, calendriers et réunions | `src/lib/integrations/` |
-| Queue et exécution différée | `src/lib/jobs/`, `scripts/worker.mts` |
-| Schéma et permissions SQL | `supabase/migrations/` |
-| Tests | Fichiers `.test.ts(x)`, `supabase/tests/`, `scripts/tests/` |
-| Aide visible dans le produit | `src/lib/help/guides.ts`, `src/components/help/` |
+| Besoin                                 | Emplacement                                                                         |
+| -------------------------------------- | ----------------------------------------------------------------------------------- |
+| Routes, layouts, endpoints HTTP        | `src/app/`, `src/proxy.ts`                                                          |
+| Écrans du CRM                          | `src/components/pages/` et composants de la fonctionnalité                          |
+| Fiches et vues CRM                     | `src/components/records/`, `src/lib/domain/`                                        |
+| Ask Relay                              | `src/components/assistant/`, `src/lib/agent/`, routes `assistant/`                  |
+| Dashboard et rapports                  | `src/components/dashboard/`, `src/components/reports/`, `src/lib/api/dashboards.ts` |
+| Paramètres, équipe et droits           | `src/components/settings/`, `src/lib/team/`, routes `team/`                         |
+| OAuth, emails, calendriers et réunions | `src/lib/integrations/`                                                             |
+| Queue et exécution différée            | `src/lib/jobs/`, `scripts/worker.mts`                                               |
+| Schéma et permissions SQL              | `supabase/migrations/`                                                              |
+| Tests                                  | Fichiers `.test.ts(x)`, `supabase/tests/`, `scripts/tests/`                         |
+| Aide visible dans le produit           | `src/lib/help/guides.ts`, `src/components/help/`                                    |
 
 Les routes et le point d'entrée du worker suivent les conventions des hébergeurs ; leurs configurations restent à la racine. Voir [les responsabilités et flux](docs/architecture/README.md).
 

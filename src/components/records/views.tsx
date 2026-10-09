@@ -2,11 +2,7 @@
 import { useState } from "react";
 import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import { Editor, ErrorMessage, type Field, str } from "../ui";
-import {
-  defaultRecordView,
-  normalizeView,
-  type ViewConfig,
-} from "@/lib/domain/views";
+import { defaultRecordView, normalizeView, type ViewConfig } from "@/lib/domain/views";
 import type { ObjectDefinition, Attribute } from "@/lib/domain/types";
 import { stages } from "@/lib/domain/types";
 export function RecordViews({
@@ -38,8 +34,7 @@ export function RecordViews({
       ...normalizeView(current.config, object.slug === "deals"),
       layout: mode,
     }) !== JSON.stringify({ ...config, layout: mode }) ||
-      (normalizeView(current.config, object.slug === "deals").layout ??
-        current.type) !== mode);
+      (normalizeView(current.config, object.slug === "deals").layout ?? current.type) !== mode);
   const salesFields = !object.standard || object.slug === "deals";
   const columns = [
     { key: "display_name", label: "Nom" },
@@ -83,10 +78,7 @@ export function RecordViews({
               ...loaded,
               stage: salesFields ? loaded.stage : "",
               minimum: salesFields ? loaded.minimum : "",
-              sort:
-                !salesFields && loaded.sort === "amount"
-                  ? "updated_at"
-                  : loaded.sort,
+              sort: !salesFields && loaded.sort === "amount" ? "updated_at" : loaded.sort,
               columns: visible.length ? visible : ["display_name"],
             });
             onMode(loaded.layout ?? (str(row?.type) || "table"));
@@ -128,9 +120,7 @@ export function RecordViews({
         <select
           aria-label="Tri"
           value={config.sort}
-          onChange={(e) =>
-            onChange({ ...config, sort: e.target.value as ViewConfig["sort"] })
-          }
+          onChange={(e) => onChange({ ...config, sort: e.target.value as ViewConfig["sort"] })}
         >
           {Object.entries({
             updated_at: "Dernière modification",
@@ -173,10 +163,7 @@ export function RecordViews({
                 <input
                   type="checkbox"
                   checked={config.columns.includes(c.key)}
-                  disabled={
-                    config.columns.includes(c.key) &&
-                    config.columns.length === 1
-                  }
+                  disabled={config.columns.includes(c.key) && config.columns.length === 1}
                   onChange={(e) =>
                     onChange({
                       ...config,
@@ -226,9 +213,7 @@ export function RecordViews({
             >
               Supprimer la vue
             </button>
-            {modified && (
-              <span className="pill">Modifications non sauvegardées</span>
-            )}
+            {modified && <span className="pill">Modifications non sauvegardées</span>}
           </>
         )}
       </div>

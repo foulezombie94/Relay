@@ -9,11 +9,7 @@ const providerError = z.object({
   }),
 });
 
-export function providerFailure(
-  status: number,
-  payload: unknown,
-  apiName: string,
-) {
+export function providerFailure(status: number, payload: unknown, apiName: string) {
   const parsed = providerError.safeParse(payload);
   const error = parsed.success ? parsed.data.error : undefined;
   const reasons = new Set(
@@ -26,8 +22,7 @@ export function providerFailure(
       .filter((value): value is string => typeof value === "string")
       .map((value) => value.toLowerCase().replace(/[_-]/g, "")),
   );
-  const has = (...values: string[]) =>
-    values.some((value) => reasons.has(value));
+  const has = (...values: string[]) => values.some((value) => reasons.has(value));
 
   if (status === 403 && has("servicedisabled", "accessnotconfigured")) {
     return {
@@ -83,7 +78,6 @@ export function providerFailure(
   }
   return {
     status: 502,
-    message:
-      "Le fournisseur n’a pas pu terminer l’opération. Réessayez plus tard.",
+    message: "Le fournisseur n’a pas pu terminer l’opération. Réessayez plus tard.",
   };
 }

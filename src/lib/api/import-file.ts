@@ -17,8 +17,7 @@ function jsonCollections(content: string, source: CrmSource) {
 
     if (value.some((v) => !v || typeof v !== "object" || Array.isArray(v)))
       throw new Error("Chaque ligne JSON doit être un objet.");
-    if (value.length)
-      collections.push({ name, items: value as Record<string, unknown>[] });
+    if (value.length) collections.push({ name, items: value as Record<string, unknown>[] });
   }
   if (Array.isArray(parsed)) add("Fiches", parsed);
   else if (parsed && typeof parsed === "object") {
@@ -43,9 +42,7 @@ function jsonCollections(content: string, source: CrmSource) {
   if (source === "close") {
     const parents = collections
       .flatMap((c) => c.items)
-      .filter(
-        (r) => Array.isArray(r.contacts) || Array.isArray(r.opportunities),
-      );
+      .filter((r) => Array.isArray(r.contacts) || Array.isArray(r.opportunities));
     if (parents.length) {
       add(
         "Contacts des leads",
@@ -70,14 +67,9 @@ function jsonCollections(content: string, source: CrmSource) {
     table: () => jsonTable(c.items, source),
   }));
 }
-function jsonTable(
-  items: Record<string, unknown>[],
-  source: CrmSource,
-): ImportTable {
+function jsonTable(items: Record<string, unknown>[], source: CrmSource): ImportTable {
   if (items.length > 1000)
-    throw new Error(
-      "Maximum 1 000 fiches par collection. Découpez votre export.",
-    );
+    throw new Error("Maximum 1 000 fiches par collection. Découpez votre export.");
   const flat = items.map((item) => {
     const row: Record<string, string> = Object.create(null);
     for (const [key, value] of Object.entries(item)) {
@@ -87,27 +79,15 @@ function jsonTable(
       )
         continue;
       if (value === null || value === undefined) row[key] = "";
-      else if (["string", "number", "boolean"].includes(typeof value))
-        row[key] = String(value);
+      else if (["string", "number", "boolean"].includes(typeof value)) row[key] = String(value);
       else if (key === "emails" && Array.isArray(value))
         row.email = String(value[0]?.email ?? value[0] ?? "");
-      else if (
-        key === "status" &&
-        typeof value === "object" &&
-        !Array.isArray(value)
-      )
-        row.status_label = String(
-          (value as Record<string, unknown>).label ?? "",
-        );
-      else if (
-        key === "custom" &&
-        typeof value === "object" &&
-        !Array.isArray(value)
-      ) {
+      else if (key === "status" && typeof value === "object" && !Array.isArray(value))
+        row.status_label = String((value as Record<string, unknown>).label ?? "");
+      else if (key === "custom" && typeof value === "object" && !Array.isArray(value)) {
         for (const [k, v] of Object.entries(value as object))
           if (!["__proto__", "constructor", "prototype"].includes(k))
-            row["custom." + k] =
-              typeof v === "object" ? JSON.stringify(v) : String(v ?? "");
+            row["custom." + k] = typeof v === "object" ? JSON.stringify(v) : String(v ?? "");
       } else row[key] = JSON.stringify(value);
     }
     // Close's API JSON expresses opportunity value in cents, unlike CSV exports.
@@ -131,10 +111,7 @@ async function workbookTables(data: Buffer, headerRow: number) {
   const ExcelJS = await import("exceljs");
   const book = new ExcelJS.Workbook();
   await book.xlsx.load(
-    data.buffer.slice(
-      data.byteOffset,
-      data.byteOffset + data.byteLength,
-    ) as ArrayBuffer,
+    data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer,
   );
   return book.worksheets.map((sheet) => ({
     name: sheet.name,
@@ -144,19 +121,13 @@ async function workbookTables(data: Buffer, headerRow: number) {
       const cellText = (cell: import("exceljs").Cell) => {
         const v = cell.value;
         if (v == null) return "";
-        if (
-          typeof v === "number" &&
-          Number.isInteger(v) &&
-          !Number.isSafeInteger(v)
-        )
+        if (typeof v === "number" && Number.isInteger(v) && !Number.isSafeInteger(v))
           throw new Error(
             "Nombre ou identifiant Excel trop long : utilisez une cellule texte ou un export CSV.",
           );
         if (v instanceof Date) return v.toISOString().slice(0, 10);
         if (typeof v === "object" && ("formula" in v || "sharedFormula" in v))
-          throw new Error(
-            "Remplacez les formules Excel par leurs valeurs avant import.",
-          );
+          throw new Error("Remplacez les formules Excel par leurs valeurs avant import.");
         return cell.text;
       };
       const headers = Array.from({ length: sheet.columnCount }, (_, i) =>
@@ -170,28 +141,19 @@ async function workbookTables(data: Buffer, headerRow: number) {
         throw new Error(
           "Choisissez la ligne d’en-tête : chaque colonne doit avoir un nom unique et non vide.",
         );
-      const rawRows = Array.from(
-        { length: Math.max(0, sheet.rowCount - headerRow) },
-        (_, i) =>
-          headers.map((_, j) =>
-            cellText(sheet.getRow(headerRow + i + 1).getCell(j + 1)),
-          ),
+      const rawRows = Array.from({ length: Math.max(0, sheet.rowCount - headerRow) }, (_, i) =>
+        headers.map((_, j) => cellText(sheet.getRow(headerRow + i + 1).getCell(j + 1))),
       );
-      const rowNumbers = rawRows.flatMap((r, i) =>
-        r.some(Boolean) ? [headerRow + i + 1] : [],
-      );
+      const rowNumbers = rawRows.flatMap((r, i) => (r.some(Boolean) ? [headerRow + i + 1] : []));
       const rows = rawRows.filter((r) => r.some(Boolean));
-      if (!rows.length)
-        throw new Error("Cette feuille ne contient aucune fiche.");
+      if (!rows.length) throw new Error("Cette feuille ne contient aucune fiche.");
       return withFullName({ headers, rows, rowNumbers });
     },
   }));
 }
 export async function inspectImportFile(file: File, options: ReadOptions = {}) {
   if (file.size > MAX_IMPORT_BYTES)
-    throw new Error(
-      "Fichier limité à 4 Mo. Découpez les gros exports ou extrayez un CSV du ZIP.",
-    );
+    throw new Error("Fichier limité à 4 Mo. Découpez les gros exports ou extrayez un CSV du ZIP.");
   if (!file.size) throw new Error("Le fichier est vide.");
   const source = options.source ?? "file",
     headerRow = options.headerRow ?? 1;
@@ -215,9 +177,7 @@ export async function inspectImportFile(file: File, options: ReadOptions = {}) {
           tables.push({ name: entry.name + " · " + c.name, table: c.table });
       } catch (e) {
         if (!/\.zip$/i.test(file.name)) throw e;
-        ignored.push(
-          entry.name + " — JSON hors du format de fiches pris en charge",
-        );
+        ignored.push(entry.name + " — JSON hors du format de fiches pris en charge");
       }
     } else if (/\.xlsx$/i.test(entry.name)) {
       if (/\.zip$/i.test(file.name))
@@ -233,8 +193,7 @@ export async function inspectImportFile(file: File, options: ReadOptions = {}) {
     );
   const selections = tables.map((t, i) => ({ id: String(i), name: t.name }));
   const selected = options.selection ?? (tables.length === 1 ? "0" : undefined);
-  if (selected === undefined)
-    return { selections, ignored, table: null, selection: null };
+  if (selected === undefined) return { selections, ignored, table: null, selection: null };
   if (!/^\d{1,3}$/.test(selected) || !tables[Number(selected)])
     throw new Error("Choisissez un fichier ou une feuille dans la liste.");
   return {

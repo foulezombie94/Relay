@@ -1,15 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRows, useSave, useWorkspace } from "../providers/data-provider";
-import {
-  PageHeader,
-  Editor,
-  AddButton,
-  Empty,
-  str,
-  Loading,
-  ErrorMessage,
-} from "../ui";
+import { PageHeader, Editor, AddButton, Empty, str, Loading, ErrorMessage } from "../ui";
 import { Pagination } from "../ui/pagination";
 import { RecordPicker } from "../records/picker";
 import type { Row } from "@/lib/domain/types";
@@ -27,10 +19,7 @@ export function ListPage({ id }: { id: string }) {
         title={str(list.data?.data[0]?.name) || "Liste"}
         description="Un regroupement de fiches existantes."
         action={
-          <AddButton
-            disabled={readOnly || !list.data?.data[0]}
-            onClick={() => setAdding(true)}
-          />
+          <AddButton disabled={readOnly || !list.data?.data[0]} onClick={() => setAdding(true)} />
         }
       />
       <ErrorMessage error={list.error || entries.error} />
@@ -40,9 +29,7 @@ export function ListPage({ id }: { id: string }) {
         <div className="stack">
           {entries.data?.data.map((entry) => {
             const record = entry.record as Row | null;
-            const object = objects.find(
-              (object) => object.id === record?.object_id,
-            );
+            const object = objects.find((object) => object.id === record?.object_id);
             return (
               <article className="detail-card" key={entry.id}>
                 <div className="card-head">
@@ -51,9 +38,7 @@ export function ListPage({ id }: { id: string }) {
                       <a
                         href={
                           "/app/" +
-                          (object.standard
-                            ? object.slug
-                            : "object-" + object.slug) +
+                          (object.standard ? object.slug : "object-" + object.slug) +
                           "?record=" +
                           record.id
                         }
@@ -67,9 +52,7 @@ export function ListPage({ id }: { id: string }) {
                   <button
                     className="button small"
                     disabled={readOnly || busy}
-                    onClick={() =>
-                      void remove("list_entries", entry.id).catch(() => {})
-                    }
+                    onClick={() => void remove("list_entries", entry.id).catch(() => {})}
                   >
                     Retirer de la liste
                   </button>

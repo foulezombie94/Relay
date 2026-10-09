@@ -19,11 +19,8 @@ it("resumes the exact provider page and fixed window after a failure", () => {
 });
 it("overlaps the last email watermark by five minutes to avoid boundary losses", () => {
   expect(
-    syncWindow(
-      { watermark: "2026-10-06T10:00:00Z" },
-      "email",
-      new Date("2026-10-06T11:00:00Z"),
-    ).start,
+    syncWindow({ watermark: "2026-10-06T10:00:00Z" }, "email", new Date("2026-10-06T11:00:00Z"))
+      .start,
   ).toBe("2026-10-06T09:55:00.000Z");
 });
 it("blocks token-bearing pagination links to another host or endpoint", () => {
@@ -35,9 +32,6 @@ it("blocks token-bearing pagination links to another host or endpoint", () => {
   ])
     expect(() => graphPage(v, "messages")).toThrow();
   expect(
-    graphPage(
-      "https://graph.microsoft.com/v1.0/me/messages?$skiptoken=opaque",
-      "messages",
-    ),
+    graphPage("https://graph.microsoft.com/v1.0/me/messages?$skiptoken=opaque", "messages"),
   ).toContain("$skiptoken=opaque");
 });

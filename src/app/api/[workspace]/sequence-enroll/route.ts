@@ -1,18 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
-import {
-  context,
-  checkOrigin,
-  databaseError,
-  fail,
-  ApiError,
-} from "@/lib/api/context";
+import { context, checkOrigin, databaseError, fail, ApiError } from "@/lib/api/context";
 import { digest, seal } from "@/lib/integrations/crypto";
-import {
-  sequenceSteps,
-  sequenceMessage,
-  nextSequenceDate,
-} from "@/lib/domain/sequences";
+import { sequenceSteps, sequenceMessage, nextSequenceDate } from "@/lib/domain/sequences";
 import { z } from "zod";
 import { workerReady } from "@/lib/jobs/client";
 import { backgroundJobsEnabled } from "@/lib/jobs/flags";
@@ -34,14 +24,16 @@ export async function POST(req: NextRequest, { params }: P) {
       })
       .parse(await req.json());
     if (
-      !backgroundJobsEnabled() || process.env.FEATURE_SEQUENCE_SEND!=="true" ||
+      !backgroundJobsEnabled() ||
+      process.env.FEATURE_SEQUENCE_SEND !== "true" ||
       !process.env.APP_URL?.startsWith("https://")
     )
       throw new ApiError(
         "Les envois planifiés nécessitent un domaine HTTPS public et le service de suivi actif. Votre administrateur doit terminer cette configuration.",
         503,
       );
-    if(!(await workerReady(adminDb(),"sequence_send"))) throw new ApiError("Le service d’envoi est temporairement indisponible.",503);
+    if (!(await workerReady(adminDb(), "sequence_send")))
+      throw new ApiError("Le service d’envoi est temporairement indisponible.", 503);
     const [{ data: s, error: se }, { data: r, error: re }] = await Promise.all([
       client
         .from("sequences")

@@ -1,12 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthApiError, AuthRetryableFetchError } from "@supabase/supabase-js";
 
-const mocks = vi.hoisted(() => ({ getUser: vi.fn(), from: vi.fn(), single: vi.fn(), rpc: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  getUser: vi.fn(),
+  from: vi.fn(),
+  single: vi.fn(),
+  rpc: vi.fn(),
+}));
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/supabase/server", () => ({ db: vi.fn(async () => ({ auth: { getUser: mocks.getUser }, from: mocks.from, rpc: mocks.rpc })) }));
+vi.mock("@/lib/supabase/server", () => ({
+  db: vi.fn(async () => ({ auth: { getUser: mocks.getUser }, from: mocks.from, rpc: mocks.rpc })),
+}));
 vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn(), flush: vi.fn() }));
 vi.mock("@/lib/observability/logger", () => ({ logEvent: vi.fn() }));
-vi.mock("next/server", async importOriginal => ({ ...await importOriginal<typeof import("next/server")>(), after: vi.fn() }));
+vi.mock("next/server", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/server")>()),
+  after: vi.fn(),
+}));
 import { context, fail } from "@/lib/api/context";
 import { GET as workspaces } from "@/app/api/workspaces/route";
 
@@ -21,7 +31,10 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("authenticated API session boundaries", () => {
   it("returns 503 for temporary Auth outages without touching CRM data", async () => {
-    mocks.getUser.mockResolvedValue({ data: { user: null }, error: new AuthRetryableFetchError("sensitive upstream info", 503) });
+    mocks.getUser.mockResolvedValue({
+      data: { user: null },
+      error: new AuthRetryableFetchError("sensitive upstream info", 503),
+    });
     const response = await workspaces();
     expect(response.status).toBe(503);
     const body = await response.json();
@@ -32,7 +45,10 @@ describe("authenticated API session boundaries", () => {
   });
 
   it("requires login after actual revocation even if a client supplies user data", async () => {
-    mocks.getUser.mockResolvedValue({ data: { user: { id: "user-a" } }, error: new AuthApiError("Revoked", 401, "session_not_found") });
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: "user-a" } },
+      error: new AuthApiError("Revoked", 401, "session_not_found"),
+    });
     const response = await workspaces();
     expect(response.status).toBe(401);
     expect(mocks.from).not.toHaveBeenCalled();
@@ -50,8 +66,13 @@ describe("authenticated API session boundaries", () => {
   });
 
   it("does not downgrade a network failure to 401 on regular CRM operations", async () => {
-    mocks.getUser.mockResolvedValue({ data: { user: null }, error: new AuthRetryableFetchError("offline", 0) });
-    const response = await context("workspace-a").then(() => { throw new Error("Unauthorized acceptance"); }, fail);
+    mocks.getUser.mockResolvedValue({
+      data: { user: null },
+      error: new AuthRetryableFetchError("offline", 0),
+    });
+    const response = await context("workspace-a").then(() => {
+      throw new Error("Unauthorized acceptance");
+    }, fail);
     expect(response.status).toBe(503);
     expect(mocks.from).not.toHaveBeenCalled();
   });

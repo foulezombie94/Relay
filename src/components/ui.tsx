@@ -26,9 +26,7 @@ export function Modal({
     <Dialog.Root open={open} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content
-          className={"dialog-content " + (wide ? "wide" : "") + " " + className}
-        >
+        <Dialog.Content className={"dialog-content " + (wide ? "wide" : "") + " " + className}>
           <div className="dialog-heading">
             <div>
               <Dialog.Title>{title}</Dialog.Title>
@@ -112,13 +110,7 @@ export function ErrorMessage({ error }: { error: Error | null }) {
     </div>
   ) : null;
 }
-export function SearchBox({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (s: string) => void;
-}) {
+export function SearchBox({ value, onChange }: { value: string; onChange: (s: string) => void }) {
   return (
     <div className="search-box">
       <Search size={16} />
@@ -196,11 +188,7 @@ export function Editor({
           try {
             for (const f of fields) {
               const v = String(form.get(f.key) ?? "");
-              if (
-                f.required &&
-                ["date", "datetime-local"].includes(f.type ?? "") &&
-                !v
-              ) {
+              if (f.required && ["date", "datetime-local"].includes(f.type ?? "") && !v) {
                 throw new Error(`Choisissez une date pour « ${f.label} ».`);
               }
               if (f.type === "checkbox") values[f.key] = form.has(f.key);
@@ -208,8 +196,7 @@ export function Editor({
                 values[f.key] = JSON.parse(v || "null");
                 if (f.required && values[f.key] == null)
                   throw new Error(`Complétez « ${f.label} ».`);
-              } else if (f.type === "number")
-                values[f.key] = v === "" ? 0 : Number(v);
+              } else if (f.type === "number") values[f.key] = v === "" ? 0 : Number(v);
               else if (f.type === "datetime-local")
                 values[f.key] = v ? new Date(v).toISOString() : null;
               else if (v !== "" || f.required) values[f.key] = v;
@@ -218,9 +205,7 @@ export function Editor({
             await onSave(values);
             onClose();
           } catch (err) {
-            setError(
-              err instanceof Error ? err.message : "Enregistrement impossible",
-            );
+            setError(err instanceof Error ? err.message : "Enregistrement impossible");
           }
         }}
       >
@@ -237,18 +222,12 @@ export function Editor({
             ) : (
               <label
                 key={f.key}
-                className={
-                  ["textarea", "json"].includes(f.type ?? "") ? "span-2" : ""
-                }
+                className={["textarea", "json"].includes(f.type ?? "") ? "span-2" : ""}
               >
                 {f.label}
                 {f.required ? " *" : ""}
                 {f.type === "select" ? (
-                  <select
-                    name={f.key}
-                    defaultValue={str(initial[f.key])}
-                    required={f.required}
-                  >
+                  <select name={f.key} defaultValue={str(initial[f.key])} required={f.required}>
                     <option value="">Choisir…</option>
                     {f.options?.map((o) => (
                       <option key={o.value} value={o.value}>
@@ -257,11 +236,7 @@ export function Editor({
                     ))}
                   </select>
                 ) : f.type === "checkbox" ? (
-                  <input
-                    type="checkbox"
-                    name={f.key}
-                    defaultChecked={Boolean(initial[f.key])}
-                  />
+                  <input type="checkbox" name={f.key} defaultChecked={Boolean(initial[f.key])} />
                 ) : ["textarea", "json"].includes(f.type ?? "") ? (
                   <textarea
                     name={f.key}

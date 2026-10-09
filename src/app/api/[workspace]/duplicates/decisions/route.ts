@@ -20,9 +20,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       .order("id")
       .range(page * 50, page * 50 + 49);
     databaseError(error);
-    const ids = [
-      ...new Set((data ?? []).flatMap((d) => [d.record_a, d.record_b])),
-    ];
+    const ids = [...new Set((data ?? []).flatMap((d) => [d.record_a, d.record_b]))];
     const records = ids.length
       ? await client
           .from("records")

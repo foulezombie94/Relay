@@ -40,9 +40,7 @@ export function validateAttributes(
         valid = attr.options.includes(String(value));
         break;
       case "multi_select":
-        valid =
-          Array.isArray(value) &&
-          value.every((v) => attr.options.includes(String(v)));
+        valid = Array.isArray(value) && value.every((v) => attr.options.includes(String(v)));
         break;
       case "date":
         valid =
@@ -68,9 +66,7 @@ export function validateAttributes(
   for (const attr of active)
     if (
       attr.required &&
-      (values[attr.key] === undefined ||
-        values[attr.key] === null ||
-        values[attr.key] === "")
+      (values[attr.key] === undefined || values[attr.key] === null || values[attr.key] === "")
     )
       issues.push(`Champ requis : ${attr.name}`);
   return issues;

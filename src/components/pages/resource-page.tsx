@@ -98,19 +98,11 @@ const configs: Record<
   },
   commitments: {
     title: "Engagements",
-    description:
-      "Chaque promesse a un responsable, une échéance et une preuve.",
+    description: "Chaque promesse a un responsable, une échéance et une preuve.",
     fields: [
       titleField,
       { key: "due_date", label: "Échéance", type: "datetime-local" },
-      statusField([
-        "proposed",
-        "confirmed",
-        "in_progress",
-        "done",
-        "postponed",
-        "cancelled",
-      ]),
+      statusField(["proposed", "confirmed", "in_progress", "done", "postponed", "cancelled"]),
       { key: "source_quote", label: "Passage source", type: "textarea" },
       { key: "evidence", label: "Preuve de réalisation", type: "textarea" },
       {
@@ -131,18 +123,14 @@ const configs: Record<
         key: "source_a",
         label: "Première source",
         type: "custom",
-        render: (initial, name) => (
-          <SourceFields initial={initial} name={name} />
-        ),
+        render: (initial, name) => <SourceFields initial={initial} name={name} />,
         required: true,
       },
       {
         key: "source_b",
         label: "Deuxième source",
         type: "custom",
-        render: (initial, name) => (
-          <SourceFields initial={initial} name={name} />
-        ),
+        render: (initial, name) => <SourceFields initial={initial} name={name} />,
         required: true,
       },
       statusField(["open", "resolved", "dismissed"]),
@@ -170,9 +158,7 @@ const configs: Record<
         key: "milestones",
         label: "Jalons",
         type: "custom",
-        render: (initial, name) => (
-          <RepeatFields kind="milestones" initial={initial} name={name} />
-        ),
+        render: (initial, name) => <RepeatFields kind="milestones" initial={initial} name={name} />,
       },
     ],
     initial: { status: "draft", milestones: [] },
@@ -186,9 +172,7 @@ const configs: Record<
         key: "steps",
         label: "Messages de la séquence",
         type: "custom",
-        render: (initial, name) => (
-          <RepeatFields kind="steps" initial={initial} name={name} />
-        ),
+        render: (initial, name) => <RepeatFields kind="steps" initial={initial} name={name} />,
         required: true,
       },
     ],
@@ -221,8 +205,7 @@ const configs: Record<
   },
   portals: {
     title: "Portails clients",
-    description:
-      "Partagez uniquement les éléments que vos clients doivent voir.",
+    description: "Partagez uniquement les éléments que vos clients doivent voir.",
     fields: [
       { key: "name", label: "Nom du portail", required: true },
       { key: "enabled", label: "Accès activé", type: "checkbox" },
@@ -278,20 +261,13 @@ export function ResourcePage({ resource }: { resource: string }) {
         options: objects.map((o) => ({ value: o.id, label: o.name })),
       });
     else if (
-      [
-        "tasks",
-        "notes",
-        "meetings",
-        "commitments",
-        "conflicts",
-        "handovers",
-        "portals",
-      ].includes(resource)
+      ["tasks", "notes", "meetings", "commitments", "conflicts", "handovers", "portals"].includes(
+        resource,
+      )
     )
       fields.push({
         key: "record_id",
-        label:
-          resource === "handovers" ? "Opportunité gagnée" : "Fiche associée",
+        label: resource === "handovers" ? "Opportunité gagnée" : "Fiche associée",
         type: "custom",
         required: ["handovers", "portals"].includes(resource),
         render: (initial, name) => (
@@ -300,9 +276,7 @@ export function ResourcePage({ resource }: { resource: string }) {
             initial={initial}
             required={["handovers", "portals"].includes(resource)}
             objectId={
-              resource === "handovers"
-                ? objects.find((o) => o.slug === "deals")?.id
-                : undefined
+              resource === "handovers" ? objects.find((o) => o.slug === "deals")?.id : undefined
             }
             stage={resource === "handovers" ? "Gagné" : undefined}
           />
@@ -397,9 +371,8 @@ export function ResourcePage({ resource }: { resource: string }) {
       </div>
       {resource === "sequences" && (
         <div className="alert info">
-          Les séquences peuvent être préparées et sauvegardées. L’envoi
-          nécessite un compte de messagerie connecté et un moteur d’envoi
-          configuré.
+          Les séquences peuvent être préparées et sauvegardées. L’envoi nécessite un compte de
+          messagerie connecté et un moteur d’envoi configuré.
         </div>
       )}
       <ErrorMessage error={q.error} />
@@ -408,9 +381,7 @@ export function ResourcePage({ resource }: { resource: string }) {
       ) : rows.length === 0 ? (
         <Empty
           title={"Aucun élément dans " + config.title.toLowerCase()}
-          action={
-            <AddButton disabled={readOnly} onClick={() => setEditor(true)} />
-          }
+          action={<AddButton disabled={readOnly} onClick={() => setEditor(true)} />}
         />
       ) : (
         <div className="stack">
@@ -448,9 +419,7 @@ export function ResourcePage({ resource }: { resource: string }) {
           key={typeof editor === "object" ? editor.id : "new"}
           open
           onClose={() => setEditor(null)}
-          title={
-            (editor === true ? "Ajouter : " : "Modifier : ") + config.title
-          }
+          title={(editor === true ? "Ajouter : " : "Modifier : ") + config.title}
           fields={fields}
           initial={editor === true ? (config.initial ?? {}) : editor}
           busy={busy}
@@ -465,9 +434,7 @@ export function ResourcePage({ resource }: { resource: string }) {
           }}
         />
       )}
-      {portal && (
-        <PortalDetails portal={portal} onClose={() => setPortal(null)} />
-      )}
+      {portal && <PortalDetails portal={portal} onClose={() => setPortal(null)} />}
     </>
   );
 }

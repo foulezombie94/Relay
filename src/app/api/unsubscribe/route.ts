@@ -14,10 +14,9 @@ export async function POST(req: NextRequest) {
       token_hash: digest(token),
     });
     databaseError(error);
-    return NextResponse.json(
-      data ? { ok: true } : { error: "Ce lien est invalide." },
-      { status: data ? 200 : 400 },
-    );
+    return NextResponse.json(data ? { ok: true } : { error: "Ce lien est invalide." }, {
+      status: data ? 200 : 400,
+    });
   } catch (e) {
     return fail(e);
   }

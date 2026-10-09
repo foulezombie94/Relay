@@ -35,12 +35,7 @@ export async function GET(
   try {
     const { workspace } = await params;
     const { client } = await context(workspace);
-    const term = z
-      .string()
-      .trim()
-      .min(2)
-      .max(200)
-      .parse(req.nextUrl.searchParams.get("q"));
+    const term = z.string().trim().min(2).max(200).parse(req.nextUrl.searchParams.get("q"));
     const scope = z
       .enum(["all", "records", "notes", "tasks", "commitments", "meetings"])
       .parse(req.nextUrl.searchParams.get("scope") || "all");
@@ -56,13 +51,11 @@ export async function GET(
               type: "websearch",
               config: "simple",
             });
-          if (source.resource === "records")
-            query = query.eq("archived", false);
+          if (source.resource === "records") query = query.eq("archived", false);
           const { data, count, error } = await query
-            .order(
-              source.resource === "meetings" ? "created_at" : "updated_at",
-              { ascending: false },
-            )
+            .order(source.resource === "meetings" ? "created_at" : "updated_at", {
+              ascending: false,
+            })
             .limit(25);
           databaseError(error);
           return {
@@ -86,11 +79,7 @@ export async function GET(
                 ).slice(0, 500),
                 private: row.private === true,
                 status: row.status,
-                date:
-                  row.due_date ||
-                  row.starts_at ||
-                  row.updated_at ||
-                  row.created_at,
+                date: row.due_date || row.starts_at || row.updated_at || row.created_at,
               };
             }),
           };
@@ -98,9 +87,7 @@ export async function GET(
     );
     const relatedIds = [
       ...new Set(
-        groups.flatMap((g) =>
-          g.results.flatMap((r) => (r.record_id ? [String(r.record_id)] : [])),
-        ),
+        groups.flatMap((g) => g.results.flatMap((r) => (r.record_id ? [String(r.record_id)] : []))),
       ),
     ];
     let related: Record<string, unknown>[] = [];

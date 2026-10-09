@@ -141,8 +141,8 @@ export function RecordDetails({
                   <>
                     {context.data.truncated && (
                       <p className={styles.limitNotice}>
-                        Aperçu limité : certaines listes sont tronquées. Les compteurs portent
-                        sur les éléments autorisés de cette fiche.
+                        Aperçu limité : certaines listes sont tronquées. Les compteurs portent sur
+                        les éléments autorisés de cette fiche.
                       </p>
                     )}
                     <ErrorMessage error={members.error || attrs.error || pipelines.error} />

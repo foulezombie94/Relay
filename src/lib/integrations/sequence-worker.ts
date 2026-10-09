@@ -12,17 +12,28 @@ import {
 } from "@/lib/domain/sequences";
 import { ApiError, databaseError } from "@/lib/api/context";
 import { PermanentJobError, type JobResult } from "@/lib/jobs/types";
-export async function processSequence(admin: SupabaseClient, enrollmentId: string): Promise<JobResult> {
+export async function processSequence(
+  admin: SupabaseClient,
+  enrollmentId: string,
+): Promise<JobResult> {
   const { data: job, error } = await admin.rpc("sequence_job", {
     operation: "claim",
     payload: { enrollment_id: enrollmentId },
   });
   databaseError(error);
   if (!job) {
-    const { data: enrollment, error: readError } = await admin.from("enrollments").select("status,next_at").eq("id",enrollmentId).maybeSingle();
+    const { data: enrollment, error: readError } = await admin
+      .from("enrollments")
+      .select("status,next_at")
+      .eq("id", enrollmentId)
+      .maybeSingle();
     databaseError(readError);
-    if (enrollment && ["active","paused"].includes(enrollment.status)) {
-      return { runAt: new Date(Math.max(Date.now()+60000,Date.parse(enrollment.next_at ?? "") || 0)).toISOString() };
+    if (enrollment && ["active", "paused"].includes(enrollment.status)) {
+      return {
+        runAt: new Date(
+          Math.max(Date.now() + 60000, Date.parse(enrollment.next_at ?? "") || 0),
+        ).toISOString(),
+      };
     }
     return { result: { skipped: true } };
   }
@@ -44,25 +55,14 @@ export async function processSequence(admin: SupabaseClient, enrollmentId: strin
     }
     const origin = new URL(process.env.APP_URL ?? "");
     if (origin.protocol !== "https:")
-      throw new Error(
-        "Un domaine HTTPS public est nécessaire pour les séquences",
-      );
-    const client = workerClient(
-      admin,
-      job.workspace_id,
-      job.user_id,
-      job.provider,
-    );
+      throw new Error("Un domaine HTTPS public est nécessaire pour les séquences");
+    const client = workerClient(admin, job.workspace_id, job.user_id, job.provider);
     const { tokens } = await connection(client, job.workspace_id, job.provider);
     let reply = false;
     if (job.provider === "gmail") {
       const q = new URLSearchParams({
         maxResults: "1",
-        q:
-          "from:(" +
-          job.email +
-          ") after:" +
-          Math.floor(Date.parse(job.since) / 1000),
+        q: "from:(" + job.email + ") after:" + Math.floor(Date.parse(job.since) / 1000),
       });
       const r = await externalJson(
         "https://gmail.googleapis.com/gmail/v1/users/me/messages?" + q,
@@ -99,14 +99,13 @@ export async function processSequence(admin: SupabaseClient, enrollmentId: strin
     const link = new URL("/unsubscribe", origin);
     link.searchParams.set("id", job.id);
     link.searchParams.set("token", token);
-    const body =
-      message.body + "\n\nNe plus recevoir ces suivis : " + link.toString();
+    const body = message.body + "\n\nNe plus recevoir ces suivis : " + link.toString();
     const prepared = await admin.rpc("sequence_job", {
       operation: "prepare",
       payload: lease,
     });
     databaseError(prepared.error);
-    if (!prepared.data?.ok) return { runAt: new Date(Date.now()+60000).toISOString() };
+    if (!prepared.data?.ok) return { runAt: new Date(Date.now() + 60000).toISOString() };
     attempted = true;
     const providerId = await deliver(
       job.provider,
@@ -120,9 +119,7 @@ export async function processSequence(admin: SupabaseClient, enrollmentId: strin
       payload: {
         ...lease,
         provider_id: providerId,
-        next_at: next
-          ? nextSequenceDate(next.delay_days, job.timezone).toISOString()
-          : null,
+        next_at: next ? nextSequenceDate(next.delay_days, job.timezone).toISOString() : null,
       },
     });
     databaseError(complete.error);
@@ -133,7 +130,8 @@ export async function processSequence(admin: SupabaseClient, enrollmentId: strin
       : error instanceof ApiError
         ? error.message
         : "Le suivi a été arrêté avant l’envoi. Vérifiez le contenu, le fuseau horaire et le compte connecté.";
-    const retry = !attempted && (!(error instanceof ApiError) || error.status >= 500 || error.status===409);
+    const retry =
+      !attempted && (!(error instanceof ApiError) || error.status >= 500 || error.status === 409);
     const failed = await admin.rpc("sequence_job", {
       operation: retry ? "retry" : "fail",
       payload: { ...lease, error: message },

@@ -27,18 +27,8 @@ export function duplicateGroups(records: CrmRecord[]): DuplicateGroup[] {
   const groups = new Map<string, DuplicateGroup>();
   for (const r of records) {
     const signals: [string, string, string, DuplicateGroup["strength"]][] = [
-      [
-        "email",
-        (r.email || "").trim().toLowerCase(),
-        "Même adresse email",
-        "fort",
-      ],
-      [
-        "domain",
-        domain(r.domain),
-        "Même domaine (peut être partagé)",
-        "à examiner",
-      ],
+      ["email", (r.email || "").trim().toLowerCase(), "Même adresse email", "fort"],
+      ["domain", domain(r.domain), "Même domaine (peut être partagé)", "à examiner"],
       ["name", name(r.display_name), "Même nom normalisé", "à examiner"],
     ];
     for (const [kind, value, reason, strength] of signals) {
@@ -53,8 +43,7 @@ export function duplicateGroups(records: CrmRecord[]): DuplicateGroup[] {
     .filter((g) => g.records.length > 1)
     .sort(
       (a, b) =>
-        Number(b.strength === "fort") - Number(a.strength === "fort") ||
-        a.key.localeCompare(b.key),
+        Number(b.strength === "fort") - Number(a.strength === "fort") || a.key.localeCompare(b.key),
     );
 }
 export const mergeFields = [
@@ -77,8 +66,7 @@ export function mergeValues(
   for (const [key, choice] of Object.entries(picks)) {
     if (key.startsWith("attr:"))
       (values.attributes as Record<string, unknown>)[key.slice(5)] =
-        (choice === "source" ? source : target).attributes[key.slice(5)] ??
-        null;
+        (choice === "source" ? source : target).attributes[key.slice(5)] ?? null;
     else values[key] = (choice === "source" ? source : target)[key];
   }
   return values;

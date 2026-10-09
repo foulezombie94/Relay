@@ -16,14 +16,9 @@ export type DuplicatePair = {
 export function pairKey(a: string, b: string) {
   return [a.toLowerCase(), b.toLowerCase()].sort().join(":");
 }
-export function decisionBlocks(
-  decision: DuplicateDecision | undefined,
-  now: number,
-) {
+export function decisionBlocks(decision: DuplicateDecision | undefined, now: number) {
   return (
-    !!decision &&
-    (decision.status === "separate" ||
-      Date.parse(decision.defer_until ?? "") > now)
+    !!decision && (decision.status === "separate" || Date.parse(decision.defer_until ?? "") > now)
   );
 }
 export function findDuplicatePairs(
@@ -32,9 +27,7 @@ export function findDuplicatePairs(
   now = Date.now(),
   limit = 250,
 ) {
-  const blocked = new Map(
-    decisions.map((d) => [pairKey(d.record_a, d.record_b), d]),
-  );
+  const blocked = new Map(decisions.map((d) => [pairKey(d.record_a, d.record_b), d]));
   const seen = new Set<string>();
   const pairs: DuplicatePair[] = [];
   let visits = 0;
@@ -55,9 +48,7 @@ export function findDuplicatePairs(
           a,
           b,
           reasons: matches.map((g) => g.reason),
-          strength: matches.some((g) => g.strength === "fort")
-            ? "fort"
-            : "à examiner",
+          strength: matches.some((g) => g.strength === "fort") ? "fort" : "à examiner",
         });
       }
     }

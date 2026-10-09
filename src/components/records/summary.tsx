@@ -49,9 +49,7 @@ export function RecordSummary({
                     {record.domain}
                   </span>
                 )}
-                {!record.email && !record.domain && (
-                  <span>Coordonnées à compléter</span>
-                )}
+                {!record.email && !record.domain && <span>Coordonnées à compléter</span>}
               </>
             )}
           </div>
@@ -90,8 +88,7 @@ export function RecordSummary({
                   data-current={record.stage === stage}
                   data-passed={
                     record.stage === "Gagné" ||
-                    (index <
-                      stages.indexOf(record.stage as (typeof stages)[number]) &&
+                    (index < stages.indexOf(record.stage as (typeof stages)[number]) &&
                       record.stage !== "Perdu")
                   }
                   aria-current={record.stage === stage ? "step" : undefined}

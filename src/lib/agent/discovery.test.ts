@@ -20,9 +20,9 @@ describe("progressive tool catalogue", () => {
     const t = progressiveTools();
     t.discover({ names: ["draft_email", "get_email_thread"] });
     const result = t.discover({ names: ["send_email", "draft_email", "search_records"] });
-    expect(result.available_tools).toEqual(expect.arrayContaining([
-      "draft_email", "get_email_thread", "send_email", "search_records",
-    ]));
+    expect(result.available_tools).toEqual(
+      expect.arrayContaining(["draft_email", "get_email_thread", "send_email", "search_records"]),
+    );
     expect(result.changed).toBe(true);
     for (const name of ["draft_email", "get_email_thread", "send_email"])
       expect(t.definitions().filter((d) => d.function.name === name)).toHaveLength(1);

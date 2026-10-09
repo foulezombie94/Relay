@@ -21,11 +21,8 @@ export function RecordEditor({
     members = useRows("memberships", { size: 100 });
   const { save, busy } = useSave();
   if (attrs.isPending || members.isPending) return <Loading />;
-  if (attrs.error || members.error)
-    return <ErrorMessage error={attrs.error || members.error} />;
-  const custom = (attrs.data?.data ?? []).filter(
-    (a) => !a.archived && a.type !== "formula",
-  );
+  if (attrs.error || members.error) return <ErrorMessage error={attrs.error || members.error} />;
+  const custom = (attrs.data?.data ?? []).filter((a) => !a.archived && a.type !== "formula");
   const fields: Field[] = [
     { key: "display_name", label: "Nom", required: true },
     { key: "email", label: "Email", type: "email" },
@@ -84,9 +81,7 @@ export function RecordEditor({
       busy={busy || workspace.role === "viewer"}
       initial={{
         ...record,
-        ...Object.fromEntries(
-          custom.map((a) => ["attr_" + a.key, record.attributes[a.key]]),
-        ),
+        ...Object.fromEntries(custom.map((a) => ["attr_" + a.key, record.attributes[a.key]])),
       }}
       onSave={async (values) => {
         const attributes = { ...record.attributes };

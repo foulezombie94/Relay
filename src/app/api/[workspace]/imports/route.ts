@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
-import {
-  context,
-  checkOrigin,
-  ApiError,
-  databaseError,
-  fail,
-} from "@/lib/api/context";
+import { context, checkOrigin, ApiError, databaseError, fail } from "@/lib/api/context";
 import { inspectImportFile } from "@/lib/api/import-file";
 import { prepareImport } from "@/lib/domain/imports";
 import { crmSources, crmMapping } from "@/lib/domain/crm-migration";
@@ -61,15 +55,11 @@ export async function POST(
       databaseError(pe);
       if (!p) throw new ApiError("Pipeline inaccessible.");
     }
-    const numberFormat = z
-      .enum(["comma", "dot"])
-      .parse(form.get("number_format") || "comma");
+    const numberFormat = z.enum(["comma", "dot"]).parse(form.get("number_format") || "comma");
     const duplicatePolicy = z
       .enum(["skip", "create"])
       .parse(form.get("duplicate_policy") || "skip");
-    const mode = z
-      .enum(["inspect", "preview", "commit"])
-      .parse(form.get("mode") || "preview");
+    const mode = z.enum(["inspect", "preview", "commit"]).parse(form.get("mode") || "preview");
     const source = z
       .string()
       .refine((v) => crmSources.some((s) => s.id === v))
@@ -100,8 +90,7 @@ export async function POST(
       throw new ApiError(e instanceof Error ? e.message : "Fichier illisible.");
     }
     if (!bundle.table) {
-      if (mode !== "inspect")
-        throw new ApiError("Choisissez une table avant de continuer.");
+      if (mode !== "inspect") throw new ApiError("Choisissez une table avant de continuer.");
       return NextResponse.json({
         selections: bundle.selections,
         ignored: bundle.ignored,
@@ -128,9 +117,7 @@ export async function POST(
                 (r) =>
                   r[
                     table.headers.indexOf(
-                      Object.keys(mapping).find(
-                        (h) => mapping[h] === "stage",
-                      ) || "",
+                      Object.keys(mapping).find((h) => mapping[h] === "stage") || "",
                     )
                   ] || "",
               )
@@ -144,23 +131,14 @@ export async function POST(
         columnValues: Object.fromEntries(
           table.headers.map((h, i) => [
             h,
-            [
-              ...new Set(table.rows.map((r) => r[i]?.trim()).filter(Boolean)),
-            ].slice(0, 100),
+            [...new Set(table.rows.map((r) => r[i]?.trim()).filter(Boolean))].slice(0, 100),
           ]),
         ),
       });
     const stageMap = z
       .record(
         z.string().max(200),
-        z.enum([
-          "Nouveau",
-          "Qualification",
-          "Proposition",
-          "Négociation",
-          "Gagné",
-          "Perdu",
-        ]),
+        z.enum(["Nouveau", "Qualification", "Proposition", "Négociation", "Gagné", "Perdu"]),
       )
       .parse(JSON.parse(String(form.get("stage_map") || "{}")));
     let prepared;
@@ -179,9 +157,7 @@ export async function POST(
         },
       );
     } catch (e) {
-      throw new ApiError(
-        e instanceof Error ? e.message : "Correspondance invalide.",
-      );
+      throw new ApiError(e instanceof Error ? e.message : "Correspondance invalide.");
     }
     if (mode === "preview")
       return NextResponse.json({
@@ -192,16 +168,11 @@ export async function POST(
         errors: prepared.errors,
         preview: prepared.valid.slice(0, 20),
       });
-    if (!prepared.valid.length)
-      throw new ApiError("Aucune ligne valide à importer.");
+    if (!prepared.valid.length) throw new ApiError("Aucune ligne valide à importer.");
     if (prepared.errors.length && form.get("accept_errors") !== "true")
-      throw new ApiError(
-        "Confirmez explicitement le rejet des lignes invalides avant import.",
-      );
+      throw new ApiError("Confirmez explicitement le rejet des lignes invalides avant import.");
     const canonical = JSON.stringify({
-      mapping: Object.fromEntries(
-        Object.entries(mapping).sort(([a], [b]) => a.localeCompare(b)),
-      ),
+      mapping: Object.fromEntries(Object.entries(mapping).sort(([a], [b]) => a.localeCompare(b))),
       pipeline,
       numberFormat,
       duplicatePolicy,
@@ -209,9 +180,7 @@ export async function POST(
       migrationKey,
       selection: bundle.selection,
       headerRow,
-      stageMap: Object.fromEntries(
-        Object.entries(stageMap).sort(([a], [b]) => a.localeCompare(b)),
-      ),
+      stageMap: Object.fromEntries(Object.entries(stageMap).sort(([a], [b]) => a.localeCompare(b))),
     });
     const digest = createHash("sha256")
       .update(Buffer.from(await file.arrayBuffer()))

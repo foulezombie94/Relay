@@ -35,9 +35,7 @@ export function ResourceCard({
           <small>
             {date(row.due_date || row.starts_at || row.created_at)}
             {row.record_id
-              ? " · " +
-                ((row.record as CrmRecord | null)?.display_name ??
-                  "Fiche associée")
+              ? " · " + ((row.record as CrmRecord | null)?.display_name ?? "Fiche associée")
               : ""}
           </small>
         </div>
@@ -67,13 +65,9 @@ export function ResourceCard({
         </div>
       </div>
       {(resource === "notes" || expanded) && (
-        <p>
-          {str(row.content || row.description || row.transcript || row.scope)}
-        </p>
+        <p>{str(row.content || row.description || row.transcript || row.scope)}</p>
       )}
-      {row.source_quote ? (
-        <blockquote className="quote">{str(row.source_quote)}</blockquote>
-      ) : null}
+      {row.source_quote ? <blockquote className="quote">{str(row.source_quote)}</blockquote> : null}
       {resource === "conflicts" && (
         <div className="split">
           {["source_a", "source_b"].map((key) => {
@@ -105,14 +99,13 @@ export function ResourceCard({
           </p>
           <h4>Engagements transmis</h4>
           <ul>
-            {(Array.isArray(row.commitments_snapshot)
-              ? row.commitments_snapshot
-              : []
-            ).map((commitment: Record<string, unknown>, index: number) => (
-              <li key={index}>
-                {str(commitment.title)} · <Badge value={commitment.status} />
-              </li>
-            ))}
+            {(Array.isArray(row.commitments_snapshot) ? row.commitments_snapshot : []).map(
+              (commitment: Record<string, unknown>, index: number) => (
+                <li key={index}>
+                  {str(commitment.title)} · <Badge value={commitment.status} />
+                </li>
+              ),
+            )}
           </ul>
           <h4>Jalons</h4>
           <ul>
@@ -127,19 +120,14 @@ export function ResourceCard({
           </ul>
         </>
       )}
-      {resource === "tasks" &&
-        !["done", "cancelled"].includes(str(row.status)) && (
-          <div className="card-actions">
-            <button
-              className="button small"
-              disabled={readOnly || busy}
-              onClick={onComplete}
-            >
-              <Check size={13} />
-              Terminer
-            </button>
-          </div>
-        )}
+      {resource === "tasks" && !["done", "cancelled"].includes(str(row.status)) && (
+        <div className="card-actions">
+          <button className="button small" disabled={readOnly || busy} onClick={onComplete}>
+            <Check size={13} />
+            Terminer
+          </button>
+        </div>
+      )}
       {resource === "lists" && (
         <div className="card-actions">
           <a className="button small" href={"/app/list-" + row.id}>

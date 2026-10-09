@@ -1,4 +1,5 @@
 > État de l’audit au moment de sa rédaction. Les corrections ultérieures de pagination, formulaires, rappels, synchronisation et séquences sont décrites dans [daily-crm-operations.md](../features/crm/daily-crm-operations.md). Les limites qui restent y sont indiquées.
+
 # Relay : audit de complétude fonctionnelle
 
 Date : 6 octobre 2026. Révision examinée : 7fbeee7.
@@ -13,13 +14,13 @@ Cette analyse compare le code disponible aux catalogues officiels des éditeurs.
 
 Aucun produit ne correspond exactement à Relay ; le rapprochement repose sur contacts/entreprises/ventes, personnalisation, contexte relationnel et cible B2B.
 
-| Produit | Proximité avec Relay | Écart important à travailler | Source officielle |
-| --- | --- | --- | --- |
-| Attio | CRM relationnel configurable, objets et données personnalisés, contexte commercial | Synchronisation, enrichissement, automatisations, rapports configurables, permissions avancées | [Catalogue par offre](https://attio.com/pricing) |
-| folk | Relations, contacts, entreprises et pipelines pour petites équipes | Capture navigateur, enrichissement, messages et séquences | [Produit](https://www.folk.app/) |
-| Copper | Relations et ventes des entreprises de services, continuité vers la livraison | Intégration Google Workspace, rappels et actions automatiques, gestion de projets plus intégrée | [Produit](https://www.copper.com/) |
-| Pipedrive | Opportunités, pipeline, activités et suivi commercial | Automatisation, capture de prospects, intégrations et gestion de projets | [Produits](https://www.pipedrive.com/en/products) |
-| Close | Contacts, ventes et communications pour équipes commerciales | Téléphonie, SMS et automatisation des communications, absents de Relay | [Produit](https://close.com/) |
+| Produit   | Proximité avec Relay                                                               | Écart important à travailler                                                                    | Source officielle                                 |
+| --------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Attio     | CRM relationnel configurable, objets et données personnalisés, contexte commercial | Synchronisation, enrichissement, automatisations, rapports configurables, permissions avancées  | [Catalogue par offre](https://attio.com/pricing)  |
+| folk      | Relations, contacts, entreprises et pipelines pour petites équipes                 | Capture navigateur, enrichissement, messages et séquences                                       | [Produit](https://www.folk.app/)                  |
+| Copper    | Relations et ventes des entreprises de services, continuité vers la livraison      | Intégration Google Workspace, rappels et actions automatiques, gestion de projets plus intégrée | [Produit](https://www.copper.com/)                |
+| Pipedrive | Opportunités, pipeline, activités et suivi commercial                              | Automatisation, capture de prospects, intégrations et gestion de projets                        | [Produits](https://www.pipedrive.com/en/products) |
+| Close     | Contacts, ventes et communications pour équipes commerciales                       | Téléphonie, SMS et automatisation des communications, absents de Relay                          | [Produit](https://close.com/)                     |
 
 Les fonctionnalités des éditeurs dépendent des offres, options et intégrations. Leur présence au catalogue ne démontre pas qu’elles sont toutes nécessaires à la cible de Relay. Salesforce et HubSpot ne sont pas les références principales retenues ici : leur périmètre est plus large que le produit actuel.
 
@@ -42,18 +43,18 @@ Les fonctionnalités des éditeurs dépendent des offres, options et intégratio
 
 ## Parcours incomplets et limites concrètes
 
-| Constat | Conséquence utilisateur | Preuve dans le dépôt |
-| --- | --- | --- |
-| Import mail/calendrier manuel, 25 éléments ; calendriers en lecture | L’historique client ne s’alimente pas complètement en arrière-plan | `src/components/pages/communications.tsx`, adaptateurs d’intégration |
-| Séquences sauvegardées sans moteur d’envoi programmé | Préparer une séquence ne relance pas les prospects | `src/components/pages/resource-page.tsx`, documentation et absence de worker de séquences livré |
-| Workflows après simulation et confirmation, limités à 100 fiches | Ce ne sont pas des automatismes déclenchés en continu | `src/components/pages/workflows.tsx`, `src/app/api/[workspace]/simulate/route.ts` |
-| Modules génériques chargés avec `size: 100`, sans navigation de pages dans ce composant | Au-delà de 100 éléments, une recherche locale ne voit pas les éléments non chargés ; certains choix de fiches sont incomplets | `src/components/pages/resource-page.tsx`, `src/components/pages/lists.tsx` |
-| Sources de contradictions, jalons, séquences et définitions de workflows saisis en JSON | Un utilisateur métier doit encore manipuler une structure de données | `resource-page.tsx`, `workflows.tsx`, `settings.tsx` |
-| Filtres simples et six états de vente stables | Impossible de composer tous les segments complexes ou un nombre libre d’étapes | `src/lib/domain/views.ts`, `src/lib/domain/pipelines.ts` |
-| Rôles d’espace et confidentialité ciblée | Pas de permissions configurables par équipe, objet ou champ, ni de SSO/SCIM livré | Couverture et implémentation des rôles existants |
-| Réunions ajoutées manuellement, IA sur un contexte récent limité | Pas de capture automatique d’appel ni d’analyse exhaustive de l’historique | `resource-page.tsx`, `src/app/api/[workspace]/assistant/route.ts` |
-| Invitation enregistrée, lien partagé manuellement | L’arrivée d’un utilisateur nécessite un échange hors application | `src/components/pages/settings.tsx` |
-| Rapports prédéfinis et historique disponible, sans constructeur de dashboards | Pas de tableaux de bord libres, objectifs et funnels avancés | `src/components/pages/reports.tsx`, `sales-history.ts` |
+| Constat                                                                                 | Conséquence utilisateur                                                                                                       | Preuve dans le dépôt                                                                            |
+| --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Import mail/calendrier manuel, 25 éléments ; calendriers en lecture                     | L’historique client ne s’alimente pas complètement en arrière-plan                                                            | `src/components/pages/communications.tsx`, adaptateurs d’intégration                            |
+| Séquences sauvegardées sans moteur d’envoi programmé                                    | Préparer une séquence ne relance pas les prospects                                                                            | `src/components/pages/resource-page.tsx`, documentation et absence de worker de séquences livré |
+| Workflows après simulation et confirmation, limités à 100 fiches                        | Ce ne sont pas des automatismes déclenchés en continu                                                                         | `src/components/pages/workflows.tsx`, `src/app/api/[workspace]/simulate/route.ts`               |
+| Modules génériques chargés avec `size: 100`, sans navigation de pages dans ce composant | Au-delà de 100 éléments, une recherche locale ne voit pas les éléments non chargés ; certains choix de fiches sont incomplets | `src/components/pages/resource-page.tsx`, `src/components/pages/lists.tsx`                      |
+| Sources de contradictions, jalons, séquences et définitions de workflows saisis en JSON | Un utilisateur métier doit encore manipuler une structure de données                                                          | `resource-page.tsx`, `workflows.tsx`, `settings.tsx`                                            |
+| Filtres simples et six états de vente stables                                           | Impossible de composer tous les segments complexes ou un nombre libre d’étapes                                                | `src/lib/domain/views.ts`, `src/lib/domain/pipelines.ts`                                        |
+| Rôles d’espace et confidentialité ciblée                                                | Pas de permissions configurables par équipe, objet ou champ, ni de SSO/SCIM livré                                             | Couverture et implémentation des rôles existants                                                |
+| Réunions ajoutées manuellement, IA sur un contexte récent limité                        | Pas de capture automatique d’appel ni d’analyse exhaustive de l’historique                                                    | `resource-page.tsx`, `src/app/api/[workspace]/assistant/route.ts`                               |
+| Invitation enregistrée, lien partagé manuellement                                       | L’arrivée d’un utilisateur nécessite un échange hors application                                                              | `src/components/pages/settings.tsx`                                                             |
+| Rapports prédéfinis et historique disponible, sans constructeur de dashboards           | Pas de tableaux de bord libres, objectifs et funnels avancés                                                                  | `src/components/pages/reports.tsx`, `sales-history.ts`                                          |
 
 La pagination et les sélecteurs incomplets sont des problèmes de parcours à traiter, pas seulement des fonctionnalités concurrentielles facultatives. Leur présence est constatée dans le code ; leur impact n’a pas été reproduit dans un navigateur avec un jeu de plus de 100 fiches pendant cet audit.
 

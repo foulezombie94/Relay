@@ -48,10 +48,8 @@ export function rankPriorities(
       const nextTask =
         openTasks
           .filter((t) => t.due_date && Date.parse(String(t.due_date)) >= stamp)
-          .sort(
-            (a, b) =>
-              Date.parse(String(a.due_date)) - Date.parse(String(b.due_date)),
-          )[0] ?? null;
+          .sort((a, b) => Date.parse(String(a.due_date)) - Date.parse(String(b.due_date)))[0] ??
+        null;
       const lateTasks = openTasks.filter(
         (t) => t.due_date && Date.parse(String(t.due_date)) < stamp,
       );
@@ -92,9 +90,7 @@ export function rankPriorities(
         ...(activityGroups.get(record.id) ?? [])
           .filter((a) => ["call", "email", "meeting"].includes(String(a.type)))
           .map((a) => a.created_at),
-        ...(meetingGroups.get(record.id) ?? []).map((m) =>
-          String(m.starts_at || m.created_at),
-        ),
+        ...(meetingGroups.get(record.id) ?? []).map((m) => String(m.starts_at || m.created_at)),
       ]
         .filter((t) => Date.parse(t) <= stamp)
         .sort((a, b) => Date.parse(b) - Date.parse(a));
@@ -108,9 +104,7 @@ export function rankPriorities(
             resource: "tasks",
             ids: [],
           });
-        const idle = Math.floor(
-          (stamp - Date.parse(last || record.created_at)) / 86400000,
-        );
+        const idle = Math.floor((stamp - Date.parse(last || record.created_at)) / 86400000);
         const plannedSoon =
           !!nextTask &&
           Date.parse(String(nextTask.due_date)) > stamp &&
@@ -135,7 +129,5 @@ export function rankPriorities(
         last_interaction: last,
       };
     })
-    .sort(
-      (a, b) => b.score - a.score || a.record.id.localeCompare(b.record.id),
-    );
+    .sort((a, b) => b.score - a.score || a.record.id.localeCompare(b.record.id));
 }

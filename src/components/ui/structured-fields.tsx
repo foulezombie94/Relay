@@ -5,13 +5,7 @@ import { useRows, useWorkspace } from "../providers/data-provider";
 import { stages } from "@/lib/domain/types";
 import type { WorkflowDefinition } from "@/lib/domain/types";
 type Entry = Record<string, unknown>;
-export function SourceFields({
-  name,
-  initial,
-}: {
-  name: string;
-  initial?: unknown;
-}) {
+export function SourceFields({ name, initial }: { name: string; initial?: unknown }) {
   const [value, setValue] = useState<Entry>(
     initial && typeof initial === "object"
       ? (initial as Entry)
@@ -60,27 +54,19 @@ export function RepeatFields({
       : [],
   );
   const update = (index: number, key: string, value: unknown) =>
-    setRows(
-      rows.map((row, i) => (i === index ? { ...row, [key]: value } : row)),
-    );
+    setRows(rows.map((row, i) => (i === index ? { ...row, [key]: value } : row)));
   return (
     <div className="stack">
       <input
         type="hidden"
         name={name}
-        value={JSON.stringify(
-          kind === "options" ? rows.map((row) => row.value) : rows,
-        )}
+        value={JSON.stringify(kind === "options" ? rows.map((row) => row.value) : rows)}
       />
       {rows.map((row, index) => (
         <div className="detail-card" key={index}>
           <div className="card-head">
             <strong>
-              {kind === "steps"
-                ? "Message"
-                : kind === "milestones"
-                  ? "Jalon"
-                  : "Option"}{" "}
+              {kind === "steps" ? "Message" : kind === "milestones" ? "Jalon" : "Option"}{" "}
               {index + 1}
             </strong>
             <div>
@@ -91,10 +77,7 @@ export function RepeatFields({
                 aria-label="Monter"
                 onClick={() => {
                   const next = [...rows];
-                  [next[index - 1], next[index]] = [
-                    next[index],
-                    next[index - 1],
-                  ];
+                  [next[index - 1], next[index]] = [next[index], next[index - 1]];
                   setRows(next);
                 }}
               >
@@ -172,9 +155,7 @@ export function RepeatFields({
                   max={365}
                   step={1}
                   value={Number(row.delay_days ?? 1)}
-                  onChange={(e) =>
-                    update(index, "delay_days", Number(e.target.value))
-                  }
+                  onChange={(e) => update(index, "delay_days", Number(e.target.value))}
                 />
               </label>
             </>
@@ -197,28 +178,18 @@ export function RepeatFields({
         }
       >
         Ajouter{" "}
-        {kind === "options"
-          ? "une option"
-          : kind === "milestones"
-            ? "un jalon"
-            : "un message"}
+        {kind === "options" ? "une option" : kind === "milestones" ? "un jalon" : "un message"}
       </button>
       {kind === "steps" && (
         <p className="caption">
-          Variables : {"{{display_name}}"}, {"{{email}}"}, {"{{domain}}"}. Le
-          premier délai part de l’inscription.
+          Variables : {"{{display_name}}"}, {"{{email}}"}, {"{{domain}}"}. Le premier délai part de
+          l’inscription.
         </p>
       )}
     </div>
   );
 }
-export function WorkflowFields({
-  name,
-  initial,
-}: {
-  name: string;
-  initial?: unknown;
-}) {
+export function WorkflowFields({ name, initial }: { name: string; initial?: unknown }) {
   const { objects } = useWorkspace();
   const members = useRows("memberships", { size: 100 });
   const [value, setValue] = useState<WorkflowDefinition>(
@@ -231,16 +202,12 @@ export function WorkflowFields({
   const changeCondition = (index: number, patch: Entry) =>
     setValue({
       ...value,
-      conditions: value.conditions.map((row, i) =>
-        i === index ? { ...row, ...patch } : row,
-      ),
+      conditions: value.conditions.map((row, i) => (i === index ? { ...row, ...patch } : row)),
     });
   const changeAction = (index: number, patch: Entry) =>
     setValue({
       ...value,
-      actions: value.actions.map((row, i) =>
-        i === index ? { ...row, ...patch } : row,
-      ),
+      actions: value.actions.map((row, i) => (i === index ? { ...row, ...patch } : row)),
     });
   return (
     <div className="stack">
@@ -265,9 +232,7 @@ export function WorkflowFields({
             Information
             <select
               value={condition.field}
-              onChange={(e) =>
-                changeCondition(index, { field: e.target.value })
-              }
+              onChange={(e) => changeCondition(index, { field: e.target.value })}
             >
               {[
                 ["stage", "Étape"],
@@ -287,9 +252,7 @@ export function WorkflowFields({
             Comparaison
             <select
               value={condition.operator}
-              onChange={(e) =>
-                changeCondition(index, { operator: e.target.value })
-              }
+              onChange={(e) => changeCondition(index, { operator: e.target.value })}
             >
               {[
                 ["equals", "Est égal à"],
@@ -309,9 +272,7 @@ export function WorkflowFields({
               Valeur
               <input
                 value={String(condition.value ?? "")}
-                onChange={(e) =>
-                  changeCondition(index, { value: e.target.value })
-                }
+                onChange={(e) => changeCondition(index, { value: e.target.value })}
               />
             </label>
           )}
@@ -379,9 +340,7 @@ export function WorkflowFields({
                 <input
                   required
                   value={action.title ?? ""}
-                  onChange={(e) =>
-                    changeAction(index, { title: e.target.value })
-                  }
+                  onChange={(e) => changeAction(index, { title: e.target.value })}
                 />
               </label>
               <label>
@@ -392,9 +351,7 @@ export function WorkflowFields({
                   max={365}
                   step={1}
                   value={action.days ?? 1}
-                  onChange={(e) =>
-                    changeAction(index, { days: Number(e.target.value) })
-                  }
+                  onChange={(e) => changeAction(index, { days: Number(e.target.value) })}
                 />
               </label>
             </>
@@ -421,9 +378,7 @@ export function WorkflowFields({
                   Nouvelle étape
                   <select
                     value={action.value ?? ""}
-                    onChange={(e) =>
-                      changeAction(index, { value: e.target.value })
-                    }
+                    onChange={(e) => changeAction(index, { value: e.target.value })}
                   >
                     <option value="">Choisir une étape</option>
                     {stages.map((stage) => (
@@ -438,9 +393,7 @@ export function WorkflowFields({
                   Responsable
                   <select
                     value={action.value ?? ""}
-                    onChange={(e) =>
-                      changeAction(index, { value: e.target.value })
-                    }
+                    onChange={(e) => changeAction(index, { value: e.target.value })}
                   >
                     <option value="">Sans responsable</option>
                     {members.data?.data.map((member) => (
@@ -461,10 +414,7 @@ export function WorkflowFields({
               )}
             </>
           ) : (
-            <p>
-              Remplacez cette action par une tâche ou un changement
-              d’information.
-            </p>
+            <p>Remplacez cette action par une tâche ou un changement d’information.</p>
           )}
           <button
             type="button"
@@ -488,10 +438,7 @@ export function WorkflowFields({
         onClick={() =>
           setValue({
             ...value,
-            actions: [
-              ...value.actions,
-              { type: "task", title: "Contacter le client", days: 1 },
-            ],
+            actions: [...value.actions, { type: "task", title: "Contacter le client", days: 1 }],
           })
         }
       >

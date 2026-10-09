@@ -43,7 +43,9 @@ export function observeSession(
   switchAccount: () => void,
 ) {
   let leaving = false;
-  const { data: { subscription } } = auth.onAuthStateChange((event, session) => {
+  const {
+    data: { subscription },
+  } = auth.onAuthStateChange((event, session) => {
     // Do not call auth methods from this callback: it executes under the SDK's
     // session lock. INITIAL_SESSION=null can also mean a temporary network error.
     if (leaving) return;

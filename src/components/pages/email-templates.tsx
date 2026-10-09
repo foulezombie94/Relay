@@ -1,15 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRows, useSave, useWorkspace } from "../providers/data-provider";
-import {
-  PageHeader,
-  AddButton,
-  Editor,
-  Loading,
-  Empty,
-  ErrorMessage,
-  str,
-} from "../ui";
+import { PageHeader, AddButton, Editor, Loading, Empty, ErrorMessage, str } from "../ui";
 import type { Row } from "@/lib/domain/types";
 export function EmailTemplatesPage() {
   const { workspace } = useWorkspace();
@@ -24,17 +16,12 @@ export function EmailTemplatesPage() {
         title="Modèles d’emails"
         description="Préparez des messages partagés, puis adaptez-les avant chaque envoi."
         action={
-          <AddButton
-            label="Nouveau modèle"
-            disabled={readonly}
-            onClick={() => setEdit(true)}
-          />
+          <AddButton label="Nouveau modèle" disabled={readonly} onClick={() => setEdit(true)} />
         }
       />
       <p className="footer-note">
-        Variables disponibles : {"{{name}}"}, {"{{email}}"}, {"{{domain}}"} et{" "}
-        {"{{workspace}}"}. Aucun email ne part lors de la création ou de la
-        modification du modèle.
+        Variables disponibles : {"{{name}}"}, {"{{email}}"}, {"{{domain}}"} et {"{{workspace}}"}.
+        Aucun email ne part lors de la création ou de la modification du modèle.
       </p>
       <ErrorMessage error={q.error || (error ? new Error(error) : null)} />
       {q.isPending ? (
@@ -46,11 +33,7 @@ export function EmailTemplatesPage() {
               <div className="card-head">
                 <h3>{str(t.name)}</h3>
                 <div className="row-actions">
-                  <button
-                    className="button small"
-                    disabled={readonly}
-                    onClick={() => setEdit(t)}
-                  >
+                  <button className="button small" disabled={readonly} onClick={() => setEdit(t)}>
                     Modifier
                   </button>
                   <button
@@ -61,11 +44,7 @@ export function EmailTemplatesPage() {
                         try {
                           await remove("email_templates", t.id);
                         } catch (e) {
-                          setError(
-                            e instanceof Error
-                              ? e.message
-                              : "Suppression impossible.",
-                          );
+                          setError(e instanceof Error ? e.message : "Suppression impossible.");
                         }
                     }}
                   >
@@ -75,10 +54,7 @@ export function EmailTemplatesPage() {
               </div>
               <strong>{str(t.subject)}</strong>
               <p className="preserve-lines">{str(t.body)}</p>
-              <a
-                className="button small"
-                href={"/app/communications?template=" + t.id}
-              >
+              <a className="button small" href={"/app/communications?template=" + t.id}>
                 Utiliser ce modèle
               </a>
             </article>
@@ -104,9 +80,7 @@ export function EmailTemplatesPage() {
           ]}
           initial={edit === true ? {} : edit}
           busy={busy}
-          onSave={(values) =>
-            save("email_templates", values, edit === true ? undefined : edit)
-          }
+          onSave={(values) => save("email_templates", values, edit === true ? undefined : edit)}
         />
       )}
     </>
