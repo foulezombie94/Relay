@@ -2,17 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowUp,
-  Square,
-  AtSign,
-  Slash,
-  Search,
-  Check,
-  X,
-  Layers3,
-  ChevronDown,
-} from "lucide-react";
+import { ArrowUp, Square, Slash, Search, Check, X, Layers3 } from "lucide-react";
 import { assistantPrompts } from "@/lib/domain/assistant";
 import type { CrmRecord } from "@/lib/domain/types";
 import { request, useWorkspace } from "../data-provider";
@@ -51,6 +41,7 @@ export function AssistantComposer({
     [search, setSearch] = useState(""),
     [query, setQuery] = useState("");
   const [prompts, setPrompts] = useState(false);
+  const [options, setOptions] = useState(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     const id = setTimeout(() => setQuery(search), 250);
@@ -137,26 +128,25 @@ export function AssistantComposer({
             }
           }}
           placeholder={
-            context
-              ? `Posez une question sur ${context.label}…`
-              : "Posez une question, préparez votre prochain rendez-vous…"
+            context ? `Posez une question sur ${context.label}…` : "Posez votre question…"
           }
           rows={2}
         />
         <div className={styles.composerToolbar}>
           <Popover.Root open={open} onOpenChange={setOpen}>
-            <Popover.Trigger asChild>
-              <button type="button" className={styles.contextButton} disabled={busy}>
-                <AtSign size={15} />
-                <span>{context ? "Changer de fiche" : "Ajouter une fiche"}</span>
-              </button>
-            </Popover.Trigger>
+            <Popover.Anchor asChild>
+              <span className={styles.contextAnchor} aria-hidden="true" />
+            </Popover.Anchor>
             <Popover.Portal>
               <Popover.Content
                 className={styles.contextMenu}
                 align="start"
                 side={placement === "top" ? "bottom" : "top"}
                 sideOffset={12}
+                onCloseAutoFocus={(e) => {
+                  e.preventDefault();
+                  textarea.current?.focus();
+                }}
               >
                 <div className={styles.contextSearch}>
                   <Search size={14} />
@@ -212,9 +202,9 @@ export function AssistantComposer({
             title="Raccourcis /"
             onClick={() => setPrompts(!prompts)}
           >
-            <Slash size={15} />
+            <Slash size={10} className={styles.slashKey} />
           </button>
-          <Popover.Root>
+          <Popover.Root open={options} onOpenChange={setOptions}>
             <Popover.Trigger asChild>
               <button
                 type="button"
@@ -224,7 +214,6 @@ export function AssistantComposer({
                 title={`Modèle configuré : ${model || "non configuré"}`}
               >
                 {deepen ? "Approfondir" : "Auto"}
-                <ChevronDown size={12} />
               </button>
             </Popover.Trigger>
             <Popover.Portal>
@@ -236,6 +225,18 @@ export function AssistantComposer({
               >
                 <strong>Recherche dans votre CRM</strong>
                 <p>Relay choisit les sources utiles à votre demande.</p>
+                <button
+                  type="button"
+                  className={styles.optionsContext}
+                  disabled={busy}
+                  onClick={() => {
+                    setOptions(false);
+                    setOpen(true);
+                  }}
+                >
+                  <Layers3 size={14} />
+                  {context ? "Changer de fiche" : "Ajouter une fiche"}
+                </button>
                 <label>
                   <input
                     type="checkbox"
@@ -273,7 +274,7 @@ export function AssistantComposer({
               disabled={!message.trim() || !configured}
               aria-label="Envoyer le message"
             >
-              <ArrowUp size={19} />
+              <ArrowUp size={14} />
             </button>
           )}
         </div>

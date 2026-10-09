@@ -197,3 +197,6 @@ small,.caption{font-size:12px}
   body:has([data-relay-dashboard]) [data-sidebar],
   body:has([data-relay-dashboard]) .app-topbar { display: none !important; }
 }
+
+/* Ask Relay owns its compact header and the full-height chat area. */
+.sb-inset .page-content.assistant-page-content{padding:0;max-width:none;margin:0}

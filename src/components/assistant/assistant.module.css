@@ -3,8 +3,8 @@
   --subtle: #85868f;
   display: grid;
   grid-template-columns: 224px minmax(0, 1fr);
-  min-height: min(420px, calc(100dvh - 148px));
-  height: 460px;
+  min-height: 0;
+  height: calc(100dvh - 18px);
   border: 0;
   border-radius: 0;
   overflow: hidden;
@@ -13,10 +13,13 @@
   transition: height 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .layout[data-view="conversation"] {
-  height: calc(100dvh - 148px);
+  height: calc(100dvh - 18px);
 }
 .layout[data-view="welcome"] {
-  overflow: visible;
+  overflow: hidden;
+}
+.layout[data-view="welcome"] .main {
+  overflow-y: auto;
 }
 .layout[data-history="true"] {
   position: relative;
@@ -197,16 +200,21 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-bottom: 1px solid var(--line);
-  min-height: 56px;
+  min-height: 42px;
 }
 .layout[data-view="welcome"] .header {
-  border-bottom: 0;
+  border-bottom: 1px solid #f0f0f2;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: white;
 }
-.header > div:nth-child(2) {
-  display: grid;
-  gap: 4px;
+.header > div.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   min-width: 0;
   flex: 1;
 }
@@ -221,13 +229,13 @@
   padding: 0;
   background: transparent;
   border: 0;
-  font-weight: 600;
-  font-size: 12px;
+  font-weight: 500;
+  font-size: 13px;
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #344158;
+  color: #37383c;
   max-width: 100%;
 }
 .chatTitle:disabled {
@@ -241,30 +249,77 @@
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 16px;
   margin-left: auto;
+}
+.layout[data-view="conversation"] .headerActions {
+  gap: 3px;
+}
+.navigationToggle {
+  display: none;
+}
+.headerMenu {
+  z-index: 80;
+  width: 235px;
+  max-width: calc(100vw - 30px);
+  border: 1px solid #e5e5e9;
+  border-radius: 9px;
+  background: white;
+  padding: 5px;
+  box-shadow: 0 8px 30px #24314515;
+}
+.headerMenu button,
+.headerMenu a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  padding: 9px;
+  text-align: left;
+  color: #565961;
+  font-size: 12px;
+}
+.headerMenu button:hover,
+.headerMenu a:hover {
+  background: #f7f7f9;
+}
+.headerMenu p {
+  margin: 5px 9px;
+  padding-top: 9px;
+  border-top: 1px solid #eeeef1;
+  font-size: 10px;
+  line-height: 1.8;
+  color: #979aa4;
 }
 .help {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-left: 10px;
-  font-size: 11px;
-  color: #7e8da3;
+  margin-left: 0;
+  font-size: 12px;
+  color: #85858a;
+  border: 0;
+  background: none;
+  padding: 0;
 }
 .thread {
   order: 2;
   min-height: 0;
   overflow-y: auto;
   flex: 1;
-  padding: 28px 32px;
+  padding: 22px 24px;
   overscroll-behavior: contain;
   scrollbar-width: thin;
 }
 .layout[data-view="welcome"] .thread {
-  order: 4;
+  order: 5;
   flex: 0 0 auto;
-  padding: 12px 32px;
+  width: min(578px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 12px 0;
 }
 .layout[data-view="welcome"] .thread:empty {
   display: none;
@@ -274,18 +329,18 @@
 }
 .welcome {
   order: 1;
-  width: min(760px, calc(100% - 64px));
-  margin: 60px auto 22px;
+  width: min(578px, calc(100% - 48px));
+  margin: 42px auto 18px;
   text-align: left;
 }
 .welcome h1 {
   font:
-    600 25px/1.35 Manrope,
+    650 18px/1.4 "DM Sans",
     Arial,
     sans-serif;
-  letter-spacing: -0.7px;
-  margin: 0 0 10px;
-  color: #292a30;
+  letter-spacing: -0.2px;
+  margin: 0;
+  color: #303135;
 }
 .welcome > p {
   color: #898a93;
@@ -295,8 +350,8 @@
 }
 .suggestions {
   order: 3;
-  width: min(760px, calc(100% - 64px));
-  margin: 12px auto 0;
+  width: min(578px, calc(100% - 48px));
+  margin: 10px auto 0;
 }
 .promptGrid {
   display: flex;
@@ -308,7 +363,7 @@
   display: flex;
   gap: 6px;
   align-items: center;
-  padding: 6px 9px;
+  padding: 3px 6px;
   background: #fafafa;
   border: 1px solid #ececf0;
   border-radius: 6px;
@@ -324,9 +379,9 @@
   color: #b27f9c;
 }
 .promptGrid button span {
-  font-size: 11px;
-  line-height: 1.5;
-  color: #7e808a;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #88898d;
 }
 .promptGrid button:hover {
   border-color: #c1cff1;
@@ -353,7 +408,7 @@
   border: 1px solid #e4eafa;
   border-radius: 8px;
   padding: 14px;
-  max-width: 760px;
+  max-width: 578px;
   margin: 0 auto 20px;
   color: #6b81af;
 }
@@ -382,22 +437,23 @@
 .messages {
   display: flex;
   flex-direction: column;
-  gap: 30px;
-  max-width: 760px;
+  gap: 18px;
+  max-width: 578px;
   margin: 0 auto;
 }
 .userMessage {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 13px;
   margin-left: auto;
   max-width: 88%;
-  padding: 11px 15px;
+  padding: 5px 10px;
   background: #f3f3f5;
   border: 0;
-  border-radius: 15px;
-  font-size: 14px;
-  line-height: 1.8;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
 }
 .userMessage > div {
   flex: 1;
@@ -408,8 +464,16 @@
   display: none;
 }
 .userMessage .iconButton {
-  width: 23px;
-  height: 24px;
+  position: absolute;
+  right: calc(100% + 5px);
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+}
+.userMessage:hover .iconButton,
+.userMessage .iconButton:focus-visible {
+  opacity: 1;
 }
 .agentMessage {
   min-width: 0;
@@ -464,12 +528,13 @@
   font-size: 11px;
   color: #a0a1aa;
 }
-.thinking {
-  background: linear-gradient(100deg, #999ba5 25%, #363840 45%, #999ba5 65%);
+.shimmer {
+  font-size: 12px;
+  color: transparent;
+  background: linear-gradient(100deg, #a0a0a5 30%, #414146 50%, #a0a0a5 70%);
   background-size: 240% 100%;
   background-clip: text;
-  color: transparent;
-  animation: thinking 2s linear infinite;
+  animation: shimmer 2s linear infinite;
 }
 .activityToggle > svg:last-child {
   margin-left: auto;
@@ -539,7 +604,7 @@
 .answer {
   margin-left: 0;
   overflow-wrap: anywhere;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.85;
 }
 .answer p {
@@ -702,10 +767,10 @@
 }
 .composerArea {
   order: 3;
-  width: min(760px, calc(100% - 64px));
+  width: min(578px, calc(100% - 48px));
   align-self: center;
   flex-shrink: 0;
-  padding: 16px 0 20px;
+  padding: 16px 0 32px;
   position: relative;
   background: white;
 }
@@ -715,28 +780,28 @@
 }
 .composer {
   border: 1px solid #e0e2e9;
-  border-radius: 14px;
+  border-radius: 12px;
   background: white;
-  padding: 12px 14px 11px;
-  box-shadow: 0 3px 16px #24314504;
+  padding: 9px 10px 7px;
+  box-shadow: 0 8px 28px #24314507;
   transition:
     border-color 0.15s,
     box-shadow 0.15s;
 }
 .composer:focus-within {
   border-color: #9ebaff;
-  box-shadow: 0 0 0 3px #4169e108;
+  box-shadow: 0 8px 28px #24314507;
 }
 .composer textarea {
   display: block;
   border: 0;
   outline: 0;
   box-shadow: none;
-  padding: 4px 0 11px;
-  min-height: 60px;
+  padding: 0 0 7px;
+  min-height: 58px;
   max-height: 200px;
   resize: none;
-  font-size: 14px;
+  font-size: 13px;
   background: transparent;
   line-height: 1.7;
 }
@@ -747,9 +812,37 @@
   outline: 0;
 }
 .composerToolbar {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
+}
+.contextAnchor {
+  position: absolute;
+  right: 60px;
+  bottom: 0;
+}
+.composerToolbar > .iconButton {
+  order: 2;
+  width: 20px;
+  height: 24px;
+}
+.slashKey {
+  width: 11px;
+  height: 12px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  padding: 1px;
+}
+.optionsContext {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  color: #555d72;
 }
 .contextButton {
   display: flex;
@@ -767,6 +860,7 @@
   background: #f4f7ff;
 }
 .model {
+  order: 1;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -782,15 +876,16 @@
   background: #f6f6f8;
 }
 .send {
-  width: 32px;
-  height: 32px;
+  order: 3;
+  width: 24px;
+  height: 24px;
   border-radius: 7px;
   display: grid;
   place-items: center;
   border: 0;
   background: #3269f5;
   color: white;
-  margin-left: 5px;
+  margin-left: 0;
 }
 .send:hover {
   background: #365ac6;
@@ -1033,7 +1128,10 @@
     transform: rotate(360deg);
   }
 }
-@keyframes thinking {
+@keyframes shimmer {
+  from {
+    background-position: 240% 0;
+  }
   to {
     background-position: -240% 0;
   }
@@ -1056,10 +1154,10 @@
     padding: 23px;
   }
   .composerArea {
-    padding: 16px 0;
+    padding: 16px 0 32px;
   }
   .welcome h1 {
-    font-size: 27px;
+    font-size: 18px;
   }
 }
 @media (max-width: 900px) {
@@ -1071,7 +1169,7 @@
     position: absolute;
     inset: 0 auto 0 0;
     width: 250px;
-    z-index: 10;
+    z-index: 20;
     box-shadow: 12px 0 35px #24314512;
   }
   .layout[data-history="false"] .history {
@@ -1080,11 +1178,11 @@
 }
 @media (max-width: 600px) {
   .layout {
-    min-height: min(420px, calc(100dvh - 137px));
-    height: 460px;
+    min-height: 0;
+    height: 100dvh;
   }
   .layout[data-view="conversation"] {
-    height: calc(100dvh - 137px);
+    height: 100dvh;
   }
   .header {
     padding: 12px;
@@ -1100,24 +1198,24 @@
     padding: 18px 13px;
   }
   .welcome {
-    width: calc(100% - 24px);
-    margin-top: 35px;
+    width: calc(100% - 32px);
+    margin-top: 32px;
   }
   .welcome h1 {
-    font-size: 21px;
+    font-size: 18px;
   }
   .welcome > p {
     font-size: 12px;
   }
   .suggestions {
-    width: calc(100% - 24px);
+    width: calc(100% - 32px);
   }
   .layout[data-view="welcome"] {
-    height: 560px;
+    height: 100dvh;
   }
   .promptGrid {
     gap: 7px;
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
   .promptGrid button {
     padding: 7px 8px;
@@ -1126,15 +1224,18 @@
     font-size: 11px;
   }
   .composerArea {
-    width: calc(100% - 24px);
-    padding: 12px 0;
+    width: calc(100% - 32px);
+    padding: 12px 0 24px;
   }
   .composerNote > span:last-child {
     display: none;
   }
   .composer textarea {
     font-size: 16px;
-    min-height: 60px;
+    min-height: 58px;
+  }
+  .navigationToggle {
+    display: inline-flex;
   }
   .configuration {
     flex-wrap: wrap;
@@ -1168,11 +1269,11 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .spin,
-  .thinking,
+  .shimmer,
   .layout[data-view="conversation"] .messages {
     animation: none;
   }
-  .thinking {
+  .shimmer {
     color: #85868f;
     background: none;
   }
@@ -1250,4 +1351,213 @@
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
+}
+
+.pulse {
+  order: 4;
+  width: min(578px, calc(100% - 48px));
+  flex: 0 0 auto;
+  margin: 20px auto 30px;
+  padding: 12px;
+  border: 1px solid #e2e2e5;
+  border-radius: 16px;
+  background: #fdfdfd;
+  color: #18191b;
+}
+.pulseHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pulseHeader h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font:
+    600 14px/1.5 "DM Sans",
+    Arial,
+    sans-serif;
+  letter-spacing: 0;
+  margin: 0;
+}
+.pulseHeader p {
+  font-size: 11px;
+  color: #89898e;
+  line-height: 1.6;
+  margin: 4px 0 0;
+}
+.pulseBadge {
+  font-size: 10px;
+  padding: 3px 7px;
+  border-radius: 20px;
+  background: #f0f0f1;
+  white-space: nowrap;
+}
+.pulseMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+  padding: 22px 12px 23px;
+}
+.pulseMetrics > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.pulseMetrics strong {
+  font-size: 20px;
+  font-weight: 550;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.pulseMetrics span {
+  font-size: 10px;
+  color: #7a7b80;
+  line-height: 1.5;
+}
+.pulseAlert {
+  color: #ff4b43;
+}
+.pulseGrowth {
+  color: #00b966;
+}
+.pulseSectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+.pulseSectionTitle h3 {
+  font-size: 13px;
+  font-weight: 550;
+  margin: 0;
+  line-height: 1.5;
+}
+.pulseSectionTitle > span {
+  font-size: 11px;
+  color: #8b8b91;
+  white-space: nowrap;
+}
+.pulseSignals {
+  border: 1px solid #e2e2e6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.pulseSignal {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 15px;
+  align-items: center;
+  padding: 13px 15px;
+  min-height: 69px;
+}
+.pulseSignal:not(:last-child) {
+  border-bottom: 1px solid #ededf0;
+}
+.pulseSignal strong {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+.pulseSignal p {
+  font-size: 10px;
+  color: #8a8b90;
+  line-height: 1.5;
+  margin: 4px 0 0;
+}
+.pulseSignal button {
+  border: 1px solid #d8d9dd;
+  border-radius: 99px;
+  font-size: 11px;
+  color: #73757c;
+  background: #fdfdfd;
+  padding: 4px 11px;
+  white-space: nowrap;
+}
+.pulseSignal button:hover {
+  border-color: #b4b6bf;
+  color: #292c33;
+  background: #f5f5f7;
+}
+.pulse button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pulseScope {
+  margin: 9px 0 0;
+  font-size: 9px;
+  color: #92949c;
+  line-height: 1.5;
+}
+.pulseReview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 32px;
+  border: 0;
+  border-radius: 99px;
+  background: #111;
+  color: white;
+  font-size: 12px;
+  font-weight: 550;
+  padding: 6px 12px;
+  margin-top: 12px;
+}
+.pulseReview:hover {
+  background: #292929;
+}
+.pulseError {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 0;
+  color: #8c5560;
+  font-size: 11px;
+}
+.pulseError button {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  border: 1px solid #e4d7da;
+  border-radius: 6px;
+  background: white;
+  color: inherit;
+  padding: 6px;
+  font-size: 11px;
+}
+@media (max-width: 600px) {
+  .pulse {
+    width: calc(100% - 32px);
+    padding: 11px;
+    margin-top: 18px;
+  }
+  .pulseSignal {
+    gap: 10px;
+    padding: 12px 10px;
+  }
+  .pulseSignal strong {
+    font-size: 11px;
+  }
+  .pulseSignal button {
+    padding: 5px 9px;
+    font-size: 10px;
+  }
+  .pulseSectionTitle h3 {
+    font-size: 12px;
+  }
+  .pulseMetrics {
+    padding: 18px 8px;
+    gap: 10px;
+  }
+  .pulseHeader p {
+    font-size: 10px;
+  }
 }

@@ -3,22 +3,24 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import * as Popover from "@radix-ui/react-popover";
 import {
   Sparkles,
   Plus,
   Search,
   MessageSquare,
   PanelLeftClose,
-  PanelLeftOpen,
+  PanelRight,
   LockKeyhole,
-  Pencil,
   Trash2,
   Copy,
   ArrowUpRight,
-  FileText,
-  Video,
-  Handshake,
-  ScanLine,
+  House,
+  Settings2,
+  CircleHelp,
+  MoreHorizontal,
+  CalendarDays,
+  Mic,
   LoaderCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +28,8 @@ import { useWorkspace, request } from "../data-provider";
 import { Modal } from "../ui";
 import { AssistantComposer, type RecordContext } from "../assistant/composer";
 import { ChatMessage } from "../assistant/message";
+import { RelayPulse } from "../assistant/pulse";
+import { SidebarTrigger } from "../ui/sidebar";
 import { readAssistantStream } from "../assistant/stream";
 import {
   assistantPrompts,
@@ -44,7 +48,7 @@ export function AssistantPage() {
   return <AssistantSession key={workspace.id + user.id} />;
 }
 function AssistantSession() {
-  const { workspace } = useWorkspace();
+  const { workspace, user } = useWorkspace();
   const url = useSearchParams();
   const endpoint = `/api/${workspace.id}/assistant`;
   const status = useQuery({
@@ -238,13 +242,28 @@ function AssistantSession() {
   const conversations = (status.data?.conversations ?? []).filter((c) =>
     c.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
   );
-  const icons = [FileText, Video, Handshake, ScanLine];
-  const shortcuts = ["Faire le point", "Préparer un rendez-vous", "Engagements", "Contradictions"];
+  const started = !!messages.length || loading;
+  const nickname = user.email
+    ?.split("@")[0]
+    ?.split(/[._+-]/)[0]
+    ?.slice(0, 40);
+  const greeting = nickname
+    ? `Bonjour, ${nickname.charAt(0).toLocaleUpperCase("fr-FR") + nickname.slice(1)}`
+    : "Bonjour";
+  const shortcuts = [
+    { title: "Préparer un rendez-vous", icon: CalendarDays, prompt: assistantPrompts[1].prompt },
+    {
+      title: "Résumer le dernier appel",
+      icon: Mic,
+      prompt:
+        "Résume ma dernière réunion ou mon dernier appel accessible, ses décisions et engagements. Cite les sources, précise les incertitudes et reste en lecture seule.",
+    },
+  ];
   return (
     <section
       className={styles.layout}
       data-history={historyOpen}
-      data-view={messages.length || loading ? "conversation" : "welcome"}
+      data-view={started ? "conversation" : "welcome"}
       aria-label="Ask Relay"
     >
       <aside className={styles.history} aria-label="Historique privé">
@@ -318,81 +337,136 @@ function AssistantSession() {
       </aside>
       <div className={styles.main}>
         <header className={styles.header}>
-          <button
-            type="button"
-            className={styles.iconButton}
-            aria-label="Afficher ou masquer l’historique"
-            onClick={toggleHistory}
-          >
-            <PanelLeftOpen size={17} />
-          </button>
-          <div>
-            <span>Ask Relay</span>
+          <SidebarTrigger className={styles.navigationToggle} />
+          <div className={styles.headerTitle}>
+            {!started && <House size={13} />}
             <button
               type="button"
               className={styles.chatTitle}
-              disabled={!conversation || busy}
-              title="Renommer la conversation"
+              disabled={busy || (started && !conversation)}
+              title={started ? "Renommer la conversation" : "Accueil Ask Relay"}
               onClick={() => {
+                if (!started) return newChat();
                 setNewTitle(title);
                 setRename(true);
               }}
             >
-              {conversation ? title : "Votre assistant CRM"}
-              {conversation && <Pencil size={12} />}
+              {started ? title : "Accueil"}
             </button>
           </div>
           <div className={styles.headerActions}>
-            <button
-              type="button"
-              className={styles.iconButton}
-              aria-label="Nouvelle conversation"
-              title="Nouvelle conversation"
-              disabled={busy}
-              onClick={newChat}
-            >
-              <Plus size={17} />
-            </button>
-            {conversation && (
+            {started ? (
               <>
                 <button
                   type="button"
                   className={styles.iconButton}
-                  aria-label="Copier l’identifiant de conversation"
-                  title="Copier l’identifiant"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(conversation);
-                      toast.success("Identifiant copié");
-                    } catch {
-                      toast.error("Copie indisponible");
-                    }
-                  }}
+                  aria-label="Nouvelle conversation"
+                  title="Nouvelle conversation"
+                  disabled={busy}
+                  onClick={newChat}
                 >
-                  <Copy size={15} />
+                  <Plus size={17} />
                 </button>
                 <button
                   type="button"
                   className={styles.iconButton}
-                  aria-label="Supprimer cette conversation"
-                  title="Supprimer la conversation"
-                  disabled={busy}
-                  onClick={() => setRemove(true)}
+                  aria-label="Afficher ou masquer l’historique"
+                  onClick={toggleHistory}
                 >
-                  <Trash2 size={15} />
+                  <PanelRight size={15} />
                 </button>
+                <Popover.Root>
+                  <Popover.Trigger asChild>
+                    <button
+                      type="button"
+                      className={styles.iconButton}
+                      aria-label="Options de la conversation"
+                    >
+                      <MoreHorizontal size={17} />
+                    </button>
+                  </Popover.Trigger>
+                  <Popover.Portal>
+                    <Popover.Content className={styles.headerMenu} align="end" sideOffset={8}>
+                      {conversation && (
+                        <>
+                          <button
+                            type="button"
+                            className={styles.iconButton}
+                            aria-label="Copier l’identifiant de conversation"
+                            title="Copier l’identifiant"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(conversation);
+                                toast.success("Identifiant copié");
+                              } catch {
+                                toast.error("Copie indisponible");
+                              }
+                            }}
+                          >
+                            <Copy size={15} />
+                            Copier l’identifiant
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.iconButton}
+                            aria-label="Supprimer cette conversation"
+                            title="Supprimer la conversation"
+                            disabled={busy}
+                            onClick={() => setRemove(true)}
+                          >
+                            <Trash2 size={15} />
+                            Supprimer la conversation
+                          </button>
+                        </>
+                      )}
+                      <Link href="/doc?article=assistant">
+                        <CircleHelp size={14} />
+                        Aide Ask Relay
+                      </Link>
+                    </Popover.Content>
+                  </Popover.Portal>
+                </Popover.Root>
+              </>
+            ) : (
+              <>
+                <Popover.Root>
+                  <Popover.Trigger asChild>
+                    <button type="button" className={styles.help} aria-label="Configurer Ask Relay">
+                      <Settings2 size={13} />
+                      Configurer
+                    </button>
+                  </Popover.Trigger>
+                  <Popover.Portal>
+                    <Popover.Content className={styles.headerMenu} align="end" sideOffset={8}>
+                      <Popover.Close asChild>
+                        <button type="button" onClick={toggleHistory}>
+                          <PanelRight size={14} />
+                          Historique privé
+                        </button>
+                      </Popover.Close>
+                      <Link href="/app/settings">
+                        <Settings2 size={14} />
+                        Paramètres de l’espace
+                      </Link>
+                      <p>
+                        Assistant IA de Relay · OpenAI
+                        <br />
+                        Modèle : {status.data?.model || "non configuré"}
+                      </p>
+                    </Popover.Content>
+                  </Popover.Portal>
+                </Popover.Root>
+                <Link href="/doc?article=assistant" className={styles.help}>
+                  <CircleHelp size={13} />
+                  Aide
+                </Link>
               </>
             )}
-            <Link href="/doc?article=assistant" className={styles.help}>
-              Guide
-              <ArrowUpRight size={12} />
-            </Link>
           </div>
         </header>
         {!messages.length && !loading && (
           <div className={styles.welcome}>
-            <h1>Bonjour, qu’aimeriez-vous faire ?</h1>
-            <p>Vos relations, vos échanges et vos prochaines actions, au même endroit.</p>
+            <h1>{greeting}</h1>
           </div>
         )}
         <div
@@ -494,28 +568,32 @@ function AssistantSession() {
         {!messages.length && !loading && (
           <div className={styles.suggestions}>
             <div className={styles.promptGrid}>
-              {assistantPrompts.map((p, i) => {
-                const Icon = icons[i];
+              {shortcuts.map((p) => {
+                const Icon = p.icon;
                 return (
                   <button
                     type="button"
                     key={p.title}
                     aria-label={p.title}
-                    title={p.description}
                     disabled={busy || !status.data?.configured}
                     onClick={() => setMessage(p.prompt)}
                   >
                     <Icon size={14} />
-                    <span>{shortcuts[i]}</span>
+                    <span>{p.title}</span>
                   </button>
                 );
               })}
             </div>
-            <div className={styles.welcomeTrust}>
-              <LockKeyhole size={12} />
-              Vos accès sont respectés. Les actions sensibles vous sont présentées avant exécution.
-            </div>
           </div>
+        )}
+        {!started && (
+          <RelayPulse
+            configured={!!status.data?.configured}
+            onAnalyze={(prompt, scope) => {
+              setContext(scope);
+              void ask(prompt, scope);
+            }}
+          />
         )}
       </div>
       <Modal

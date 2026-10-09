@@ -1,14 +1,13 @@
 "use client";
 import { AgentActions } from "./actions";
 import { SecurityNotices } from "./source-reader";
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import Link from "next/link";
 import {
   Check,
   ChevronDown,
   Copy,
   RotateCcw,
-  Sparkles,
   LoaderCircle,
   FileText,
   Video,
@@ -98,20 +97,9 @@ export function AgentActivity({
   elapsed?: number;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [seconds, setSeconds] = useState(0);
   const detailsId = useId();
-  useEffect(() => {
-    if (!active) return;
-    const started = performance.now();
-    const timer = setInterval(
-      () => setSeconds(Math.floor((performance.now() - started) / 1000)),
-      1000,
-    );
-    return () => clearInterval(timer);
-  }, [active]);
-  const running = steps.find((s) => s.status === "running");
   const failed = steps.some((s) => s.status === "error");
-  const duration = elapsed ? Math.round(elapsed / 1000) : active ? seconds : 0;
+  const duration = elapsed ? Math.round(elapsed / 1000) : 0;
   return (
     <div className={styles.activity} data-active={active}>
       <button
@@ -126,23 +114,20 @@ export function AgentActivity({
         }
         onClick={() => setExpanded(!expanded)}
       >
-        {active ? (
-          <LoaderCircle size={14} className={styles.spin} />
-        ) : failed ? (
-          <TriangleAlert size={14} />
-        ) : (
-          <Check size={14} />
-        )}
-        <span className={active ? styles.thinking : undefined}>
+        {!active && (failed ? <TriangleAlert size={14} /> : <Check size={14} />)}
+        <span
+          className={active ? `${styles.shimmer} shimmer text-sm text-muted-foreground` : undefined}
+        >
           {active
-            ? "Thinking"
+            ? "Thinking…"
             : failed
               ? "Activité interrompue"
               : `${steps.length} étape${steps.length > 1 ? "s" : ""} effectuée${steps.length > 1 ? "s" : ""}`}
         </span>
-        {active && running && <span className={styles.currentStep}>{running.label}</span>}
-        {duration > 0 && <small>{duration} s</small>}
-        <ChevronDown size={14} className={expanded ? styles.rotated : ""} />
+        {!active && duration > 0 && <small>{duration} s</small>}
+        {(!active || expanded) && (
+          <ChevronDown size={14} className={expanded ? styles.rotated : ""} />
+        )}
       </button>
       {expanded && (
         <ol className={styles.steps} id={detailsId}>
@@ -200,13 +185,6 @@ export function ChatMessage({
     );
   return (
     <article className={styles.agentMessage}>
-      <div className={styles.agentHeading}>
-        <span className={styles.agentMark}>
-          <Sparkles size={15} />
-        </span>
-        <strong>Ask Relay</strong>
-        <span>Assistant IA · OpenAI</span>
-      </div>
       {((message.steps?.length ?? 0) > 0 || active) && (
         <AgentActivity steps={message.steps ?? []} active={active} elapsed={message.elapsed_ms} />
       )}

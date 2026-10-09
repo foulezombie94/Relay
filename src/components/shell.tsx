@@ -51,19 +51,25 @@ export function Shell({
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar />
       <SidebarInset>
-        <header className="sb-topbar">
-          <SidebarTrigger />
-          <span className="sb-topbar-divider" />
-          <span className="sb-breadcrumb-workspace">{workspace.name}</span>
-          <span className="sb-breadcrumb-slash">/</span>
-          <span className="sb-breadcrumb-current">{name}</span>
-          <Notifications />
-          <div className="sb-topbar-privacy">
-            <span />
-            Espace privé<small>Europe</small>
-          </div>
-        </header>
-        <main className="page-content">{children}</main>
+        {section !== "assistant" && (
+          <header className="sb-topbar">
+            <SidebarTrigger />
+            <span className="sb-topbar-divider" />
+            <span className="sb-breadcrumb-workspace">{workspace.name}</span>
+            <span className="sb-breadcrumb-slash">/</span>
+            <span className="sb-breadcrumb-current">{name}</span>
+            <Notifications />
+            <div className="sb-topbar-privacy">
+              <span />
+              Espace privé<small>Europe</small>
+            </div>
+          </header>
+        )}
+        <main
+          className={"page-content" + (section === "assistant" ? " assistant-page-content" : "")}
+        >
+          {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );
