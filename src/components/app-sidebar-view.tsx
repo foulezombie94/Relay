@@ -206,7 +206,15 @@ export function AppSidebarView({
             <ChevronsUpDown size={15} className="sb-workspace-chevron" />
           </Dropdown.Trigger>
           <Dropdown.Portal>
-            <Dropdown.Content className="sb-dropdown" side="right" align="start" sideOffset={9}>
+            <Dropdown.Content
+              className="sb-dropdown"
+              data-mobile={isMobile ? "true" : undefined}
+              side={isMobile ? "bottom" : "right"}
+              align="start"
+              sideOffset={isMobile ? 6 : 9}
+              collisionPadding={12}
+              sticky="always"
+            >
               <Dropdown.Label className="sb-dropdown-label">Vos espaces de travail</Dropdown.Label>
               {workspaces.map((w) => (
                 <Dropdown.Item
@@ -426,7 +434,15 @@ export function AppSidebarView({
             <ChevronsUpDown size={15} className="sb-workspace-chevron" />
           </Dropdown.Trigger>
           <Dropdown.Portal>
-            <Dropdown.Content className="sb-dropdown" side="right" align="end" sideOffset={9}>
+            <Dropdown.Content
+              className="sb-dropdown"
+              data-mobile={isMobile ? "true" : undefined}
+              side={isMobile ? "top" : "right"}
+              align={isMobile ? "start" : "end"}
+              sideOffset={isMobile ? 6 : 9}
+              collisionPadding={12}
+              sticky="always"
+            >
               <Dropdown.Label className="sb-dropdown-label">{user.email}</Dropdown.Label>
               <Dropdown.Item asChild>
                 <Link
