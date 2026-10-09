@@ -90,9 +90,10 @@
 .sb-tooltip{z-index:120;padding:7px 10px;border-radius:6px;background:#273248;color:#fff;font-size:11px;box-shadow:0 4px 14px #20304c20;animation:sb-tooltip-in .1s ease}
 .sb-tooltip svg{fill:#273248}
 .sb-overlay{position:fixed;inset:0;background:#17243c55;z-index:95;animation:sb-tooltip-in .15s ease}
-.sb-mobile-sheet{position:fixed;inset-block:0;left:0;width:min(var(--sidebar-width-mobile,18rem),calc(100vw - 48px));z-index:100;outline:none;box-shadow:15px 0 60px #20304c25;animation:sb-slide-in .2s ease}
+.sb-mobile-sheet{position:fixed;inset-block:0;left:0;width:min(var(--sidebar-width-mobile,18rem),calc(100vw - 48px));height:100dvh;overflow:hidden;z-index:100;outline:none;box-shadow:15px 0 60px #20304c25;animation:sb-slide-in .2s ease}
 .sb-mobile-sheet[data-side=right]{left:auto;right:0;animation-name:sb-slide-right}
-.sb-mobile-sheet .sb-panel{border:0}
+.sb-mobile-sheet .sb-panel{border:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:env(safe-area-inset-bottom);scrollbar-width:thin}
+.sb-mobile-sheet .sb-content{flex:1 0 auto;overflow:visible}
 .sb-mobile-sheet .sb-header{padding-top:23px}
 .sb-mobile-close{position:absolute;top:20px;right:14px;display:grid;place-items:center;width:28px;height:28px;background:transparent;color:#8190a5;border:0;border-radius:5px}
 .sb-mobile-close:hover{background:var(--sidebar-accent)}
