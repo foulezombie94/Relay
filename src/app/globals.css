@@ -200,3 +200,17 @@ small,.caption{font-size:12px}
 
 /* Ask Relay owns its compact header and the full-height chat area. */
 .sb-inset .page-content.assistant-page-content{padding:0;max-width:none;margin:0}
+
+/* Personal appearance is scoped to the authenticated app and reset on sign-out. */
+html[data-relay-theme]{--blue:var(--relay-accent,#356df3);--sidebar-primary:var(--relay-accent,#356df3);--sidebar-ring:var(--relay-accent,#356df3);--relay-surface:#fff;--relay-surface-soft:#fafafb;--relay-hover:#f0f0f2;--relay-border:#ebebef;--relay-ink:#26262b;--relay-muted:#85858f;--sidebar-accent:color-mix(in srgb,var(--relay-accent) 8%,#fff);--sidebar-accent-foreground:var(--relay-accent)}
+html[data-relay-theme=dark]{color-scheme:dark;--relay-surface:#191a1f;--relay-surface-soft:#1f2026;--relay-hover:#2b2d35;--relay-border:#30323c;--relay-ink:#ededf2;--relay-muted:#a0a2af;--text:#ededf2;--muted:#a0a2af;--line:#30323c;--nav:#1f2026;--sidebar-background:#1f2026;--sidebar-foreground:#c5c7d1;--sidebar-border:#30323c;--sidebar-accent:#30323c;--sidebar-accent-foreground:#ededf2}
+.settings-page-content{width:100%;min-width:0;background:var(--relay-surface-soft,#f7f8fa);height:100dvh;overflow:hidden}
+html[data-relay-theme=dark] body,html[data-relay-theme=dark] .sb-inset,html[data-relay-theme=dark] .page-content,html[data-relay-theme=dark] .dialog-content,html[data-relay-theme=dark] .drawer,html[data-relay-theme=dark] .sb-dropdown{background:var(--relay-surface);color:var(--relay-ink)}
+html[data-relay-theme=dark] :is(.detail-card,.feature-card,.settings-card,.stat,.chart-card,.deal-card,.table-wrap,.button,.sb-workspace-button,.sb-user-button){background:var(--relay-surface);border-color:var(--relay-border);color:var(--relay-ink)}
+html[data-relay-theme=dark] :is(.data-table th,.data-table tr:hover,.quote,.kanban-column,.empty-icon,.segmented,.sb-topbar-privacy small){background:var(--relay-surface-soft);color:var(--relay-muted);border-color:var(--relay-border)}
+html[data-relay-theme=dark] :is(input,select,textarea){background:var(--relay-surface);color:var(--relay-ink);border-color:var(--relay-border)}
+html[data-relay-theme=dark] :is(.sb-brand-text,.sb-workspace-copy strong,.sb-user-copy strong,.sb-breadcrumb-current,.data-table td,.name-cell){color:var(--relay-ink)}
+html[data-relay-theme=dark] :is(.page-heading p,.detail-card p,.feature-card p,.settings-card p,.caption,.sb-breadcrumb-workspace){color:var(--relay-muted)}
+html[data-relay-theme] .button.primary{background:var(--relay-accent);border-color:var(--relay-accent);color:#fff}
+html[data-relay-density=compact] .data-table td{height:42px;padding-top:8px;padding-bottom:8px}
+html[data-relay-density=compact] .sb-menu-button{min-height:31px;padding-top:6px;padding-bottom:6px}

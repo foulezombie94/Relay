@@ -1,14 +1,10 @@
 "use client";
 import { createContext, useContext, useState, type ReactNode } from "react";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Workspace, ObjectDefinition, Row } from "@/lib/domain/types";
 import { toast } from "sonner";
 import Link from "next/link";
+import { AppearanceProvider } from "./appearance-provider";
 export async function request<T = Record<string, unknown>>(
   url: string,
   method = "GET",
@@ -48,20 +44,14 @@ export function useRows<T extends Row = Row>(
   return useQuery({
     queryKey: ["rows", workspace.id, resource, params],
     queryFn: () =>
-      request<{ data: T[]; count: number }>(
-        "/api/" + workspace.id + "/" + resource + "?" + p,
-      ),
+      request<{ data: T[]; count: number }>("/api/" + workspace.id + "/" + resource + "?" + p),
   });
 }
 export function useSave() {
   const { workspace } = useWorkspace();
   const cache = useQueryClient();
   const [busy, setBusy] = useState(false);
-  async function save(
-    resource: string,
-    values: Record<string, unknown>,
-    row?: Row,
-  ) {
+  async function save(resource: string, values: Record<string, unknown>, row?: Row) {
     setBusy(true);
     try {
       const data = await request<{ data: Row }>(
@@ -81,10 +71,7 @@ export function useSave() {
   }
   async function remove(resource: string, id: string) {
     try {
-      await request(
-        "/api/" + workspace.id + "/" + resource + "?id=" + id,
-        "DELETE",
-      );
+      await request("/api/" + workspace.id + "/" + resource + "?id=" + id, "DELETE");
       await cache.invalidateQueries({ queryKey: ["rows", workspace.id] });
       toast.success("Élément retiré");
     } catch (e) {
@@ -111,28 +98,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
 }
 function Gate({ children }: { children: ReactNode }) {
   const cache = useQueryClient();
-  const [selected, setSelected] = useState(() => typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("workspace") ?? "");
+  const [selected, setSelected] = useState(() =>
+    typeof window === "undefined"
+      ? ""
+      : (new URLSearchParams(window.location.search).get("workspace") ?? ""),
+  );
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const q = useQuery({
     queryKey: ["workspaces"],
     queryFn: () =>
-      request<{ data: Workspace[]; user: { id: string; email?: string } }>(
-        "/api/workspaces",
-      ),
+      request<{ data: Workspace[]; user: { id: string; email?: string } }>("/api/workspaces"),
   });
-  const workspace =
-    q.data?.data.find((w) => w.id === selected) ?? q.data?.data[0];
+  const workspace = q.data?.data.find((w) => w.id === selected) ?? q.data?.data[0];
   const objects = useQuery({
     queryKey: ["rows", workspace?.id, "objects"],
     enabled: !!workspace,
     queryFn: () =>
-      request<{ data: ObjectDefinition[] }>(
-        "/api/" + workspace!.id + "/objects?size=100",
-      ),
+      request<{ data: ObjectDefinition[] }>("/api/" + workspace!.id + "/objects?size=100"),
   });
-  if (q.isPending)
-    return <div className="page-loader">Ouverture de votre espace…</div>;
+  if (q.isPending) return <div className="page-loader">Ouverture de votre espace…</div>;
   if (q.error)
     return (
       <div className="page-loader">
@@ -154,9 +139,7 @@ function Gate({ children }: { children: ReactNode }) {
               await request("/api/workspaces", "POST", { name });
               await cache.invalidateQueries({ queryKey: ["workspaces"] });
             } catch (e) {
-              toast.error(
-                e instanceof Error ? e.message : "Création impossible",
-              );
+              toast.error(e instanceof Error ? e.message : "Création impossible");
             } finally {
               setBusy(false);
             }
@@ -164,11 +147,7 @@ function Gate({ children }: { children: ReactNode }) {
         >
           <label>
             Nom de votre entreprise
-            <input
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <input required value={name} onChange={(e) => setName(e.target.value)} />
           </label>
           <button className="button primary" disabled={busy}>
             Créer mon espace
@@ -190,7 +169,9 @@ function Gate({ children }: { children: ReactNode }) {
         },
       }}
     >
-      {children}
+      <AppearanceProvider key={q.data!.user.id} user={q.data!.user.id}>
+        {children}
+      </AppearanceProvider>
     </Context.Provider>
   );
 }

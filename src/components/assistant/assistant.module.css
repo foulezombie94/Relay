@@ -1,6 +1,6 @@
 .layout {
-  --ink: #292a30;
-  --subtle: #85868f;
+  --ink: var(--relay-ink, #292a30);
+  --subtle: var(--relay-muted, #85868f);
   display: grid;
   grid-template-columns: 224px minmax(0, 1fr);
   min-height: 0;
@@ -8,7 +8,7 @@
   border: 0;
   border-radius: 0;
   overflow: hidden;
-  background: #fff;
+  background: var(--relay-surface, #fff);
   color: var(--ink);
   transition: height 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -34,7 +34,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: #fafafa;
+  background: var(--relay-surface-soft, #fafafa);
   border-right: 1px solid var(--line);
   padding: 18px 12px 14px;
 }
@@ -85,7 +85,7 @@
   width: 100%;
   border: 1px solid #dfe5ef;
   border-radius: 7px;
-  background: white;
+  background: var(--relay-surface, white);
   font-weight: 550;
   font-size: 12px;
   color: #34435a;
@@ -209,7 +209,7 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  background: white;
+  background: var(--relay-surface, white);
 }
 .header > div.headerTitle {
   display: flex;
@@ -264,7 +264,7 @@
   max-width: calc(100vw - 30px);
   border: 1px solid #e5e5e9;
   border-radius: 9px;
-  background: white;
+  background: var(--relay-surface, white);
   padding: 5px;
   box-shadow: 0 8px 30px #24314515;
 }
@@ -364,7 +364,7 @@
   gap: 6px;
   align-items: center;
   padding: 3px 6px;
-  background: #fafafa;
+  background: var(--relay-surface-soft, #fafafa);
   border: 1px solid #ececf0;
   border-radius: 6px;
   text-align: left;
@@ -702,7 +702,7 @@
   padding: 17px;
   border: 1px solid #e3e9f4;
   border-radius: 8px;
-  background: #fff;
+  background: var(--relay-surface, #fff);
 }
 .proposalType {
   font-size: 9px;
@@ -772,7 +772,7 @@
   flex-shrink: 0;
   padding: 16px 0 32px;
   position: relative;
-  background: white;
+  background: var(--relay-surface, white);
 }
 .layout[data-view="welcome"] .composerArea {
   order: 2;
@@ -781,7 +781,7 @@
 .composer {
   border: 1px solid #e0e2e9;
   border-radius: 12px;
-  background: white;
+  background: var(--relay-surface, white);
   padding: 9px 10px 7px;
   box-shadow: 0 8px 28px #24314507;
   transition:
@@ -936,7 +936,7 @@
   border: 1px solid #dfe6f0;
   border-radius: 10px;
   padding: 6px;
-  background: white;
+  background: var(--relay-surface, white);
   box-shadow: 0 12px 40px #24314517;
   width: 320px;
   max-width: calc(100vw - 30px);
@@ -1004,7 +1004,7 @@
   left: 0;
   right: 0;
   z-index: 5;
-  background: white;
+  background: var(--relay-surface, white);
   border: 1px solid #e0e7f2;
   border-radius: 10px;
   box-shadow: 0 8px 30px #24314513;
@@ -1020,7 +1020,7 @@
   max-width: calc(100vw - 30px);
   border: 1px solid #e1e3ea;
   border-radius: 10px;
-  background: #fff;
+  background: var(--relay-surface, #fff);
   padding: 15px;
   box-shadow: 0 12px 40px #24314517;
   color: #42454f;
@@ -1361,8 +1361,8 @@
   padding: 12px;
   border: 1px solid #e2e2e5;
   border-radius: 16px;
-  background: #fdfdfd;
-  color: #18191b;
+  background: var(--relay-surface, #fdfdfd);
+  color: var(--relay-ink, #18191b);
 }
 .pulseHeader {
   display: flex;
@@ -1391,7 +1391,7 @@
   font-size: 10px;
   padding: 3px 7px;
   border-radius: 20px;
-  background: #f0f0f1;
+  background: var(--relay-hover, #f0f0f1);
   white-space: nowrap;
 }
 .pulseMetrics {
@@ -1475,14 +1475,14 @@
   border-radius: 99px;
   font-size: 11px;
   color: #73757c;
-  background: #fdfdfd;
+  background: var(--relay-surface, #fdfdfd);
   padding: 4px 11px;
   white-space: nowrap;
 }
 .pulseSignal button:hover {
   border-color: #b4b6bf;
   color: #292c33;
-  background: #f5f5f7;
+  background: var(--relay-hover, #f5f5f7);
 }
 .pulse button:disabled {
   opacity: 0.5;
@@ -1528,7 +1528,7 @@
   align-items: center;
   border: 1px solid #e4d7da;
   border-radius: 6px;
-  background: white;
+  background: var(--relay-surface, white);
   color: inherit;
   padding: 6px;
   font-size: 11px;
