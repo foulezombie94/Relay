@@ -149,6 +149,12 @@ export function SettingsUsage({ billing = false }: { billing?: boolean }) {
               </span>
               <strong>{data ? number(reserved) : "—"}</strong>
               <p>Les réservations protègent les traitements en cours et incertains.</p>
+              {!!data?.month?.uncertain_tokens && (
+                <small>
+                  {number(data.month.uncertain_tokens)} tokens estimés pour des appels sans
+                  confirmation fournisseur.
+                </small>
+              )}
             </article>
             <article>
               <span>
@@ -179,6 +185,7 @@ export function SettingsUsage({ billing = false }: { billing?: boolean }) {
                     <th>Statut</th>
                     <th>Outils</th>
                     <th>Tokens</th>
+                    <th>Coût estimé</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -198,18 +205,25 @@ export function SettingsUsage({ billing = false }: { billing?: boolean }) {
                       </td>
                       <td>{run.tool_calls}</td>
                       <td>{number(run.input_tokens + run.output_tokens)}</td>
+                      <td>
+                        {(run.cost_microusd / 1_000_000).toLocaleString("fr-FR", {
+                          style: "currency",
+                          currency: "USD",
+                          maximumFractionDigits: 4,
+                        })}
+                      </td>
                     </tr>
                   ))}
                   {data && !data.runs.length && (
                     <tr>
-                      <td colSpan={4} className={styles.emptyCell}>
+                      <td colSpan={5} className={styles.emptyCell}>
                         Vos analyses apparaîtront ici.
                       </td>
                     </tr>
                   )}
                   {!data && (
                     <tr>
-                      <td colSpan={4} className={styles.emptyCell}>
+                      <td colSpan={5} className={styles.emptyCell}>
                         {q.isPending ? "Chargement de l’utilisation…" : "Historique indisponible."}
                       </td>
                     </tr>
@@ -218,6 +232,52 @@ export function SettingsUsage({ billing = false }: { billing?: boolean }) {
               </table>
             </div>
           </section>
+          {!!data?.provider_calls?.length && (
+            <section className={styles.settingSection}>
+              <div className={styles.sectionCopy}>
+                <h2>Vos derniers appels au fournisseur IA</h2>
+                <p>
+                  Durées et tokens confirmés. Les estimations de coût dépendent des tarifs
+                  configurés et ne constituent pas une facture.
+                </p>
+              </div>
+              <div className={styles.historyTable}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Fournisseur / modèle</th>
+                      <th>Résultat</th>
+                      <th>Durée</th>
+                      <th>Entrée / sortie</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.provider_calls.map((call, i) => (
+                      <tr key={i}>
+                        <td>{date(call.created_at)}</td>
+                        <td>
+                          {call.provider} · {call.model}
+                        </td>
+                        <td>
+                          {call.status === "complete"
+                            ? "Confirmé"
+                            : call.status === "rejected"
+                              ? "Refusé"
+                              : "En cours / incertain"}
+                          {call.http_status ? ` · ${call.http_status}` : ""}
+                        </td>
+                        <td>{call.duration_ms === null ? "—" : `${call.duration_ms} ms`}</td>
+                        <td>
+                          {number(call.input_tokens)} / {number(call.output_tokens)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
         </>
       )}
       {billing && (

@@ -8,16 +8,41 @@ import {
 } from "@/lib/domain/assistant";
 import { ApiError } from "@/lib/api/context";
 import { executeTool, guard, propose, rpc, type ToolContext } from "./tools";
-import { toolsForModel, readRequestKey, toolLabel } from "./contracts";
+import { readRequestKey, toolLabel } from "./contracts";
 import { agentInstructions } from "./instructions";
 import { directIdentityAnswer, configuredAgentProvider } from "./identity";
 import { agentApiKey, agentEndpoint, agentProviderTools, agentProviderOptions } from "./provider";
+import { providerFailure, agentUsageCost } from "./provider";
+import { progressiveTools, discoveryInstructions } from "./discovery";
+import { logEvent } from "@/lib/observability/logger";
 
 // Provider output is bounded before JSON parsing; streams, tool arguments and errors
 // cannot grow indefinitely. No unvalidated model text is displayed to the user.
 async function providerJSON(response: Response) {
-  if (!response.ok || !response.body)
-    throw new ApiError("Le fournisseur IA est indisponible.", 502);
+  if (!response.ok) {
+    // Only inspect a bounded error code. Never expose provider bodies, requests,
+    // account identifiers or source content in telemetry or the UI.
+    let quota = false;
+    if (response.body) {
+      const reader = response.body.getReader();
+      let text = "";
+      try {
+        while (text.length < 8000) {
+          const part = await reader.read();
+          if (part.done) break;
+          text += new TextDecoder().decode(part.value);
+        }
+        if (text.length <= 8000) quota = JSON.parse(text).error?.code === "insufficient_quota";
+      } catch {
+        /* Error classification never depends on untrusted provider prose. */
+      } finally {
+        await reader.cancel().catch(() => {});
+        reader.releaseLock();
+      }
+    }
+    throw providerFailure(response, quota);
+  }
+  if (!response.body) throw new ApiError("Réponse du fournisseur IA absente.", 502);
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let text = "";
@@ -49,9 +74,9 @@ export async function runAgent(
   },
 ) {
   c.untrustedContext ||= options.priorQuestions.length > 0;
-  const definitions = agentProviderTools(toolsForModel());
+  const toolbox = progressiveTools();
   const messages: Array<Record<string, unknown>> = [
-    { role: "system", content: agentInstructions(options.model) },
+    { role: "system", content: agentInstructions(options.model) + "\n" + discoveryInstructions },
     {
       role: "user",
       content: JSON.stringify({
@@ -95,12 +120,15 @@ export async function runAgent(
       options.signal.throwIfAborted();
       await guard(c);
       const prompt = JSON.stringify(messages);
+      const definitions = agentProviderTools(toolbox.definitions());
       // A UTF-8 byte upper bound is conservative for supported tokenizers. The
       // same reservation covers every successive call, including tool context.
-      estimated +=
+      const callBudget =
         Buffer.byteLength(prompt) +
         Buffer.byteLength(JSON.stringify(definitions)) +
-        options.outputTokens;
+        options.outputTokens +
+        1024;
+      estimated += callBudget;
       if (estimated > options.reservedTokens)
         throw new ApiError(
           "Budget IA atteint. Réduisez le périmètre ou ouvrez une nouvelle recherche.",
@@ -108,28 +136,78 @@ export async function runAgent(
         );
       options.step("model-" + round, "Analyse des sources et sélection des outils", "running");
       const exhausted = toolCalls >= options.toolLimit;
-      const response = await fetch(agentEndpoint(), {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + agentApiKey(),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const beganProvider = Date.now();
+      await rpc(c.client, "agent_runtime", {
+        w: c.workspace,
+        operation: "provider_begin",
+        payload: {
+          id: c.run,
+          secret: c.runSecret,
+          sequence: round,
+          reserved_tokens: callBudget,
           model: options.model,
-          ...agentProviderOptions(exhausted),
-          max_completion_tokens: options.outputTokens,
-          ...(configuredAgentProvider() === "groq" && exhausted
-            ? {}
-            : {
-                tools: definitions,
-                parallel_tool_calls: false,
-                tool_choice: exhausted ? "none" : "auto",
-              }),
-          messages,
-        }),
-        redirect: "error",
-        signal: options.signal,
+          provider: configuredAgentProvider(),
+        },
       });
+      let response: Response;
+      try {
+        response = await fetch(agentEndpoint(), {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + agentApiKey(),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: options.model,
+            ...agentProviderOptions(exhausted),
+            max_completion_tokens: options.outputTokens,
+            ...(configuredAgentProvider() === "groq" && exhausted
+              ? {}
+              : {
+                  tools: definitions,
+                  parallel_tool_calls: false,
+                  tool_choice: exhausted ? "none" : "auto",
+                }),
+            messages,
+          }),
+          redirect: "error",
+          signal: options.signal,
+        });
+      } catch (error) {
+        await logEvent("warn", "agent_provider_call", {
+          run_id: c.run,
+          provider: configuredAgentProvider(),
+          duration_ms: Date.now() - beganProvider,
+          code: options.signal.aborted ? "aborted" : "network_uncertain",
+        });
+        throw error;
+      }
+      if (
+        !response.ok &&
+        response.status >= 400 &&
+        response.status < 500 &&
+        response.status !== 408
+      )
+        await rpc(c.client, "agent_runtime", {
+          w: c.workspace,
+          operation: "provider_finish",
+          payload: {
+            id: c.run,
+            secret: c.runSecret,
+            sequence: round,
+            status: "rejected",
+            http_status: response.status,
+            duration_ms: Date.now() - beganProvider,
+          },
+        });
+      if (!response.ok)
+        await logEvent("warn", "agent_provider_call", {
+          run_id: c.run,
+          provider: configuredAgentProvider(),
+          status: response.status,
+          duration_ms: Date.now() - beganProvider,
+          code: "provider_http_error",
+        });
       const data = await providerJSON(response);
       if (
         !Number.isSafeInteger(data.usage?.prompt_tokens) ||
@@ -140,6 +218,29 @@ export async function runAgent(
         throw new ApiError("Usage IA non confirmé ; réservation conservée.", 502);
       inputTokens += data.usage.prompt_tokens;
       outputTokens += data.usage.completion_tokens;
+      await rpc(c.client, "agent_runtime", {
+        w: c.workspace,
+        operation: "provider_finish",
+        payload: {
+          id: c.run,
+          secret: c.runSecret,
+          sequence: round,
+          status: "complete",
+          input_tokens: data.usage.prompt_tokens,
+          output_tokens: data.usage.completion_tokens,
+          cost_microusd: agentUsageCost(data.usage.prompt_tokens, data.usage.completion_tokens),
+          duration_ms: Date.now() - beganProvider,
+          http_status: response.status,
+        },
+      });
+      await logEvent("info", "agent_provider_call", {
+        run_id: c.run,
+        provider: configuredAgentProvider(),
+        duration_ms: Date.now() - beganProvider,
+        input_tokens: data.usage.prompt_tokens,
+        output_tokens: data.usage.completion_tokens,
+        status: response.status,
+      });
       const choice = data.choices?.[0];
       if (!choice || choice.finish_reason === "length")
         throw new ApiError("Réponse IA incomplète. Affinez la demande.", 502);
@@ -170,20 +271,25 @@ export async function runAgent(
       toolCalls++;
       const began = Date.now(),
         id = "tool-" + toolCalls;
-      const label = toolLabel(name);
+      const label = name === "discover_tools" ? "Sélection des capacités utiles" : toolLabel(name);
       options.step(id, label, "running");
       let result: unknown;
       try {
         const raw = JSON.parse(call.function.arguments);
+        if (!toolbox.allows(name))
+          throw new ApiError("Cet outil doit être découvert avant utilisation.", 400);
         const key = readRequestKey(name, raw);
         if (key && completedReads.has(key))
           throw new ApiError(
             "Cette lecture identique a déjà réussi dans ce tour. Utilisez son résultat, le curseur suivant, un passage ou un filtre pertinent différent.",
             409,
           );
-        result = await executeTool(c, name, raw, call.id);
+        result =
+          name === "discover_tools"
+            ? toolbox.discover(raw)
+            : await executeTool(c, name, raw, call.id);
         if (key) completedReads.add(key);
-        else completedReads.clear();
+        else if (name !== "discover_tools") completedReads.clear();
         const encoded = JSON.stringify(result);
         if (encoded.length > 40000)
           throw new ApiError("Résultat trop volumineux. Affinez la recherche.", 413);
@@ -400,9 +506,7 @@ export async function runAgent(
       access_fingerprint: access,
     } satisfies Partial<AssistantMessage>;
   } finally {
-    const inputRate = Math.max(0, Number(process.env.AGENT_INPUT_USD_PER_MILLION) || 0.4),
-      outputRate = Math.max(0, Number(process.env.AGENT_OUTPUT_USD_PER_MILLION) || 1.6);
-    cost = Math.ceil(inputTokens * inputRate + outputTokens * outputRate);
+    cost = agentUsageCost(inputTokens, outputTokens);
     await rpc(c.client, "agent_runtime", {
       w: c.workspace,
       operation: "finish",

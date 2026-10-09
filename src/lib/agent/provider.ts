@@ -1,6 +1,39 @@
 import "server-only";
 import { configuredAgentProvider } from "./identity";
-import type { toolsForModel } from "./contracts";
+import { ApiError } from "@/lib/api/context";
+
+export function retryAfterSeconds(headers: Headers, now = Date.now()) {
+  const value = headers.get("retry-after");
+  if (!value) return undefined;
+  const seconds = /^\d+(?:\.\d+)?$/.test(value) ? Number(value) : (Date.parse(value) - now) / 1000;
+  return Number.isFinite(seconds) ? Math.min(86400, Math.max(1, Math.ceil(seconds))) : undefined;
+}
+export function providerFailure(response: Response, exhaustedQuota = false) {
+  const status = response.status;
+  return Object.assign(
+    new ApiError(
+      status === 429
+        ? exhaustedQuota
+          ? "Le quota du fournisseur IA est épuisé. Vérifiez son offre et sa facturation."
+          : "Le fournisseur IA limite temporairement les demandes. Réessayez après le délai indiqué."
+        : [401, 403].includes(status)
+          ? "La connexion au fournisseur IA est mal configurée. Contactez votre administrateur."
+          : status === 400 || status === 404 || status === 422
+            ? "Le fournisseur IA a refusé cette requête. Contactez votre administrateur."
+            : "Le fournisseur IA est temporairement indisponible. Réessayez.",
+      status === 429 ? 429 : 502,
+    ),
+    {
+      code:
+        status === 429
+          ? exhaustedQuota
+            ? "provider_quota_exhausted"
+            : "provider_rate_limited"
+          : "provider_failed",
+      retryAfter: retryAfterSeconds(response.headers),
+    },
+  );
+}
 
 export function agentApiKey() {
   return configuredAgentProvider() === "groq"
@@ -24,7 +57,12 @@ function compactSchema(value: unknown): unknown {
     );
   return value;
 }
-export function agentProviderTools(tools: ReturnType<typeof toolsForModel>) {
+export function agentProviderTools(
+  tools: Array<{
+    type: string;
+    function: { name: string; description: string; parameters: unknown };
+  }>,
+) {
   if (configuredAgentProvider() !== "groq") return tools;
   return tools.map((tool) => ({
     ...tool,
@@ -33,6 +71,16 @@ export function agentProviderTools(tools: ReturnType<typeof toolsForModel>) {
       parameters: compactSchema(tool.function.parameters),
     },
   }));
+}
+export function agentUsageCost(input: number, output: number) {
+  const rate = (name: string, fallback: number) => {
+    const value = Number(process.env[name]);
+    return Number.isFinite(value) && value >= 0 && process.env[name]?.trim() ? value : fallback;
+  };
+  return Math.ceil(
+    input * rate("AGENT_INPUT_USD_PER_MILLION", 0.4) +
+      output * rate("AGENT_OUTPUT_USD_PER_MILLION", 1.6),
+  );
 }
 export function agentProviderOptions(exhausted: boolean) {
   if (configuredAgentProvider() !== "groq")

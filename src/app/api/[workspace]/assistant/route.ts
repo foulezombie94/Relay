@@ -224,6 +224,7 @@ export async function POST(req: NextRequest, { params }: P) {
     const encoder = new TextEncoder();
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
+        let runHandle: { id: string; secret: string } | undefined;
         let connected = true;
         const emit = (event: AssistantEvent) => {
           if (!connected) return;
@@ -293,10 +294,12 @@ export async function POST(req: NextRequest, { params }: P) {
             operation: "begin",
             payload: {
               tool_limit: limits.toolLimit,
-              reserved_tokens: limits.reservedTokens,
+              reserved_tokens: input.deepen ? 180000 : 60000,
+              token_limit: limits.reservedTokens,
               secret: runSecret,
             },
           });
+          runHandle = { id: admitted.id, secret: runSecret };
           await rpc(client, "agent_register_request", {
             w: workspace,
             run_id: admitted.id,
@@ -358,6 +361,10 @@ export async function POST(req: NextRequest, { params }: P) {
             : error instanceof ApiError
               ? error.message
               : "La réponse a été interrompue. Réessayez.";
+          const details = error as { code?: string; retryAfter?: number; status?: number };
+          const retry = details.retryAfter
+            ? ` Réessayez dans ${details.retryAfter} seconde(s).`
+            : "";
           step(
             currentStep || "analysis",
             stopped ? "Réponse arrêtée" : "Étape interrompue",
@@ -369,7 +376,9 @@ export async function POST(req: NextRequest, { params }: P) {
             await persist({
               ...assistantMessage,
               state: stopped ? "stopped" : "error",
-              answer: message,
+              answer: message + retry,
+              error_code: details.code,
+              retry_after: details.retryAfter,
               proposals: [],
               sources: [],
               steps,
@@ -378,8 +387,22 @@ export async function POST(req: NextRequest, { params }: P) {
           } catch {
             /* A newer conversation or deletion must not be overwritten. */
           }
-          emit({ type: "error", error: message });
+          emit({
+            type: "error",
+            error: message + retry,
+            status: details.status,
+            code: details.code,
+            retry_after: details.retryAfter,
+          });
         } finally {
+          // Covers registration failures before runAgent starts. Terminal ledger
+          // settlement is idempotent, so the runner's own finish can safely win.
+          if (runHandle)
+            await rpc(client, "agent_runtime", {
+              w: workspace,
+              operation: "finish",
+              payload: { id: runHandle.id, secret: runHandle.secret, status: "error" },
+            }).catch(() => {});
           try {
             controller.close();
           } catch {

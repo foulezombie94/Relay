@@ -48,11 +48,38 @@ const searchKinds: Record<string, string> = {
 };
 export async function rpc(client: SupabaseClient, name: string, args: Record<string, unknown>) {
   const r = await client.rpc(name, args);
-  if (r.error?.code === "53300")
-    throw new ApiError(
-      "Le budget ou quota est atteint. Affinez la recherche ou approfondissez dans un nouveau tour.",
-      429,
-    );
+  if (r.error?.code === "53300") {
+    const reasons: Record<string, [string, string]> = {
+      "Agent already running": [
+        "Une analyse est déjà en cours. Attendez sa fin avant de réessayer.",
+        "agent_busy",
+      ],
+      "Daily agent quota exceeded": [
+        "La limite quotidienne d’analyses de cet espace est atteinte. Elle se renouvelle à minuit UTC.",
+        "agent_daily_quota",
+      ],
+      "Monthly agent quota exceeded": [
+        "Le budget mensuel IA de cet espace est atteint. Consultez l’utilisation dans les paramètres.",
+        "agent_monthly_quota",
+      ],
+      "Tool budget exceeded": [
+        "Le budget de cette analyse est atteint. Demandez à approfondir dans un nouveau tour.",
+        "agent_run_budget",
+      ],
+      "External daily quota exceeded": [
+        "Le quota quotidien d’envois ou de rendez-vous est atteint.",
+        "external_daily_quota",
+      ],
+    };
+    const [message, code] = reasons[r.error.message] ?? [
+      "La capacité ou le quota est atteint. Consultez le statut et l’utilisation avant de réessayer.",
+      "agent_capacity",
+    ];
+    throw Object.assign(new ApiError(message, 429), {
+      code,
+      ...(code === "agent_busy" ? { retryAfter: 5 } : {}),
+    });
+  }
   if (r.error?.code === "40001")
     throw new ApiError(
       "L’élément a changé ou l’action est déjà en cours. Actualisez son statut.",

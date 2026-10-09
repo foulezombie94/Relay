@@ -70,6 +70,8 @@ export type AssistantMessage = {
   security_notices?: import("@/lib/agent/security").SecurityNotice[];
   access_fingerprint?: string;
   partial?: boolean;
+  error_code?: string;
+  retry_after?: number;
   accepted?: Record<string, { id: string; resource: string }>;
 };
 export type AssistantConversation = {
@@ -83,7 +85,7 @@ export type AssistantEvent =
   | { type: "step"; step: AssistantStep }
   | { type: "text"; text: string }
   | { type: "complete"; message: AssistantMessage }
-  | { type: "error"; error: string };
+  | { type: "error"; error: string; status?: number; code?: string; retry_after?: number };
 
 export const assistantPrompts = [
   {

@@ -475,24 +475,26 @@ function documentedParameters(schema: {
   return schema;
 }
 
-export function toolsForModel() {
-  return Object.entries(toolSchemas).map(([name, schema]) => ({
-    type: "function",
-    function: {
-      name,
-      description: toolDescriptions[name as ToolName],
-      parameters: documentedParameters(
-        JSON.parse(
-          JSON.stringify(z.toJSONSchema(schema, { io: "input" }), (key, value) =>
-            key === "$schema" ||
-            (key === "pattern" && typeof value === "string" && value.length > 100)
-              ? undefined
-              : value,
+export function toolsForModel(names?: readonly ToolName[]) {
+  return Object.entries(toolSchemas)
+    .filter(([name]) => !names || names.includes(name as ToolName))
+    .map(([name, schema]) => ({
+      type: "function",
+      function: {
+        name,
+        description: toolDescriptions[name as ToolName],
+        parameters: documentedParameters(
+          JSON.parse(
+            JSON.stringify(z.toJSONSchema(schema, { io: "input" }), (key, value) =>
+              key === "$schema" ||
+              (key === "pattern" && typeof value === "string" && value.length > 100)
+                ? undefined
+                : value,
+            ),
           ),
         ),
-      ),
-    },
-  }));
+      },
+    }));
 }
 
 // Authorization is derived only from the CURRENT user message. A source, history,

@@ -206,6 +206,8 @@ function AssistantSession() {
             ...m,
             state: "error",
             answer: event.error,
+            error_code: event.code,
+            retry_after: event.retry_after,
             sources: [],
             proposals: [],
           }));
