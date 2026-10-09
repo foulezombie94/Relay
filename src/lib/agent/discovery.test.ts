@@ -11,8 +11,31 @@ describe("progressive tool catalogue", () => {
       t.discover({ names: [name] });
       expect(t.allows(name)).toBe(true);
       expect(t.definitions().some((d) => d.function.name === name)).toBe(true);
-      expect(t.definitions().length).toBeLessThanOrEqual(14);
+      expect(t.definitions().length).toBeLessThanOrEqual(names.length + 1);
     }
+    expect(t.definitions()).toHaveLength(38);
+    for (const name of names) expect(t.allows(name)).toBe(true);
+  });
+  it("retains earlier tools across discoveries and does not duplicate schemas", () => {
+    const t = progressiveTools();
+    t.discover({ names: ["draft_email", "get_email_thread"] });
+    const result = t.discover({ names: ["send_email", "draft_email", "search_records"] });
+    expect(result.available_tools).toEqual(expect.arrayContaining([
+      "draft_email", "get_email_thread", "send_email", "search_records",
+    ]));
+    expect(result.changed).toBe(true);
+    for (const name of ["draft_email", "get_email_thread", "send_email"])
+      expect(t.definitions().filter((d) => d.function.name === name)).toHaveLength(1);
+    expect(t.discover({ names: ["draft_email", "search_records"] }).changed).toBe(false);
+  });
+  it("keeps catalogues isolated per run and leaves state unchanged after invalid discovery", () => {
+    const first = progressiveTools();
+    first.discover({ names: ["draft_email"] });
+    const before = first.definitions();
+    expect(() => first.discover({ names: ["send_email", "execute_sql"] })).toThrow();
+    expect(first.definitions()).toEqual(before);
+    expect(first.allows("send_email")).toBe(false);
+    expect(progressiveTools().allows("draft_email")).toBe(false);
   });
   it("rejects unknown tools, hidden arguments and oversized discovery requests", () => {
     const t = progressiveTools();

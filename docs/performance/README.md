@@ -2,7 +2,7 @@
 
 ## Changements
 
-Ask Relay conserve ses 37 outils métier. Sept outils courants et `discover_tools` sont envoyés au premier appel ; au maximum six outils supplémentaires sont chargés à la demande (14 définitions au total). La découverte consomme un appel du budget existant de 5 ou 15 appels. Elle ne donne aucun droit d'action. Les contrôles de permissions, de sources et de confirmations restent appliqués à chaque opération.
+Ask Relay conserve ses 37 outils métier. Sept outils courants et `discover_tools` sont envoyés au premier appel. Chaque découverte ajoute au plus six outils et conserve ceux déjà chargés, sans doublons ; le catalogue peut donc atteindre les 37 outils métier plus `discover_tools` si le travail le nécessite (38 définitions au maximum). Il n'y a pas de plafond global de six outils supplémentaires. La découverte consomme un appel du budget existant de 5 ou 15 appels, et les réservations de tokens tiennent compte du catalogue transmis. Elle ne donne aucun droit d'action. Les contrôles de permissions, de sources et de confirmations restent appliqués à chaque opération.
 
 Chaque appel fournisseur possède désormais une réservation atomique et un résultat dans un journal privé. Une exécution réserve initialement 60 000 tokens, ou 180 000 en approfondissement ; la réservation peut croître avant les appels suivants, dans les limites de l'exécution et du workspace. À la fin, le budget inutilisé est libéré, y compris après une erreur. Un refus HTTP 4xx hors 408 ne consomme pas la réservation de cet appel. Une réponse avec usage confirmé conserve les tokens réels ; une coupure réseau ou une réponse sans usage fiable conserve une estimation prudente. Le cron récupère les exécutions expirées après arrêt du serveur. Aucun retry aveugle n'est ajouté.
 
@@ -38,7 +38,7 @@ RELAY_LOAD_DASHBOARD=sales npm run test:performance:load
 
 Les runners de charge et de régression PostgreSQL refusent une destination distante. Le bootstrap local émule le schéma Auth ; un stand-in vide de `cron.job` permet le test historique du cron désactivé. L'activation réelle du nouveau cron est vérifiée séparément dans Supabase. Chaque suite SQL fait un rollback ; les tests de concurrence/charge suppriment leurs fixtures dans `finally`.
 
-Validation : 281 tests Vitest, 16 suites SQL, typecheck et lint des fichiers modifiés. Les scénarios couvrent notamment l'isolation des workspaces, les sources privées, les permissions révoquées, les confirmations exactes/refusées/expirées, les valeurs de cache forgées, la déduplication, les crashs et les quotas. Le test de concurrence lance 32 demandes à la fois : une seule analyse admise, une seule réservation email quand il reste une place sur 200, et un seul job/outbox après 32 confirmations identiques. Aucun email n'est envoyé.
+Validation : 283 tests Vitest, 16 suites SQL, typecheck et lint des fichiers modifiés. Les tests de découverte couvrent désormais le cumul des 37 outils, les doublons, l'isolation entre exécutions et une découverte invalide sans modification d'état. Les scénarios couvrent aussi l'isolation des workspaces, les sources privées, les permissions révoquées, les confirmations exactes/refusées/expirées, les valeurs de cache forgées, la déduplication, les crashs et les quotas. Le test de concurrence lance 32 demandes à la fois : une seule analyse admise, une seule réservation email quand il reste une place sur 200, et un seul job/outbox après 32 confirmations identiques. Aucun email n'est envoyé.
 
 ## Mesures locales
 

@@ -17,14 +17,14 @@ const discover = {
   function: {
     name: "discover_tools",
     description:
-      "Rendre disponibles jusqu’à six outils métier supplémentaires pour les prochains appels. Cette opération ne lit ni ne modifie aucune donnée CRM et ne donne aucune autorisation.",
+      "Ajouter jusqu’à six outils métier par découverte pour les prochains appels. Les outils déjà chargés restent disponibles. Cette opération ne lit ni ne modifie aucune donnée CRM et ne donne aucune autorisation.",
     parameters: z.toJSONSchema(discoveryInput, { io: "input" }),
   },
 };
 export const discoveryInstructions =
   "Les outils sont chargés progressivement. Appelle discover_tools pour obtenir les outils nécessaires avant de les utiliser. Le catalogue complet reste disponible : " +
   names.join(", ") +
-  ". La découverte ne remplace jamais les contrôles d’accès ou confirmations.";
+  ". Demande au plus six outils par découverte ; les découvertes successives se cumulent sans retirer les outils déjà chargés. Ne charge que les outils utiles à l’objectif. La découverte ne remplace jamais les contrôles d’accès ou confirmations.";
 
 export function progressiveTools() {
   let extra: ToolName[] = [];
@@ -35,8 +35,11 @@ export function progressiveTools() {
       base.includes(name as ToolName) ||
       extra.includes(name as ToolName),
     discover: (raw: unknown) => {
-      extra = [...new Set(discoveryInput.parse(raw).names)].filter((name) => !base.includes(name));
-      return { available_tools: [...base, ...extra], changed: true, data_access: false };
+      const requested = discoveryInput.parse(raw).names.filter((name) => !base.includes(name));
+      const next = [...new Set([...extra, ...requested])];
+      const changed = next.length !== extra.length;
+      extra = next;
+      return { available_tools: [...base, ...extra], changed, data_access: false };
     },
   };
 }
