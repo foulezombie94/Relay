@@ -44,14 +44,6 @@ function publicModules(entry: string, seen = new Set<string>()) {
   return seen;
 }
 describe("public landing preview isolation", () => {
-  it("bypasses Supabase session refresh for the public home page", () => {
-    const source = fs.readFileSync("src/proxy.ts", "utf8");
-    const bypass = source.indexOf("request.nextUrl.pathname==='/'");
-    expect(bypass).toBeGreaterThan(-1);
-    expect(bypass).toBeLessThan(
-      source.indexOf("createServerClient(process.env"),
-    );
-  });
   it("disables automatic private route prefetch in previews", () => {
     const source = fs.readFileSync(
       "src/components/app-sidebar-view.tsx",

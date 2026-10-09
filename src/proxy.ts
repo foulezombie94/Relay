@@ -3,8 +3,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loginDestination, sessionCookieOptions } from '@/lib/supabase/session';
 export async function proxy(request:NextRequest) {
   let response=NextResponse.next({request});
-  if (request.nextUrl.pathname==='/' || request.nextUrl.pathname==='/api/health' || request.nextUrl.pathname==='/api/jobs/run') return response;
-  if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) return response;
+  if (request.nextUrl.pathname==='/api/health' || request.nextUrl.pathname==='/api/jobs/run') return response;
+  const isHome=request.nextUrl.pathname==='/';
+  // The home route varies by session. Even its anonymous response must not be
+  // cached, or reopening the site could reuse the landing page after sign-in.
+  if(isHome)response.headers.set('Cache-Control','private, no-store');
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) return response;
+  if(isHome){
+    const cookieName=`sb-${new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.split('.')[0]}-auth-token`;
+    const hasSessionCookie=request.cookies.getAll().some(({name,value})=>value && (
+      name===cookieName || (name.startsWith(cookieName+'.') && /^\d+$/.test(name.slice(cookieName.length+1)))
+    ));
+    // A cookie is only a hint to attempt verification, never authorization.
+    if(!hasSessionCookie)return response;
+  }
   const client=createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,{
     cookieOptions:sessionCookieOptions(),
     cookies:{
@@ -24,11 +36,12 @@ export async function proxy(request:NextRequest) {
     },
   });
   const mode=request.nextUrl.searchParams.get('mode');
-  if(request.nextUrl.pathname==='/login' && mode!=='signup' && mode!=='reset'){
+  if(isHome || (request.nextUrl.pathname==='/login' && mode!=='signup' && mode!=='reset')){
     // A cookie or locally valid JWT alone is not enough to restore a session.
     const {data:{user},error}=await client.auth.getUser();
     if(user && !error){
-      const redirect=NextResponse.redirect(new URL(loginDestination(request.nextUrl.searchParams.get('next')),request.url));
+      const destination=isHome?'/app/dashboard':loginDestination(request.nextUrl.searchParams.get('next'));
+      const redirect=NextResponse.redirect(new URL(destination,request.url));
       response.cookies.getAll().forEach(cookie=>redirect.cookies.set(cookie));
       for(const key of ['Cache-Control','Expires','Pragma']){
         const value=response.headers.get(key);

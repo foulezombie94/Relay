@@ -31,7 +31,7 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("real Supabase SSR session round trips", () => {
-  it("refreshes an expired JWT once, persists the rotated refresh token and resumes without password entry", async () => {
+  it.each(["/login", "/"])("refreshes an expired JWT once, persists the rotated refresh token and resumes without password entry from %s", async path => {
     const renewed = session();
     const fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
       const target = String(url);
@@ -46,7 +46,7 @@ describe("real Supabase SSR session round trips", () => {
       throw new Error("Unexpected fixture endpoint: " + target);
     });
     vi.stubGlobal("fetch", fetch);
-    const req = request("/login", cookie(session(true)));
+    const req = request(path, cookie(session(true)));
     const response = await proxy(req);
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe("https://relay.example/app/dashboard");
@@ -61,39 +61,39 @@ describe("real Supabase SSR session round trips", () => {
     expect(response.headers.get("pragma")).toBe("no-cache");
 
     // Simulate a new HTTP request after reopening the site with persisted cookies.
-    const reopened = await proxy(request("/login", stored.value));
+    const reopened = await proxy(request(path, stored.value));
     expect(reopened.status).toBe(307);
     expect(fetch.mock.calls.filter(([url]) => String(url).includes("/token?")).length).toBe(1);
   });
 
-  it("clears a revoked session instead of granting access from a still-unexpired JWT", async () => {
+  it.each(["/login", "/"])("clears a revoked session instead of granting access from a still-unexpired JWT on %s", async path => {
     vi.stubGlobal("fetch", vi.fn(async () => json({ error_code: "session_not_found", msg: "Session revoked" }, 401)));
-    const response = await proxy(request("/login", cookie(session())));
+    const response = await proxy(request(path, cookie(session())));
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
     expect(response.cookies.get(cookieName)?.maxAge).toBe(0);
     expect(response.cookies.get(cookieName)?.value).toBe("");
   });
 
-  it("does not resurrect a session whose refresh token has been revoked", async () => {
+  it.each(["/login", "/"])("does not resurrect a session whose refresh token has been revoked on %s", async path => {
     const fetch = vi.fn(async () => json({ error_code: "refresh_token_not_found", msg: "Refresh token revoked" }, 400));
     vi.stubGlobal("fetch", fetch);
-    const response = await proxy(request("/login", cookie(session(true))));
+    const response = await proxy(request(path, cookie(session(true))));
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
     expect(response.cookies.get(cookieName)?.maxAge).toBe(0);
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps persistent credentials through a temporary Auth outage and restores them on the next request", async () => {
+  it.each(["/login", "/"])("keeps persistent credentials through a temporary Auth outage and restores them on the next request on %s", async path => {
     const value = cookie(session());
     vi.stubGlobal("fetch", vi.fn(async () => json({ message: "Temporary upstream outage" }, 503)));
-    const response = await proxy(request("/login", value));
+    const response = await proxy(request(path, value));
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
     expect(response.cookies.get(cookieName)).toBeUndefined();
     vi.stubGlobal("fetch", vi.fn(async () => json(user)));
-    const resumed = await proxy(request("/login", value));
+    const resumed = await proxy(request(path, value));
     expect(resumed.status).toBe(307);
   });
 });

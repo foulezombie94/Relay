@@ -83,4 +83,47 @@ describe("Supabase session proxy", () => {
     await proxy(request(path));
     expect(mocks.createServerClient).not.toHaveBeenCalled();
   });
+
+  it("keeps the anonymous landing response uncached so reopening checks auth again", async () => {
+    const response = await proxy(request("/"));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("location")).toBeNull();
+    expect(mocks.getUser).not.toHaveBeenCalled();
+  });
+
+  it.each(["sb-fixture-auth-token", "sb-fixture-auth-token.0"])("opens the CRM from home only after server verification, including chunked cookies: %s", async name => {
+    mocks.getUser.mockImplementation(async () => {
+      adapter().setAll([{ name, value: "renewed", options: { secure: true, path: "/" } }], { Pragma: "no-cache" });
+      return { data: { user: { id: "user-a" } }, error: null };
+    });
+    const req = request("/?mode=signup&next=//evil.example");
+    req.cookies.set(name, "untrusted-session-hint");
+    const response = await proxy(req);
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://relay.example/app/dashboard");
+    expect(response.cookies.get(name)?.value).toBe("renewed");
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("pragma")).toBe("no-cache");
+    expect(mocks.getUser).toHaveBeenCalledTimes(1);
+    expect(mocks.getClaims).not.toHaveBeenCalled();
+  });
+
+  it.each(["relay_sidebar_open", "sb-another-project-auth-token", "sb-fixture-auth-token-code-verifier", "sb-fixture-auth-token.extra"])("ignores non-session cookies on the public home: %s", async name => {
+    const req = request("/");
+    req.cookies.set(name, "fixture-value");
+    const response = await proxy(req);
+    expect(response.status).toBe(200);
+    expect(mocks.createServerClient).not.toHaveBeenCalled();
+  });
+
+  it.each([{ status: 401, code: "session_not_found" }, { name: "AuthRetryableFetchError", status: 503 }])("does not redirect from home when session verification fails: %s", async error => {
+    mocks.getUser.mockResolvedValue({ data: { user: null }, error });
+    const req = request("/");
+    req.cookies.set("sb-fixture-auth-token", "forged-or-stale");
+    const response = await proxy(req);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+  });
 });
