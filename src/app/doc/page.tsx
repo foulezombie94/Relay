@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Documentation } from "@/components/documentation";
+import { Documentation } from "@/components/help/documentation";
 export const metadata = {
   title: "Guide utilisateur · Relay CRM",
   description:

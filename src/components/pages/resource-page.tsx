@@ -1,11 +1,11 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Pagination } from "../pagination";
-import { RecordPicker } from "../record-picker";
-import { SourceFields, RepeatFields } from "../structured-fields";
+import { Pagination } from "../ui/pagination";
+import { RecordPicker } from "../records/picker";
+import { SourceFields, RepeatFields } from "../ui/structured-fields";
 import { Pencil, Trash2, Check, FileText } from "lucide-react";
-import { useRows, useSave, useWorkspace } from "../data-provider";
+import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import {
   AddButton,
   Editor,
@@ -21,7 +21,7 @@ import {
 } from "../ui";
 import type { Row, CrmRecord } from "@/lib/domain/types";
 import { PortalDetails } from "./portal-details";
-import { ResourceCard } from "../resource-card";
+import { ResourceCard } from "../records/resource-card";
 const titleField: Field = { key: "title", label: "Titre", required: true };
 const statusField = (values: string[]): Field => ({
   key: "status",

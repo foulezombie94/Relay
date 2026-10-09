@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { KeyRound, Link2, Plus } from "lucide-react";
 import Link from "next/link";
-import { request, useWorkspace } from "../data-provider";
+import { request, useWorkspace } from "../providers/data-provider";
 import { ErrorMessage } from "../ui";
 import styles from "./workflows.module.css";
 export type Destination = { id: string; name: string; kind: "slack" | "webhook"; enabled: boolean };

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRows, useSave, useWorkspace } from "../data-provider";
+import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import {
   PageHeader,
   AddButton,

@@ -6,10 +6,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { WorkflowConnections } from "../workflows/connections";
 import { toast } from "sonner";
-import { useRows, useSave, useWorkspace, request } from "../data-provider";
+import { useRows, useSave, useWorkspace, request } from "../providers/data-provider";
 import { PageHeader, Modal, Empty, ErrorMessage } from "../ui";
-import { Pagination } from "../pagination";
-import { RecordPicker } from "../record-picker";
+import { Pagination } from "../ui/pagination";
+import { RecordPicker } from "../records/picker";
 import { WorkflowBuilder, type WorkflowDraft } from "../workflows/builder";
 import { WorkflowHistory, State } from "../workflows/history";
 import {

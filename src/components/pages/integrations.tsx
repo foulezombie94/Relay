@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useWorkspace, request } from "../data-provider";
+import { useWorkspace, request } from "../providers/data-provider";
 import { PageHeader, Badge, ErrorMessage, date, Loading } from "../ui";
-import { ZapierConnection } from "../zapier-connection";
-import { BackgroundJob } from "../background-job";
+import { ZapierConnection } from "../integrations/zapier-connection";
+import { BackgroundJob } from "../jobs/background-job";
 type Connector = {
   provider: string;
   name: string;

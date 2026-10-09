@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRows, useSave, useWorkspace } from "../data-provider";
+import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import { Modal, Editor, Badge, str, date, Empty, type Field } from "../ui";
 import type { Row } from "@/lib/domain/types";
 export function PortalDetails({

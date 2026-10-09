@@ -1,9 +1,9 @@
 "use client";
-import { ReportBuilder } from "../report-builder";
-import { ForecastTotals } from "../forecast-totals";
+import { ReportBuilder } from "../reports/report-builder";
+import { ForecastTotals } from "../reports/forecast-totals";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRows, useWorkspace, request } from "../data-provider";
+import { useRows, useWorkspace, request } from "../providers/data-provider";
 import { PageHeader, Loading, ErrorMessage, money, Badge, Empty, str } from "../ui";
 import type { forecastDeals } from "@/lib/domain/pipelines";
 import type { salesHistory } from "@/lib/domain/sales-history";

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Mail, ChevronDown, ShieldAlert } from "lucide-react";
-import { request, useWorkspace } from "../data-provider";
+import { request, useWorkspace } from "../providers/data-provider";
 import type { AssistantSource } from "@/lib/domain/assistant";
 import type { SecurityNotice } from "@/lib/agent/security";
 import styles from "./assistant.module.css";

@@ -1,5 +1,5 @@
 import Papa from "papaparse";
-import { resources } from "@/lib/api/resources";
+import { resources } from "@/lib/domain/resource-schemas";
 import { validateAttributes } from "./attributes";
 import { migrationFields, referenceIds } from "./crm-migration";
 import type { Attribute } from "./types";

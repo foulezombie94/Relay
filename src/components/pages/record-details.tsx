@@ -2,16 +2,16 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, Archive, Plus } from "lucide-react";
-import { request, useRows, useSave, useWorkspace } from "../data-provider";
+import { request, useRows, useSave, useWorkspace } from "../providers/data-provider";
 import { Drawer, Editor, Empty, Badge, str, date, Loading, ErrorMessage, type Field } from "../ui";
-import { Pagination } from "../pagination";
-import { RecordContextPanel, useRecordContext } from "../record-context";
-import { RecordSummary } from "../record-summary";
+import { Pagination } from "../ui/pagination";
+import { RecordContextPanel, useRecordContext } from "../records/context";
+import { RecordSummary } from "../records/summary";
 import type { CrmRecord, Row, Attribute } from "@/lib/domain/types";
-import { RecordOverview, RelatedRecordList } from "../record-overview";
+import { RecordOverview, RelatedRecordList } from "../records/overview";
 import { relatedRecords } from "@/lib/domain/record-profile";
 import type { Pipeline } from "@/lib/domain/pipelines";
-import styles from "./record-details.module.css";
+import styles from "../records/record-details.module.css";
 const names: Record<string, string> = {
   timeline: "Contexte",
   relations: "Relations",

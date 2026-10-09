@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import { request, useWorkspace } from "../data-provider";
-import { RecordPicker } from "../record-picker";
+import { request, useWorkspace } from "../providers/data-provider";
+import { RecordPicker } from "../records/picker";
 import type { WorkflowDefinition } from "@/lib/domain/types";
 import styles from "./workflows.module.css";
 export function BlockPreview({

@@ -17,7 +17,7 @@ import {
   Undo2,
   Zap,
 } from "lucide-react";
-import { useWorkspace } from "../data-provider";
+import { useWorkspace } from "../providers/data-provider";
 import { Modal } from "../ui";
 import { ActionEditor, ConditionsEditor } from "./fields";
 import { WorkflowHook } from "./connections";

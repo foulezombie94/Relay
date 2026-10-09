@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { resources } from "@/lib/api/resources";
+import { resources } from "@/lib/domain/resource-schemas";
 
 export const sourceKinds = [
   "record",

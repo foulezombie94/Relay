@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRows, useSave, useWorkspace } from "../data-provider";
+import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import {
   PageHeader,
   Editor,
@@ -10,8 +10,8 @@ import {
   Loading,
   ErrorMessage,
 } from "../ui";
-import { Pagination } from "../pagination";
-import { RecordPicker } from "../record-picker";
+import { Pagination } from "../ui/pagination";
+import { RecordPicker } from "../records/picker";
 import type { Row } from "@/lib/domain/types";
 export function ListPage({ id }: { id: string }) {
   const { workspace, objects } = useWorkspace();

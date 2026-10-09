@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { AssistantMessage, AssistantSource, AssistantStep } from "@/lib/domain/assistant";
-import { useWorkspace } from "../data-provider";
+import { useWorkspace } from "../providers/data-provider";
 import styles from "./assistant.module.css";
 
 function sourceHref(

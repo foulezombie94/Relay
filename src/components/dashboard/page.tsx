@@ -15,7 +15,7 @@ import {
   Trash2,
   Printer,
 } from "lucide-react";
-import { useWorkspace, useRows, useSave, request } from "../data-provider";
+import { useWorkspace, useRows, useSave, request } from "../providers/data-provider";
 import { Modal, ErrorMessage, Loading, str } from "../ui";
 import {
   dashboardSchema,

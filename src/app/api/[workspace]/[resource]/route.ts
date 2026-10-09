@@ -7,7 +7,7 @@ import {
   databaseError,
   requireAdmin,
 } from "@/lib/api/context";
-import { resources, isResource, readResources } from "@/lib/api/resources";
+import { resources, isResource, readResources } from "@/lib/domain/resource-schemas";
 import { validateAttributes } from "@/lib/domain/attributes";
 import type { Attribute } from "@/lib/domain/types";
 import { z } from "zod";

@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
-import { RecordSegments } from "../record-segments";
+import { RecordSegments } from "../records/segments";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { RecordViews } from "../record-views";
+import { RecordViews } from "../records/views";
 import { defaultRecordView, type ViewConfig } from "@/lib/domain/views";
-import { request, useRows, useSave, useWorkspace } from "../data-provider";
+import { request, useRows, useSave, useWorkspace } from "../providers/data-provider";
 import {
   PageHeader,
   AddButton,
@@ -22,16 +22,16 @@ import {
   type Field,
 } from "../ui";
 import { RecordDetails } from "./record-details";
-import { RecordBoard } from "../record-board";
-import { RecordDirectory } from "../record-directory";
-import { RecordTable } from "../record-table";
-import { ImportRecords } from "../record-import";
-import { ExportRecords } from "../record-export";
+import { RecordBoard } from "../records/board";
+import { RecordDirectory } from "../records/directory";
+import { RecordTable } from "../records/table";
+import { ImportRecords } from "../records/import";
+import { ExportRecords } from "../records/export";
 import { type Pipeline } from "@/lib/domain/pipelines";
 import type { CrmRecord, Attribute } from "@/lib/domain/types";
 import { stages } from "@/lib/domain/types";
 import { Building2, Users, Layers3 } from "lucide-react";
-import styles from "./records.module.css";
+import styles from "../records/records.module.css";
 export function RecordsPage({ slug }: { slug: string }) {
   const { workspace } = useWorkspace();
   const url = useSearchParams();

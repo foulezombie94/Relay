@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useWorkspace, useRows, useSave, request } from "../data-provider";
+import { useWorkspace, useRows, useSave, request } from "../providers/data-provider";
 import {
   PageHeader,
   AddButton,
@@ -13,9 +13,9 @@ import {
   str,
   date,
 } from "../ui";
-import { RecordPicker } from "../record-picker";
-import { RepeatFields } from "../structured-fields";
-import { Pagination } from "../pagination";
+import { RecordPicker } from "../records/picker";
+import { RepeatFields } from "../ui/structured-fields";
+import { Pagination } from "../ui/pagination";
 import {
   sequenceMessage,
   sequenceSteps,

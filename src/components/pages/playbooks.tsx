@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useWorkspace, useSave } from "../data-provider";
+import { useWorkspace, useSave } from "../providers/data-provider";
 import { PageHeader, Modal } from "../ui";
 import { playbooks } from "@/lib/domain/playbooks";
 import { useRouter } from "next/navigation";

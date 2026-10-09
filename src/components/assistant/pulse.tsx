@@ -11,7 +11,7 @@ import {
   Sparkles,
   RefreshCw,
 } from "lucide-react";
-import { request, useWorkspace } from "../data-provider";
+import { request, useWorkspace } from "../providers/data-provider";
 import {
   pulseOverviewPrompt,
   pulseAnalysisPrompt,

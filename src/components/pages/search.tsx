@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useWorkspace, request } from "../data-provider";
+import { useWorkspace, request } from "../providers/data-provider";
 import {
   PageHeader,
   SearchBox,

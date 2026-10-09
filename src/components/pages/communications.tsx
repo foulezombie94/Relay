@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
-import { CommunicationsThread } from "../communications-thread";
+import { CommunicationsThread } from "../communications/thread";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Pagination } from "../pagination";
-import { TemplateComposer } from "../template-composer";
-import { useWorkspace, useRows } from "../data-provider";
+import { Pagination } from "../ui/pagination";
+import { TemplateComposer } from "../communications/template-composer";
+import { useWorkspace, useRows } from "../providers/data-provider";
 import { PageHeader, Empty, Badge, str, date, ErrorMessage, Loading } from "../ui";
 export function CommunicationsPage() {
   const { workspace } = useWorkspace();

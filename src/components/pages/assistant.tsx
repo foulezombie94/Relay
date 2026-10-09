@@ -24,7 +24,7 @@ import {
   LoaderCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useWorkspace, request } from "../data-provider";
+import { useWorkspace, request } from "../providers/data-provider";
 import { Modal } from "../ui";
 import { AssistantComposer, type RecordContext } from "../assistant/composer";
 import { ChatMessage } from "../assistant/message";

@@ -5,7 +5,7 @@ import { ShieldCheck, ShieldAlert } from "lucide-react";
 import { SourceReader } from "./source-reader";
 import type { AssistantSource } from "@/lib/domain/assistant";
 import { toast } from "sonner";
-import { request, useWorkspace } from "../data-provider";
+import { request, useWorkspace } from "../providers/data-provider";
 import type { AgentAction } from "@/lib/agent/contracts";
 import styles from "./assistant.module.css";
 const titles: Record<string, string> = {

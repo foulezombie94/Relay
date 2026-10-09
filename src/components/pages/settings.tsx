@@ -31,18 +31,18 @@ import {
   LogOut,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useWorkspace, useSave, request } from "../data-provider";
+import { useWorkspace, useSave, request } from "../providers/data-provider";
 import { Editor, str, ErrorMessage, type Field } from "../ui";
-import { RepeatFields } from "../structured-fields";
-import { TeamSettings } from "../team-settings";
-import { SettingsAppearance } from "../settings-appearance";
-import { SettingsUsage, SettingsAgent } from "../settings-usage";
+import { RepeatFields } from "../ui/structured-fields";
+import { TeamSettings } from "../settings/team-settings";
+import { SettingsAppearance } from "../settings/appearance";
+import { SettingsUsage, SettingsAgent } from "../settings/usage";
 import { IntegrationsPage } from "./integrations";
-import { Notifications } from "../notifications";
-import { ZapierConnection } from "../zapier-connection";
+import { Notifications } from "../layout/notifications";
+import { ZapierConnection } from "../integrations/zapier-connection";
 import { browserDb } from "@/lib/supabase/client";
 import type { Row } from "@/lib/domain/types";
-import styles from "./settings.module.css";
+import styles from "../settings/settings.module.css";
 
 const sections = [
   {

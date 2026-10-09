@@ -46,7 +46,7 @@ function publicModules(entry: string, seen = new Set<string>()) {
 describe("public landing preview isolation", () => {
   it("disables automatic private route prefetch in previews", () => {
     const source = fs.readFileSync(
-      "src/components/app-sidebar-view.tsx",
+      "src/components/layout/app-sidebar-view.tsx",
       "utf8",
     );
     const count = (source.match(/<Link\b/g) ?? []).length;

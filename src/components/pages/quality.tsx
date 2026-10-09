@@ -2,9 +2,9 @@
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { request, useRows, useWorkspace } from "../data-provider";
+import { request, useRows, useWorkspace } from "../providers/data-provider";
 import { PageHeader, Modal, Loading, Empty, ErrorMessage, str, date, Badge } from "../ui";
-import { RecordEditor } from "../record-editor";
+import { RecordEditor } from "../records/editor";
 import { mergeFields, mergeValues } from "@/lib/domain/duplicates";
 import type { DuplicatePair } from "@/lib/domain/duplicate-pairs";
 import type { Attribute, CrmRecord, Row } from "@/lib/domain/types";

@@ -1,6 +1,6 @@
 "use client";
 import { Plus, Trash2 } from "lucide-react";
-import { useRows } from "../data-provider";
+import { useRows } from "../providers/data-provider";
 import { ErrorMessage } from "../ui";
 import { DatePicker } from "../ui/date-picker";
 import { useDestinations } from "./connections";

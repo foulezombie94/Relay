@@ -10,16 +10,16 @@ import {
   Search,
   PanelLeft,
 } from "lucide-react";
-import { AppSidebarView } from "@/components/app-sidebar-view";
+import { AppSidebarView } from "@/components/layout/app-sidebar-view";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { RecordBoard } from "@/components/record-board";
-import { RecordTable } from "@/components/record-table";
-import { RecordDirectory } from "@/components/record-directory";
-import { ResourceCard } from "@/components/resource-card";
-import { ForecastTotals } from "@/components/forecast-totals";
+import { RecordBoard } from "@/components/records/board";
+import { RecordTable } from "@/components/records/table";
+import { RecordDirectory } from "@/components/records/directory";
+import { ResourceCard } from "@/components/records/resource-card";
+import { ForecastTotals } from "@/components/reports/forecast-totals";
 import { PageHeader } from "@/components/ui/display";
 import type { CrmRecord, Row, Workspace } from "@/lib/domain/types";
-import recordStyles from "@/components/pages/records.module.css";
+import recordStyles from "@/components/records/records.module.css";
 import styles from "./landing.module.css";
 
 const createdAt = "2026-10-01T12:00:00Z";

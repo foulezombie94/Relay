@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useWorkspace, useSave, request } from "../data-provider";
+import { useWorkspace, useSave, request } from "../providers/data-provider";
 import { PageHeader, Empty, Loading, ErrorMessage, Editor, Badge, date, Avatar } from "../ui";
 import { RecordDetails } from "./record-details";
 import type { Priority } from "@/lib/domain/priorities";

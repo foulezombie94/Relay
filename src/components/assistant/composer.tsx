@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowUp, Square, Slash, Search, Check, X, Layers3 } from "lucide-react";
 import { assistantPrompts } from "@/lib/domain/assistant";
 import type { CrmRecord } from "@/lib/domain/types";
-import { request, useWorkspace } from "../data-provider";
+import { request, useWorkspace } from "../providers/data-provider";
 import styles from "./assistant.module.css";
 
 export type RecordContext = { id: string; label: string } | null;

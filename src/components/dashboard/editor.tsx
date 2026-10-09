@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRows, useWorkspace, request } from "../data-provider";
+import { useRows, useWorkspace, request } from "../providers/data-provider";
 import { Modal, ErrorMessage, str } from "../ui";
 import {
   defaultTile,

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { AgentAction } from "@/lib/agent/contracts";
-vi.mock("../data-provider", () => ({
+vi.mock("../providers/data-provider", () => ({
   useWorkspace: () => ({ workspace: { id: "workspace", role: "member" } }),
   request: vi.fn(),
 }));
