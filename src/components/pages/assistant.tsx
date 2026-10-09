@@ -61,7 +61,7 @@ function AssistantSession() {
     [error, setError] = useState("");
   const [deepen, setDeepen] = useState(false);
   const [search, setSearch] = useState(""),
-    [historyOpen, setHistoryOpen] = useState<boolean | "auto">("auto");
+    [historyOpen, setHistoryOpen] = useState(false);
   const [rename, setRename] = useState(false),
     [newTitle, setNewTitle] = useState(""),
     [remove, setRemove] = useState(false),
@@ -77,7 +77,7 @@ function AssistantSession() {
     [],
   );
   function toggleHistory() {
-    setHistoryOpen((current) => (current === "auto" ? window.innerWidth < 900 : !current));
+    setHistoryOpen((current) => !current);
   }
   const recordFromUrl = url.get("record");
   useEffect(() => {
@@ -239,8 +239,14 @@ function AssistantSession() {
     c.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
   );
   const icons = [FileText, Video, Handshake, ScanLine];
+  const shortcuts = ["Faire le point", "Préparer un rendez-vous", "Engagements", "Contradictions"];
   return (
-    <section className={styles.layout} data-history={historyOpen} aria-label="Ask Relay">
+    <section
+      className={styles.layout}
+      data-history={historyOpen}
+      data-view={messages.length || loading ? "conversation" : "welcome"}
+      aria-label="Ask Relay"
+    >
       <aside className={styles.history} aria-label="Historique privé">
         <div className={styles.historyHeading}>
           <span>
@@ -321,7 +327,7 @@ function AssistantSession() {
             <PanelLeftOpen size={17} />
           </button>
           <div>
-            <span>Assistant IA officiel de Relay · OpenAI</span>
+            <span>Ask Relay</span>
             <button
               type="button"
               className={styles.chatTitle}
@@ -332,11 +338,21 @@ function AssistantSession() {
                 setRename(true);
               }}
             >
-              {title}
+              {conversation ? title : "Votre assistant CRM"}
               {conversation && <Pencil size={12} />}
             </button>
           </div>
           <div className={styles.headerActions}>
+            <button
+              type="button"
+              className={styles.iconButton}
+              aria-label="Nouvelle conversation"
+              title="Nouvelle conversation"
+              disabled={busy}
+              onClick={newChat}
+            >
+              <Plus size={17} />
+            </button>
             {conversation && (
               <>
                 <button
@@ -373,6 +389,12 @@ function AssistantSession() {
             </Link>
           </div>
         </header>
+        {!messages.length && !loading && (
+          <div className={styles.welcome}>
+            <h1>Bonjour, qu’aimeriez-vous faire ?</h1>
+            <p>Vos relations, vos échanges et vos prochaines actions, au même endroit.</p>
+          </div>
+        )}
         <div
           ref={scroll}
           className={styles.thread}
@@ -408,46 +430,7 @@ function AssistantSession() {
               <LoaderCircle size={22} className={styles.spin} />
               Ouverture de la conversation…
             </div>
-          ) : !messages.length ? (
-            <div className={styles.welcome}>
-              <span className={styles.welcomeMark}>
-                <Sparkles size={26} />
-              </span>
-              <span className={styles.eyebrow}>Votre contexte, votre prochaine action.</span>
-              <h1>
-                Qu’aimeriez-vous
-                <br />
-                éclaircir aujourd’hui ?
-              </h1>
-              <p>
-                Faites le point sur un client, préparez un rendez-vous
-                <br className={styles.desktopBreak} /> ou retrouvez les engagements dans vos
-                échanges.
-              </p>
-              <div className={styles.promptGrid}>
-                {assistantPrompts.map((p, i) => {
-                  const Icon = icons[i];
-                  return (
-                    <button
-                      type="button"
-                      key={p.title}
-                      disabled={busy || !status.data?.configured}
-                      onClick={() => setMessage(p.prompt)}
-                    >
-                      <Icon size={18} />
-                      <strong>{p.title}</strong>
-                      <span>{p.description}</span>
-                      <ArrowUpRight size={13} />
-                    </button>
-                  );
-                })}
-              </div>
-              <div className={styles.welcomeTrust}>
-                <LockKeyhole size={12} />
-                L’assistant respecte vos accès aux données.
-              </div>
-            </div>
-          ) : (
+          ) : messages.length ? (
             <div className={styles.messages}>
               {messages.map((m, i) => (
                 <ChatMessage
@@ -487,22 +470,13 @@ function AssistantSession() {
                 />
               ))}
             </div>
-          )}
+          ) : null}
           {error && (
             <div className={styles.error} role="alert">
               {error}
             </div>
           )}
         </div>
-        <label className="footer-note">
-          <input
-            type="checkbox"
-            checked={deepen}
-            disabled={busy}
-            onChange={(e) => setDeepen(e.target.checked)}
-          />{" "}
-          Approfondir la recherche (budget étendu)
-        </label>
         <AssistantComposer
           message={message}
           setMessage={setMessage}
@@ -511,9 +485,38 @@ function AssistantSession() {
           busy={busy}
           configured={!!status.data?.configured}
           model={status.data?.model || ""}
+          deepen={deepen}
+          setDeepen={setDeepen}
+          placement={messages.length || loading ? "bottom" : "top"}
           onSend={() => void ask()}
           onStop={() => active.current?.abort()}
         />
+        {!messages.length && !loading && (
+          <div className={styles.suggestions}>
+            <div className={styles.promptGrid}>
+              {assistantPrompts.map((p, i) => {
+                const Icon = icons[i];
+                return (
+                  <button
+                    type="button"
+                    key={p.title}
+                    aria-label={p.title}
+                    title={p.description}
+                    disabled={busy || !status.data?.configured}
+                    onClick={() => setMessage(p.prompt)}
+                  >
+                    <Icon size={14} />
+                    <span>{shortcuts[i]}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className={styles.welcomeTrust}>
+              <LockKeyhole size={12} />
+              Vos accès sont respectés. Les actions sensibles vous sont présentées avant exécution.
+            </div>
+          </div>
+        )}
       </div>
       <Modal
         open={rename}

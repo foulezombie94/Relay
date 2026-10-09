@@ -2,7 +2,17 @@
 import { useEffect, useRef, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUp, Square, AtSign, Slash, Search, Check, X, Layers3 } from "lucide-react";
+import {
+  ArrowUp,
+  Square,
+  AtSign,
+  Slash,
+  Search,
+  Check,
+  X,
+  Layers3,
+  ChevronDown,
+} from "lucide-react";
 import { assistantPrompts } from "@/lib/domain/assistant";
 import type { CrmRecord } from "@/lib/domain/types";
 import { request, useWorkspace } from "../data-provider";
@@ -17,6 +27,9 @@ export function AssistantComposer({
   busy,
   configured,
   model,
+  deepen,
+  setDeepen,
+  placement,
   onSend,
   onStop,
 }: {
@@ -27,6 +40,9 @@ export function AssistantComposer({
   busy: boolean;
   configured: boolean;
   model: string;
+  deepen: boolean;
+  setDeepen: (value: boolean) => void;
+  placement: "top" | "bottom";
   onSend: () => void;
   onStop: () => void;
 }) {
@@ -61,7 +77,7 @@ export function AssistantComposer({
     textarea.current?.focus();
   }
   return (
-    <div className={styles.composerArea}>
+    <div className={styles.composerArea} data-placement={placement}>
       {(prompts || message.startsWith("/")) && (
         <div className={styles.promptMenu}>
           <div>
@@ -123,9 +139,9 @@ export function AssistantComposer({
           placeholder={
             context
               ? `Posez une question sur ${context.label}…`
-              : "Demandez à Relay de faire le point, préparer un rendez-vous…"
+              : "Posez une question, préparez votre prochain rendez-vous…"
           }
-          rows={3}
+          rows={2}
         />
         <div className={styles.composerToolbar}>
           <Popover.Root open={open} onOpenChange={setOpen}>
@@ -139,7 +155,7 @@ export function AssistantComposer({
               <Popover.Content
                 className={styles.contextMenu}
                 align="start"
-                side="top"
+                side={placement === "top" ? "bottom" : "top"}
                 sideOffset={12}
               >
                 <div className={styles.contextSearch}>
@@ -198,9 +214,48 @@ export function AssistantComposer({
           >
             <Slash size={15} />
           </button>
-          <span className={styles.model} title={`Modèle configuré : ${model}`}>
-            {model || "Relay IA"}
-          </span>
+          <Popover.Root>
+            <Popover.Trigger asChild>
+              <button
+                type="button"
+                className={styles.model}
+                disabled={busy}
+                aria-label="Options de recherche et modèle"
+                title={`Modèle configuré : ${model || "non configuré"}`}
+              >
+                {deepen ? "Approfondir" : "Auto"}
+                <ChevronDown size={12} />
+              </button>
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content
+                className={styles.searchOptions}
+                align="end"
+                side={placement === "top" ? "bottom" : "top"}
+                sideOffset={12}
+              >
+                <strong>Recherche dans votre CRM</strong>
+                <p>Relay choisit les sources utiles à votre demande.</p>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={deepen}
+                    disabled={busy}
+                    onChange={(e) => setDeepen(e.target.checked)}
+                  />
+                  <span>
+                    Approfondir la recherche
+                    <small>Autorise davantage de recherches pour cette réponse.</small>
+                  </span>
+                </label>
+                <footer>
+                  Assistant IA de Relay · OpenAI
+                  <br />
+                  Modèle : {model || "non configuré"}
+                </footer>
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
           {busy ? (
             <button
               type="button"
@@ -224,7 +279,7 @@ export function AssistantComposer({
         </div>
       </form>
       <div className={styles.composerNote}>
-        <span>Sources accessibles uniquement · Actions à confirmer</span>
+        <span>Relay peut se tromper. Vérifiez les sources.</span>
         <span>Entrée pour envoyer · ⇧ Entrée pour une ligne</span>
       </div>
     </div>

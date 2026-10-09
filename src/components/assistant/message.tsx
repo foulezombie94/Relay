@@ -1,7 +1,7 @@
 "use client";
 import { AgentActions } from "./actions";
 import { SecurityNotices } from "./source-reader";
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
 import Link from "next/link";
 import {
   Check,
@@ -98,14 +98,32 @@ export function AgentActivity({
   elapsed?: number;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [seconds, setSeconds] = useState(0);
+  const detailsId = useId();
+  useEffect(() => {
+    if (!active) return;
+    const started = performance.now();
+    const timer = setInterval(
+      () => setSeconds(Math.floor((performance.now() - started) / 1000)),
+      1000,
+    );
+    return () => clearInterval(timer);
+  }, [active]);
   const running = steps.find((s) => s.status === "running");
   const failed = steps.some((s) => s.status === "error");
+  const duration = elapsed ? Math.round(elapsed / 1000) : active ? seconds : 0;
   return (
-    <div className={styles.activity}>
+    <div className={styles.activity} data-active={active}>
       <button
         type="button"
         className={styles.activityToggle}
-        aria-expanded={active || expanded}
+        aria-expanded={expanded}
+        aria-controls={expanded ? detailsId : undefined}
+        aria-label={
+          active
+            ? "Analyse en cours : afficher ou masquer les recherches"
+            : "Afficher ou masquer l’activité de l’assistant"
+        }
         onClick={() => setExpanded(!expanded)}
       >
         {active ? (
@@ -115,18 +133,19 @@ export function AgentActivity({
         ) : (
           <Check size={14} />
         )}
-        <span>
+        <span className={active ? styles.thinking : undefined}>
           {active
-            ? running?.label || "Préparation de la réponse"
+            ? "Thinking"
             : failed
               ? "Activité interrompue"
-              : "Activité de l’assistant"}
+              : `${steps.length} étape${steps.length > 1 ? "s" : ""} effectuée${steps.length > 1 ? "s" : ""}`}
         </span>
-        {!!elapsed && <small>{(elapsed / 1000).toFixed(1)} s</small>}
-        <ChevronDown size={14} className={active || expanded ? styles.rotated : ""} />
+        {active && running && <span className={styles.currentStep}>{running.label}</span>}
+        {duration > 0 && <small>{duration} s</small>}
+        <ChevronDown size={14} className={expanded ? styles.rotated : ""} />
       </button>
-      {(active || expanded) && (
-        <ol className={styles.steps}>
+      {expanded && (
+        <ol className={styles.steps} id={detailsId}>
           {steps.map((s) => (
             <li key={s.id} data-state={s.status}>
               <span className={styles.stepIcon}>
@@ -193,13 +212,9 @@ export function ChatMessage({
       )}
       {message.answer ? (
         <Answer text={message.answer} />
-      ) : active ? (
-        <div className={styles.waiting} role="status">
-          L’assistant prépare votre réponse<span>···</span>
-        </div>
-      ) : (
+      ) : !active ? (
         <p className={styles.muted}>Cette réponse n’a pas été terminée. Relancez la question.</p>
-      )}
+      ) : null}
       {!!message.sources?.length && !active && (
         <div className={styles.sources}>
           <span>Sources</span>

@@ -1,16 +1,25 @@
 .layout {
-  --ink: #243145;
-  --subtle: #7a879a;
+  --ink: #292a30;
+  --subtle: #85868f;
   display: grid;
   grid-template-columns: 224px minmax(0, 1fr);
-  min-height: 670px;
-  height: calc(100dvh - 154px);
-  max-height: 1200px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  min-height: min(420px, calc(100dvh - 148px));
+  height: 460px;
+  border: 0;
+  border-radius: 0;
   overflow: hidden;
   background: #fff;
   color: var(--ink);
+  transition: height 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.layout[data-view="conversation"] {
+  height: calc(100dvh - 148px);
+}
+.layout[data-view="welcome"] {
+  overflow: visible;
+}
+.layout[data-history="true"] {
+  position: relative;
 }
 .layout[data-history="false"] {
   grid-template-columns: minmax(0, 1fr);
@@ -22,7 +31,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: #f8f9fc;
+  background: #fafafa;
   border-right: 1px solid var(--line);
   padding: 18px 12px 14px;
 }
@@ -183,13 +192,17 @@
   min-height: 0;
 }
 .header {
+  order: 0;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 15px 22px;
+  padding: 10px 20px;
   border-bottom: 1px solid var(--line);
-  min-height: 73px;
+  min-height: 56px;
+}
+.layout[data-view="welcome"] .header {
+  border-bottom: 0;
 }
 .header > div:nth-child(2) {
   display: grid;
@@ -240,90 +253,80 @@
   color: #7e8da3;
 }
 .thread {
+  order: 2;
   min-height: 0;
   overflow-y: auto;
   flex: 1;
-  padding: 25px 35px;
+  padding: 28px 32px;
   overscroll-behavior: contain;
   scrollbar-width: thin;
 }
+.layout[data-view="welcome"] .thread {
+  order: 4;
+  flex: 0 0 auto;
+  padding: 12px 32px;
+}
+.layout[data-view="welcome"] .thread:empty {
+  display: none;
+}
+.layout[data-view="conversation"] .messages {
+  animation: revealConversation 350ms ease-out;
+}
 .welcome {
-  max-width: 650px;
-  margin: 24px auto 20px;
-  text-align: center;
-}
-.welcomeMark {
-  display: grid;
-  place-items: center;
-  width: 57px;
-  height: 57px;
-  margin: 0 auto 23px;
-  border-radius: 17px;
-  background: #eef3ff;
-  border: 1px solid #e0e8fd;
-  color: #4169e1;
-  box-shadow: 0 5px 18px #315ac808;
-}
-.eyebrow {
-  color: #8491a6;
-  font-size: 10px;
+  order: 1;
+  width: min(760px, calc(100% - 64px));
+  margin: 60px auto 22px;
+  text-align: left;
 }
 .welcome h1 {
   font:
-    650 30px/1.35 Manrope,
+    600 25px/1.35 Manrope,
     Arial,
     sans-serif;
-  letter-spacing: -0.9px;
-  margin: 11px 0 15px;
-  color: #253349;
+  letter-spacing: -0.7px;
+  margin: 0 0 10px;
+  color: #292a30;
 }
 .welcome > p {
-  color: #7d899d;
-  font-size: 12px;
-  line-height: 1.85;
-  margin-bottom: 28px;
+  color: #898a93;
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0;
+}
+.suggestions {
+  order: 3;
+  width: min(760px, calc(100% - 64px));
+  margin: 12px auto 0;
 }
 .promptGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 .promptGrid button {
-  position: relative;
-  display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
-  gap: 5px 10px;
+  display: flex;
+  gap: 6px;
   align-items: center;
-  padding: 16px 14px;
-  background: white;
-  border: 1px solid #e5eaf3;
-  border-radius: 9px;
+  padding: 6px 9px;
+  background: #fafafa;
+  border: 1px solid #ececf0;
+  border-radius: 6px;
   text-align: left;
   transition:
     border-color 0.15s,
     background 0.15s;
 }
 .promptGrid button > svg:first-child {
-  grid-row: span 2;
-  color: #8b96a9;
+  color: #7a8cc1;
 }
-.promptGrid button > svg:last-child {
-  position: absolute;
-  right: 12px;
-  top: 13px;
-  color: #aab5c5;
-}
-.promptGrid button strong {
-  font-size: 11px;
-  font-weight: 600;
-  padding-right: 10px;
-  color: #34455f;
+.promptGrid button:nth-child(2) > svg {
+  color: #b27f9c;
 }
 .promptGrid button span {
-  font-size: 10px;
-  line-height: 1.55;
-  color: #98a2b2;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #7e808a;
 }
 .promptGrid button:hover {
   border-color: #c1cff1;
@@ -338,8 +341,9 @@
   justify-content: center;
   gap: 6px;
   font-size: 10px;
-  color: #a1aabb;
-  margin-top: 24px;
+  color: #91939d;
+  line-height: 1.6;
+  margin-top: 25px;
 }
 .configuration {
   display: flex;
@@ -386,12 +390,13 @@
   display: flex;
   align-items: flex-start;
   gap: 13px;
-  margin-left: 27px;
-  padding: 15px 17px;
-  background: #f5f7fa;
-  border: 1px solid #edf0f5;
-  border-radius: 9px;
-  font-size: 12px;
+  margin-left: auto;
+  max-width: 88%;
+  padding: 11px 15px;
+  background: #f3f3f5;
+  border: 0;
+  border-radius: 15px;
+  font-size: 14px;
   line-height: 1.8;
 }
 .userMessage > div {
@@ -400,9 +405,7 @@
   overflow-wrap: anywhere;
 }
 .userLabel {
-  font-size: 10px;
-  color: #929eb0;
-  padding-top: 3px;
+  display: none;
 }
 .userMessage .iconButton {
   width: 23px;
@@ -435,10 +438,7 @@
   color: #a1aabc;
 }
 .activity {
-  margin: 0 0 17px 36px;
-  border: 1px solid #e9edf3;
-  border-radius: 7px;
-  background: #fcfdff;
+  margin: 0 0 17px;
 }
 .activityToggle {
   display: flex;
@@ -447,20 +447,40 @@
   background: transparent;
   border: 0;
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 0;
   text-align: left;
-  color: #7f8aa0;
-  font-size: 10px;
+  color: #888a94;
+  font-size: 12px;
 }
 .activityToggle > span {
+  flex: 0 0 auto;
+}
+.activityToggle .currentStep {
   flex: 1;
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 11px;
+  color: #a0a1aa;
+}
+.thinking {
+  background: linear-gradient(100deg, #999ba5 25%, #363840 45%, #999ba5 65%);
+  background-size: 240% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: thinking 2s linear infinite;
+}
+.activityToggle > svg:last-child {
+  margin-left: auto;
 }
 .activityToggle > svg:first-child {
   color: #6f85b5;
 }
 .activityToggle small {
-  font-size: 9px;
-  color: #a4afbf;
+  font-size: 10px;
+  color: #a0a1aa;
+  font-variant-numeric: tabular-nums;
 }
 .rotated {
   transform: rotate(180deg);
@@ -517,10 +537,10 @@
   line-height: 1.6;
 }
 .answer {
-  margin-left: 36px;
+  margin-left: 0;
   overflow-wrap: anywhere;
-  font-size: 13px;
-  line-height: 1.9;
+  font-size: 14px;
+  line-height: 1.85;
 }
 .answer p {
   color: #46566d;
@@ -681,25 +701,30 @@
   margin-left: auto;
 }
 .composerArea {
-  width: min(100%, 830px);
+  order: 3;
+  width: min(760px, calc(100% - 64px));
   align-self: center;
   flex-shrink: 0;
-  padding: 17px 35px 18px;
+  padding: 16px 0 20px;
   position: relative;
   background: white;
 }
+.layout[data-view="welcome"] .composerArea {
+  order: 2;
+  padding: 0;
+}
 .composer {
-  border: 1px solid #dce3ef;
-  border-radius: 12px;
+  border: 1px solid #e0e2e9;
+  border-radius: 14px;
   background: white;
-  padding: 12px 14px 10px;
-  box-shadow: 0 3px 15px #24314505;
+  padding: 12px 14px 11px;
+  box-shadow: 0 3px 16px #24314504;
   transition:
     border-color 0.15s,
     box-shadow 0.15s;
 }
 .composer:focus-within {
-  border-color: #a5b9ec;
+  border-color: #9ebaff;
   box-shadow: 0 0 0 3px #4169e108;
 }
 .composer textarea {
@@ -708,12 +733,12 @@
   outline: 0;
   box-shadow: none;
   padding: 4px 0 11px;
-  min-height: 85px;
+  min-height: 60px;
   max-height: 200px;
   resize: none;
-  font-size: 12px;
+  font-size: 14px;
   background: transparent;
-  line-height: 1.8;
+  line-height: 1.7;
 }
 .composer textarea::placeholder {
   color: #a2adbd;
@@ -746,9 +771,15 @@
   align-items: center;
   gap: 5px;
   margin-left: auto;
-  font-size: 10px;
-  color: #8d99ad;
+  font-size: 12px;
+  color: #878992;
   padding: 5px;
+  border: 0;
+  background: transparent;
+  border-radius: 5px;
+}
+.model:hover {
+  background: #f6f6f8;
 }
 .send {
   width: 32px;
@@ -757,7 +788,7 @@
   display: grid;
   place-items: center;
   border: 0;
-  background: #4169e1;
+  background: #3269f5;
   color: white;
   margin-left: 5px;
 }
@@ -774,7 +805,10 @@
   gap: 12px;
   margin-top: 10px;
   color: #a5afbf;
-  font-size: 9px;
+  font-size: 10px;
+}
+.composerArea[data-placement="top"] .composerNote {
+  display: none;
 }
 .contextChip {
   display: inline-flex;
@@ -872,14 +906,70 @@
 .promptMenu {
   position: absolute;
   bottom: calc(100% - 10px);
-  left: 35px;
-  right: 35px;
+  left: 0;
+  right: 0;
   z-index: 5;
   background: white;
   border: 1px solid #e0e7f2;
   border-radius: 10px;
   box-shadow: 0 8px 30px #24314513;
   padding: 7px;
+}
+.composerArea[data-placement="top"] .promptMenu {
+  bottom: auto;
+  top: calc(100% + 10px);
+}
+.searchOptions {
+  z-index: 80;
+  width: 290px;
+  max-width: calc(100vw - 30px);
+  border: 1px solid #e1e3ea;
+  border-radius: 10px;
+  background: #fff;
+  padding: 15px;
+  box-shadow: 0 12px 40px #24314517;
+  color: #42454f;
+}
+.searchOptions strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.searchOptions p,
+.searchOptions footer {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #898c97;
+}
+.searchOptions label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 15px 0;
+  cursor: pointer;
+  font-size: 12px;
+}
+.searchOptions label input {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  margin: 2px 0 0;
+  accent-color: #3269f5;
+}
+.searchOptions small {
+  display: block;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #9598a4;
+  margin-top: 4px;
+}
+.searchOptions footer {
+  padding-top: 11px;
+  border-top: 1px solid #eceef3;
+}
+.searchOptions button:focus-visible,
+.searchOptions input:focus-visible {
+  outline: 2px solid #4169e1;
+  outline-offset: 3px;
 }
 .promptMenu > div {
   display: flex;
@@ -943,12 +1033,19 @@
     transform: rotate(360deg);
   }
 }
-@media (min-width: 1600px) {
-  .layout {
-    height: calc(100dvh - 170px);
+@keyframes thinking {
+  to {
+    background-position: -240% 0;
   }
-  .welcome {
-    margin-top: 60px;
+}
+@keyframes revealConversation {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 @media (max-width: 1100px) {
@@ -959,17 +1056,10 @@
     padding: 23px;
   }
   .composerArea {
-    padding: 16px 23px;
+    padding: 16px 0;
   }
   .welcome h1 {
     font-size: 27px;
-  }
-  .promptGrid button {
-    grid-template-columns: 1fr;
-  }
-  .promptGrid button > svg:first-child {
-    grid-row: auto;
-    margin-bottom: 3px;
   }
 }
 @media (max-width: 900px) {
@@ -990,9 +1080,11 @@
 }
 @media (max-width: 600px) {
   .layout {
-    min-height: 640px;
-    height: calc(100dvh - 135px);
-    border-radius: 9px;
+    min-height: min(420px, calc(100dvh - 137px));
+    height: 460px;
+  }
+  .layout[data-view="conversation"] {
+    height: calc(100dvh - 137px);
   }
   .header {
     padding: 12px;
@@ -1008,35 +1100,41 @@
     padding: 18px 13px;
   }
   .welcome {
-    margin-top: 15px;
+    width: calc(100% - 24px);
+    margin-top: 35px;
   }
   .welcome h1 {
-    font-size: 25px;
+    font-size: 21px;
   }
   .welcome > p {
-    font-size: 11px;
+    font-size: 12px;
+  }
+  .suggestions {
+    width: calc(100% - 24px);
+  }
+  .layout[data-view="welcome"] {
+    height: 560px;
   }
   .promptGrid {
     gap: 7px;
+    justify-content: flex-start;
   }
   .promptGrid button {
-    padding: 13px 10px;
-  }
-  .promptGrid button strong {
-    font-size: 10px;
+    padding: 7px 8px;
   }
   .promptGrid button span {
-    font-size: 9px;
+    font-size: 11px;
   }
   .composerArea {
-    padding: 12px;
+    width: calc(100% - 24px);
+    padding: 12px 0;
   }
   .composerNote > span:last-child {
     display: none;
   }
   .composer textarea {
     font-size: 16px;
-    min-height: 78px;
+    min-height: 60px;
   }
   .configuration {
     flex-wrap: wrap;
@@ -1045,7 +1143,7 @@
     margin-left: 26px;
   }
   .userMessage {
-    margin-left: 0;
+    margin-left: auto;
     padding: 12px;
   }
   .answer,
@@ -1069,18 +1167,19 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .spin {
+  .spin,
+  .thinking,
+  .layout[data-view="conversation"] .messages {
     animation: none;
   }
+  .thinking {
+    color: #85868f;
+    background: none;
+  }
+  .layout,
   .composer,
   .promptGrid button {
     transition: none;
-  }
-}
-
-@media (max-width: 900px) {
-  .layout[data-history="auto"] .history {
-    display: none;
   }
 }
 
