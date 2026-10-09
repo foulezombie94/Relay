@@ -19,7 +19,10 @@
     "test:agent": "vitest run src/lib/agent src/lib/integrations/email-content.test.ts src/lib/jobs/handlers/agent.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false",
     "test:agent:db": "node --import tsx scripts/tests/agent-db.mts",
     "test:agent:concurrency": "node --import tsx scripts/tests/agent-concurrency.mts",
-    "eval:agent": "node --import tsx scripts/tests/agent-evaluation.mts"
+    "test:agent:tokens": "node --import tsx scripts/tests/agent-token-concurrency.mts",
+    "eval:agent": "node --import tsx scripts/tests/agent-evaluation.mts",
+    "test:performance:db": "node --import tsx scripts/tests/performance-db.mts",
+    "test:performance:load": "node --import tsx scripts/tests/crm-load.mts"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "1.3.11",

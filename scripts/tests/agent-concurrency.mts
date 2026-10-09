@@ -32,7 +32,7 @@ try {
         );
         await client.query("set local role authenticated");
         const result = await client.query(
-          'select public.agent_runtime($1,\'begin\',\'{"reserved_tokens":1000,"tool_limit":5,"secret":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}\') as data',
+          'select public.agent_runtime($1,\'begin\',\'{"reserved_tokens":1000,"token_limit":300000,"tool_limit":5,"secret":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}\') as data',
           [workspace],
         );
         await client.query("commit");

@@ -46,4 +46,6 @@ jobs:
       - run: npm ci
       - run: node --import tsx scripts/tests/migrate-local.mts
       - run: npm run test:agent:db
+      - run: npm run test:performance:db
       - run: npm run test:agent:concurrency
+      - run: npm run test:agent:tokens
