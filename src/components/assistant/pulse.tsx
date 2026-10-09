@@ -32,10 +32,11 @@ export function RelayPulse({
   const query = useQuery({
     queryKey: ["assistant-pulse", workspace.id, user.id],
     queryFn: () => request<{ data: AssistantPulse }>(`/api/${workspace.id}/assistant/pulse`),
-    staleTime: 0,
+    staleTime: 15_000,
     retry: false,
     refetchOnWindowFocus: true,
     refetchInterval: 60000,
+    refetchIntervalInBackground: false,
   });
   const pulse = query.error ? undefined : query.data?.data;
   const display = (value: number | undefined) =>

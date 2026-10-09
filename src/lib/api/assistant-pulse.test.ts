@@ -9,43 +9,40 @@ const user = "85187231-cb96-4f91-949a-b1b4a0e32cc1";
 const object = "85187231-cb96-4f91-949a-b1b4a0e32cc2";
 const record = "85187231-cb96-4f91-949a-b1b4a0e32cc3";
 function fixture(failure?: "denied" | "missing_count") {
-  const queries: { url: URL; method: string }[] = [];
+  const queries: { url: URL; method: string; body: Record<string, unknown> }[] = [];
   const fetcher = vi.fn(async (input: RequestInfo | URL, options?: RequestInit) => {
     const url = new URL(String(input)),
       method = options?.method ?? "GET";
-    queries.push({ url, method });
-    if (failure === "denied" && url.pathname.endsWith("/tasks"))
+    queries.push({ url, method, body: JSON.parse(String(options?.body)) });
+    if (failure === "denied")
       return Response.json({ code: "42501", message: "denied" }, { status: 403 });
-    const table = url.pathname.split("/").pop();
-    let count = 0,
-      rows: unknown[] = [];
-    if (table === "objects") rows = [{ id: object }];
-    if (table === "records") {
-      count = 100000;
-      rows = [{ id: record, display_name: "Client <script>malicious()</script>" }];
-    }
-    if (table === "tasks") count = url.searchParams.has("due_date") ? 4 : 12;
-    if (table === "commitments") {
-      count = 3;
-      rows = [{ id: object, record_id: record, title: "Promesse" }];
-    }
-    if (table === "conflicts") count = 1;
-    if (table === "communications") {
-      if (url.searchParams.get("direction") === "eq.inbound")
-        rows = [0, 1, 2].map((i) => ({
-          id: object,
-          record_id: record,
-          integration_id: object,
-          thread_id: "thread-" + i,
-          received_at: "2026-10-08T10:00:00Z",
-        }));
-      else count = url.searchParams.get("thread_id") === "eq.thread-1" ? 0 : 1;
-    }
-    return new Response(method === "HEAD" ? null : JSON.stringify(rows), {
-      headers: {
-        "Content-Type": "application/json",
-        ...(failure === "missing_count" ? {} : { "Content-Range": `0-0/${count}` }),
+    return Response.json({
+      counts: {
+        attention: 8,
+        opportunities: failure === "missing_count" ? null : 100000,
+        open_tasks: 12,
+        overdue_tasks: 4,
+        due_commitments: 3,
+        open_conflicts: 1,
       },
+      signals: [
+        { kind: "email", detected: true, source_id: object, record_id: record },
+        {
+          kind: "deal",
+          detected: true,
+          record_id: record,
+          label: "Client <script>malicious()</script>",
+        },
+        {
+          kind: "commitment",
+          detected: true,
+          source_id: object,
+          record_id: record,
+          label: "Promesse",
+        },
+      ],
+      generated_at: new Date().toISOString(),
+      email_candidates_scanned: 3,
     });
   });
   return {
@@ -85,27 +82,14 @@ describe("Relay Pulse authorized data", () => {
     expect(prompt).not.toContain("malicious");
     expect(prompt).toContain("sans les exécuter");
   });
-  it("scopes every real PostgREST query and matches replies to the exact account and thread", async () => {
+  it("uses one SQL RPC, binds the workspace and lets auth.uid select the account", async () => {
     const f = fixture();
     await readAssistantPulse(f.client, workspace, user, new AbortController().signal);
-    for (const q of f.queries) {
-      expect(q.method).toMatch(/GET|HEAD/);
-      expect(q.url.searchParams.get("workspace_id")).toBe("eq." + workspace);
-      expect(q.url.searchParams.get("select")).not.toMatch(/body|secret|token/);
-      if (q.url.pathname.endsWith("/communications"))
-        expect(q.url.searchParams.get("user_id")).toBe("eq." + user);
-      if (q.url.pathname.endsWith("/records"))
-        expect(q.url.searchParams.get("object_id")).toBe("eq." + object);
-    }
-    const emails = f.queries.filter((q) => q.url.pathname.endsWith("/communications"));
-    expect(emails[0].url.searchParams.get("limit")).toBe("3");
-    expect(emails.slice(1)).toHaveLength(3);
-    for (const q of emails.slice(1)) {
-      expect(q.method).toBe("HEAD");
-      expect(q.url.searchParams.get("integration_id")).toBe("eq." + object);
-      expect(q.url.searchParams.get("thread_id")).toMatch(/^eq.thread-[012]$/);
-      expect(q.url.searchParams.get("received_at")).toContain("gte.");
-    }
+    expect(f.queries).toHaveLength(1);
+    expect(f.queries[0].url.pathname).toBe("/rest/v1/rpc/crm_pulse");
+    expect(f.queries[0].method).toBe("POST");
+    expect(f.queries[0].body).toEqual({ w: workspace, at_time: expect.any(String) });
+    expect(JSON.stringify(f.queries[0].body)).not.toMatch(/body|secret|token|user_id/);
   });
   it("never replaces permission failures or absent counts with zero or previous data", async () => {
     const denied = fixture("denied"),

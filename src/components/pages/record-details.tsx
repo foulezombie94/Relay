@@ -3,17 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, Archive, Plus } from "lucide-react";
 import { request, useRows, useSave, useWorkspace } from "../data-provider";
-import {
-  Drawer,
-  Editor,
-  Empty,
-  Badge,
-  str,
-  date,
-  Loading,
-  ErrorMessage,
-  type Field,
-} from "../ui";
+import { Drawer, Editor, Empty, Badge, str, date, Loading, ErrorMessage, type Field } from "../ui";
 import { Pagination } from "../pagination";
 import { RecordContextPanel, useRecordContext } from "../record-context";
 import { RecordSummary } from "../record-summary";
@@ -46,7 +36,11 @@ export function RecordDetails({
   const { remove, busy } = useSave();
   const [error, setError] = useState("");
   const readonly = workspace.role === "viewer" || !!record.merged_into;
-  const context = useRecordContext(record.id);
+  const context = useRecordContext(
+    record.id,
+    "summary",
+    ["overview", "contacts", "deals"].includes(tab),
+  );
   const members = useRows("memberships", { size: 100 });
   const attrs = useRows<Attribute>("attributes", {
     object_id: record.object_id,
@@ -55,10 +49,7 @@ export function RecordDetails({
   const pipelines = useQuery({
     queryKey: ["rows", workspace.id, "pipelines", { size: 100 }],
     enabled: slug === "deals",
-    queryFn: () =>
-      request<{ data: Pipeline[] }>(
-        "/api/" + workspace.id + "/pipelines?size=100",
-      ),
+    queryFn: () => request<{ data: Pipeline[] }>("/api/" + workspace.id + "/pipelines?size=100"),
   });
   const owner = members.data?.data.find((m) => m.user_id === record.owner_id);
   const overviewLabel =
@@ -71,9 +62,7 @@ export function RecordDetails({
           : "Aperçu";
   const tabs: Record<string, string> = {
     overview: overviewLabel,
-    ...(slug === "companies"
-      ? { contacts: "Contacts", deals: "Opportunités" }
-      : {}),
+    ...(slug === "companies" ? { contacts: "Contacts", deals: "Opportunités" } : {}),
     ...names,
     timeline: "Historique",
     relations: slug === "deals" ? "Parties prenantes" : "Relations",
@@ -94,11 +83,7 @@ export function RecordDetails({
       className={styles.drawer}
     >
       <div className={styles.recordShell}>
-        <RecordSummary
-          record={record}
-          slug={slug}
-          pipelines={pipelines.data?.data ?? []}
-        />
+        <RecordSummary record={record} slug={slug} pipelines={pipelines.data?.data ?? []} />
         <div className={styles.toolbar}>
           <span>
             {slug === "people"
@@ -108,11 +93,7 @@ export function RecordDetails({
                 : "Les informations utiles pour faire avancer cette vente."}
           </span>
           <div>
-            <button
-              className="button small"
-              disabled={readonly}
-              onClick={onEdit}
-            >
+            <button className="button small" disabled={readonly} onClick={onEdit}>
               <Pencil size={14} />
               Modifier
             </button>
@@ -125,9 +106,7 @@ export function RecordDetails({
                     await remove("records", record.id);
                     onClose();
                   } catch (e) {
-                    setError(
-                      e instanceof Error ? e.message : "Archivage impossible",
-                    );
+                    setError(e instanceof Error ? e.message : "Archivage impossible");
                   }
               }}
             >
@@ -162,13 +141,11 @@ export function RecordDetails({
                   <>
                     {context.data.truncated && (
                       <p className={styles.limitNotice}>
-                        Aperçu limité : les listes et les totaux ci-dessous
-                        portent sur les relations et éléments chargés.
+                        Aperçu limité : certaines listes sont tronquées. Les compteurs portent
+                        sur les éléments autorisés de cette fiche.
                       </p>
                     )}
-                    <ErrorMessage
-                      error={members.error || attrs.error || pipelines.error}
-                    />
+                    <ErrorMessage error={members.error || attrs.error || pipelines.error} />
                     {tab === "overview" ? (
                       <RecordOverview
                         record={record}
@@ -190,10 +167,7 @@ export function RecordDetails({
                               ? "Interlocuteurs de cette entreprise"
                               : "Opportunités liées à cette entreprise"}
                           </h3>
-                          <button
-                            className="button small"
-                            onClick={() => setTab("relations")}
-                          >
+                          <button className="button small" onClick={() => setTab("relations")}>
                             Gérer les relations
                           </button>
                         </div>
@@ -218,11 +192,7 @@ export function RecordDetails({
               )}
             </>
           ) : tab === "timeline" || tab === "relations" ? (
-            <RecordContextPanel
-              key={record.id + tab}
-              record={record}
-              mode={tab}
-            />
+            <RecordContextPanel key={record.id + tab} record={record} mode={tab} />
           ) : (
             <DetailResource key={record.id + tab} record={record} tab={tab} />
           )}
@@ -282,11 +252,7 @@ function DetailResource({ record, tab }: { record: CrmRecord; tab: string }) {
       <ErrorMessage error={q.error} />
       <ErrorMessage error={error ? new Error(error) : null} />
       {tab === "documents" ? (
-        <label
-          className={
-            "button small " + (readonly || uploading ? "disabled" : "")
-          }
-        >
+        <label className={"button small " + (readonly || uploading ? "disabled" : "")}>
           {uploading ? "Téléversement…" : "Ajouter un fichier"}
           <input
             className="sr-only"
@@ -310,9 +276,7 @@ function DetailResource({ record, tab }: { record: CrmRecord; tab: string }) {
                 if (!r.ok) throw new Error(result.error);
                 await q.refetch();
               } catch (e) {
-                setError(
-                  e instanceof Error ? e.message : "Téléversement impossible",
-                );
+                setError(e instanceof Error ? e.message : "Téléversement impossible");
               } finally {
                 setUploading(false);
               }
@@ -320,11 +284,7 @@ function DetailResource({ record, tab }: { record: CrmRecord; tab: string }) {
           />
         </label>
       ) : (
-        <button
-          className="button small"
-          disabled={readonly}
-          onClick={() => setAdding(true)}
-        >
+        <button className="button small" disabled={readonly} onClick={() => setAdding(true)}>
           <Plus size={14} />{" "}
           {tab === "notes"
             ? "Ajouter une note"
@@ -347,9 +307,7 @@ function DetailResource({ record, tab }: { record: CrmRecord; tab: string }) {
               </div>
               {r.status ? <Badge value={r.status} /> : null}
               {r.private === true && <span className="pill">Note privée</span>}
-              <p className="preserve-lines">
-                {str(r.content || r.description || r.source_quote)}
-              </p>
+              <p className="preserve-lines">{str(r.content || r.description || r.source_quote)}</p>
               {r.due_date ? <small>Échéance : {date(r.due_date)}</small> : null}
               {tab === "documents" && (
                 <a

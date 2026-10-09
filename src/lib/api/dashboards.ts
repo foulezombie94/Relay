@@ -49,63 +49,51 @@ export async function dashboardResults(
   now = new Date(),
 ): Promise<DashboardResult> {
   const settings = dashboardSettings.parse(override ?? dashboard.settings);
-  const range = resolveDashboardPeriod(settings, now),
-    deadline = Date.now() + 45000;
-  const results: DashboardResult["tiles"] = new Array(dashboard.config.length);
-  let next = 0;
-  await Promise.all(
-    Array.from({ length: Math.min(3, dashboard.config.length) }, async () => {
-      while (next < dashboard.config.length) {
-        const index = next++,
-          tile = dashboard.config[index];
-        const ignored =
-          (settings.pipeline_id && tile.kind !== "record") ||
-          (settings.owner_id && !["record", "task", "commitment"].includes(tile.kind));
-        try {
-          if (Date.now() >= deadline)
-            throw new ApiError(
-              "Délai de calcul atteint. Réduisez le nombre d’indicateurs ou la période.",
-              408,
-            );
-          const args = {
-            w: workspace,
-            kind: tile.kind,
-            group_by: tile.group_by,
-            metric: tile.metric,
-            date_field: tile.date_field,
-          };
-          const current = (await rpc(client, "dashboard_aggregate", {
-            ...args,
-            filters: tileFilters(tile, settings, range),
-          })) as DashboardAggregate;
-          let previous: DashboardAggregate | undefined;
-          if (range.previous && Date.now() < deadline)
-            previous = (await rpc(client, "dashboard_aggregate", {
-              ...args,
-              filters: tileFilters(tile, settings, range.previous),
-            })) as DashboardAggregate;
-          results[index] = {
-            tile,
-            current,
-            previous,
-            ...(ignored
-              ? {
-                  filter_note:
-                    "Le filtre pipeline ou responsable CRM ne s’applique pas à cette source.",
-                }
-              : {}),
-          };
-        } catch (error) {
-          if (error instanceof ApiError && [401, 403].includes(error.status)) throw error;
-          results[index] = {
-            tile,
-            error:
-              error instanceof ApiError ? error.message : "Cet indicateur n’a pas pu être calculé.",
-          };
-        }
-      }
-    }),
-  );
+  const range = resolveDashboardPeriod(settings, now);
+  const queries: Array<Record<string, unknown>> = [];
+  const indexes = dashboard.config.map((tile) => {
+    const args = {
+      kind: tile.kind,
+      group_by: tile.group_by,
+      metric: tile.metric,
+      date_field: tile.date_field,
+    };
+    const current = queries.push({ ...args, filters: tileFilters(tile, settings, range) }) - 1;
+    const previous = range.previous
+      ? queries.push({ ...args, filters: tileFilters(tile, settings, range.previous) }) - 1
+      : undefined;
+    return { current, previous };
+  });
+  let batch: Array<{ result?: DashboardAggregate; error?: string }>;
+  try {
+    batch = await rpc(client, "dashboard_batch", { w: workspace, requests: queries });
+  } catch (error) {
+    if (error instanceof ApiError && [401, 403].includes(error.status)) throw error;
+    batch = queries.map(() => ({
+      error: error instanceof ApiError ? error.message : "Cet indicateur n’a pas pu être calculé.",
+    }));
+  }
+  const results: DashboardResult["tiles"] = dashboard.config.map((tile, index) => {
+    const positions = indexes[index];
+    const current = batch[positions.current];
+    const previous = positions.previous === undefined ? undefined : batch[positions.previous];
+    const error =
+      current?.error ||
+      previous?.error ||
+      (!current?.result ? "Résultat de calcul indisponible." : undefined);
+    if (error) return { tile, error };
+    const ignored =
+      (settings.pipeline_id && tile.kind !== "record") ||
+      (settings.owner_id && !["record", "task", "commitment"].includes(tile.kind));
+    return {
+      tile,
+      current: current.result,
+      previous: previous?.result,
+      ...(ignored
+        ? { filter_note: "Le filtre pipeline ou responsable CRM ne s’applique pas à cette source." }
+        : {}),
+    };
+  });
   return { name: dashboard.name, tiles: results, settings, range, generated_at: now.toISOString() };
 }
 export async function dashboardDetails(

@@ -1,52 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { context, fail } from "@/lib/api/context";
-import { collect } from "@/lib/api/collect";
-import { rankPriorities } from "@/lib/domain/priorities";
-import type { CrmRecord } from "@/lib/domain/types";
+import { rpc } from "@/lib/agent/tools";
+import { z } from "zod";
 export async function GET(
-  _: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ workspace: string }> },
 ) {
   try {
     const { workspace } = await params;
-    const { client } = await context(workspace);
-    const [records, tasks, commitments, conflicts, activities, meetings] =
-      await Promise.all([
-        collect(
-          client,
-          workspace,
-          "records",
-          "id,workspace_id,object_id,display_name,email,domain,stage,amount,currency,owner_id,attributes,archived,version,close_date,created_at,updated_at",
-        ),
-        collect(client, workspace, "tasks"),
-        collect(client, workspace, "commitments"),
-        collect(client, workspace, "conflicts"),
-        collect(client, workspace, "activities"),
-        collect(
-          client,
-          workspace,
-          "meetings",
-          "id,workspace_id,record_id,starts_at,created_at",
-        ),
-      ]);
-    const generated_at = new Date().toISOString();
-    const all = rankPriorities(
-      records as CrmRecord[],
-      tasks,
-      commitments,
-      conflicts,
-      activities,
-      meetings,
-      new Date(generated_at),
-    );
-    return NextResponse.json({
-      data: all.filter((p) => p.score > 0),
-      generated_at,
-      total: all.length,
-      without_next_action: all.filter((p) =>
-        p.signals.some((s) => s.code === "next_step"),
-      ).length,
+    const { client, user } = await context(workspace);
+    const owner = req.nextUrl.searchParams.get("owner");
+    const data = await rpc(client, "crm_priorities", {
+      w: workspace,
+      owner_filter: owner === "me" ? user.id : owner ? z.uuid().parse(owner) : null,
+      page_offset: z.coerce
+        .number()
+        .int()
+        .min(0)
+        .max(1000000)
+        .parse(req.nextUrl.searchParams.get("offset") || 0),
+      page_size: 50,
     });
+    return NextResponse.json(data, { headers: { "Cache-Control": "private, no-store" } });
   } catch (e) {
     return fail(e);
   }

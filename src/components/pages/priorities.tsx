@@ -1,49 +1,41 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useWorkspace, useSave, request } from "../data-provider";
-import {
-  PageHeader,
-  Empty,
-  Loading,
-  ErrorMessage,
-  Editor,
-  Badge,
-  date,
-  Avatar,
-} from "../ui";
+import { PageHeader, Empty, Loading, ErrorMessage, Editor, Badge, date, Avatar } from "../ui";
 import { RecordDetails } from "./record-details";
 import type { Priority } from "@/lib/domain/priorities";
 import type { CrmRecord } from "@/lib/domain/types";
 export function PrioritiesPage() {
+  const router = useRouter();
   const { workspace, user, objects } = useWorkspace();
   const [mine, setMine] = useState(false);
+  const [offset, setOffset] = useState(0);
   const [detail, setDetail] = useState<CrmRecord | null>(null);
   const [action, setAction] = useState<CrmRecord | null>(null);
   const { save, busy } = useSave();
   const q = useQuery({
-    queryKey: ["rows", workspace.id, "priorities"],
+    queryKey: ["rows", workspace.id, "priorities", mine, offset],
+    staleTime: 15_000,
     queryFn: () =>
       request<{
         data: Priority[];
         generated_at: string;
         total: number;
         without_next_action: number;
-      }>("/api/" + workspace.id + "/priorities"),
+        next_offset: number | null;
+        matching: number;
+      }>("/api/" + workspace.id + "/priorities?offset=" + offset + (mine ? "&owner=me" : "")),
   });
-  const rows =
-    q.data?.data.filter((p) => !mine || p.record.owner_id === user.id) ?? [];
+  const rows = q.data?.data ?? [];
   return (
     <>
       <PageHeader
         title="À traiter"
         description="Les prochaines actions, classées par raisons concrètes."
         action={
-          <button
-            className="button"
-            onClick={() => q.refetch()}
-            disabled={q.isFetching}
-          >
+          <button className="button" onClick={() => q.refetch()} disabled={q.isFetching}>
             Actualiser
           </button>
         }
@@ -53,21 +45,19 @@ export function PrioritiesPage() {
           <input
             type="checkbox"
             checked={mine}
-            onChange={(e) => setMine(e.target.checked)}
+            onChange={(e) => {
+              setMine(e.target.checked);
+              setOffset(0);
+            }}
           />
           Mes fiches uniquement
         </label>
         <span className="pill">{q.data?.total ?? 0} fiches analysées</span>
-        {q.data && (
-          <small>
-            Calcul du {new Date(q.data.generated_at).toLocaleString("fr-FR")}
-          </small>
-        )}
+        {q.data && <small>Calcul du {new Date(q.data.generated_at).toLocaleString("fr-FR")}</small>}
       </div>
       <div className="alert info">
-        L’indice mesure l’urgence opérationnelle, pas une probabilité de vente.
-        Chaque raison et son poids sont visibles. Un suivi daté dans les 7
-        prochains jours évite l’alerte d’inactivité.
+        L’indice mesure l’urgence opérationnelle, pas une probabilité de vente. Chaque raison et son
+        poids sont visibles. Un suivi daté dans les 7 prochains jours évite l’alerte d’inactivité.
       </div>
       <ErrorMessage error={q.error} />
       {q.isPending ? (
@@ -82,19 +72,12 @@ export function PrioritiesPage() {
           {rows.map((p) => (
             <article className="detail-card priority-card" key={p.record.id}>
               <div className="card-head">
-                <button
-                  className="plain-button name-cell"
-                  onClick={() => setDetail(p.record)}
-                >
+                <button className="plain-button name-cell" onClick={() => setDetail(p.record)}>
                   <Avatar name={p.record.display_name} />
                   <strong>{p.record.display_name}</strong>
                 </button>
                 <div className="row-actions">
-                  <span
-                    className={
-                      "priority-score " + (p.score >= 60 ? "urgent" : "")
-                    }
-                  >
+                  <span className={"priority-score " + (p.score >= 60 ? "urgent" : "")}>
                     {p.score}/100
                   </span>
                   <Badge value={p.record.stage} />
@@ -112,9 +95,7 @@ export function PrioritiesPage() {
                 <small>
                   Prochaine tâche :{" "}
                   {p.next_task
-                    ? String(p.next_task.title) +
-                      " · " +
-                      date(p.next_task.due_date)
+                    ? String(p.next_task.title) + " · " + date(p.next_task.due_date)
                     : "Non planifiée"}
                 </small>
                 <button
@@ -127,6 +108,27 @@ export function PrioritiesPage() {
               </div>
             </article>
           ))}
+        </div>
+      )}
+      {!q.error && q.data && (offset > 0 || q.data.next_offset !== null) && (
+        <div className="toolbar">
+          <button
+            className="button"
+            disabled={offset === 0 || q.isFetching}
+            onClick={() => setOffset(Math.max(0, offset - 50))}
+          >
+            Précédent
+          </button>
+          <small>
+            {offset + 1}–{offset + rows.length} sur {q.data.matching} priorités
+          </small>
+          <button
+            className="button"
+            disabled={q.data.next_offset === null || q.isFetching}
+            onClick={() => setOffset(q.data!.next_offset!)}
+          >
+            Suivant
+          </button>
         </div>
       )}
       {action && (
@@ -161,12 +163,11 @@ export function PrioritiesPage() {
           onClose={() => setDetail(null)}
           onEdit={() => {
             setDetail(null);
-            window.location.assign(
+            router.push(
               "/app/" +
                 (objects.find((o) => o.id === detail.object_id)?.standard
                   ? objects.find((o) => o.id === detail.object_id)?.slug
-                  : "object-" +
-                    objects.find((o) => o.id === detail.object_id)?.slug),
+                  : "object-" + objects.find((o) => o.id === detail.object_id)?.slug),
             );
           }}
         />

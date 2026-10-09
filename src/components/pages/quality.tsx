@@ -45,9 +45,12 @@ export function QualityPage() {
   const q = useQuery({
     queryKey: ["rows", workspace.id, "duplicates", object],
     queryFn: () =>
-      request<{ data: DuplicatePair[]; total: number; truncated: boolean }>(
-        "/api/" + workspace.id + "/duplicates" + (object ? "?object_id=" + object : ""),
-      ),
+      request<{
+        data: DuplicatePair[];
+        total: number;
+        truncated: boolean;
+        normalization_partial?: boolean;
+      }>("/api/" + workspace.id + "/duplicates" + (object ? "?object_id=" + object : "")),
   });
   const history = useRows("merge_history", { size: 20 });
   const decisions = useRows("duplicates/decisions", { page: decisionPage });
@@ -118,8 +121,14 @@ export function QualityPage() {
       <ErrorMessage error={error ? new Error(error) : null} />
       {q.data?.truncated && (
         <div className="alert info">
-          La liste est limitée à 250 paires et 50 000 rapprochements par calcul. Restreignez par
-          objet ou traitez ces suggestions puis actualisez.
+          La liste est limitée à 250 paires par calcul. Restreignez par objet ou traitez ces
+          suggestions puis actualisez.
+        </div>
+      )}
+      {q.data?.normalization_partial && (
+        <div className="alert info">
+          Analyse partielle des domaines : les adresses internationales, encodées ou IP nécessitent
+          une comparaison individuelle. Les emails et noms restent analysés.
         </div>
       )}
       {q.isPending ? (

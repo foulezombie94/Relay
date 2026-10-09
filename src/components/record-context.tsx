@@ -14,14 +14,19 @@ export type RecordContext = {
   truncated: boolean;
   relation_count: number;
 };
-export function useRecordContext(recordId: string) {
+export function useRecordContext(
+  recordId: string,
+  view: "summary" | "timeline" | "relations" | "all" = "all",
+  enabled = true,
+) {
   const { workspace } = useWorkspace();
   return useQuery({
-    queryKey: ["rows", workspace.id, "context", recordId],
+    queryKey: ["rows", workspace.id, "context", recordId, view],
+    enabled,
     staleTime: 30_000,
     queryFn: () =>
       request<RecordContext>(
-        "/api/" + workspace.id + "/context?record_id=" + recordId,
+        "/api/" + workspace.id + "/context?record_id=" + recordId + "&view=" + view,
       ),
   });
 }
@@ -47,27 +52,18 @@ export function RecordContextPanel({
   const [adding, setAdding] = useState(false);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
-  const q = useRecordContext(record.id);
+  const q = useRecordContext(record.id, mode);
   const candidates = useQuery({
     queryKey: ["rows", workspace.id, "record-relation-candidates", search],
     enabled: adding,
     queryFn: () =>
       request<{ data: CrmRecord[] }>(
-        "/api/" +
-          workspace.id +
-          "/records?size=25&q=" +
-          encodeURIComponent(search),
+        "/api/" + workspace.id + "/records?size=25&q=" + encodeURIComponent(search),
       ),
   });
   function go(r: CrmRecord) {
     const o = objects.find((o) => o.id === r.object_id);
-    if (o)
-      router.push(
-        "/app/" +
-          (o.standard ? o.slug : "object-" + o.slug) +
-          "?record=" +
-          r.id,
-      );
+    if (o) router.push("/app/" + (o.standard ? o.slug : "object-" + o.slug) + "?record=" + r.id);
   }
   if (q.isPending) return <Loading />;
   if (q.error) return <ErrorMessage error={q.error} />;
@@ -82,8 +78,7 @@ export function RecordContextPanel({
               "/app/" +
               (objects.find((o) => o.id === record.object_id)?.standard
                 ? objects.find((o) => o.id === record.object_id)?.slug
-                : "object-" +
-                  objects.find((o) => o.id === record.object_id)?.slug) +
+                : "object-" + objects.find((o) => o.id === record.object_id)?.slug) +
               "?record=" +
               data.record.merged_into
             }
@@ -94,8 +89,8 @@ export function RecordContextPanel({
       )}
       {data.truncated && (
         <div className="alert info">
-          Aperçu limité aux 100 derniers éléments de chaque catégorie et aux 100
-          premières relations. Consultez leurs pages pour la suite.
+          Aperçu limité aux 100 derniers éléments de chaque catégorie et aux 100 premières
+          relations. Consultez leurs pages pour la suite.
         </div>
       )}
       {mode === "timeline" ? (
@@ -117,21 +112,13 @@ export function RecordContextPanel({
                   <small>{date(r.created_at)}</small>
                 </div>
                 <strong>{str(r.title || r.name || r.type)}</strong>
-                {r.private === true && (
-                  <span className="pill">Privée · vous uniquement</span>
-                )}
+                {r.private === true && <span className="pill">Privée · vous uniquement</span>}
                 {r.status ? <Badge value={r.status} /> : null}
                 <p className="preserve-lines">
-                  {str(
-                    r.content || r.description || r.summary || r.source_quote,
-                  ).slice(0, 1500)}
+                  {str(r.content || r.description || r.summary || r.source_quote).slice(0, 1500)}
                 </p>
-                {r.due_date ? (
-                  <small>Échéance : {date(r.due_date)}</small>
-                ) : null}
-                {r.starts_at ? (
-                  <small>Réunion : {date(r.starts_at)}</small>
-                ) : null}
+                {r.due_date ? <small>Échéance : {date(r.due_date)}</small> : null}
+                {r.starts_at ? <small>Réunion : {date(r.starts_at)}</small> : null}
                 {r.resource === "documents" && (
                   <a
                     className="button small"
@@ -163,9 +150,7 @@ export function RecordContextPanel({
             <p>{data.relation_count} relation(s)</p>
             <button
               className="button small"
-              disabled={
-                workspace.role === "viewer" || !!data.record.merged_into
-              }
+              disabled={workspace.role === "viewer" || !!data.record.merged_into}
               onClick={() => {
                 setError("");
                 setAdding(true);
@@ -177,9 +162,7 @@ export function RecordContextPanel({
           <div className="stack">
             {data.relations.map((r) => {
               const other = data.related.find(
-                (v) =>
-                  v.id ===
-                  (r.source_id === record.id ? r.target_id : r.source_id),
+                (v) => v.id === (r.source_id === record.id ? r.target_id : r.source_id),
               );
               return (
                 <article className="detail-card" key={r.id}>
@@ -189,25 +172,19 @@ export function RecordContextPanel({
                       disabled={!other}
                       onClick={() => other && go(other)}
                     >
-                      <strong>
-                        {other?.display_name || "Fiche inaccessible"}
-                      </strong>
+                      <strong>{other?.display_name || "Fiche inaccessible"}</strong>
                     </button>
                     <button
                       className="button small"
                       disabled={workspace.role === "viewer"}
-                      onClick={() =>
-                        void remove("record_relations", r.id).catch(() => {})
-                      }
+                      onClick={() => void remove("record_relations", r.id).catch(() => {})}
                     >
                       Dissocier
                     </button>
                   </div>
                   <p>
                     {str(r.label)} ·{" "}
-                    {r.source_id === record.id
-                      ? "relation sortante"
-                      : "relation entrante"}
+                    {r.source_id === record.id ? "relation sortante" : "relation entrante"}
                     {other?.archived ? " · archivée" : ""}
                   </p>
                 </article>
@@ -237,9 +214,7 @@ export function RecordContextPanel({
                 });
                 setAdding(false);
               } catch (e) {
-                setError(
-                  e instanceof Error ? e.message : "Relation impossible",
-                );
+                setError(e instanceof Error ? e.message : "Relation impossible");
               }
             }}
           >
@@ -260,14 +235,11 @@ export function RecordContextPanel({
                   .filter((r) => r.id !== record.id)
                   .map((r) => (
                     <option key={r.id} value={r.id}>
-                      {r.display_name} ·{" "}
-                      {objects.find((o) => o.id === r.object_id)?.name}
+                      {r.display_name} · {objects.find((o) => o.id === r.object_id)?.name}
                     </option>
                   ))}
               </select>
-              <small>
-                25 résultats à la fois. Affinez la recherche si nécessaire.
-              </small>
+              <small>25 résultats à la fois. Affinez la recherche si nécessaire.</small>
             </label>
             <label>
               Relation
@@ -280,17 +252,10 @@ export function RecordContextPanel({
             </label>
             {error && <div className="alert error">{error}</div>}
             <div className="dialog-footer">
-              <button
-                className="button"
-                type="button"
-                onClick={() => setAdding(false)}
-              >
+              <button className="button" type="button" onClick={() => setAdding(false)}>
                 Annuler
               </button>
-              <button
-                className="button primary"
-                disabled={busy || candidates.isPending}
-              >
+              <button className="button primary" disabled={busy || candidates.isPending}>
                 Relier
               </button>
             </div>
