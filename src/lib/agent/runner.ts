@@ -10,7 +10,8 @@ import { ApiError } from "@/lib/api/context";
 import { executeTool, guard, propose, rpc, type ToolContext } from "./tools";
 import { toolsForModel, readRequestKey, toolLabel } from "./contracts";
 import { agentInstructions } from "./instructions";
-import { directIdentityAnswer } from "./identity";
+import { directIdentityAnswer, configuredAgentProvider } from "./identity";
+import { agentApiKey, agentEndpoint, agentProviderTools, agentProviderOptions } from "./provider";
 
 // Provider output is bounded before JSON parsing; streams, tool arguments and errors
 // cannot grow indefinitely. No unvalidated model text is displayed to the user.
@@ -48,7 +49,7 @@ export async function runAgent(
   },
 ) {
   c.untrustedContext ||= options.priorQuestions.length > 0;
-  const definitions = toolsForModel();
+  const definitions = agentProviderTools(toolsForModel());
   const messages: Array<Record<string, unknown>> = [
     { role: "system", content: agentInstructions(options.model) },
     {
@@ -106,20 +107,24 @@ export async function runAgent(
           429,
         );
       options.step("model-" + round, "Analyse des sources et sélection des outils", "running");
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const exhausted = toolCalls >= options.toolLimit;
+      const response = await fetch(agentEndpoint(), {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + process.env.OPENAI_API_KEY,
+          Authorization: "Bearer " + agentApiKey(),
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           model: options.model,
-          store: false,
+          ...agentProviderOptions(exhausted),
           max_completion_tokens: options.outputTokens,
-          response_format: { type: "json_object" },
-          tools: definitions,
-          parallel_tool_calls: false,
-          tool_choice: toolCalls >= options.toolLimit ? "none" : "auto",
+          ...(configuredAgentProvider() === "groq" && exhausted
+            ? {}
+            : {
+                tools: definitions,
+                parallel_tool_calls: false,
+                tool_choice: exhausted ? "none" : "auto",
+              }),
           messages,
         }),
         redirect: "error",

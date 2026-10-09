@@ -3,6 +3,7 @@ import { z } from "zod";
 import { context, databaseError, fail } from "@/lib/api/context";
 import { agentUsageSchema } from "@/lib/domain/agent-usage";
 import { configuredAgentModel } from "@/lib/agent/identity";
+import { agentApiKey } from "@/lib/agent/provider";
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ workspace: string }> },
@@ -18,7 +19,7 @@ export async function GET(
     const data = agentUsageSchema.parse(result.data);
     await context(workspace);
     return NextResponse.json(
-      { data, configured: !!process.env.OPENAI_API_KEY, model: configuredAgentModel() },
+      { data, configured: !!agentApiKey(), model: configuredAgentModel() },
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {

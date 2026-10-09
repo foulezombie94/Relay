@@ -3,6 +3,7 @@ import { z } from "zod";
 import { randomUUID, randomBytes } from "node:crypto";
 import { runAgent } from "@/lib/agent/runner";
 import { configuredAgentModel } from "@/lib/agent/identity";
+import { agentApiKey } from "@/lib/agent/provider";
 import { rpc } from "@/lib/agent/tools";
 import * as Sentry from "@sentry/nextjs";
 import { context, checkOrigin, ApiError, databaseError, fail } from "@/lib/api/context";
@@ -78,7 +79,7 @@ export async function GET(req: NextRequest, { params }: P) {
     databaseError(result.error);
     return NextResponse.json(
       {
-        configured: !!process.env.OPENAI_API_KEY,
+        configured: !!agentApiKey(),
         model: model(),
         conversations: result.data ?? [],
       },
@@ -145,7 +146,7 @@ export async function POST(req: NextRequest, { params }: P) {
         410,
       );
     const selectedModel = model();
-    if (!process.env.OPENAI_API_KEY)
+    if (!agentApiKey())
       throw new ApiError(
         "L’assistant n’est pas encore activé. Contactez votre administrateur.",
         503,

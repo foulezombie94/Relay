@@ -1,8 +1,17 @@
 // The backend supplies the model identifier; no provider self-identification is trusted.
+export function configuredAgentProvider(): "openai" | "groq" {
+  const provider = process.env.AI_PROVIDER?.trim().toLowerCase() || "openai";
+  if (provider !== "openai" && provider !== "groq")
+    throw new Error("Fournisseur AI_PROVIDER invalide.");
+  return provider;
+}
 export function configuredAgentModel() {
-  const model = process.env.OPENAI_MODEL?.trim() || "gpt-4.1-mini";
+  const groq = configuredAgentProvider() === "groq";
+  const model = groq
+    ? process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-120b"
+    : process.env.OPENAI_MODEL?.trim() || "gpt-4.1-mini";
   if (!/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,119}$/.test(model))
-    throw new Error("Identifiant OPENAI_MODEL invalide.");
+    throw new Error(`Identifiant ${groq ? "GROQ_MODEL" : "OPENAI_MODEL"} invalide.`);
   return model;
 }
 export function directIdentityAnswer(question: string, model: string): string | null {
