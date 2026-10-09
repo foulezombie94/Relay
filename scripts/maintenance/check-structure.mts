@@ -25,6 +25,9 @@ function resolves(base: string) {
 }
 
 for (const file of new Set(files)) {
+  // Next.js owns this declaration file and creates its .next imports during
+  // dev/build. A fresh checkout cannot resolve them before those steps run.
+  if (file === "next-env.d.ts") continue;
   if (!/\.(?:ts|tsx|mts|mjs|md)$/.test(file)) continue;
   const absolute = path.join(root, file);
   const content = readFileSync(absolute, "utf8");
