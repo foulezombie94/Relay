@@ -3,11 +3,11 @@ import { useState, Suspense } from "react";
 import { browserDb } from "@/lib/supabase/client";
 import { ArrowRight, Check, Layers, Mail } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { loginDestination } from "@/lib/supabase/session";
 function LoginForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const destination = searchParams.get("next") === "/invite" ? "/invite" : "/app/dashboard";
+  const destination = loginDestination(searchParams.get("next"));
   const [mode, setMode] = useState<"login" | "signup" | "reset">(
     searchParams.get("mode") === "signup" ? "signup" : "login",
   );
@@ -38,7 +38,7 @@ function LoginForm() {
           },
         });
         if (error) throw error;
-        if (data.session) router.push(destination);
+        if (data.session) window.location.replace(destination);
         else
           setMessage(
             destination === "/invite"
@@ -51,7 +51,8 @@ function LoginForm() {
           password,
         });
         if (error) throw error;
-        router.push(destination);
+        // Start with fresh server state after the SDK has persisted the cookies.
+        window.location.replace(destination);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Connexion impossible.");

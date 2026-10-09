@@ -1,10 +1,16 @@
 "use client";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Workspace, ObjectDefinition, Row } from "@/lib/domain/types";
 import { toast } from "sonner";
 import Link from "next/link";
 import { AppearanceProvider } from "./appearance-provider";
+import { browserDb } from "@/lib/supabase/client";
+import { observeSession } from "@/lib/supabase/session";
+
+export class RequestError extends Error {
+  constructor(message: string, public status: number) { super(message); }
+}
 export async function request<T = Record<string, unknown>>(
   url: string,
   method = "GET",
@@ -17,7 +23,7 @@ export async function request<T = Record<string, unknown>>(
     cache: "no-store",
   });
   const data = await r.json();
-  if (!r.ok) throw new Error(data.error || "Action impossible");
+  if (!r.ok) throw new RequestError(data.error || "Action impossible", r.status);
   return data;
 }
 const Context = createContext<{
@@ -81,7 +87,7 @@ export function useSave() {
   }
   return { save, remove, busy };
 }
-export function AppProvider({ children }: { children: ReactNode }) {
+export function AppProvider({ children, userId }: { children: ReactNode; userId: string }) {
   const [client] = useState(
     () =>
       new QueryClient({
@@ -90,6 +96,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         },
       }),
   );
+  useEffect(() => observeSession(
+    browserDb().auth,
+    userId,
+    () => client.clear(),
+    () => window.location.replace("/login"),
+    () => window.location.reload(),
+  ), [client, userId]);
   return (
     <QueryClientProvider client={client}>
       <Gate>{children}</Gate>
@@ -122,7 +135,9 @@ function Gate({ children }: { children: ReactNode }) {
     return (
       <div className="page-loader">
         <p>{q.error.message}</p>
-        <a href="/login">Se reconnecter</a>
+        {q.error instanceof RequestError && q.error.status === 401
+          ? <a href="/login">Se reconnecter</a>
+          : <button className="button" onClick={() => void q.refetch()}>Réessayer</button>}
       </div>
     );
   if (!workspace)

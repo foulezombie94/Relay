@@ -59,7 +59,7 @@ export default function Invite() {
       {error && <div role="alert" className="alert error">{error}</div>}
       {info && status === 200 && <button className="button primary full" disabled={busy} onClick={accept}>{busy ? "Confirmation…" : "Accepter et rejoindre l’espace"}<ArrowRight size={16} /></button>}
       {status === 401 && <><p>Connectez-vous ou créez un compte avec l’adresse invitée, puis vérifiez votre email.</p><Link href="/login?next=/invite" className="button primary full">Se connecter</Link><Link href="/login?mode=signup&next=/invite" className="button full" style={{ marginTop: 12 }}>Créer mon compte</Link></>}
-      {status !== 401 && <button className="link-button" disabled={busy} onClick={async () => { setBusy(true); try { await browserDb().auth.signOut(); router.replace("/login?next=/invite"); router.refresh(); } catch { setError("Impossible de changer de compte. Réessayez."); setBusy(false); } }}>Utiliser un autre compte</button>}
+      {status !== 401 && <button className="link-button" disabled={busy} onClick={async () => { setBusy(true); try { const { error } = await browserDb().auth.signOut({ scope: "local" }); if (error) throw error; window.location.replace("/login?next=/invite"); } catch { setError("Impossible de changer de compte. Réessayez."); setBusy(false); } }}>Utiliser un autre compte</button>}
       <p className="caption">Ce lien est personnel. Il exige l’adresse invitée vérifiée et peut être annulé par l’administrateur.</p>
     </>}
   </div></div></main>;

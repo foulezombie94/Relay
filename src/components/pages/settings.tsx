@@ -428,7 +428,7 @@ function SettingsView() {
                   onClick={async () => {
                     setSigningOut(true);
                     try {
-                      const { error } = await browserDb().auth.signOut();
+                      const { error } = await browserDb().auth.signOut({ scope: "local" });
                       if (error) throw error;
                       router.replace("/login");
                       router.refresh();

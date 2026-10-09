@@ -11,8 +11,8 @@ export function AppSidebar() {
       {...context}
       path={path}
       onSignOut={async () => {
-        const { error } = await browserDb().auth.signOut();
-        if (!error) window.location.assign("/login");
+        const { error } = await browserDb().auth.signOut({ scope: "local" });
+        if (!error) window.location.replace("/login");
       }}
     />
   );

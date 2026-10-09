@@ -6,9 +6,11 @@ import type { Role } from '@/lib/domain/types';
 import { after } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import { logEvent } from '@/lib/observability/logger';
+import {assertAuthAvailable,AuthUnavailableError} from '@/lib/supabase/session';
 export class ApiError extends Error {constructor(message:string,public status=400){super(message);}}
 export async function context(workspaceId:string,write=false) {
   const client=await db();const {data:{user},error}=await client.auth.getUser();
+  assertAuthAvailable(error);
   if(error||!user)throw new ApiError('Connectez-vous pour continuer.',401);
   const {data:membership}=await client.from('memberships').select('role').eq('workspace_id',workspaceId).eq('user_id',user.id).single();
   if(!membership)throw new ApiError('Cet espace est inaccessible.',403);
@@ -38,6 +40,7 @@ export function checkOrigin(request:NextRequest){
   if(!allowed.has(origin))throw new ApiError('Origine non autorisée.',403);
 }
 export function fail(error:unknown){
+  if(error instanceof AuthUnavailableError)error=new ApiError(error.message,503);
   if(error instanceof ZodError)return NextResponse.json({error:error.issues.map(i=>i.path.join('.')+': '+i.message).join(' ')},{status:400});
   if(!(error instanceof ApiError)||error.status>=500){
     const status=error instanceof ApiError?error.status:500;
