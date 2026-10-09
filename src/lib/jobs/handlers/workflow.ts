@@ -11,6 +11,8 @@ import { unseal } from "@/lib/integrations/crypto";
 import { workflowPost, resolveWorkflowDestination } from "@/lib/integrations/workflow-http";
 import { renderWorkflowText, type WorkflowValues } from "@/lib/domain/workflow-variables";
 import type { WorkflowAction } from "@/lib/domain/types";
+import { configuredAgentModel } from "@/lib/agent/identity";
+import { agentApiKey, agentEndpoint, agentProviderOptions } from "@/lib/agent/provider";
 
 type Effect = {
   id: string;
@@ -89,15 +91,16 @@ export async function workflowJob(admin: SupabaseClient, job: Job): Promise<JobR
         if (/[\r\n]/.test(text(a.to, 300))) throw new Rejected("recipient_invalid");
       }
     }
-    const destination = effect.encrypted_destination
-      ? unseal<{ url: string; secret?: string }>(effect.encrypted_destination)
-      : null;
+    const destination =
+      ["webhook", "slack"].includes(a.type) && effect.encrypted_destination
+        ? unseal<{ url: string; secret?: string }>(effect.encrypted_destination)
+        : null;
     let resolved: Awaited<ReturnType<typeof resolveWorkflowDestination>> | undefined;
     if (["webhook", "slack"].includes(a.type)) {
       if (!destination) throw new Rejected("destination_missing");
       resolved = await resolveWorkflowDestination(destination.url, a.type === "slack");
     }
-    if (a.type === "ai" && !process.env.OPENAI_API_KEY) throw new Rejected("ai_not_configured");
+    if (a.type === "ai" && !agentApiKey()) throw new Rejected("ai_not_configured");
     // Validate/render before persisting sending, so malformed input cannot become uncertain.
     const email =
       a.type === "email"
@@ -186,14 +189,15 @@ export async function workflowJob(admin: SupabaseClient, job: Job): Promise<JobR
         }
       }
     } else if (a.type === "ai") {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch(agentEndpoint(), {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + process.env.OPENAI_API_KEY,
+          Authorization: "Bearer " + agentApiKey(),
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: process.env.OPENAI_MODEL ?? "gpt-4.1-mini",
+          model: configuredAgentModel(),
+          ...agentProviderOptions(true),
           max_completion_tokens: 600,
           response_format: { type: "json_object" },
           messages: [
@@ -211,7 +215,10 @@ export async function workflowJob(admin: SupabaseClient, job: Job): Promise<JobR
         redirect: "error",
         signal: AbortSignal.timeout(30000),
       });
-      if (!response.ok) throw new Rejected("ai_provider_failed");
+      if (!response.ok)
+        throw new Rejected(
+          response.status === 429 ? "ai_provider_rate_limited" : "ai_provider_failed",
+        );
       const data = await response.json();
       result = aiOutput.parse(JSON.parse(data.choices?.[0]?.message?.content ?? "{}"));
     }
@@ -236,6 +243,10 @@ export async function workflowJob(admin: SupabaseClient, job: Job): Promise<JobR
       state: uncertain ? "unknown" : "failed",
       code,
     });
+    return {
+      committed: true,
+      result: { status: uncertain ? "unknown" : "failed", error_code: code },
+    };
   }
   return { committed: true };
 }

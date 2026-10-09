@@ -36,6 +36,8 @@ const errors: Record<string, string> = {
     "Le compte d’exécution ou un responsable a perdu ses droits. Corrigez les accès puis relancez.",
   invalid_action:
     "Une action n’est plus valide. Vérifiez l’étape, la liste, les dates et les responsables.",
+  record_changed:
+    "La fiche a changé depuis votre demande. Examinez les nouvelles données puis préparez une nouvelle exécution.",
   worker_failed:
     "Le traitement a échoué après plusieurs tentatives. Réessayez après avoir corrigé la cause.",
   capacity:
@@ -45,6 +47,8 @@ const errors: Record<string, string> = {
   calendar_write_permission:
     "Reconnectez le calendrier dans Intégrations pour autoriser la création d’événements, puis réessayez.",
   ai_not_configured: "La clé du fournisseur IA n’est pas configurée sur le worker.",
+  ai_provider_rate_limited:
+    "Le fournisseur IA limite les demandes. Attendez avant de préparer une nouvelle exécution.",
   provider_rejected:
     "Le fournisseur a refusé l’action. Vérifiez ses permissions et les valeurs configurées.",
   external_not_ready:

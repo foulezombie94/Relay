@@ -10,9 +10,9 @@ Jobs, payloads, événements et heartbeats sont dans `relay_private`, sans accè
 
 ## Garanties et limites
 
-La prise est atomique avec `FOR UPDATE SKIP LOCKED`. Un token UUID protège chaque résultat ; le verrou est renouvelé toutes les 45 secondes et expire après trois minutes. Un worker traite un job à la fois, plusieurs réplicas peuvent partager la queue. Le scheduler tourne indépendamment du job courant, toutes les 60 secondes. Postgres sérialise les schedulers et limite chaque ensemble de types à un passage par minute. Les types de connecteurs sont filtrés avant la limite de lot.
+La prise est atomique avec `FOR UPDATE SKIP LOCKED`. Un token UUID protège chaque résultat ; le verrou est renouvelé toutes les 45 secondes et expire après trois minutes. Chaque réplica dispose de deux capacités distinctes : les jobs interactifs (`workflow_run`, `sequence_send`, `notifications`, deux slots par défaut) et les imports/synchronisations (un slot par défaut). Chaque slot traite un seul job à la fois. `WORKER_SHORT_CONCURRENCY` et `WORKER_LONG_CONCURRENCY` acceptent chacun 1 à 4 ; plusieurs réplicas partagent la queue. Le scheduler tourne indépendamment des jobs, toutes les 60 secondes. Postgres sérialise les schedulers et limite chaque ensemble de types à un passage par minute. Les types de connecteurs sont filtrés avant la limite de lot.
 
-À vide, le polling recule de 5 à 30 secondes ; après un job, la prise suivante reste immédiate. Avec un réplica inactif, l'ordre de grandeur passe de 25–26 milliers à environ 7 800 RPC par jour (claims, scheduler et heartbeats), soit environ 70 % de moins. C'est une estimation arithmétique, pas une mesure de facturation. Une nouvelle demande peut attendre environ 30 secondes avant sa prise. Les RPC serveur ont un timeout réseau de 30 secondes ; il ne remplace pas les limites SQL.
+À vide, le polling recule de 1 à 2 secondes par slot interactif, et de 2 à 5 secondes par slot d'import/synchronisation, avec un aléa de ±10 %. Après un job, la prise suivante reste immédiate. Cette fréquence réduit l'attente des petites tâches mais augmente les RPC à vide : observer la consommation Supabase avant d'augmenter les slots ou réplicas. Le délai p95 inférieur à cinq secondes reste un objectif à mesurer sur le worker déployé. Les RPC serveur ont un timeout réseau de 30 secondes ; il ne remplace pas les limites SQL.
 
 Les erreurs temporaires ont jusqu’à cinq tentatives avec délai exponentiel et aléa. Le plafond du délai est d'environ une heure ; avec cinq tentatives par défaut, les délais effectifs restent de l'ordre des minutes. Les erreurs permanentes terminent dans `dead`. Un arrêt brutal entraîne la reprise après expiration du verrou. Les heures non ouvrées reportent un envoi sans consommer les tentatives. Une séquence en pause ou désactivée met son job en `paused`, sans boucle de claims ; le scheduler reprend le même job quand sa source redevient éligible.
 
@@ -35,7 +35,7 @@ npm run dev
 npm run worker
 ```
 
-Le worker charge `.env.local` uniquement s’il existe. Sur Railway, il lit les variables du service. Il n’a pas besoin de `JOBS_SECRET` ni de `WORKER_URL`. Port par défaut : 3001 (web : 3000). SIGTERM/SIGINT arrêtent la prise de nouveaux jobs et attendent le job courant. Le health check indique l’arrêt immédiatement.
+Le worker charge `.env.local` uniquement s’il existe. Sur Railway, il lit les variables du service. Il n’a pas besoin de `JOBS_SECRET` ni de `WORKER_URL`. Port par défaut : 3001 (web : 3000). SIGTERM/SIGINT arrêtent la prise de nouveaux jobs et attendent tous les jobs en cours. Le health check indique l’arrêt immédiatement.
 
 Sur ce runtime Windows, les anciens dossiers Next ont des droits insuffisants et le verrou SWC échoue : les nouveaux fichiers utilisent `.next-local` et `.next-build`, avec `experimental.lockDistDir` désactivé uniquement sous Windows. Ne pas lancer plusieurs builds dans le même répertoire. Vercel utilise `.next`, conformément à `vercel.json`. Le verrou natif reste actif sous Linux.
 
@@ -56,8 +56,8 @@ Si un ancien cache Windows refuse son nettoyage (`EPERM`), définir `RELAY_BUILD
 1. Créer un service depuis le même dépôt, avec `railway.json` et `Dockerfile.worker`.
 2. Choisir une région européenne proche de Supabase dans les paramètres du service.
 3. Renseigner `deploy/worker.env.example`. La clé serveur Supabase et le chiffrement OAuth doivent correspondre au web. Ne pas changer la clé de chiffrement sans migration des tokens existants.
-4. Railway fournit `PORT` ; le worker écoute `0.0.0.0`. Le health check `/healthz` répond 200 si le heartbeat Supabase a réussi depuis moins de 90 secondes et si la boucle de traitement a progressé depuis moins de 15 minutes. Il ne prouve pas l'absence de backlog. `/metrics` nécessite un Bearer `WORKER_METRICS_SECRET` et expose uniquement des compteurs.
-5. Commencer avec un réplica. Séparer ensuite les traitements en services via `WORKER_JOB_TYPES` (ex. `email_sync,calendar_sync` et `imports,workflow_run,notifications`). Augmenter les réplicas après observation des quotas fournisseurs et de la queue.
+4. Railway fournit `PORT` ; le worker écoute `0.0.0.0`. Le health check `/healthz` répond 200 si le heartbeat Supabase a réussi depuis moins de 90 secondes et si le traitement a progressé depuis moins de 15 minutes et qu’aucun job actif ne dure plus de 15 minutes. Il ne prouve pas l'absence de backlog. `/metrics` nécessite un Bearer `WORKER_METRICS_SECRET` et expose les compteurs, capacités et jobs actifs par catégorie.
+5. Commencer avec un réplica et les trois slots par défaut. Pour des services séparés, filtrer `WORKER_JOB_TYPES` (ex. `email_sync,calendar_sync,imports` et `workflow_run,notifications`). Augmenter les slots/réplicas après observation des quotas fournisseurs, de la queue et des ressources. Un workflow peut contenir une étape réseau lente ; les catégories ne constituent pas une garantie de durée.
 
 Le conteneur utilise l’utilisateur non privilégié `node` et ne contient aucun `.env`. Les séquences sont désactivées par défaut : pour les activer, ajouter `sequence_send` aux types du worker et `FEATURE_SEQUENCE_SEND=true` sur web + worker. Il faut toujours HTTPS, confirmation, compte connecté et lien de désinscription.
 
@@ -92,7 +92,7 @@ Références : [Supabase RLS](https://supabase.com/docs/guides/database/postgres
 
 ## Actions externes des workflows
 
-Le worker doit inclure `workflow_run` dans `WORKER_JOB_TYPES`. Le bloc IA utilise `OPENAI_API_KEY` et `OPENAI_MODEL` sur Railway. Le web conserve la même clé `INTEGRATION_ENCRYPTION_KEY` que le worker pour les tokens OAuth et destinations chiffrées.
+Le worker doit inclure `workflow_run` dans `WORKER_JOB_TYPES`. Le bloc IA utilise la même sélection de fournisseur que le web : `AI_PROVIDER=openai`, `OPENAI_API_KEY`, `OPENAI_MODEL`, ou `AI_PROVIDER=groq`, `GROQ_API_KEY`, `GROQ_MODEL`. Renseigner la clé correspondante dans les deux services ; une clé présente uniquement dans Vercel ne configure pas Railway. Le web conserve la même clé `INTEGRATION_ENCRYPTION_KEY` que le worker pour les tokens OAuth et destinations chiffrées. Une erreur `record_changed` exige un nouvel aperçu de workflow : ne pas relancer automatiquement un aperçu périmé.
 
 Les comptes calendrier déjà connectés en lecture doivent être reconnectés pour autoriser `calendar.events` chez Google ou `Calendars.ReadWrite` chez Microsoft. Les comptes email utilisés sont ceux de la personne qui publie ou lance l’exécution. Les destinations Slack et webhook se configurent dans Relay, onglet Connexions des automatisations, avec un compte administrateur.
 

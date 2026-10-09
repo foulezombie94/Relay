@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Job } from "../types";
 vi.mock("server-only", () => ({}));
@@ -31,6 +31,10 @@ beforeEach(() => {
   vi.mocked(queueOperation)
     .mockResolvedValue({ ok: true })
     .mockResolvedValueOnce({ external: effect });
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 describe("workflow external outbox", () => {
   it("does not repeat an action after a sending marker survived a crash", async () => {
@@ -82,6 +86,98 @@ describe("workflow external outbox", () => {
       admin,
       "workflow_effect_finish",
       expect.objectContaining({ state: "unknown", code: "delivery_uncertain" }),
+    );
+  });
+  it("uses the configured Groq account and model without requiring an OpenAI key", async () => {
+    vi.stubEnv("AI_PROVIDER", "groq");
+    vi.stubEnv("GROQ_API_KEY", "test-only-key");
+    vi.stubEnv("GROQ_MODEL", "test-groq-model");
+    vi.stubEnv("OPENAI_API_KEY", "");
+    vi.mocked(queueOperation)
+      .mockReset()
+      .mockResolvedValue({ ok: true })
+      .mockResolvedValueOnce({
+        external: { ...effect, action: { type: "ai", input: "Analyse {{record.name}}" } },
+      });
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content: JSON.stringify({
+                    summary: "Résumé",
+                    intent: "question",
+                    next_action: "Vérifier",
+                    confidence: 0.8,
+                  }),
+                },
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    await workflowJob(admin, job);
+    expect(vi.mocked(queueOperation).mock.calls.at(-1)?.[2]).toMatchObject({ state: "completed" });
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.groq.com/openai/v1/chat/completions");
+    expect(workflowPost).not.toHaveBeenCalled();
+    expect(JSON.parse(String(init.body))).toMatchObject({
+      model: "test-groq-model",
+      store: false,
+      include_reasoning: false,
+    });
+    expect(queueOperation).toHaveBeenLastCalledWith(
+      admin,
+      "workflow_effect_finish",
+      expect.objectContaining({
+        state: "completed",
+        result: expect.objectContaining({ intent: "question" }),
+      }),
+    );
+  });
+  it("reports a missing worker provider key before preparing or calling the provider", async () => {
+    vi.stubEnv("AI_PROVIDER", "groq");
+    vi.stubEnv("GROQ_API_KEY", "");
+    vi.mocked(queueOperation)
+      .mockReset()
+      .mockResolvedValue({ ok: true })
+      .mockResolvedValueOnce({ external: { ...effect, action: { type: "ai", input: "Résumé" } } });
+    vi.stubGlobal("fetch", vi.fn());
+    const result = await workflowJob(admin, job);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      committed: true,
+      result: { status: "failed", error_code: "ai_not_configured" },
+    });
+    expect(
+      vi.mocked(queueOperation).mock.calls.some((call) => call[1] === "workflow_effect_prepare"),
+    ).toBe(false);
+  });
+  it("records a provider 429 as failed and does not retry the AI stage", async () => {
+    vi.stubEnv("AI_PROVIDER", "groq");
+    vi.stubEnv("GROQ_API_KEY", "test-only-key");
+    vi.mocked(queueOperation)
+      .mockReset()
+      .mockResolvedValue({ ok: true })
+      .mockResolvedValueOnce({ external: { ...effect, action: { type: "ai", input: "Résumé" } } });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 429 })),
+    );
+    const result = await workflowJob(admin, job);
+    expect(result).toMatchObject({
+      committed: true,
+      result: { status: "failed", error_code: "ai_provider_rate_limited" },
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(queueOperation).toHaveBeenLastCalledWith(
+      admin,
+      "workflow_effect_finish",
+      expect.objectContaining({ state: "failed", code: "ai_provider_rate_limited" }),
     );
   });
 });
