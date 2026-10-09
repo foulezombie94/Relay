@@ -185,8 +185,8 @@ export function ChatMessage({
         <span className={styles.agentMark}>
           <Sparkles size={15} />
         </span>
-        <strong>Relay</strong>
-        <span>Assistant</span>
+        <strong>Ask Relay</strong>
+        <span>Assistant IA · OpenAI</span>
       </div>
       {((message.steps?.length ?? 0) > 0 || active) && (
         <AgentActivity steps={message.steps ?? []} active={active} elapsed={message.elapsed_ms} />

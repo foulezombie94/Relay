@@ -18,7 +18,8 @@
     "test:workflows": "vitest run src/lib/integrations/services.test.ts src/lib/integrations/services-workflow.test.ts src/lib/domain/workflow-variables.test.ts src/lib/integrations/workflow-http.test.ts src/lib/jobs/handlers/workflow.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false",
     "test:agent": "vitest run src/lib/agent src/lib/integrations/email-content.test.ts src/lib/jobs/handlers/agent.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false",
     "test:agent:db": "node --import tsx scripts/tests/agent-db.mts",
-    "test:agent:concurrency": "node --import tsx scripts/tests/agent-concurrency.mts"
+    "test:agent:concurrency": "node --import tsx scripts/tests/agent-concurrency.mts",
+    "eval:agent": "node --import tsx scripts/tests/agent-evaluation.mts"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "1.3.11",

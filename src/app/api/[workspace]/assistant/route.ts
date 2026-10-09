@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID, randomBytes } from "node:crypto";
 import { runAgent } from "@/lib/agent/runner";
+import { configuredAgentModel } from "@/lib/agent/identity";
 import { rpc } from "@/lib/agent/tools";
 import * as Sentry from "@sentry/nextjs";
 import { context, checkOrigin, ApiError, databaseError, fail } from "@/lib/api/context";
@@ -16,7 +17,7 @@ import {
 type P = { params: Promise<{ workspace: string }> };
 export const runtime = "nodejs";
 export const maxDuration = 90;
-const model = () => process.env.OPENAI_MODEL || "gpt-4.1-mini";
+const model = configuredAgentModel;
 const requestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("ask"),
@@ -143,6 +144,7 @@ export async function POST(req: NextRequest, { params }: P) {
         "Actualisez l’analyse pour confirmer cette proposition dans une carte d’action sécurisée.",
         410,
       );
+    const selectedModel = model();
     if (!process.env.OPENAI_API_KEY)
       throw new ApiError(
         "L’assistant n’est pas encore activé. Contactez votre administrateur.",
@@ -318,7 +320,7 @@ export async function POST(req: NextRequest, { params }: P) {
             {
               ...limits,
               signal,
-              model: model(),
+              model: selectedModel,
               record: input.record_id,
               // Prior model answers are never reused as evidence or authorization.
               priorQuestions: oldMessages
@@ -334,7 +336,7 @@ export async function POST(req: NextRequest, { params }: P) {
             ...assistantMessage,
             ...data,
             state: "complete",
-            model: model(),
+            model: selectedModel,
             elapsed_ms: Date.now() - started,
           };
           const saveStep: AssistantStep = {

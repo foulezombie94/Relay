@@ -240,12 +240,12 @@ function AssistantSession() {
   );
   const icons = [FileText, Video, Handshake, ScanLine];
   return (
-    <section className={styles.layout} data-history={historyOpen} aria-label="Assistant Relay">
+    <section className={styles.layout} data-history={historyOpen} aria-label="Ask Relay">
       <aside className={styles.history} aria-label="Historique privé">
         <div className={styles.historyHeading}>
           <span>
             <Sparkles size={15} />
-            Assistant Relay
+            Ask Relay
           </span>
           <button
             type="button"
@@ -321,7 +321,7 @@ function AssistantSession() {
             <PanelLeftOpen size={17} />
           </button>
           <div>
-            <span>Assistant IA</span>
+            <span>Assistant IA officiel de Relay · OpenAI</span>
             <button
               type="button"
               className={styles.chatTitle}
