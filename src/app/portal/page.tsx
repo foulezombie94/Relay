@@ -7,5 +7,5 @@ export default async function PortalIndex() {
     data: { user },
   } = await client.auth.getUser();
   if (!user) redirect("/login");
-  return <PortalList />;
+  return <PortalList userId={user.id} />;
 }

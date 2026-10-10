@@ -55,6 +55,10 @@ export function resourceQuery(
           ? query.eq("enabled", true).not("published_version", "is", null)
           : query.eq("enabled", false).not("published_version", "is", null);
   }
+  if (resource === "portals" && p.get("state")) {
+    const state = z.enum(["all", "active", "paused"]).parse(p.get("state"));
+    if (state !== "all") query = query.eq("enabled", state === "active");
+  }
   if (p.get("status")) query = query.eq("status", z.string().max(80).parse(p.get("status")));
   if (p.get("priority") && resource === "tasks")
     query = query.eq("priority", z.enum(["low", "normal", "high"]).parse(p.get("priority")));

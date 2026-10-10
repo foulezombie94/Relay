@@ -7,5 +7,5 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     data: { user },
   } = await client.auth.getUser();
   if (!user) redirect("/login");
-  return <PortalClient id={(await params).id} />;
+  return <PortalClient id={(await params).id} userId={user.id} />;
 }

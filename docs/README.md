@@ -16,6 +16,7 @@ Pour débuter : [README](../README.md), [contribution](../CONTRIBUTING.md), [arc
 - Ask Relay : [agent et sécurité](features/ask-relay/ask-relay-agent.md), [identité](features/ask-relay/ask-relay-identity-intelligence.md), [interface](features/ask-relay/ask-relay-interface.md)
 - CRM : [écrans et flux](features/crm/crm-pages.md), [opérations quotidiennes](features/crm/daily-crm-operations.md), [doublons](features/crm/duplicate-lifecycle.md), [paramètres](features/crm/settings-interface.md)
 - Dashboard : [blocs, widgets, données et validation](features/dashboard.md)
+- Portails clients : [parcours, permissions et validation](features/client-portals.md)
 
 Ces fiches expliquent une fonctionnalité à leur date de rédaction. Pour les optimisations du 9 octobre, consulter aussi les performances. L'aide affichée dans `/doc` est maintenue séparément dans `src/lib/help/guides.ts`.
 

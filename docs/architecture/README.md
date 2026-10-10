@@ -112,7 +112,7 @@ Les routes OAuth et connexions s'appuient sur `src/lib/integrations/oauth.ts`, `
 
 `src/app/page.tsx` et `landing-preview.tsx` utilisent des données fictives et des composants de présentation, sans embarquer les accès CRM. Le test `landing-isolation.test.ts` traverse leurs dépendances. `src/components/layout/app-sidebar-view.tsx` est la vue pure ; `app-sidebar.tsx` son adaptateur authentifié.
 
-`src/lib/help/guides.ts` contient les textes de `/doc`, distincts de cette documentation développeur. Les portails utilisent les routes `portal/` et `src/components/portal/client.tsx` ; leurs ressources explicitement partagées ne doivent pas hériter de tout le workspace.
+`src/lib/help/guides.ts` contient les textes de `/doc`, distincts de cette documentation développeur. Les portails utilisent les routes `portal/`, les composants `src/components/portal/` et `src/lib/api/portals.ts`. Le répertoire et les résumés sont calculés par des RPC SECURITY INVOKER sous RLS ; la gestion CRM reste liée au workspace courant. Les ressources explicitement partagées ne doivent pas hériter de tout le workspace. Voir [le parcours et sa validation](../features/client-portals.md).
 
 ## Évolution et limites
 

@@ -15,6 +15,7 @@ import { CommunicationsPage } from "@/components/pages/communications";
 import { PrioritiesPage } from "@/components/pages/priorities";
 import { PlaybooksPage } from "@/components/pages/playbooks";
 import { QualityPage } from "@/components/pages/quality";
+import { PortalsPage } from "@/components/portal/management";
 import { notFound } from "next/navigation";
 export default async function Page({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
@@ -22,20 +23,14 @@ export default async function Page({ params }: { params: Promise<{ section: stri
   if (section.startsWith("object-")) return <RecordsPage slug={section.slice(7)} />;
   if (section.startsWith("list-")) return <ListPage id={section.slice(5)} />;
   if (
-    [
-      "tasks",
-      "notes",
-      "meetings",
-      "commitments",
-      "conflicts",
-      "handovers",
-
-      "lists",
-      "portals",
-    ].includes(section)
+    ["tasks", "notes", "meetings", "commitments", "conflicts", "handovers", "lists"].includes(
+      section,
+    )
   )
     return <ResourcePage resource={section} />;
   switch (section) {
+    case "portals":
+      return <PortalsPage />;
     case "dashboard":
       return <DashboardPage />;
     case "sequences":
