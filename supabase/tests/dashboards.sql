@@ -49,6 +49,17 @@ begin
  t:=public.dashboard_details(w,'record','{}','none','count','created',null,null,cursor);
  if jsonb_array_length(t->'data')<>5 or (t->>'total')::integer<>55 then raise exception 'Pagination failed %',t;end if;
  if exists(select 1 from jsonb_array_elements(r->'data') a join jsonb_array_elements(t->'data') page_b on a->>'id'=page_b->>'id') then raise exception 'Duplicate page';end if;
+ -- New presentation types reuse the JSON configuration and bounded invoker reads.
+ update public.tasks set due_date='2026-10-12T10:00:00Z' where workspace_id=w and title='Open';
+ r:=public.dashboard_details(w,'task','{"since":"2026-10-01T00:00:00Z","until":"2026-11-01T00:00:00Z"}','none','count','due');
+ if (r->>'total')::integer<>1 or r->'data'->0->>'title'<>'Open' or (r->'data'->0->>'occurred_at')::timestamptz<>'2026-10-12T10:00:00Z'::timestamptz then raise exception 'Calendar due-date scope failed %',r;end if;
+ r:=public.dashboard_details(w,'task','{"empty":true}','none','count','due');
+ if (r->>'total')::integer<>0 then raise exception 'Conflicting calendar/global period failed %',r;end if;
+ r:=public.dashboard_details(w,'email');
+ if exists(select 1 from jsonb_array_elements(r->'data') x where x ? 'body' or x ? 'access_token' or x ? 'user_id') then raise exception 'Widget sources exposed private contents';end if;
+ insert into public.report_dashboards(workspace_id,creator_id,name,visibility,config,settings)
+ values(w,u,'Composable views','private','[{"title":"Board","kind":"record","visual":"board","group_by":"stage","metric":"count","size":"third","height":"tall"},{"title":"Calendar","kind":"task","visual":"calendar","group_by":"none","metric":"count","date_field":"due"},{"title":"Notes","kind":"record","visual":"text","content":"Team context"},{"title":"Links","kind":"record","visual":"links","links":[{"label":"Contacts","href":"/app/people"}]}]','{"period":"all","compare":true,"refresh_seconds":0,"cover":"lavender"}');
+ if not exists(select 1 from public.report_dashboards where workspace_id=w and name='Composable views' and config->0->>'size'='third' and settings->>'cover'='lavender') then raise exception 'New configuration did not round-trip';end if;
  begin perform public.dashboard_aggregate(other,'record');raise exception 'Workspace leak';exception when insufficient_privilege then null;end;
  begin perform public.dashboard_aggregate(w,'record','{"sql":"select 1"}');raise exception 'SQL filter allowed';exception when invalid_parameter_value then null;end;
  begin perform public.dashboard_aggregate(w,'record','{}','stage;drop table records');raise exception 'SQL dimension allowed';exception when invalid_parameter_value then null;end;

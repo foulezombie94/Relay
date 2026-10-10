@@ -1,201 +1,202 @@
 "use client";
-import { useState } from "react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  AreaChart,
-  Area,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+import Link from "next/link";
+import { useState, type ReactNode, type CSSProperties } from "react";
+import { ArrowDownRight, ArrowUpRight, ArrowRight, Database } from "lucide-react";
 import {
   dashboardDelta,
   formatDashboardValue,
+  isContentVisual,
+  isRecordVisual,
+  kindLabels,
   type DashboardTileResult,
   type DashboardDatum,
+  type DashboardEntry,
 } from "@/lib/domain/dashboards";
+import { DashboardChart, widgetColors } from "./chart";
+import { WidgetIcon } from "./widget-library";
+import { RecordWidget, type EntryPageRequest } from "./record-widget";
 import styles from "./dashboard.module.css";
-const colors = {
-  blue: "#4169e1",
-  violet: "#8662dc",
-  teal: "#189b87",
-  amber: "#cf921c",
-  rose: "#d8587a",
-};
+
 export function DashboardWidget({
   result,
   onDetails,
+  actions,
+  onEntry,
+  onEntryPage,
+  generation,
 }: {
   result: DashboardTileResult;
   onDetails: (datum: DashboardDatum | null) => void;
+  actions?: ReactNode;
+  onEntry?: (entry: DashboardEntry) => void;
+  onEntryPage?: EntryPageRequest;
+  generation?: string;
 }) {
   const [currency, setCurrency] = useState("");
   const { tile, current, previous } = result;
   const currencies = Array.from(
-    new Set(current?.totals.map((d) => d.currency).filter(Boolean) ?? []),
+    new Set(current?.totals.map((row) => row.currency).filter(Boolean) ?? []),
   ) as string[];
   const selected = currencies.includes(currency) ? currency : currencies[0];
-  const rows = current?.data.filter((d) => !selected || d.currency === selected) ?? [];
-  const total = current?.totals.find((d) => !selected || d.currency === selected);
-  const prior = previous?.totals.find((d) => d.currency === total?.currency);
+  const rows = current?.data.filter((row) => !selected || row.currency === selected) ?? [];
+  const total = current?.totals.find((row) => !selected || row.currency === selected);
+  const prior = previous?.totals.find((row) => row.currency === total?.currency);
   const delta = dashboardDelta(total?.value ?? null, prior?.value ?? null);
-  const color = colors[tile.color],
-    chartRows = rows.map((d) => ({ ...d, number: Number(d.value ?? 0) }));
-  const tooltip = (
-    <Tooltip
-      formatter={(_, __, item) =>
-        formatDashboardValue((item.payload as DashboardDatum).value, tile.metric, selected)
-      }
-    />
-  );
-  const axes = (
-    <>
-      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#edf0f5" />
-      <XAxis dataKey="label" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-      <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={55} />
-    </>
-  );
-  const choose = (index: number) => {
-    if (rows[index]) onDetails(rows[index]);
-  };
+  const color = widgetColors[tile.color];
+  const goal = tile.goal ?? 100;
+  const percentage =
+    total?.value === null || total?.value === undefined ? null : (Number(total.value) / goal) * 100;
+  const progress = percentage === null ? null : Math.min(100, Math.max(0, percentage));
   return (
-    <article className={styles.widget} style={{ borderTopColor: color }}>
+    <article
+      className={styles.widget}
+      data-visual={tile.visual}
+      data-height={tile.height ?? "standard"}
+      style={{ "--widget-color": color } as CSSProperties}
+    >
       <header>
-        <h3>{tile.title}</h3>
-        <span>{currencies.length > 1 ? "Devises séparées" : ""}</span>
-      </header>
-      {tile.description && <p className={styles.muted}>{tile.description}</p>}
-      {currencies.length > 1 && (
-        <div className={styles.tabs} role="group" aria-label="Devise de l’indicateur">
-          {currencies.map((c) => (
-            <button key={c} aria-pressed={selected === c} onClick={() => setCurrency(c)}>
-              {c}
-            </button>
-          ))}
+        <div className={styles.widgetTitle}>
+          <WidgetIcon visual={tile.visual} />
+          <h3>{tile.title}</h3>
         </div>
-      )}
-      {result.error ? (
+        <div className={styles.widgetActions}>{actions}</div>
+      </header>
+      {tile.description && <p className={styles.widgetDescription}>{tile.description}</p>}
+      {isContentVisual(tile.visual) ? (
+        tile.visual === "text" ? (
+          <div className={styles.noteContent}>
+            {tile.content || "Ajoutez une note en configurant ce bloc."}
+          </div>
+        ) : tile.visual === "links" ? (
+          <div className={styles.shortcuts}>
+            {tile.links?.map((link, i) => (
+              <Link key={i} href={link.href}>
+                {link.label}
+                <ArrowRight size={14} />
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.sectionRule} />
+        )
+      ) : result.error ? (
         <p role="alert" className={styles.warning}>
           {result.error}
         </p>
+      ) : isRecordVisual(tile.visual) ? (
+        result.entries ? (
+          <RecordWidget
+            key={(generation ?? "") + JSON.stringify(tile)}
+            tile={tile}
+            initial={result.entries}
+            onRequest={onEntryPage}
+            onOpen={onEntry ?? (() => onDetails(null))}
+          />
+        ) : (
+          <p className={styles.muted}>Chargement de la vue…</p>
+        )
       ) : !current ? (
-        <p>Calcul en cours…</p>
+        <p className={styles.muted}>Calcul en cours…</p>
       ) : (
         <>
-          {["kpi", "goal"].includes(tile.visual) ? (
+          {currencies.length > 1 && (
+            <div className={styles.currencyTabs} role="group" aria-label="Devise de l’indicateur">
+              {currencies.map((c) => (
+                <button key={c} aria-pressed={selected === c} onClick={() => setCurrency(c)}>
+                  {c}
+                </button>
+              ))}
+              <small>Devises séparées</small>
+            </div>
+          )}
+          {["kpi", "goal", "gauge"].includes(tile.visual) ? (
             <div className={styles.kpi}>
-              <strong style={{ color }}>
-                {formatDashboardValue(total?.value ?? null, tile.metric, total?.currency)}
-              </strong>
-              {delta !== null && (
-                <span className={styles.muted}>
-                  {delta > 0 ? "+" : ""}
-                  {delta.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} % · période
-                  précédente de même durée
-                </span>
+              {tile.visual === "gauge" ? (
+                <div className={styles.gauge}>
+                  <svg viewBox="0 0 120 120" aria-hidden="true">
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="48"
+                      fill="none"
+                      stroke="var(--relay-border)"
+                      strokeWidth="9"
+                    />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="48"
+                      fill="none"
+                      stroke={color}
+                      strokeWidth="9"
+                      strokeLinecap="round"
+                      strokeDasharray={(progress ?? 0) * 3.016 + " 301.6"}
+                      transform="rotate(-90 60 60)"
+                    />
+                  </svg>
+                  <div>
+                    <strong>
+                      {percentage === null
+                        ? "—"
+                        : percentage.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + "%"}
+                    </strong>
+                    <span>de l’objectif</span>
+                  </div>
+                </div>
+              ) : (
+                <strong className={styles.kpiValue}>
+                  {formatDashboardValue(total?.value ?? null, tile.metric, total?.currency)}
+                </strong>
               )}
-              {tile.visual === "goal" && (
-                <>
-                  <progress
-                    max={tile.goal}
-                    value={Math.min(tile.goal ?? 1, Math.max(0, Number(total?.value ?? 0)))}
-                    aria-label="Progression de l’objectif"
-                  />
-                  <span>
-                    Objectif :{" "}
-                    {formatDashboardValue(String(tile.goal), tile.metric, tile.goal_currency)}
+              {delta !== null && (
+                <div className={styles.delta}>
+                  <span data-positive={delta >= 0}>
+                    {delta >= 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
+                    {Math.abs(delta).toLocaleString("fr-FR", { maximumFractionDigits: 1 })}%
                   </span>
+                  <small>vs période précédente</small>
+                </div>
+              )}
+              {["goal", "gauge"].includes(tile.visual) && (
+                <>
+                  <div
+                    className={styles.goalTrack}
+                    role="meter"
+                    aria-label="Progression de l’objectif"
+                    aria-valuemin={0}
+                    aria-valuemax={goal}
+                    aria-valuenow={
+                      progress === null
+                        ? undefined
+                        : Math.min(goal, Math.max(0, Number(total?.value)))
+                    }
+                  >
+                    <i style={{ width: (progress ?? 0) + "%" }} />
+                  </div>
+                  <div className={styles.goalCaption}>
+                    <span>
+                      {tile.visual === "gauge"
+                        ? formatDashboardValue(total?.value ?? null, tile.metric, total?.currency)
+                        : percentage === null
+                          ? "—"
+                          : percentage.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) +
+                            "% atteint"}
+                    </span>
+                    <span>
+                      Cible : {formatDashboardValue(String(goal), tile.metric, tile.goal_currency)}
+                    </span>
+                  </div>
                 </>
               )}
-              <small>{total?.sample_size ?? 0} éléments dans le calcul</small>
             </div>
           ) : !rows.length ? (
             <p className={styles.empty}>Aucune donnée pour ces filtres.</p>
-          ) : tile.visual === "table" ? null : tile.visual === "funnel" ? (
-            <div className={styles.funnel}>
-              {rows.map((d, i) => (
-                <button key={i} onClick={() => onDetails(d)}>
-                  <span>{d.label}</span>
-                  <meter
-                    min={0}
-                    max={Math.max(1, ...chartRows.map((x) => x.number))}
-                    value={Math.max(0, Number(d.value))}
-                  />
-                  <b>{formatDashboardValue(d.value, tile.metric, d.currency)}</b>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.chart}>
-              <ResponsiveContainer width="100%" height={240}>
-                {tile.visual === "donut" ? (
-                  <PieChart>
-                    {tooltip}
-                    <Pie
-                      data={chartRows}
-                      dataKey="number"
-                      nameKey="label"
-                      innerRadius={55}
-                      outerRadius={90}
-                      onClick={(_, i) => choose(i)}
-                    >
-                      {chartRows.map((_, i) => (
-                        <Cell key={i} fill={Object.values(colors)[i % 5]} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                ) : tile.visual === "area" ? (
-                  <AreaChart data={chartRows}>
-                    {axes}
-                    {tooltip}
-                    <Area dataKey="number" stroke={color} fill={color} fillOpacity={0.12} />
-                  </AreaChart>
-                ) : tile.visual === "line" ? (
-                  <LineChart data={chartRows}>
-                    {axes}
-                    {tooltip}
-                    <Line dataKey="number" stroke={color} strokeWidth={2} dot={{ r: 3 }} />
-                  </LineChart>
-                ) : (
-                  <BarChart
-                    data={chartRows}
-                    layout={tile.visual === "bars" ? "vertical" : "horizontal"}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#edf0f5" />
-                    <XAxis
-                      type={tile.visual === "bars" ? "number" : "category"}
-                      dataKey={tile.visual === "bars" ? undefined : "label"}
-                      tick={{ fontSize: 11 }}
-                    />
-                    <YAxis
-                      type={tile.visual === "bars" ? "category" : "number"}
-                      dataKey={tile.visual === "bars" ? "label" : undefined}
-                      width={tile.visual === "bars" ? 105 : 55}
-                      tick={{ fontSize: 11 }}
-                    />
-                    {tooltip}
-                    <Bar
-                      dataKey="number"
-                      fill={color}
-                      radius={[4, 4, 4, 4]}
-                      onClick={(_, i) => choose(i)}
-                    />
-                  </BarChart>
-                )}
-              </ResponsiveContainer>
-            </div>
-          )}
-          {!["kpi", "goal"].includes(tile.visual) && (
+          ) : tile.visual !== "table" ? (
+            <DashboardChart tile={tile} rows={rows} currency={selected} onDetails={onDetails} />
+          ) : null}
+          {!["kpi", "goal", "gauge"].includes(tile.visual) && (
             <details open={tile.visual === "table"} className={styles.values}>
-              <summary>Valeurs et fiches sources</summary>
+              <summary>Valeurs calculées et fiches sources</summary>
               <div className={styles.tableScroll}>
                 <table>
                   <thead>
@@ -206,13 +207,14 @@ export function DashboardWidget({
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((d, i) => (
+                    {rows.map((row, i) => (
                       <tr key={i}>
-                        <td>{d.label}</td>
-                        <td>{formatDashboardValue(d.value, tile.metric, d.currency)}</td>
+                        <td>{row.label}</td>
+                        <td>{formatDashboardValue(row.value, tile.metric, row.currency)}</td>
                         <td>
-                          <button className="button small" onClick={() => onDetails(d)}>
-                            Voir ({d.count})
+                          <button className={styles.sourceButton} onClick={() => onDetails(row)}>
+                            Voir {row.count}
+                            <ArrowUpRight size={12} />
                           </button>
                         </td>
                       </tr>
@@ -224,7 +226,7 @@ export function DashboardWidget({
           )}
           {current.partial && (
             <p className={styles.warning}>
-              Groupes partiels : plus de 200 groupes. Affinez vos filtres.
+              Plus de 200 groupes : l’aperçu est partiel. Affinez vos filtres.
             </p>
           )}
           {current.missing_history > 0 && (
@@ -234,12 +236,14 @@ export function DashboardWidget({
             </p>
           )}
           <footer>
-            <span>{current.coverage}</span>
-            {tile.group_by === "none" && (
-              <button onClick={() => onDetails(total ?? null)} className={styles.textButton}>
-                Voir les sources
-              </button>
-            )}
+            <span>
+              <Database size={11} />
+              {kindLabels[tile.kind]} · {total?.sample_size ?? current.total} sources
+            </span>
+            <button onClick={() => onDetails(total ?? null)} className={styles.textButton}>
+              Voir les sources
+              <ArrowUpRight size={12} />
+            </button>
           </footer>
         </>
       )}

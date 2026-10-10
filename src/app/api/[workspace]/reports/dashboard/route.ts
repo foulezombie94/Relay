@@ -14,6 +14,10 @@ const detail = z
       .nullable()
       .default(null),
     cursor: z.uuid().nullable().default(null),
+    month: z
+      .string()
+      .regex(/^[1-9]\d{3}-(0[1-9]|1[0-2])$/)
+      .optional(),
   })
   .strict();
 const preview = z
@@ -54,6 +58,7 @@ export async function GET(
         dimension: p.get("dimension"),
         currency: p.get("currency"),
         cursor: p.get("cursor"),
+        ...(p.has("month") ? { month: p.get("month") } : {}),
       });
       return NextResponse.json(
         {
@@ -66,6 +71,7 @@ export async function GET(
             scope.dimension,
             scope.currency,
             scope.cursor,
+            scope.month,
           ),
         },
         { headers },
@@ -110,6 +116,7 @@ export async function POST(
           parsed.detail.dimension,
           parsed.detail.currency,
           parsed.detail.cursor,
+          parsed.detail.month,
         )
       : await dashboardResults(client, workspace, parsed.dashboard, parsed.settings);
     return NextResponse.json({ data }, { headers });

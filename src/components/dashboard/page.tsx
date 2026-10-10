@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
+import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
@@ -14,6 +16,12 @@ import {
   GripVertical,
   Trash2,
   Printer,
+  LayoutDashboard,
+  Filter,
+  LockKeyhole,
+  Users,
+  Check,
+  Share2,
 } from "lucide-react";
 import { useWorkspace, useRows, useSave, request } from "../providers/data-provider";
 import { Modal, ErrorMessage, Loading, str } from "../ui";
@@ -32,9 +40,14 @@ import {
   type DashboardResult,
   type ReportTile,
   type DashboardDatum,
+  type DashboardEntries,
+  type DashboardEntry,
 } from "@/lib/domain/dashboards";
+import { tileFromPreset } from "@/lib/domain/dashboard-widgets";
 import { DashboardWidget } from "./widget";
 import { WidgetEditor } from "./editor";
+import { WidgetLibrary } from "./widget-library";
+import { WidgetMenu, WidgetResize } from "./widget-menu";
 import styles from "./dashboard.module.css";
 type Preference = { dashboard_id: string; favorite: boolean; home: boolean };
 type Detail = {
@@ -67,7 +80,11 @@ function DashboardWorkspace() {
     queryKey: ["rows", workspace.id, "dashboard-preferences"],
     queryFn: () => request<{ data: Preference[] }>(endpoint + "/preferences"),
   });
-  const [selected, setSelected] = useState<string | null>(null),
+  const [selected, setSelected] = useState<string | null>(() => {
+      if (typeof window === "undefined") return null;
+      const params = new URLSearchParams(window.location.search);
+      return params.get("workspace") === workspace.id ? params.get("dashboard") : null;
+    }),
     [template, setTemplate] = useState<"management" | "sales" | "activity">("management");
   const [draft, setDraft] = useState<DashboardInput | null>(null),
     [override, setOverride] = useState<DashboardSettings | null>(null),
@@ -75,6 +92,12 @@ function DashboardWorkspace() {
   const [library, setLibrary] = useState(false),
     [settingsOpen, setSettingsOpen] = useState(false),
     [deleteOpen, setDeleteOpen] = useState(false);
+  const [widgetLibrary, setWidgetLibrary] = useState(false),
+    [filtersOpen, setFiltersOpen] = useState(false),
+    [fullscreen, setFullscreen] = useState<number | null>(null),
+    [entryDetail, setEntryDetail] = useState<{ entry: DashboardEntry; tile: ReportTile } | null>(
+      null,
+    );
   const [drag, setDrag] = useState<number | null>(null),
     [actionError, setActionError] = useState<Error | null>(null),
     [exportBusy, setExportBusy] = useState(false);
@@ -163,6 +186,13 @@ function DashboardWorkspace() {
     setOverride(null);
     setDetail(null);
     setActionError(null);
+    setFullscreen(null);
+    setEntryDetail(null);
+    const url = new URL(window.location.href);
+    url.searchParams.set("workspace", workspace.id);
+    if (id) url.searchParams.set("dashboard", id);
+    else url.searchParams.delete("dashboard");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search);
   }
   async function preference(operation: "home" | "favorite", enabled: boolean) {
     await request(endpoint + "/preferences", "POST", {
@@ -178,21 +208,97 @@ function DashboardWorkspace() {
         Number(preferences.data?.data.some((p) => p.dashboard_id === a.id && p.favorite)) ||
       a.name.localeCompare(b.name),
   );
+  function patchTile(index: number, patch: Partial<ReportTile>) {
+    if (draft)
+      setDraft({
+        ...draft,
+        config: draft.config.map((tile, i) => (i === index ? { ...tile, ...patch } : tile)),
+      });
+  }
+  function editTile(index: number) {
+    if (!canEdit) return;
+    if (!draft) beginEdit();
+    setEditor({
+      index,
+      tile: { ...config.config[index], id: config.config[index].id ?? crypto.randomUUID() },
+    });
+  }
+  function entryPage(index: number) {
+    return async (options: { cursor: string | null; month?: string }) =>
+      (
+        await request<{ data: DashboardEntries }>(endpoint, "POST", {
+          dashboard: config,
+          settings: filters,
+          detail: { index, dimension: null, currency: null, ...options },
+        })
+      ).data;
+  }
+  function showDetails(index: number, datum: DashboardDatum | null) {
+    setFullscreen(null);
+    setDetail({
+      index,
+      dimension: config.config[index].group_by === "none" ? null : (datum?.dimension ?? null),
+      currency: datum?.currency ?? null,
+      cursor: null,
+    });
+  }
+  async function copyLink() {
+    const url = new URL("/app/dashboard", window.location.origin);
+    url.searchParams.set("workspace", workspace.id);
+    url.searchParams.set("dashboard", selectedId);
+    await navigator.clipboard.writeText(url.toString());
+    toast.success("Lien copié — l’accès reste soumis aux permissions de l’espace.");
+  }
   return (
     <main className={styles.page} data-relay-dashboard>
+      {filters.cover && filters.cover !== "none" && (
+        <div className={styles.cover} data-cover={filters.cover} aria-hidden="true" />
+      )}
       <div className={styles.heading}>
-        <div>
-          <div className={styles.eyebrow}>PILOTAGE · {workspace.name}</div>
-          <h1>{config.name}</h1>
-          <p>{config.description}</p>
+        <div className={styles.pageTitle}>
+          <span className={styles.pageIcon}>
+            <LayoutDashboard size={27} />
+          </span>
+          <div>
+            <div className={styles.eyebrow}>
+              DASHBOARD{" "}
+              <span>
+                {config.visibility === "workspace" ? (
+                  <>
+                    <Users size={11} />
+                    Partagé avec l’espace
+                  </>
+                ) : (
+                  <>
+                    <LockKeyhole size={11} />
+                    Privé
+                  </>
+                )}
+              </span>
+            </div>
+            <h1>{config.name}</h1>
+            <p>{config.description}</p>
+          </div>
         </div>
         <div className={styles.actions}>
+          {canEdit && (
+            <button
+              className="button"
+              onClick={() => {
+                if (!draft) beginEdit();
+                setSettingsOpen(true);
+              }}
+            >
+              <Share2 size={14} />
+              Partager
+            </button>
+          )}
           <button className="button" onClick={() => setLibrary(true)} disabled={!writable}>
             <Plus size={15} /> Nouveau
           </button>
           {!draft && canEdit && (
             <button className="button" onClick={beginEdit}>
-              <Pencil size={15} /> Personnaliser
+              <Pencil size={15} /> Modifier
             </button>
           )}
           {draft && (
@@ -217,11 +323,40 @@ function DashboardWorkspace() {
                   })
                 }
               >
-                Enregistrer
+                <Check size={15} /> Enregistrer
               </button>
             </>
           )}
         </div>
+      </div>
+      <div className={styles.viewTabs} role="group" aria-label="Vues du dashboard">
+        {(
+          [
+            ["management", "Vue d’ensemble"],
+            ["sales", "Commercial"],
+            ["activity", "Activité"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            aria-pressed={!selectedId && template === value}
+            disabled={!!draft}
+            onClick={() => {
+              switchTo("");
+              setTemplate(value);
+            }}
+          >
+            <LayoutDashboard size={14} />
+            {label}
+          </button>
+        ))}
+        {selectedId && (
+          <button aria-pressed="true" disabled>
+            {row?.name}
+          </button>
+        )}
+        <span className={styles.spacer} />
+        <span className={styles.viewMode}>{draft ? "Modification" : "Affichage"}</span>
       </div>
       <div className={styles.toolbar}>
         <select
@@ -353,7 +488,36 @@ function DashboardWorkspace() {
           <Printer size={16} />
         </button>
       </div>
-      <div className={styles.filters}>
+      <div className={styles.filterSummary}>
+        <button
+          className="button small"
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen(!filtersOpen)}
+        >
+          <Filter size={14} />
+          Filtres
+          {(filters.pipeline_id || filters.owner_id || filters.currency) && (
+            <span className={styles.filterDot} />
+          )}
+        </button>
+        <span>
+          {periodLabels[filters.period]}
+          {filters.compare && filters.period !== "all" ? " · comparaison active" : ""}
+        </span>
+        <span className={styles.spacer} />
+        {draft && (
+          <button
+            className="button primary small"
+            disabled={draft.config.length >= 24}
+            onClick={() => setWidgetLibrary(true)}
+          >
+            <Plus size={14} />
+            Ajouter un widget
+          </button>
+        )}
+        <small>{config.config.length}/24 widgets</small>
+      </div>
+      <div className={styles.filters} hidden={!filtersOpen}>
         <label>
           Période
           <select
@@ -473,7 +637,9 @@ function DashboardWorkspace() {
           results.error ||
           (parsed && !parsed.success
             ? new Error("Configuration invalide : dupliquez ou recréez ce dashboard.")
-            : null)
+            : ready && selectedId && !row
+              ? new Error("Ce dashboard est inaccessible dans cet espace.")
+              : null)
         }
       />
       {results.isFetching && (
@@ -484,22 +650,16 @@ function DashboardWorkspace() {
       {!ready && <Loading />}
       {draft && (
         <div className={styles.editNotice}>
-          Mode personnalisation · déplacez les cartes ou utilisez les flèches, choisissez leur
-          largeur et enregistrez.
+          <span>
+            <GripVertical size={14} />
+            Déplacez les blocs, ajustez leur taille et enregistrez votre dashboard.
+          </span>
           <button
             className="button"
             disabled={draft.config.length >= 24}
-            onClick={() =>
-              setEditor({
-                index: draft.config.length,
-                tile: defaultTile({
-                  id: crypto.randomUUID(),
-                  object_id: objects.find((o) => o.slug === "deals")?.id,
-                }),
-              })
-            }
+            onClick={() => setWidgetLibrary(true)}
           >
-            <Plus size={15} /> Ajouter un indicateur
+            <Plus size={15} /> Bibliothèque de widgets
           </button>
         </div>
       )}
@@ -560,6 +720,7 @@ function DashboardWorkspace() {
                     }
                   >
                     <option value="small">¼</option>
+                    <option value="third">⅓</option>
                     <option value="medium">½</option>
                     <option value="large">1</option>
                   </select>
@@ -584,18 +745,63 @@ function DashboardWorkspace() {
               )}
               <DashboardWidget
                 result={result}
-                onDetails={(d: DashboardDatum | null) =>
-                  setDetail({
-                    index: i,
-                    dimension: result.tile.group_by === "none" ? null : (d?.dimension ?? null),
-                    currency: d?.currency ?? null,
-                    cursor: null,
-                  })
+                onDetails={(d) => showDetails(i, d)}
+                generation={results.data.data.generated_at}
+                onEntry={(entry) => setEntryDetail({ entry, tile: result.tile })}
+                onEntryPage={entryPage(i)}
+                actions={
+                  <WidgetMenu
+                    editing={!!draft}
+                    canEdit={canEdit}
+                    canDuplicate={config.config.length < 24}
+                    canRemove={config.config.length > 1}
+                    first={i === 0}
+                    last={i === config.config.length - 1}
+                    onEdit={() => editTile(i)}
+                    onExpand={() => setFullscreen(i)}
+                    onDuplicate={() =>
+                      draft &&
+                      setDraft({
+                        ...draft,
+                        config: [
+                          ...draft.config.slice(0, i + 1),
+                          {
+                            ...draft.config[i],
+                            id: crypto.randomUUID(),
+                            title: draft.config[i].title.slice(0, 92) + " · copie",
+                          },
+                          ...draft.config.slice(i + 1),
+                        ],
+                      })
+                    }
+                    onRemove={() =>
+                      draft &&
+                      setDraft({ ...draft, config: draft.config.filter((_, index) => index !== i) })
+                    }
+                    onMove={(amount) =>
+                      draft && setDraft({ ...draft, config: moveTile(draft.config, i, i + amount) })
+                    }
+                  />
                 }
               />
+              {draft && (
+                <WidgetResize tile={result.tile} onChange={(patch) => patchTile(i, patch)} />
+              )}
             </section>
           ))}
         </div>
+      )}
+      {widgetLibrary && draft && (
+        <WidgetLibrary
+          onClose={() => setWidgetLibrary(false)}
+          onSelect={(preset) => {
+            setEditor({
+              index: draft.config.length,
+              tile: { ...tileFromPreset(preset, objects), id: crypto.randomUUID() },
+            });
+            setWidgetLibrary(false);
+          }}
+        />
       )}
       {canReadConfiguration && !results.isError && results.data && (
         <p className={styles.footnote}>
@@ -629,6 +835,31 @@ function DashboardWorkspace() {
         description="Choisissez un point de départ, puis adaptez chaque carte à vos besoins."
       >
         <div className={styles.templates}>
+          <button
+            onClick={() => {
+              switchTo("");
+              setDraft({
+                name: "Mon dashboard",
+                description: "",
+                visibility: "private",
+                config: [
+                  defaultTile({
+                    id: crypto.randomUUID(),
+                    title: "Notes",
+                    visual: "text",
+                    size: "large",
+                    content: "",
+                  }),
+                ],
+                settings: { period: "all", compare: true, refresh_seconds: 0 },
+              });
+              setLibrary(false);
+            }}
+          >
+            <strong>À partir de zéro</strong>
+            <span>Une page libre à composer avec vos widgets et vos vues CRM.</span>
+            <small>Privé par défaut</small>
+          </button>
           {(["management", "sales", "activity"] as const).map((t) => {
             const preset = dashboardTemplate(t, objects.find((o) => o.slug === "deals")?.id);
             return (
@@ -647,7 +878,7 @@ function DashboardWorkspace() {
               >
                 <strong>{preset.name}</strong>
                 <span>{preset.description}</span>
-                <small>{preset.config.length} indicateurs · privé par défaut</small>
+                <small>{preset.config.length} widgets · privé par défaut</small>
               </button>
             );
           })}
@@ -696,10 +927,30 @@ function DashboardWorkspace() {
                 <option value="workspace">Membres de cet espace</option>
               </select>
             </label>
+            <label>
+              Couverture
+              <select
+                value={filters.cover ?? "none"}
+                onChange={(e) =>
+                  changeFilters({ cover: e.target.value as DashboardSettings["cover"] })
+                }
+              >
+                <option value="none">Sans couverture</option>
+                <option value="slate">Gris doux</option>
+                <option value="lavender">Lavande</option>
+                <option value="blue">Bleu</option>
+              </select>
+            </label>
             <p>
               Les membres consultent les résultats selon leurs permissions actuelles. Le partage
               reste interne à l’espace.
             </p>
+            {selectedId && (
+              <button type="button" className="button" onClick={() => void perform(copyLink)}>
+                <Copy size={14} />
+                Copier le lien interne
+              </button>
+            )}
             <button className="button primary">Appliquer</button>
           </form>
         </Modal>
@@ -727,6 +978,77 @@ function DashboardWorkspace() {
             Supprimer
           </button>
         </div>
+      </Modal>
+      <Modal
+        open={fullscreen !== null}
+        onClose={() => setFullscreen(null)}
+        title={fullscreen === null ? "Widget" : (config.config[fullscreen]?.title ?? "Widget")}
+        description="Consultez la vue et ses données en grand format."
+        wide
+        className={styles.fullscreenModal}
+      >
+        <ErrorMessage error={results.error} />
+        {canReadConfiguration &&
+          !results.isError &&
+          fullscreen !== null &&
+          results.data?.data.tiles[fullscreen] && (
+            <DashboardWidget
+              result={results.data.data.tiles[fullscreen]}
+              onDetails={(datum) => showDetails(fullscreen, datum)}
+              onEntry={(entry) => {
+                setFullscreen(null);
+                setEntryDetail({ entry, tile: config.config[fullscreen] });
+              }}
+              onEntryPage={entryPage(fullscreen)}
+              generation={results.data.data.generated_at}
+            />
+          )}
+      </Modal>
+      <Modal
+        open={!!entryDetail}
+        onClose={() => setEntryDetail(null)}
+        title="Fiche source"
+        description="Un aperçu de la fiche autorisée dans votre espace."
+      >
+        <ErrorMessage error={results.error} />
+        {canReadConfiguration && !results.isError && entryDetail && (
+          <div className={styles.entryDetail}>
+            <h2>{entryDetail.entry.title}</h2>
+            <p>{entryDetail.entry.stage ?? entryDetail.entry.status ?? "—"}</p>
+            <p>
+              {entryDetail.entry.occurred_at
+                ? new Date(entryDetail.entry.occurred_at).toLocaleString("fr-FR", {
+                    timeZone: "UTC",
+                  }) + " · UTC"
+                : "Sans date"}
+            </p>
+            {entryDetail.entry.currency && (
+              <p>
+                {entryDetail.entry.amount} {entryDetail.entry.currency}
+              </p>
+            )}
+            {entryDetail.tile.kind === "record" &&
+              entryDetail.tile.object_id &&
+              (() => {
+                const object = objects.find((o) => o.id === entryDetail.tile.object_id);
+                return object ? (
+                  <Link
+                    className="button primary"
+                    href={
+                      "/app/" +
+                      (["people", "companies", "deals"].includes(object.slug)
+                        ? object.slug
+                        : "object-" + object.slug) +
+                      "?record=" +
+                      entryDetail.entry.id
+                    }
+                  >
+                    Ouvrir la fiche CRM
+                  </Link>
+                ) : null;
+              })()}
+          </div>
+        )}
       </Modal>
       <Modal
         open={!!detail}

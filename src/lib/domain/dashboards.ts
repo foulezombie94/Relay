@@ -20,7 +20,43 @@ export const dashboardVisuals = [
   "table",
   "funnel",
   "goal",
+  "pie",
+  "ranking",
+  "radar",
+  "treemap",
+  "heatmap",
+  "combo",
+  "gauge",
+  "stat_grid",
+  "list",
+  "board",
+  "calendar",
+  "timeline",
+  "gallery",
+  "text",
+  "divider",
+  "links",
 ] as const;
+export const dashboardRecordVisuals = ["list", "board", "calendar", "timeline", "gallery"] as const;
+export const dashboardContentVisuals = ["text", "divider", "links"] as const;
+export const dashboardLinkPaths = [
+  "/app/people",
+  "/app/companies",
+  "/app/deals",
+  "/app/tasks",
+  "/app/notes",
+  "/app/meetings",
+  "/app/assistant",
+  "/app/integrations",
+  "/app/reports",
+  "/app/workflows",
+] as const;
+export function isRecordVisual(visual: string) {
+  return (dashboardRecordVisuals as readonly string[]).includes(visual);
+}
+export function isContentVisual(visual: string) {
+  return (dashboardContentVisuals as readonly string[]).includes(visual);
+}
 export const dashboardMetrics = [
   "count",
   "amount",
@@ -66,6 +102,22 @@ export const visualLabels: Record<(typeof dashboardVisuals)[number], string> = {
   table: "Tableau",
   funnel: "Pipeline / parcours",
   goal: "Objectif",
+  pie: "Camembert",
+  ranking: "Classement",
+  radar: "Radar",
+  treemap: "Carte proportionnelle",
+  heatmap: "Carte de chaleur",
+  combo: "Graphique combiné",
+  gauge: "Jauge",
+  stat_grid: "Cartes de répartition",
+  list: "Liste de fiches",
+  board: "Board Kanban",
+  calendar: "Calendrier",
+  timeline: "Chronologie",
+  gallery: "Galerie de fiches",
+  text: "Note et texte",
+  divider: "Titre de section",
+  links: "Raccourcis",
 };
 export const kindLabels = {
   record: "Fiches",
@@ -116,6 +168,7 @@ export const dashboardSettings = z
       .optional(),
     compare: z.boolean().default(true),
     refresh_seconds: z.union([z.literal(0), z.literal(60), z.literal(300)]).default(0),
+    cover: z.enum(["none", "slate", "lavender", "blue"]).optional(),
   })
   .strict()
   .superRefine((s, ctx) => {
@@ -144,7 +197,17 @@ const tileShape = z
     lifecycle: z.enum(["all", "open", "won", "lost"]).default("all"),
     date_field: z.enum(["created", "occurred", "due", "closed"]).default("created"),
     visual: z.enum(dashboardVisuals).default("table"),
-    size: z.enum(["small", "medium", "large"]).default("medium"),
+    size: z.enum(["small", "third", "medium", "large"]).default("medium"),
+    height: z.enum(["compact", "standard", "tall"]).optional(),
+    content: z.string().trim().max(1500).optional(),
+    links: z
+      .array(
+        z
+          .object({ label: z.string().trim().min(1).max(60), href: z.enum(dashboardLinkPaths) })
+          .strict(),
+      )
+      .max(8)
+      .optional(),
     color: z.enum(["blue", "violet", "teal", "amber", "rose"]).default("blue"),
     goal: z.number().finite().positive().max(1e15).optional(),
     goal_currency: z
@@ -204,17 +267,47 @@ export const reportTile = tileShape.superRefine((t, ctx) => {
   if (t.metric === "stage_reached" && t.group_by !== "stage")
     ctx.addIssue({ code: "custom", message: "Les passages observés se regroupent par étape." });
   if (
-    t.visual === "goal" &&
+    ["goal", "gauge"].includes(t.visual) &&
     (!t.goal || t.group_by !== "none" || (isMoneyMetric(t.metric) && !t.goal_currency))
   )
     ctx.addIssue({
       code: "custom",
       message: "Définissez un objectif, un total et une devise pour les montants.",
     });
-  if (["kpi", "goal"].includes(t.visual) && t.group_by !== "none")
+  if (["kpi", "goal", "gauge"].includes(t.visual) && t.group_by !== "none")
     ctx.addIssue({ code: "custom", message: "Un indicateur ou objectif doit afficher un total." });
-  if (["line", "area"].includes(t.visual) && !["day", "week", "month"].includes(t.group_by))
+  if (
+    ["line", "area", "combo"].includes(t.visual) &&
+    !["day", "week", "month"].includes(t.group_by)
+  )
     ctx.addIssue({ code: "custom", message: "Une courbe nécessite une dimension temporelle." });
+  if (t.visual === "heatmap" && (t.group_by !== "day" || t.metric !== "count"))
+    ctx.addIssue({ code: "custom", message: "La carte de chaleur affiche un nombre par jour." });
+  if (isRecordVisual(t.visual) && t.metric !== "count")
+    ctx.addIssue({
+      code: "custom",
+      message: "Une vue de fiches affiche des éléments, pas une mesure agrégée.",
+    });
+  if (isRecordVisual(t.visual) && t.visual !== "board" && t.group_by !== "none")
+    ctx.addIssue({
+      code: "custom",
+      message: "Cette vue affiche des fiches individuelles sans regroupement.",
+    });
+  if (
+    t.visual === "board" &&
+    !(
+      (t.kind === "record" && t.group_by === "stage") ||
+      (["task", "commitment"].includes(t.kind) && t.group_by === "status")
+    )
+  )
+    ctx.addIssue({
+      code: "custom",
+      message: "Le board regroupe les fiches par étape ou les tâches par statut.",
+    });
+  if (isContentVisual(t.visual) && (t.metric !== "count" || t.group_by !== "none"))
+    ctx.addIssue({ code: "custom", message: "Un bloc de contenu ne calcule aucune mesure." });
+  if (t.visual === "links" && !t.links?.length)
+    ctx.addIssue({ code: "custom", message: "Ajoutez au moins un raccourci." });
 });
 export const dashboardSchema = z
   .object({
@@ -230,6 +323,10 @@ export const dashboardSchema = z
           new Set(tiles.flatMap((t) => (t.id ? [t.id] : []))).size ===
           tiles.filter((t) => t.id).length,
         "Chaque indicateur doit avoir son propre identifiant.",
+      )
+      .refine(
+        (tiles) => new TextEncoder().encode(JSON.stringify(tiles)).length < 35000,
+        "Le dashboard contient trop de contenu ; raccourcissez vos notes.",
       ),
     settings: dashboardSettings.default({ period: "all", compare: true, refresh_seconds: 0 }),
   })
@@ -267,6 +364,24 @@ export type DashboardTileResult = {
   previous?: DashboardAggregate;
   error?: string;
   filter_note?: string;
+  entries?: DashboardEntries;
+};
+export type DashboardEntry = {
+  id: string;
+  record_id: string | null;
+  title: string;
+  stage: string | null;
+  status: string | null;
+  occurred_at: string | null;
+  currency: string | null;
+  amount: string | null;
+};
+export type DashboardEntries = {
+  data: DashboardEntry[];
+  total: number;
+  next_cursor: string | null;
+  partial: boolean;
+  month?: string;
 };
 export type DashboardResult = {
   name: string;
@@ -486,9 +601,31 @@ export function dashboardTemplate(
             activity[1],
             activity[2],
             sales[5],
-            activity[4],
-            sales[7],
-            activity[5],
+            record({
+              title: "Board des opportunités",
+              visual: "board",
+              group_by: "stage",
+              size: "medium",
+              lifecycle: "open",
+            }),
+            defaultTile({
+              title: "À faire en priorité",
+              kind: "task",
+              visual: "list",
+              overdue: true,
+              date_field: "due",
+              size: "third",
+              color: "rose",
+            }),
+            defaultTile({
+              title: "Agenda des réunions",
+              kind: "meeting",
+              visual: "calendar",
+              date_field: "occurred",
+              size: "third",
+              color: "violet",
+            }),
+            defaultTile({ title: "Notes de l’équipe", visual: "text", size: "third", content: "" }),
           ];
   return {
     name:
@@ -548,6 +685,27 @@ export function dashboardCsv(result: DashboardResult): string {
     ],
   ];
   for (const r of result.tiles) {
+    if (isContentVisual(r.tile.visual)) {
+      rows.push([result.name, r.tile.title, "Contenu", r.tile.content ?? r.tile.description]);
+      continue;
+    }
+    if (r.entries) {
+      for (const entry of r.entries.data)
+        rows.push([
+          result.name,
+          r.tile.title,
+          "Fiche",
+          entry.title,
+          entry.currency,
+          entry.amount,
+          1,
+          1,
+          result.range.label,
+          r.entries.partial,
+          0,
+        ]);
+      continue;
+    }
     if (!r.current) {
       rows.push([result.name, r.tile.title, r.tile.metric, r.error ?? "Erreur"]);
       continue;
@@ -575,7 +733,7 @@ export function formatDashboardValue(
   metric: ReportTile["metric"],
   currency?: string | null,
 ): string {
-  if (value === null || !/^-?\d+(\.\d+)?$/.test(value)) return "—";
+  if (typeof value !== "string" || !/^-?\d+(\.\d+)?$/.test(value)) return "—";
   const negative = value.startsWith("-"),
     [whole, fraction = ""] = value.replace(/^-/, "").split(".");
   const decimals = metric === "count" || metric === "stage_reached" ? 0 : 2;
