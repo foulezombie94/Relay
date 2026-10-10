@@ -302,7 +302,7 @@
 .layout[data-view="welcome"] .thread {
   order: 5;
   flex: 0 0 auto;
-  width: min(578px, calc(100% - 48px));
+  width: min(680px, calc(100% - 48px));
   margin: 0 auto;
   padding: 12px 0;
 }
@@ -314,7 +314,7 @@
 }
 .welcome {
   order: 1;
-  width: min(578px, calc(100% - 48px));
+  width: min(680px, calc(100% - 48px));
   margin: 42px auto 18px;
   text-align: left;
 }
@@ -335,7 +335,7 @@
 }
 .suggestions {
   order: 3;
-  width: min(578px, calc(100% - 48px));
+  width: min(680px, calc(100% - 48px));
   margin: 10px auto 0;
 }
 .promptGrid {
@@ -749,7 +749,7 @@
 }
 .composerArea {
   order: 3;
-  width: min(578px, calc(100% - 48px));
+  width: min(680px, calc(100% - 48px));
   align-self: center;
   flex-shrink: 0;
   padding: 16px 0 32px;
@@ -780,7 +780,7 @@
   outline: 0;
   box-shadow: none;
   padding: 0 0 7px;
-  min-height: 58px;
+  min-height: 78px;
   max-height: 200px;
   resize: none;
   font-size: 13px;
@@ -1334,10 +1334,10 @@
 
 .pulse {
   order: 4;
-  width: min(578px, calc(100% - 48px));
+  width: min(680px, calc(100% - 48px));
   flex: 0 0 auto;
-  margin: 20px auto 30px;
-  padding: 12px;
+  margin: 34px auto 30px;
+  padding: 16px;
   border: 1px solid #e2e2e5;
   border-radius: 16px;
   background: var(--relay-surface, #fdfdfd);
