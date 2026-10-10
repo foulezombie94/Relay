@@ -21,3 +21,11 @@ export async function workflowBody(req: NextRequest, maximum = 16000) {
   }
   return Buffer.concat(chunks).toString("utf8");
 }
+export async function boundedJsonBody(req: NextRequest, maximum: number) {
+  const text = await workflowBody(req, maximum);
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    throw new ApiError("Le contenu envoyé est invalide.", 400);
+  }
+}

@@ -6,6 +6,7 @@ import { services, type Service } from "./services";
 import { ApiError, databaseError } from "@/lib/api/context";
 import { syncWindow, graphPage } from "./sync-window";
 import { meetingBatch } from "./meetings";
+import { meetingUrl } from "@/lib/domain/meetings";
 type Item = {
   provider_id: string;
   kind: "email" | "calendar";
@@ -23,6 +24,8 @@ type Item = {
   ends_at?: string | null;
   starts_at?: string | null;
   received_at?: string | null;
+  join_url?: string;
+  location?: string;
 };
 const text = (v: unknown, max = 30000) => (typeof v === "string" ? v.slice(0, max) : "");
 export async function synchronize(client: SupabaseClient, w: string, user: string, p: Service) {
@@ -154,6 +157,17 @@ export async function synchronize(client: SupabaseClient, w: string, user: strin
           sender: text(e.organizer?.email, 1000),
           recipients: (e.attendees ?? []).map((a: { email: string }) => text(a.email, 1000)),
           body: text(e.description),
+          join_url:
+            meetingUrl(
+              text(
+                e.hangoutLink ||
+                  e.conferenceData?.entryPoints?.find(
+                    (point: { entryPointType: string }) => point.entryPointType === "video",
+                  )?.uri,
+                2048,
+              ),
+            ) ?? "",
+          location: text(e.location, 300),
           starts_at: e.start?.dateTime || (e.start?.date ? e.start.date + "T00:00:00Z" : null),
           ends_at: e.end?.dateTime ?? (e.end?.date ? e.end.date + "T00:00:00Z" : null),
           received_at: e.updated || null,
@@ -221,6 +235,8 @@ export async function synchronize(client: SupabaseClient, w: string, user: strin
             text(a.emailAddress?.address, 1000),
           ),
           body: text(e.bodyPreview),
+          join_url: meetingUrl(text(e.onlineMeeting?.joinUrl, 2048)) ?? "",
+          location: text(e.location?.displayName, 300),
           starts_at: start ? (/[Zz]$|[+-]\d{2}:\d{2}$/.test(start) ? start : start + "Z") : null,
           ends_at: e.end?.dateTime
             ? /[Zz]$|[+-]\d{2}:\d{2}$/.test(e.end.dateTime)

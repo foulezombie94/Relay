@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { request, useSave, useWorkspace } from "../providers/data-provider";
@@ -111,7 +112,15 @@ export function RecordContextPanel({
                   <span className="pill">{labels[r.resource]}</span>
                   <small>{date(r.created_at)}</small>
                 </div>
-                <strong>{str(r.title || r.name || r.type)}</strong>
+                <strong>
+                  {r.resource === "meetings" ? (
+                    <Link href={`/app/meetings?focus=${r.id}&workspace=${workspace.id}`}>
+                      {str(r.title || "Réunion")}
+                    </Link>
+                  ) : (
+                    str(r.title || r.name || r.type)
+                  )}
+                </strong>
                 {r.private === true && <span className="pill">Privée · vous uniquement</span>}
                 {r.status ? <Badge value={r.status} /> : null}
                 <p className="preserve-lines">

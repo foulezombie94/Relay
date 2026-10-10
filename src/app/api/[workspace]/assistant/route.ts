@@ -24,6 +24,7 @@ const requestSchema = z.discriminatedUnion("action", [
     action: z.literal("ask"),
     message: z.string().trim().min(1).max(4000),
     record_id: z.uuid().optional(),
+    meeting_id: z.uuid().optional(),
     conversation_id: z.uuid().optional(),
     deepen: z.boolean().optional(),
     request_id: z.uuid().optional(),
@@ -145,6 +146,18 @@ export async function POST(req: NextRequest, { params }: P) {
         "Actualisez l’analyse pour confirmer cette proposition dans une carte d’action sécurisée.",
         410,
       );
+    if (input.meeting_id) {
+      if (input.conversation_id || input.record_id)
+        throw new ApiError("Une analyse de réunion démarre dans une conversation dédiée.");
+      const { data: meeting, error: meetingError } = await client
+        .from("meetings")
+        .select("id")
+        .eq("workspace_id", workspace)
+        .eq("id", input.meeting_id)
+        .maybeSingle();
+      databaseError(meetingError);
+      if (!meeting) throw new ApiError("Réunion inaccessible.", 404);
+    }
     const selectedModel = model();
     if (!agentApiKey())
       throw new ApiError(
@@ -315,6 +328,7 @@ export async function POST(req: NextRequest, { params }: P) {
               run: admitted.id,
               runSecret,
               question: input.message,
+              analysisMeetingId: input.meeting_id,
               untrustedContext: oldMessages.length > 0,
               requestKey: userMessage.request_id!,
               actionSequence: new Map(),

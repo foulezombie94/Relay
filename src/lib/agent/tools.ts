@@ -26,6 +26,7 @@ export type ToolContext = {
   run: string;
   runSecret?: string;
   readonly question: string;
+  readonly analysisMeetingId?: string;
   untrustedContext?: boolean;
   requestKey?: string;
   actionSequence?: Map<string, number>;
@@ -171,6 +172,8 @@ async function reviewForAction(
   return policy;
 }
 export async function propose(c: ToolContext, kind: ActionKind, input: unknown, key: string) {
+  if (c.analysisMeetingId)
+    throw new ApiError("Les actions sont désactivées dans une analyse de réunion.", 403);
   await guard(c, true);
   const parsed = actionSchemas[kind].parse(input);
   const values = parsed as Record<string, unknown>;
@@ -315,6 +318,11 @@ export async function executeTool(c: ToolContext, name: string, raw: unknown, ca
   if (!Object.hasOwn(toolSchemas, name)) throw new ApiError("Outil inconnu.", 400);
   await guard(c);
   const input = toolSchemas[name as ToolName].parse(raw) as Record<string, unknown>;
+  if (
+    c.analysisMeetingId &&
+    (name !== "get_source" || input.kind !== "meeting" || input.id !== c.analysisMeetingId)
+  )
+    throw new ApiError("Cette analyse peut uniquement lire la réunion sélectionnée.", 403);
   if (
     name in searchKinds ||
     name === "aggregate_crm_data" ||

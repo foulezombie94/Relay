@@ -8,6 +8,7 @@ import {
   requireAdmin,
   jsonBody,
 } from "@/lib/api/context";
+import { boundedJsonBody } from "@/lib/api/workflow-body";
 import { assertReplayedValues } from "@/lib/api/save-attempt";
 import { resources, isResource, readResources } from "@/lib/domain/resource-schemas";
 import { validateAttributes } from "@/lib/domain/attributes";
@@ -54,7 +55,12 @@ export async function GET(request: NextRequest, { params }: Params) {
         record: related?.find((record) => record.id === row.record_id) ?? null,
       }));
     }
-    return NextResponse.json({ data: result, count, page, size });
+    return NextResponse.json(
+      { data: result, count, page, size },
+      ["meetings", "meeting_insight_templates"].includes(resource)
+        ? { headers: { "Cache-Control": "private, no-store" } }
+        : undefined,
+    );
   } catch (error) {
     return fail(error);
   }
@@ -67,7 +73,11 @@ export async function POST(request: NextRequest, { params }: Params) {
     const { client, role } = await context(workspace, true);
     if (["objects", "attributes", "portal_members", "pipelines"].includes(resource))
       requireAdmin(role);
-    const result = resources[resource].safeParse(await jsonBody(request));
+    const result = resources[resource].safeParse(
+      ["meetings", "meeting_insight_templates"].includes(resource)
+        ? await boundedJsonBody(request, 1100000)
+        : await jsonBody(request),
+    );
     if (!result.success) throw new ApiError(result.error.issues.map((i) => i.message).join(" "));
     const values: Record<string, unknown> = {
       ...result.data,
@@ -152,7 +162,11 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         version: z.number().int().positive().optional(),
         values: z.record(z.string(), z.unknown()),
       })
-      .parse(await jsonBody(request));
+      .parse(
+        ["meetings", "meeting_insight_templates"].includes(resource)
+          ? await boundedJsonBody(request, 1100000)
+          : await jsonBody(request),
+      );
     const rowId = body.id;
     const schema = resources[resource].partial();
     const parsed = schema.safeParse(body.values);
@@ -170,6 +184,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       if (immutable in values) throw new ApiError("Cette relation ne peut pas être déplacée.");
     if (
       [
+        "meetings",
+        "meeting_insight_templates",
         "tasks",
         "commitments",
         "conflicts",

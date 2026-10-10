@@ -29,6 +29,7 @@ try {
     "agent-confirmations",
     "dashboards",
     "portals",
+    "meetings",
     "reader-visibility",
     "team-access",
     "worker-hardening",

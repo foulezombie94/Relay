@@ -678,8 +678,8 @@ export const helpArticles: HelpArticle[] = [
   {
     id: "reunions",
     category: "Communication",
-    title: "Conserver un compte rendu de réunion",
-    description: "Rattacher un résumé et une transcription à votre client.",
+    title: "Préparer, retrouver et analyser vos réunions",
+    description: "Agenda, transcriptions, modèles d’analyse et contexte CRM.",
     href: "/app/meetings",
     sections: [
       {
@@ -688,10 +688,10 @@ export const helpArticles: HelpArticle[] = [
           "Zyliad conserve les informations que vous ajoutez. Il ne rejoint pas vos appels et ne les enregistre pas automatiquement.",
         ],
         steps: [
-          "Ouvrez Réunions et ajoutez un compte rendu.",
+          "Ouvrez Réunions : Agenda affiche vos rendez-vous ; Appels & transcriptions rassemble les comptes rendus accessibles.",
           "Renseignez le titre, le résumé et les informations disponibles.",
-          "Ajoutez la transcription si vous en disposez.",
-          "Reliez la fiche concernée puis enregistrez.",
+          "Collez la transcription ou importez un fichier TXT, VTT ou SRT. Les horodatages et intervenants fournis restent consultables.",
+          "Choisissez la visibilité initiale et la fiche principale, puis enregistrez. Les liens CRM supplémentaires se gèrent dans Informations.",
         ],
       },
       {
@@ -703,7 +703,8 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Retrouver une réunion",
         paragraphs: [
-          "La recherche globale couvre le titre et le résumé. Choisissez un titre explicite pour distinguer premier rendez-vous, négociation et suivi.",
+          "La bibliothèque permet de rechercher, trier, filtrer et marquer vos favoris personnels. L’agenda utilise le fuseau de votre espace. Dans une transcription, recherchez un passage ou choisissez un intervenant.",
+          "Publiez un modèle d’analyse ou essayez-le sur un appel avant publication. Dans la réunion, Générer l’analyse produit une lecture avec citations vérifiées : l’IA ne peut consulter que cette réunion et n’exécute aucune action depuis ce parcours. Une régénération consomme votre quota IA.",
         ],
       },
     ],

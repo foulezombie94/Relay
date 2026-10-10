@@ -302,4 +302,14 @@ describe("secure adaptive agent orchestration", () => {
     expect(fetch).not.toHaveBeenCalled();
     expect(mock.rpc.mock.calls.at(-1)?.[2].payload.status).toBe("error");
   });
+  it("exposes only the source reader for meeting analysis and rejects an ungrounded response", async () => {
+    const { c, options } = setup("Summarize the selected meeting");
+    const scoped = { ...c, analysisMeetingId: id };
+    const requests = provider([call("discover_tools", { names: ["send_email"] }), answer()]);
+    await expect(runAgent(scoped, options)).rejects.toMatchObject({ status: 403 });
+    expect(mock.executeTool).not.toHaveBeenCalled();
+    expect(mock.propose).not.toHaveBeenCalled();
+    const tools = requests[0].tools as { function: { name: string } }[];
+    expect(tools.map((t) => t.function.name)).toEqual(["get_source"]);
+  });
 });

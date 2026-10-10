@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { meetingSchema, insightTemplateSchema } from "./meetings";
 import { dashboardSchema } from "@/lib/domain/dashboards";
 import { pipelineSchema } from "@/lib/domain/pipelines";
 import { emailTemplateSchema } from "@/lib/domain/email-templates";
@@ -233,14 +234,8 @@ export const resources = {
     config: viewConfigSchema.optional(),
   }),
   record_relations: z.object({ source_id: id, target_id: id, label: text }),
-  meetings: z.object({
-    record_id: optionalId,
-    title: text,
-    starts_at: z.iso.datetime({ offset: true }).nullable().optional(),
-    transcript: z.string().max(200000).optional(),
-    summary: z.string().max(20000).optional(),
-    provider: z.literal("import").optional(),
-  }),
+  meetings: meetingSchema,
+  meeting_insight_templates: insightTemplateSchema,
 };
 export type Resource = keyof typeof resources;
 export const readResources = [

@@ -268,7 +268,15 @@ export function RecordOverview({
                 )}
               </span>
               <div>
-                <strong>{str(r.title || r.type || "Échange")}</strong>
+                <strong>
+                  {r.resource === "meetings" ? (
+                    <Link href={`/app/meetings?focus=${r.id}&workspace=${record.workspace_id}`}>
+                      {str(r.title || "Réunion")}
+                    </Link>
+                  ) : (
+                    str(r.title || r.type || "Échange")
+                  )}
+                </strong>
                 <p>{str(r.content || r.summary).slice(0, 180)}</p>
                 <small>{date(r.starts_at || r.created_at)}</small>
               </div>

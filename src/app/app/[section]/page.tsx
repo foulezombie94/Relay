@@ -1,3 +1,4 @@
+import { MeetingsPage } from "@/components/meetings/page";
 import { SequencesPage } from "@/components/pages/sequences";
 import { PipelinesPage } from "@/components/pages/pipelines";
 import { EmailTemplatesPage } from "@/components/pages/email-templates";
@@ -22,13 +23,11 @@ export default async function Page({ params }: { params: Promise<{ section: stri
   if (["people", "companies", "deals"].includes(section)) return <RecordsPage slug={section} />;
   if (section.startsWith("object-")) return <RecordsPage slug={section.slice(7)} />;
   if (section.startsWith("list-")) return <ListPage id={section.slice(5)} />;
-  if (
-    ["tasks", "notes", "meetings", "commitments", "conflicts", "handovers", "lists"].includes(
-      section,
-    )
-  )
+  if (["tasks", "notes", "commitments", "conflicts", "handovers", "lists"].includes(section))
     return <ResourcePage resource={section} />;
   switch (section) {
+    case "meetings":
+      return <MeetingsPage />;
     case "portals":
       return <PortalsPage />;
     case "dashboard":

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -111,41 +111,57 @@ function AssistantSession() {
     setMessage("");
     setError("");
   }
-  async function openChat(id: string) {
-    if (busy) return;
-    const version = ++readVersion.current;
-    setLoading(true);
-    setError("");
-    try {
-      const result = await request<{ data: AssistantConversation }>(endpoint + "?id=" + id);
-      if (version !== readVersion.current) return;
-      setConversation(id);
-      setTitle(result.data.title);
-      setMessages(result.data.messages);
-      setMessage("");
-      const record = result.data.messages.findLast((m) => m.role === "user")?.record_id;
-      const source = result.data.messages
-        .flatMap((m) => m.sources ?? [])
-        .find((s) => s.type === "record" && s.id === record);
-      setContext(record ? { id: record, label: source?.label || "Fiche sélectionnée" } : null);
-      if (record && !source) {
-        const lookup = await request<{ data: { id: string; display_name: string }[] }>(
-          `/api/${workspace.id}/records?id=${record}`,
-        );
-        if (version === readVersion.current && lookup.data[0])
-          setContext({ id: record, label: lookup.data[0].display_name });
+  const openChat = useCallback(
+    async (id: string) => {
+      if (busy) return;
+      const version = ++readVersion.current;
+      setLoading(true);
+      setError("");
+      try {
+        const result = await request<{ data: AssistantConversation }>(endpoint + "?id=" + id);
+        if (version !== readVersion.current) return;
+        setConversation(id);
+        setTitle(result.data.title);
+        setMessages(result.data.messages);
+        setMessage("");
+        const record = result.data.messages.findLast((m) => m.role === "user")?.record_id;
+        const source = result.data.messages
+          .flatMap((m) => m.sources ?? [])
+          .find((s) => s.type === "record" && s.id === record);
+        setContext(record ? { id: record, label: source?.label || "Fiche sélectionnée" } : null);
+        if (record && !source) {
+          const lookup = await request<{ data: { id: string; display_name: string }[] }>(
+            `/api/${workspace.id}/records?id=${record}`,
+          );
+          if (version === readVersion.current && lookup.data[0])
+            setContext({ id: record, label: lookup.data[0].display_name });
+        }
+        if (window.innerWidth < 900) setHistoryOpen(false);
+        requestAnimationFrame(() => {
+          if (scroll.current) scroll.current.scrollTop = scroll.current.scrollHeight;
+        });
+      } catch (e) {
+        if (version === readVersion.current)
+          setError(e instanceof Error ? e.message : "Conversation inaccessible");
+      } finally {
+        if (version === readVersion.current) setLoading(false);
       }
-      if (window.innerWidth < 900) setHistoryOpen(false);
-      requestAnimationFrame(() => {
-        if (scroll.current) scroll.current.scrollTop = scroll.current.scrollHeight;
-      });
-    } catch (e) {
-      if (version === readVersion.current)
-        setError(e instanceof Error ? e.message : "Conversation inaccessible");
-    } finally {
-      if (version === readVersion.current) setLoading(false);
-    }
-  }
+    },
+    [busy, endpoint, workspace.id],
+  );
+  const conversationFromUrl = url.get("conversation");
+  const openedFromUrl = useRef("");
+  useEffect(() => {
+    if (
+      !conversationFromUrl ||
+      !/^[\da-f-]{36}$/i.test(conversationFromUrl) ||
+      openedFromUrl.current === conversationFromUrl ||
+      busy
+    )
+      return;
+    openedFromUrl.current = conversationFromUrl;
+    void openChat(conversationFromUrl);
+  }, [conversationFromUrl, openChat, busy]);
   async function ask(text = message, scope = context, requestKey?: string) {
     if (active.current || !text.trim() || !status.data?.configured || loading) return;
     const abort = new AbortController();
