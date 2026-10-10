@@ -86,6 +86,8 @@ describe("persistent session security", () => {
     expect(loginDestination(next)).toBe("/app/dashboard");
   });
   it("preserves the invitation flow", () => expect(loginDestination("/invite")).toBe("/invite"));
+  it("resumes onboarding after login", () =>
+    expect(loginDestination("/onboarding")).toBe("/onboarding"));
 });
 
 describe("browser session and private cache lifecycle", () => {

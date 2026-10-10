@@ -13,6 +13,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   } = await client.auth.getUser();
   assertAuthAvailable(error);
   if (error || !user) redirect("/login");
+  // This metadata controls the welcome UI only; membership/RLS controls access.
+  if (user.user_metadata?.relay_onboarding_pending === true) redirect("/onboarding");
   const jar = await cookies();
   const defaultOpen = jar.get("relay_sidebar_open")?.value !== "false";
   return (

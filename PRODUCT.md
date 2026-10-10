@@ -22,7 +22,7 @@ CRM commercial avec suivi des engagements, responsables, échéances et réalisa
 
 Le dépôt contient personnes, entreprises, opportunités, pipelines, prévisions pondérées, tâches, notes, messages, réunions, engagements, réalisation, rapports, qualité des données, assistant IA, automatisations et portails clients. Intégrations : Gmail, Google Calendar, Outlook, Outlook Calendar et Zapier via webhooks ou intégration privée. Permissions du fournisseur nécessaires ; IA selon configuration.
 
-Inscription : /login?mode=signup. Connexion : /login. Démo publique : /demo. Documentation : /doc. Pas de Stripe actuellement. Ne pas promettre de migrations directes de CRM, agents de prospection autonomes ou téléphonie.
+Inscription : /signup. Connexion : /login. Démo publique : /demo. Documentation : /doc. Pas de Stripe actuellement. Ne pas promettre de migrations directes de CRM, agents de prospection autonomes ou téléphonie.
 
 ## Brand Commitments
 

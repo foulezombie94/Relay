@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { db } from "@/lib/supabase/server";
+import { loginDestination } from "@/lib/supabase/session";
 export async function GET(request: NextRequest) {
   const p = request.nextUrl.searchParams;
   const client = await db();
@@ -14,11 +15,7 @@ export async function GET(request: NextRequest) {
     }));
   else error = { message: "Missing token" };
   const next =
-    p.get("next") === "/reset-password"
-      ? "/reset-password"
-      : p.get("next") === "/invite"
-        ? "/invite"
-        : "/app/dashboard";
+    p.get("next") === "/reset-password" ? "/reset-password" : loginDestination(p.get("next"));
   return NextResponse.redirect(
     new URL(
       error ? "/login?error=expired" + (next === "/invite" ? "&next=/invite" : "") : next,

@@ -60,7 +60,7 @@ export function assertAuthAvailable(error: AuthError | null) {
 
 // Only fixed local destinations can be restored after authentication.
 export function loginDestination(next: string | null) {
-  return next === "/invite" ? "/invite" : "/app/dashboard";
+  return next === "/invite" || next === "/onboarding" ? next : "/app/dashboard";
 }
 
 export function observeSession(

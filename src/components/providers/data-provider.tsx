@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Workspace, ObjectDefinition, Row } from "@/lib/domain/types";
 import { toast } from "sonner";
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AppearanceProvider } from "./appearance-provider";
 import { browserDb } from "@/lib/supabase/client";
 import { observeSession } from "@/lib/supabase/session";
@@ -133,9 +133,6 @@ function Gate({ children }: { children: ReactNode }) {
       ? ""
       : (new URLSearchParams(window.location.search).get("workspace") ?? ""),
   );
-  const [name, setName] = useState("");
-  const [busy, setBusy] = useState(false);
-  const creating = useRef(false);
   const q = useQuery({
     queryKey: ["workspaces"],
     queryFn: async () => {
@@ -177,47 +174,7 @@ function Gate({ children }: { children: ReactNode }) {
         )}
       </div>
     );
-  if (!workspace)
-    return (
-      <div className="onboarding">
-        <span className="brand-mark">r</span>
-        <h1>Bienvenue dans Relay.</h1>
-        <p>Créez votre espace de travail.</p>
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (creating.current) return;
-            if (!name.trim()) {
-              toast.error("Nom de votre entreprise requis.");
-              return;
-            }
-            creating.current = true;
-            setBusy(true);
-            try {
-              const result = await request<{ id: string }>("/api/workspaces", "POST", {
-                name: name.trim(),
-              });
-              confirmedRow(result);
-              await cache.invalidateQueries({ queryKey: ["workspaces"] });
-            } catch (e) {
-              toast.error(e instanceof Error ? e.message : "Création impossible");
-            } finally {
-              creating.current = false;
-              setBusy(false);
-            }
-          }}
-        >
-          <label>
-            Nom de votre entreprise
-            <input required value={name} onChange={(e) => setName(e.target.value)} />
-          </label>
-          <button className="button primary" disabled={busy}>
-            Créer mon espace
-          </button>
-        </form>
-        <Link href="/portal">Ouvrir mon portail client</Link>
-      </div>
-    );
+  if (!workspace) redirect("/onboarding");
   return (
     <Context.Provider
       value={{

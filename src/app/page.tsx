@@ -133,7 +133,7 @@ export default function Home() {
           <Link prefetch={false} href="/login" className={styles.login}>
             Se connecter
           </Link>
-          <Link prefetch={false} href="/login?mode=signup" className={styles.primary}>
+          <Link prefetch={false} href="/signup" className={styles.primary}>
             Créer mon espace <ArrowUpRight size={15} />
           </Link>
         </div>
@@ -151,7 +151,7 @@ export default function Home() {
             <Link prefetch={false} href="/login">
               Se connecter
             </Link>
-            <Link prefetch={false} href="/login?mode=signup">
+            <Link prefetch={false} href="/signup">
               Créer mon espace
             </Link>
           </nav>
@@ -170,7 +170,7 @@ export default function Home() {
             la réalisation client.
           </p>
           <div className={styles.heroActions}>
-            <Link prefetch={false} href="/login?mode=signup" className={styles.primary}>
+            <Link prefetch={false} href="/signup" className={styles.primary}>
               Créer mon espace <ArrowRight size={17} />
             </Link>
             <Link prefetch={false} href="/demo" className={styles.secondary}>
@@ -395,7 +395,7 @@ export default function Home() {
           </h2>
           <p>Donnez à votre équipe un espace pour les relier.</p>
           <div className={styles.heroActions}>
-            <Link prefetch={false} href="/login?mode=signup" className={styles.primary}>
+            <Link prefetch={false} href="/signup" className={styles.primary}>
               Créer mon espace <ArrowRight size={17} />
             </Link>
             <Link prefetch={false} href="/demo" className={styles.secondary}>
@@ -442,7 +442,7 @@ export default function Home() {
           <Link prefetch={false} href="/login">
             Se connecter
           </Link>
-          <Link prefetch={false} href="/login?mode=signup">
+          <Link prefetch={false} href="/signup">
             Créer un compte
           </Link>
         </nav>

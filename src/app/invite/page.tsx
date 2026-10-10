@@ -131,7 +131,7 @@ export default function Invite() {
                     Se connecter
                   </Link>
                   <Link
-                    href="/login?mode=signup&next=/invite"
+                    href="/signup&next=/invite"
                     className="button full"
                     style={{ marginTop: 12 }}
                   >

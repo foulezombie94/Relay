@@ -141,7 +141,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
         );
     }
   }, [linked.data, object, router]);
-  const [importing, setImporting] = useState(false);
+  const [importing, setImporting] = useState(() => url.get("import") === "1");
   const [lost, setLost] = useState<CrmRecord | null>(null);
   const [error, setError] = useState("");
   const q = useRows<CrmRecord>("records", {
