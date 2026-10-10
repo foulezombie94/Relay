@@ -1,8 +1,7 @@
+import { localTestDatabaseUrl } from "./database-target";
 import { Client } from "pg";
 import { randomUUID } from "node:crypto";
-const url = process.env.RELAY_TEST_DATABASE_URL;
-if (!url || !["localhost", "127.0.0.1", "[::1]"].includes(new URL(url).hostname))
-  throw new Error("Use a disposable localhost RELAY_TEST_DATABASE_URL.");
+const url = localTestDatabaseUrl();
 const admin = new Client({ connectionString: url });
 const users = Array.from({ length: 32 }, () => randomUUID());
 const secret = "b".repeat(64);

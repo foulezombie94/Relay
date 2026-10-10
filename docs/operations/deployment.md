@@ -8,11 +8,25 @@ Les handlers `email_sync`, `calendar_sync`, `sequence_send`, `workflow_run`, `no
 
 Jobs, payloads, événements et heartbeats sont dans `relay_private`, sans accès aux clients. L’utilisateur peut seulement demander son import, confirmer son aperçu de workflow ou synchroniser son propre compte connecté. Le statut masque payloads, secrets et verrous. Le worker revérifie les autorisations actuelles avant les effets métier.
 
+## Séparer développement, tests, preview et production
+
+Définir explicitement `NEXT_PUBLIC_RELAY_ENVIRONMENT` (`development`, `test`, `preview` ou `production`), `NEXT_PUBLIC_SUPABASE_PROJECT_REF` et `NEXT_PUBLIC_RELAY_PRODUCTION_PROJECT_REF`. L’URL Supabase doit correspondre exactement à la référence sélectionnée. La référence de production est un identifiant public ; la garder identique dans tous les environnements pour protéger cette destination.
+
+Sur Vercel, le libellé doit correspondre à `VERCEL_ENV`. La production utilise sa référence protégée ; les autres environnements doivent utiliser une référence différente. `next dev` et les tests unitaires refusent une configuration marquée production. Un build optimisé de preview reste marqué `preview`, même avec `NODE_ENV=production`. Les URL locales sont réservées au développement et aux tests. Aucun exemple local ne pointe désormais vers la production.
+
+Le projet `duhnmyxpxizxbxlhbtzs` (« APP TQT ») a été confirmé comme production le 10 octobre 2026. Le MCP ne voit pas encore de deuxième projet. Configurer un projet de développement distinct, ses clés, son bucket, ses callbacks OAuth, webhooks et worker avant de valider des écritures entre deux environnements. Ne jamais recopier les credentials, destinations webhook ou tokens OAuth de production dans la preview. Les références des exemples sont des placeholders à remplacer.
+
+Les clients navigateur, serveur, proxy et worker partagent les contrôles de configuration. Le build et le démarrage web refusent une variable critique absente ; `APP_URL` doit être valide et HTTPS en production. Sur Railway, conserver `NODE_ENV=production` et les références du même environnement que le web. La clé privilégiée reste côté serveur et ne peut pas être utilisée comme clé navigateur.
+
+Les variables `NEXT_PUBLIC_*` sont liées au build Next.js : reconstruire chaque environnement avec ses propres variables. Le worker et les intégrations prennent leurs données dans le projet sélectionné, sans fallback vers un projet distant.
+
+Les tests SQL utilisent uniquement `RELAY_TEST_DATABASE_URL` avec une adresse loopback, une base nommée `relay_test` ou `relay_test_*`, et aucun paramètre d’URL susceptible de remplacer l’hôte. Aucun lanceur n’utilise `SUPABASE_DB_URL` ni ne charge implicitement `.env.local`.
+
 ## Garanties et limites
 
 La prise est atomique avec `FOR UPDATE SKIP LOCKED`. Un token UUID protège chaque résultat ; le verrou est renouvelé toutes les 45 secondes et expire après trois minutes. Chaque réplica dispose de deux capacités distinctes : les jobs interactifs (`workflow_run`, `sequence_send`, `notifications`, deux slots par défaut) et les imports/synchronisations (un slot par défaut). Chaque slot traite un seul job à la fois. `WORKER_SHORT_CONCURRENCY` et `WORKER_LONG_CONCURRENCY` acceptent chacun 1 à 4 ; plusieurs réplicas partagent la queue. Le scheduler tourne indépendamment des jobs, toutes les 60 secondes. Postgres sérialise les schedulers et limite chaque ensemble de types à un passage par minute. Les types de connecteurs sont filtrés avant la limite de lot.
 
-À vide, le polling recule de 1 à 2 secondes par slot interactif, et de 2 à 5 secondes par slot d'import/synchronisation, avec un aléa de ±10 %. Après un job, la prise suivante reste immédiate. Cette fréquence réduit l'attente des petites tâches mais augmente les RPC à vide : observer la consommation Supabase avant d'augmenter les slots ou réplicas. Le délai p95 inférieur à cinq secondes reste un objectif à mesurer sur le worker déployé. Les RPC serveur ont un timeout réseau de 30 secondes ; il ne remplace pas les limites SQL.
+À vide, le polling recule de 1 à 2 secondes par slot interactif, et de 2 à 5 secondes par slot d'import/synchronisation, avec un aléa de ±10 %. Après un job, la prise suivante reste immédiate. Cette fréquence réduit l'attente des petites tâches mais augmente les RPC à vide : observer la consommation Supabase avant d'augmenter les slots ou réplicas. Le délai p95 inférieur à cinq secondes reste un objectif à mesurer sur le worker déployé. Les RPC Supabase ont un timeout réseau de 25 secondes ; il ne remplace pas les limites SQL.
 
 Les erreurs temporaires ont jusqu’à cinq tentatives avec délai exponentiel et aléa. Le plafond du délai est d'environ une heure ; avec cinq tentatives par défaut, les délais effectifs restent de l'ordre des minutes. Les erreurs permanentes terminent dans `dead`. Un arrêt brutal entraîne la reprise après expiration du verrou. Les heures non ouvrées reportent un envoi sans consommer les tentatives. Une séquence en pause ou désactivée met son job en `paused`, sans boucle de claims ; le scheduler reprend le même job quand sa source redevient éligible.
 
@@ -80,7 +94,7 @@ Les migrations sont versionnées dans `supabase/migrations`, avec des versions c
 ```sh
 npm run typecheck
 npm run test:worker
-# Définir SUPABASE_DB_URL avec TLS vérifié :
+# Définir RELAY_TEST_DATABASE_URL vers une base locale relay_test* :
 npm run test:queue
 ```
 

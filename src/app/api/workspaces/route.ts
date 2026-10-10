@@ -7,6 +7,7 @@ import {
   fail,
   context,
   requireAdmin,
+  jsonBody,
 } from "@/lib/api/context";
 import { z } from "zod";
 import { assertAuthAvailable } from "@/lib/supabase/session";
@@ -19,7 +20,8 @@ export async function GET() {
     } = await client.auth.getUser();
     assertAuthAvailable(authError);
     if (authError || !user) throw new ApiError("Connexion requise.", 401);
-    await client.rpc("claim_invitations");
+    const { error: invitationError } = await client.rpc("claim_invitations");
+    databaseError(invitationError);
     const { data, error } = await client
       .from("memberships")
       .select("role,workspaces(*)")
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
     checkOrigin(request);
     const { name } = z
       .object({ name: z.string().trim().min(1).max(120) })
-      .parse(await request.json());
+      .parse(await jsonBody(request));
     const client = await db();
     const {
       data: { user },
@@ -48,6 +50,8 @@ export async function POST(request: NextRequest) {
     if (authError || !user) throw new ApiError("Connexion requise.", 401);
     const { data, error } = await client.rpc("create_workspace", { label: name });
     databaseError(error);
+    if (!z.uuid().safeParse(data).success)
+      throw new ApiError("La création de l’espace n’a pas été confirmée.", 500);
     return NextResponse.json({ id: data }, { status: 201 });
   } catch (e) {
     return fail(e);
@@ -80,7 +84,8 @@ export async function PATCH(request: NextRequest) {
           locale: z.enum(["fr", "en"]).optional(),
         }),
       })
-      .parse(await request.json());
+      .parse(await jsonBody(request));
+    if (!Object.keys(values).length) throw new ApiError("Aucune modification à enregistrer.");
     const { client, role } = await context(id, true);
     requireAdmin(role);
     const { data, error } = await client
@@ -90,6 +95,7 @@ export async function PATCH(request: NextRequest) {
       .select()
       .single();
     databaseError(error);
+    if (!data || data.id !== id) throw new ApiError("L’espace a changé ou est inaccessible.", 409);
     return NextResponse.json({ data });
   } catch (e) {
     return fail(e);

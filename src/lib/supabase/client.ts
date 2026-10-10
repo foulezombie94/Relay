@@ -1,12 +1,12 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { sessionCookieOptions } from "./session";
+import { getSupabaseConfig } from "./config";
+import { supabaseFetch } from "./fetch";
 export function browserDb() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookieOptions: sessionCookieOptions(),
-      auth: { persistSession: true, autoRefreshToken: typeof window !== "undefined" },
-    },
-  );
+  const config = getSupabaseConfig();
+  return createBrowserClient(config.url, config.key, {
+    cookieOptions: sessionCookieOptions(),
+    auth: { persistSession: true, autoRefreshToken: typeof window !== "undefined" },
+    global: { fetch: supabaseFetch },
+  });
 }

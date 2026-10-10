@@ -33,6 +33,13 @@ export function validateAttributes(
       case "email":
         valid = z.email().safeParse(value).success;
         break;
+      case "phone":
+        valid =
+          typeof value === "string" &&
+          /^\+?[\d\s().-]+$/.test(value) &&
+          value.replace(/\D/g, "").length >= 6 &&
+          value.replace(/\D/g, "").length <= 15;
+        break;
       case "url":
         valid = z.url({ protocol: /^https?$/ }).safeParse(value).success;
         break;
@@ -46,7 +53,8 @@ export function validateAttributes(
         valid =
           typeof value === "string" &&
           /^\d{4}-\d{2}-\d{2}$/.test(value) &&
-          !isNaN(Date.parse(value));
+          !isNaN(Date.parse(value)) &&
+          new Date(value).toISOString().slice(0, 10) === value;
         break;
       case "datetime":
         valid = typeof value === "string" && !isNaN(Date.parse(value));
@@ -66,7 +74,9 @@ export function validateAttributes(
   for (const attr of active)
     if (
       attr.required &&
-      (values[attr.key] === undefined || values[attr.key] === null || values[attr.key] === "")
+      (values[attr.key] === undefined ||
+        values[attr.key] === null ||
+        (typeof values[attr.key] === "string" && !String(values[attr.key]).trim()))
     )
       issues.push(`Champ requis : ${attr.name}`);
   return issues;

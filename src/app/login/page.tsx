@@ -1,10 +1,10 @@
 "use client";
-import { useState, Suspense } from "react";
+import { useRef, useState, Suspense } from "react";
 import { browserDb } from "@/lib/supabase/client";
 import { ArrowRight, Check, Layers, Mail } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { loginDestination } from "@/lib/supabase/session";
+import { authEmail, authFailureMessage, loginDestination } from "@/lib/supabase/session";
 function LoginForm() {
   const searchParams = useSearchParams();
   const destination = loginDestination(searchParams.get("next"));
@@ -16,28 +16,41 @@ function LoginForm() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const inFlight = useRef(false);
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (inFlight.current) return;
+    let address: string;
+    try {
+      address = authEmail(email);
+      if (mode !== "reset" && password.length < 8)
+        throw new Error("Le mot de passe doit contenir au moins 8 caractères.");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Informations invalides.");
+      return;
+    }
+    inFlight.current = true;
     setBusy(true);
     setError("");
     setMessage("");
     try {
       const client = browserDb();
       if (mode === "reset") {
-        const { error } = await client.auth.resetPasswordForEmail(email, {
+        const { error } = await client.auth.resetPasswordForEmail(address, {
           redirectTo: `${window.location.origin}/auth/confirm?next=/reset-password`,
         });
         if (error) throw error;
         setMessage("Si ce compte existe, un lien de récupération a été envoyé.");
       } else if (mode === "signup") {
         const { data, error } = await client.auth.signUp({
-          email,
+          email: address,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(destination)}`,
           },
         });
         if (error) throw error;
+        if (!data.user && !data.session) throw new Error("Account creation unconfirmed");
         if (data.session) window.location.replace(destination);
         else
           setMessage(
@@ -46,17 +59,19 @@ function LoginForm() {
               : "Vérifiez votre email pour confirmer votre compte.",
           );
       } else {
-        const { error } = await client.auth.signInWithPassword({
-          email,
+        const { data, error } = await client.auth.signInWithPassword({
+          email: address,
           password,
         });
         if (error) throw error;
+        if (!data.session?.user?.id) throw new Error("Session unconfirmed");
         // Start with fresh server state after the SDK has persisted the cookies.
         window.location.replace(destination);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Connexion impossible.");
+      setError(authFailureMessage(e));
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   }
@@ -108,6 +123,7 @@ function LoginForm() {
               Email professionnel
               <input
                 type="email"
+                disabled={busy}
                 required
                 autoComplete="email"
                 value={email}
@@ -120,6 +136,7 @@ function LoginForm() {
                 Mot de passe
                 <input
                   type="password"
+                  disabled={busy}
                   required
                   minLength={8}
                   autoComplete={mode === "signup" ? "new-password" : "current-password"}
@@ -153,6 +170,7 @@ function LoginForm() {
           </form>
           <button
             className="link-button"
+            disabled={busy}
             onClick={() => {
               setMode(mode === "login" ? "signup" : "login");
               setError("");
@@ -164,7 +182,7 @@ function LoginForm() {
               : "Vous avez un compte ? Se connecter"}
           </button>
           {mode === "login" && (
-            <button className="link-button muted" onClick={() => setMode("reset")}>
+            <button className="link-button muted" disabled={busy} onClick={() => setMode("reset")}>
               Mot de passe oublié
             </button>
           )}

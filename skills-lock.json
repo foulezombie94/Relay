@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "security-best-practices": {
+      "source": "openai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/.curated/security-best-practices/SKILL.md",
+      "computedHash": "c27616fb4e27999605b90b261dc729784420c8d77bd1a98748384ffaa5b35704"
+    },
+    "typescript-expert": {
+      "source": "sickn33/agentic-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/typescript-expert/SKILL.md",
+      "computedHash": "13d996860ec89780cfc6fae411cd6526dc13d6a476ab318d73a51fea9d45667a"
+    }
+  }
+}

@@ -1,7 +1,15 @@
 "use client";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Plus, Inbox, LoaderCircle, Search } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { editorValues } from "./ui/editor-values";
+import {
+  EditorDraftScope,
+  readDraft,
+  writeDraft,
+  clearDraft,
+  restoredCustomValue,
+} from "./ui/editor-draft";
 import { str } from "./ui/display";
 export { PageHeader, Badge, Avatar, money, date, str } from "./ui/display";
 import { DatePicker } from "./ui/date-picker";
@@ -145,6 +153,7 @@ export type Field = {
   type?:
     | "text"
     | "email"
+    | "tel"
     | "number"
     | "date"
     | "datetime-local"
@@ -167,6 +176,7 @@ export function Editor({
   initial = {},
   onSave,
   busy = false,
+  draftKey,
 }: {
   open: boolean;
   onClose: () => void;
@@ -175,113 +185,161 @@ export function Editor({
   initial?: Record<string, unknown>;
   onSave: (v: Record<string, unknown>) => Promise<unknown>;
   busy?: boolean;
+  draftKey?: string;
 }) {
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const inFlight = useRef(false);
+  const dirty = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const scope = useContext(EditorDraftScope);
+  const storageKey = scope
+    ? `relay-draft:${scope}:${draftKey ?? JSON.stringify([title, initial.id ?? "new", fields.map((field) => field.key)])}`
+    : null;
+  const [restored] = useState(() => readDraft(storageKey));
+  const defaults = { ...initial, ...restored };
+  useEffect(() => {
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (!dirty.current && !inFlight.current) return;
+      // Disabled fields are absent from FormData during submission. Keep the
+      // complete draft captured before disabling them until the server confirms.
+      if (formRef.current && !inFlight.current) writeDraft(storageKey, formRef.current);
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    return () => window.removeEventListener("beforeunload", beforeUnload);
+  }, [storageKey]);
+  const close = () => {
+    if (!inFlight.current) onClose();
+  };
   return (
-    <Modal open={open} onClose={onClose} title={title}>
+    <Modal open={open} onClose={close} title={title}>
       <form
+        ref={formRef}
+        onInput={(event) => {
+          if (inFlight.current) return;
+          dirty.current = true;
+          writeDraft(storageKey, event.currentTarget);
+        }}
+        onChange={(event) => {
+          if (inFlight.current) return;
+          dirty.current = true;
+          writeDraft(storageKey, event.currentTarget);
+        }}
         onSubmit={async (e) => {
           e.preventDefault();
+          if (busy || inFlight.current) return;
+          inFlight.current = true;
+          setSubmitting(true);
           setError("");
+          writeDraft(storageKey, e.currentTarget);
           const form = new FormData(e.currentTarget);
-          const values: Record<string, unknown> = {};
           try {
-            for (const f of fields) {
-              const v = String(form.get(f.key) ?? "");
-              if (f.required && ["date", "datetime-local"].includes(f.type ?? "") && !v) {
-                throw new Error(`Choisissez une date pour « ${f.label} ».`);
-              }
-              if (f.type === "checkbox") values[f.key] = form.has(f.key);
-              else if (f.type === "json" || f.type === "custom") {
-                values[f.key] = JSON.parse(v || "null");
-                if (f.required && values[f.key] == null)
-                  throw new Error(`Complétez « ${f.label} ».`);
-              } else if (f.type === "number") values[f.key] = v === "" ? 0 : Number(v);
-              else if (f.type === "datetime-local")
-                values[f.key] = v ? new Date(v).toISOString() : null;
-              else if (v !== "" || f.required) values[f.key] = v;
-              else if (f.type === "date" || f.nullable) values[f.key] = null;
-            }
-            await onSave(values);
+            await onSave(editorValues(form, fields));
+            clearDraft(storageKey);
+            dirty.current = false;
             onClose();
           } catch (err) {
             setError(err instanceof Error ? err.message : "Enregistrement impossible");
+          } finally {
+            inFlight.current = false;
+            setSubmitting(false);
           }
         }}
       >
-        <div className="form-grid">
-          {fields.map((f) =>
-            f.type === "custom" ? (
-              <div className="span-2" key={f.key}>
-                <strong>
+        <fieldset disabled={submitting} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+          <div className="form-grid">
+            {fields.map((f) =>
+              f.type === "custom" ? (
+                <div className="span-2" key={f.key}>
+                  <strong>
+                    {f.label}
+                    {f.required ? " *" : ""}
+                  </strong>
+                  {f.render?.(restoredCustomValue(restored?.[f.key], initial[f.key]), f.key)}
+                </div>
+              ) : (
+                <label
+                  key={f.key}
+                  className={["textarea", "json"].includes(f.type ?? "") ? "span-2" : ""}
+                >
                   {f.label}
                   {f.required ? " *" : ""}
-                </strong>
-                {f.render?.(initial[f.key], f.key)}
-              </div>
-            ) : (
-              <label
-                key={f.key}
-                className={["textarea", "json"].includes(f.type ?? "") ? "span-2" : ""}
-              >
-                {f.label}
-                {f.required ? " *" : ""}
-                {f.type === "select" ? (
-                  <select name={f.key} defaultValue={str(initial[f.key])} required={f.required}>
-                    <option value="">Choisir…</option>
-                    {f.options?.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                ) : f.type === "checkbox" ? (
-                  <input type="checkbox" name={f.key} defaultChecked={Boolean(initial[f.key])} />
-                ) : ["textarea", "json"].includes(f.type ?? "") ? (
-                  <textarea
-                    name={f.key}
-                    rows={f.type === "json" ? 6 : 4}
-                    defaultValue={
-                      f.type === "json"
-                        ? JSON.stringify(initial[f.key] ?? [], null, 2)
-                        : str(initial[f.key])
-                    }
-                    required={f.required}
-                    placeholder={f.placeholder}
-                  />
-                ) : f.type === "date" || f.type === "datetime-local" ? (
-                  <DatePicker
-                    name={f.key}
-                    label={f.label}
-                    withTime={f.type === "datetime-local"}
-                    required={f.required}
-                    defaultValue={
-                      f.type === "datetime-local" && initial[f.key]
-                        ? localDateTime(initial[f.key])
-                        : str(initial[f.key])
-                    }
-                  />
-                ) : (
-                  <input
-                    name={f.key}
-                    type={f.type ?? "text"}
-                    step={f.type === "number" ? "0.01" : undefined}
-                    defaultValue={str(initial[f.key])}
-                    required={f.required}
-                    placeholder={f.placeholder}
-                  />
-                )}
-              </label>
-            ),
-          )}
-        </div>
-        {error && <div className="alert error">{error}</div>}
+                  {f.type === "select" ? (
+                    <select name={f.key} defaultValue={str(defaults[f.key])} required={f.required}>
+                      <option value="">Choisir…</option>
+                      {f.options?.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : f.type === "checkbox" ? (
+                    <input
+                      type="checkbox"
+                      name={f.key}
+                      defaultChecked={restored ? Boolean(restored[f.key]) : Boolean(initial[f.key])}
+                    />
+                  ) : ["textarea", "json"].includes(f.type ?? "") ? (
+                    <textarea
+                      name={f.key}
+                      rows={f.type === "json" ? 6 : 4}
+                      defaultValue={
+                        f.type === "json"
+                          ? restored && typeof restored[f.key] === "string"
+                            ? str(restored[f.key])
+                            : JSON.stringify(initial[f.key] ?? [], null, 2)
+                          : str(defaults[f.key])
+                      }
+                      required={f.required}
+                      placeholder={f.placeholder}
+                    />
+                  ) : f.type === "date" || f.type === "datetime-local" ? (
+                    <DatePicker
+                      name={f.key}
+                      label={f.label}
+                      withTime={f.type === "datetime-local"}
+                      required={f.required}
+                      disabled={submitting}
+                      onValueChange={(value) => {
+                        if (inFlight.current) return;
+                        dirty.current = true;
+                        if (formRef.current)
+                          writeDraft(storageKey, formRef.current, { [f.key]: value });
+                      }}
+                      defaultValue={
+                        f.type === "datetime-local" && defaults[f.key]
+                          ? localDateTime(defaults[f.key])
+                          : str(defaults[f.key])
+                      }
+                    />
+                  ) : (
+                    <input
+                      name={f.key}
+                      type={f.type ?? "text"}
+                      step={f.type === "number" ? "0.01" : undefined}
+                      defaultValue={str(defaults[f.key])}
+                      required={f.required}
+                      placeholder={f.placeholder}
+                    />
+                  )}
+                </label>
+              ),
+            )}
+          </div>
+        </fieldset>
+        {error && (
+          <div className="alert error" role="alert">
+            {error}
+          </div>
+        )}
         <div className="dialog-footer">
-          <button type="button" className="button" onClick={onClose}>
+          <button type="button" className="button" onClick={close} disabled={submitting}>
             Annuler
           </button>
-          <button className="button primary" disabled={busy}>
-            {busy ? "Enregistrement…" : "Enregistrer"}
+          <button className="button primary" disabled={busy || submitting}>
+            {busy || submitting ? "Enregistrement…" : "Enregistrer"}
           </button>
         </div>
       </form>

@@ -25,8 +25,11 @@ function request(path = "/app/dashboard") {
 }
 beforeEach(() => {
   vi.stubEnv("NODE_ENV", "production");
+  vi.stubEnv("NEXT_PUBLIC_RELAY_ENVIRONMENT", "production");
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_PROJECT_REF", "fixture");
+  vi.stubEnv("NEXT_PUBLIC_RELAY_PRODUCTION_PROJECT_REF", "fixture");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://fixture.supabase.co");
-  vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "fixture-publishable-key");
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_fixture");
   mocks.createServerClient
     .mockReset()
     .mockReturnValue({ auth: { getUser: mocks.getUser, getClaims: mocks.getClaims } });

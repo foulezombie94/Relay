@@ -67,9 +67,11 @@ export function RecordEditor({
                   ? "datetime-local"
                   : a.type === "email"
                     ? "email"
-                    : a.type === "multi_select"
-                      ? "json"
-                      : "text",
+                    : a.type === "phone"
+                      ? "tel"
+                      : a.type === "multi_select"
+                        ? "json"
+                        : "text",
       options: (a.options ?? []).map((v) => ({ value: v, label: v })),
     });
   return (

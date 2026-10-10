@@ -6,7 +6,9 @@ import {
   ApiError,
   databaseError,
   requireAdmin,
+  jsonBody,
 } from "@/lib/api/context";
+import { assertReplayedValues } from "@/lib/api/save-attempt";
 import { resources, isResource, readResources } from "@/lib/domain/resource-schemas";
 import { validateAttributes } from "@/lib/domain/attributes";
 import type { Attribute } from "@/lib/domain/types";
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     const { client, role } = await context(workspace, true);
     if (["objects", "attributes", "portal_members", "pipelines"].includes(resource))
       requireAdmin(role);
-    const result = resources[resource].safeParse(await request.json());
+    const result = resources[resource].safeParse(await jsonBody(request));
     if (!result.success) throw new ApiError(result.error.issues.map((i) => i.message).join(" "));
     const values: Record<string, unknown> = {
       ...result.data,
@@ -87,24 +89,50 @@ export async function POST(request: NextRequest, { params }: Params) {
       if (problems.length) throw new ApiError(problems.join(" "));
     }
     if (resource === "handovers") {
-      const { data: deal } = await client
+      const { data: deal, error: dealError } = await client
         .from("records")
         .select("stage")
         .eq("workspace_id", workspace)
         .eq("id", values.record_id)
         .single();
+      databaseError(dealError);
       if (deal?.stage !== "Gagné")
         throw new ApiError("Le dossier de réalisation nécessite une opportunité gagnée.");
-      const { data: commitments } = await client
+      const { data: commitments, error: commitmentsError } = await client
         .from("commitments")
         .select("id,title,status,due_date,source_quote")
         .eq("workspace_id", workspace)
         .eq("record_id", values.record_id)
         .in("status", ["confirmed", "in_progress", "done"]);
+      databaseError(commitmentsError);
       values.commitments_snapshot = commitments ?? [];
     }
+    const key = request.headers.get("Idempotency-Key");
+    if (key) values.id = z.uuid().parse(key);
     const { data, error } = await client.from(resource).insert(values).select().single();
+    if (error?.code === "23505" && key) {
+      const { data: existing, error: readError } = await client
+        .from(resource)
+        .select()
+        .eq("workspace_id", workspace)
+        .eq("id", key)
+        .maybeSingle();
+      databaseError(readError);
+      if (existing) {
+        try {
+          assertReplayedValues(existing, values);
+        } catch {
+          throw new ApiError(
+            "Cet enregistrement existe avec des valeurs différentes. Rechargez avant de réessayer.",
+            409,
+          );
+        }
+        return NextResponse.json({ data: existing });
+      }
+    }
     databaseError(error);
+    if (!data || !z.uuid().safeParse(data.id).success || (key && data.id !== key))
+      throw new ApiError("Aucune ligne enregistrée n’a été confirmée.", 500);
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
     return fail(error);
@@ -118,12 +146,19 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const { client, role } = await context(workspace, true);
     if (["objects", "attributes", "portal_members", "pipelines"].includes(resource))
       requireAdmin(role);
-    const body = await request.json();
-    const rowId = z.uuid().parse(body.id);
+    const body = z
+      .object({
+        id: z.uuid(),
+        version: z.number().int().positive().optional(),
+        values: z.record(z.string(), z.unknown()),
+      })
+      .parse(await jsonBody(request));
+    const rowId = body.id;
     const schema = resources[resource].partial();
     const parsed = schema.safeParse(body.values);
     if (!parsed.success) throw new ApiError(parsed.error.issues.map((i) => i.message).join(" "));
     const values: Record<string, unknown> = { ...parsed.data };
+    if (!Object.keys(values).length) throw new ApiError("Aucune modification à enregistrer.");
     for (const immutable of [
       "object_id",
       "record_id",
@@ -162,18 +197,20 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         throw new ApiError("Précisez la raison de perte.");
     }
     if (resource === "records" && values.attributes) {
-      const { data: record } = await client
+      const { data: record, error: recordError } = await client
         .from("records")
         .select("object_id,attributes")
         .eq("workspace_id", workspace)
         .eq("id", rowId)
         .single();
+      databaseError(recordError);
       if (!record) throw new ApiError("Fiche inaccessible.", 404);
-      const { data: attrs } = await client
+      const { data: attrs, error: attrsError } = await client
         .from("attributes")
         .select("*")
         .eq("workspace_id", workspace)
         .eq("object_id", record.object_id);
+      databaseError(attrsError);
       const problems = validateAttributes(
         values.attributes as Record<string, unknown>,
         (attrs ?? []) as Attribute[],
@@ -182,12 +219,13 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       if (problems.length) throw new ApiError(problems.join(" "));
     }
     if (resource === "commitments" && values.status === "done") {
-      const { data: old } = await client
+      const { data: old, error: oldError } = await client
         .from("commitments")
         .select("evidence")
         .eq("id", rowId)
         .eq("workspace_id", workspace)
         .single();
+      databaseError(oldError);
       if (!String(values.evidence ?? old?.evidence ?? "").trim())
         throw new ApiError("Ajoutez une preuve avant de clôturer cet engagement.");
     }
@@ -195,7 +233,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     if (body.version !== undefined) query = query.eq("version", body.version);
     const { data, error } = await query.select().maybeSingle();
     databaseError(error);
-    if (!data)
+    if (!data || data.id !== rowId)
       throw new ApiError(
         "La fiche a changé ou vous n’y avez plus accès. Rechargez avant de réessayer.",
         409,

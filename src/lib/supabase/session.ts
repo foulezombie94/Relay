@@ -1,4 +1,32 @@
 import type { AuthError, SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
+
+export function authEmail(value: unknown) {
+  const parsed = z.string().trim().pipe(z.email()).safeParse(value);
+  if (!parsed.success) throw new Error("Adresse email requise ou invalide.");
+  return parsed.data;
+}
+export function authFailureMessage(error: unknown) {
+  const details =
+    error && typeof error === "object"
+      ? (error as { status?: number; code?: string; name?: string })
+      : {};
+  if (details.status === 429) return "Trop de tentatives. Patientez puis réessayez.";
+  if (details.code === "invalid_credentials") return "Email ou mot de passe incorrect.";
+  if (details.code === "email_not_confirmed")
+    return "Confirmez votre adresse email avant de vous connecter.";
+  if (details.code === "weak_password") return "Choisissez un mot de passe plus robuste.";
+  if (
+    details.name === "AuthRetryableFetchError" ||
+    details.name === "AbortError" ||
+    details.name === "TimeoutError" ||
+    details.status === 0 ||
+    (details.status !== undefined && details.status >= 500) ||
+    error instanceof TypeError
+  )
+    return "Connexion interrompue. Vérifiez votre connexion puis réessayez.";
+  return "Impossible de terminer cette action. Vérifiez les informations puis réessayez.";
+}
 
 // Keep the SDK's persistent cookie lifetime. Token validity and revocation are
 // enforced by Supabase, independently of how long the browser keeps a cookie.

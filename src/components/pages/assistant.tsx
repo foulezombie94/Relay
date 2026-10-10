@@ -15,7 +15,6 @@ import {
   Trash2,
   Copy,
   ArrowUpRight,
-  House,
   Settings2,
   CircleHelp,
   MoreHorizontal,
@@ -338,23 +337,30 @@ function AssistantSession() {
         </div>
       </aside>
       <div className={styles.main}>
-        <header className={styles.header}>
-          <SidebarTrigger className={styles.navigationToggle} />
+        <header className={`sb-topbar ${styles.header}`}>
+          <SidebarTrigger />
+          <span className="sb-topbar-divider" />
+          <span className="sb-breadcrumb-workspace">{workspace.name}</span>
+          <span className="sb-breadcrumb-slash">/</span>
           <div className={styles.headerTitle}>
-            {!started && <House size={13} />}
-            <button
-              type="button"
-              className={styles.chatTitle}
-              disabled={busy || (started && !conversation)}
-              title={started ? "Renommer la conversation" : "Accueil Ask Relay"}
-              onClick={() => {
-                if (!started) return newChat();
-                setNewTitle(title);
-                setRename(true);
-              }}
-            >
-              {started ? title : "Accueil"}
-            </button>
+            {started ? (
+              <button
+                type="button"
+                className={`sb-breadcrumb-current ${styles.chatTitle}`}
+                disabled={busy || !conversation}
+                title="Renommer la conversation"
+                onClick={() => {
+                  setNewTitle(title);
+                  setRename(true);
+                }}
+              >
+                {title}
+              </button>
+            ) : (
+              <span className="sb-breadcrumb-current" aria-current="page">
+                Accueil
+              </span>
+            )}
           </div>
           <div className={styles.headerActions}>
             {started ? (

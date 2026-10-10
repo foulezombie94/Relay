@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -12,7 +12,8 @@ import {
   Download,
   Link2,
 } from "lucide-react";
-import { useRows, useWorkspace } from "../providers/data-provider";
+import { request, useRows, useWorkspace } from "../providers/data-provider";
+import { confirmedImport } from "@/lib/domain/import-result";
 import { Modal, ErrorMessage, Loading, str, date } from "../ui";
 import { importFields, type ImportError } from "@/lib/domain/imports";
 import {
@@ -104,6 +105,10 @@ export function ImportRecords({
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const inFlight = useRef(false);
+  const close = () => {
+    if (!inFlight.current) onClose();
+  };
   const targets = [
     ...importFields.filter(
       (f) =>
@@ -123,7 +128,8 @@ export function ImportRecords({
     choice = selection,
     header = headerRow,
   ) {
-    if (!input) return;
+    if (!input || inFlight.current) return;
+    inFlight.current = true;
     if (mode === "inspect") {
       setInspection((current) => (current ? { ...current, headers: undefined } : null));
       invalidatePreview();
@@ -146,12 +152,9 @@ export function ImportRecords({
         form.set("pipeline_id", selectedPipeline);
       if (mode !== "inspect") form.set("mapping", JSON.stringify(mapping));
       form.set("accept_errors", String(accepted));
-      const response = await fetch("/api/" + workspace.id + "/imports", {
-        method: "POST",
-        body: form,
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Import impossible. Réessayez.");
+      const data = await request<
+        Inspection & Preview & Result & { queued?: boolean; job?: { id: string } }
+      >("/api/" + workspace.id + "/imports", "POST", form, { timeoutMs: 60000 });
       if (mode === "inspect") {
         setInspection(data);
         setSelection(data.selection ?? choice);
@@ -176,13 +179,17 @@ export function ImportRecords({
         setConfirmed(false);
         setStep(3);
       } else {
-        if (data.queued) setJobId(data.job.id);
-        else setResult(data);
+        if (data.queued) {
+          if (!data.job?.id)
+            throw new Error("Le démarrage de l’import n’a pas été confirmé. Réessayez.");
+          setJobId(data.job.id);
+        } else setResult(confirmedImport(data));
         await cache.invalidateQueries({ queryKey: ["rows", workspace.id] });
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Import impossible.");
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   }
@@ -194,7 +201,7 @@ export function ImportRecords({
   return (
     <Modal
       open
-      onClose={onClose}
+      onClose={close}
       title={"Importer dans Relay"}
       className={styles.dialog}
       description="Reprenez vos données, vérifiez-les, puis confirmez leur import."
@@ -226,7 +233,11 @@ export function ImportRecords({
             <BackgroundJob
               id={jobId!}
               onComplete={async (data) => {
-                setResult(data as Result);
+                try {
+                  setResult(confirmedImport(data));
+                } catch (error) {
+                  setError(error instanceof Error ? error.message : "Import non confirmé.");
+                }
                 await cache.invalidateQueries({
                   queryKey: ["rows", workspace.id],
                 });

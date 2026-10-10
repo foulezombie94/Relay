@@ -233,9 +233,11 @@ function RecordsPageContents({ slug }: { slug: string }) {
                   ? "datetime-local"
                   : a.type === "email"
                     ? "email"
-                    : a.type === "multi_select"
-                      ? "json"
-                      : "text",
+                    : a.type === "phone"
+                      ? "tel"
+                      : a.type === "multi_select"
+                        ? "json"
+                        : "text",
       options: (a.options ?? []).map((v) => ({ value: v, label: v })),
     });
   if (!object) return <Loading />;
@@ -504,6 +506,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
       {edit && (
         <Editor
           key={edit === true ? "new" : edit.id}
+          draftKey={`records:${object.id}:${edit === true ? "new" : edit.id}`}
           open
           onClose={() => setEdit(null)}
           title={edit === true ? pageContent.action : "Modifier · " + edit.display_name}

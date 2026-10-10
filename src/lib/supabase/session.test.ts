@@ -8,6 +8,8 @@ import {
 } from "@supabase/supabase-js";
 import {
   assertAuthAvailable,
+  authEmail,
+  authFailureMessage,
   AuthUnavailableError,
   loginDestination,
   observeSession,
@@ -15,6 +17,30 @@ import {
 } from "./session";
 
 afterEach(() => vi.unstubAllEnvs());
+
+describe("authentication form validation and errors", () => {
+  it.each([undefined, null, "", "   ", "invalid"])("rejects invalid email %s", (email) => {
+    expect(() => authEmail(email)).toThrow("Adresse email requise ou invalide");
+  });
+  it("normalizes the submitted email", () => {
+    expect(authEmail("  alice@example.test  ")).toBe("alice@example.test");
+  });
+  it.each([
+    new TypeError("ECONNRESET secret"),
+    new AuthRetryableFetchError("fetch failed secret", 502),
+    { name: "TimeoutError" },
+    { status: 503, message: "private upstream detail" },
+  ])("hides network and upstream details", (error) => {
+    expect(authFailureMessage(error)).toBe(
+      "Connexion interrompue. Vérifiez votre connexion puis réessayez.",
+    );
+  });
+  it("offers actionable application errors without exposing internal messages", () => {
+    expect(authFailureMessage({ code: "invalid_credentials" })).toContain("incorrect");
+    expect(authFailureMessage({ status: 429 })).toContain("Patientez");
+    expect(authFailureMessage(new Error("private detail"))).not.toContain("private");
+  });
+});
 
 describe("persistent session security", () => {
   it("uses HTTPS-only, host-only SameSite cookies in production without extending token validity", () => {

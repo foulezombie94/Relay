@@ -1,3 +1,4 @@
+import { localTestDatabaseUrl } from "./database-target";
 import { Client, Pool, type PoolClient } from "pg";
 import { randomUUID } from "node:crypto";
 import { performance } from "node:perf_hooks";
@@ -7,9 +8,7 @@ import {
   tileFilters,
   resolveDashboardPeriod,
 } from "../../src/lib/domain/dashboards";
-const url = process.env.RELAY_TEST_DATABASE_URL;
-if (!url || !["127.0.0.1", "localhost", "[::1]"].includes(new URL(url).hostname))
-  throw new Error("Load testing is restricted to a disposable localhost database.");
+const url = localTestDatabaseUrl();
 const records = Number(process.env.RELAY_LOAD_RECORDS ?? 10000);
 const salesDashboard = process.env.RELAY_LOAD_DASHBOARD === "sales";
 if (!Number.isInteger(records) || records < 100 || records > 100000)

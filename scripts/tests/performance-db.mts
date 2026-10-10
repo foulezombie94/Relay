@@ -1,9 +1,8 @@
+import { localTestDatabaseUrl } from "./database-target";
 import { Client } from "pg";
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
-const url = process.env.RELAY_TEST_DATABASE_URL;
-if (!url || !["127.0.0.1", "localhost", "[::1]"].includes(new URL(url).hostname))
-  throw new Error("Use a migrated, disposable local RELAY_TEST_DATABASE_URL.");
+const url = localTestDatabaseUrl();
 const db = new Client({ connectionString: url });
 const user = randomUUID();
 await db.connect();
@@ -37,6 +36,7 @@ try {
     "duplicate-lifecycle",
     "service-connections",
     "crm-migrations",
+    "crm-save-reliability",
   ]) {
     await db.query(await readFile(`supabase/tests/${name}.sql`, "utf8"));
     console.log(`PASS ${name}`);

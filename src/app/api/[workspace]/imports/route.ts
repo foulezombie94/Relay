@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { confirmedImport } from "@/lib/domain/import-result";
 import { createHash } from "node:crypto";
 import { context, checkOrigin, ApiError, databaseError, fail } from "@/lib/api/context";
 import { inspectImportFile } from "@/lib/api/import-file";
@@ -214,6 +215,7 @@ export async function POST(
       error_rows: prepared.errors,
     });
     databaseError(error);
+    confirmedImport(data);
     return NextResponse.json({
       job: data,
       inserted: data.inserted,

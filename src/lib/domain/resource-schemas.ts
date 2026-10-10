@@ -16,10 +16,16 @@ export const resources = {
     object_id: id,
     display_name: text.max(200),
     email: z
-      .union([z.email(), z.literal("")])
+      .union([
+        z
+          .string()
+          .trim()
+          .pipe(z.email({ error: "Adresse email invalide" })),
+        z.string().trim().pipe(z.literal("")),
+      ])
       .nullable()
       .optional(),
-    domain: z.string().max(200).nullable().optional(),
+    domain: z.string().trim().max(200).nullable().optional(),
     stage: z.string().max(80).optional(),
     amount: z
       .union([
@@ -32,15 +38,21 @@ export const resources = {
       .regex(/^[A-Z]{3}$/)
       .optional(),
     owner_id: optionalId,
-    close_date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/)
-      .nullable()
-      .optional(),
+    close_date: z.iso.date().nullable().optional(),
     pipeline_id: optionalId,
     probability: z.number().min(0).max(100).nullable().optional(),
     lost_reason: z.string().trim().max(2000).nullable().optional(),
-    attributes: z.record(z.string().max(50), z.unknown()).optional(),
+    attributes: z
+      .record(z.string().max(50), z.unknown())
+      .transform((values) =>
+        Object.fromEntries(
+          Object.entries(values).map(([key, value]) => [
+            key,
+            typeof value === "string" ? value.trim() : value,
+          ]),
+        ),
+      )
+      .optional(),
     archived: z.boolean().optional(),
   }),
   objects: z.object({
@@ -85,14 +97,22 @@ export const resources = {
   }),
   notes: z.object({
     title: z.string().max(300).optional(),
-    content: z.string().min(1).max(100000),
+    content: z
+      .string()
+      .min(1)
+      .max(100000)
+      .refine((value) => !!value.trim(), "Contenu requis"),
     record_id: optionalId,
     private: z.boolean().optional(),
   }),
   activities: z.object({
     record_id: optionalId,
     type: z.enum(["call", "meeting", "note", "email", "comment"]),
-    content: z.string().min(1).max(20000),
+    content: z
+      .string()
+      .min(1)
+      .max(20000)
+      .refine((value) => !!value.trim(), "Contenu requis"),
   }),
   commitments: z.object({
     title: text,
@@ -149,7 +169,11 @@ export const resources = {
     description: z.string().trim().max(1000).optional(),
   }),
   suppressions: z.object({
-    email: z.email().toLowerCase(),
+    email: z
+      .string()
+      .trim()
+      .pipe(z.email({ error: "Adresse email requise ou invalide" }))
+      .transform((value) => value.toLowerCase()),
     reason: z.string().trim().min(1).max(300),
   }),
   sequences: z.object({
@@ -174,7 +198,11 @@ export const resources = {
   }),
   portal_members: z.object({
     portal_id: id,
-    email: z.email().toLowerCase(),
+    email: z
+      .string()
+      .trim()
+      .pipe(z.email({ error: "Adresse email requise ou invalide" }))
+      .transform((value) => value.toLowerCase()),
     can_comment: z.boolean().optional(),
     revoked: z.boolean().optional(),
     expires_at: z.iso.datetime({ offset: true }).nullable().optional(),
@@ -232,5 +260,5 @@ export const readResources = [
   "duplicate_decisions",
 ] as const;
 export function isResource(name: string): name is Resource {
-  return name in resources;
+  return Object.hasOwn(resources, name);
 }

@@ -4,5 +4,12 @@ import ts from "eslint-config-next/typescript";
 export default defineConfig([
   ...next,
   ...ts,
-  globalIgnores([".next*/**", "work/**", "mobile/**", "supabase/functions/**", "extension/**"]),
+  globalIgnores([
+    ".next*/**",
+    ".agents/**",
+    "work/**",
+    "mobile/**",
+    "supabase/functions/**",
+    "extension/**",
+  ]),
 ]);

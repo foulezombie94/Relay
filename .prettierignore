@@ -6,6 +6,8 @@ coverage/
 test-results/
 playwright-report/
 work/
+.agents/
+skills-lock.json
 package-lock.json
 next-env.d.ts
 docs/performance/*.json

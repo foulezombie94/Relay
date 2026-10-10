@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 import { withSentryConfig } from "@sentry/nextjs/config";
+import { getSupabaseConfig } from "./src/lib/supabase/config";
 function config(phase: string): NextConfig {
+  getSupabaseConfig();
   const localBuildDir = process.env.RELAY_BUILD_DIR;
   if (localBuildDir && !/^\.next-check-[a-z0-9-]+$/.test(localBuildDir))
     throw new Error("RELAY_BUILD_DIR must be a local .next-check-* directory");

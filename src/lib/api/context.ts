@@ -11,6 +11,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status = 400,
+    public code?: string,
   ) {
     super(message);
   }
@@ -23,12 +24,13 @@ export async function context(workspaceId: string, write = false) {
   } = await client.auth.getUser();
   assertAuthAvailable(error);
   if (error || !user) throw new ApiError("Connectez-vous pour continuer.", 401);
-  const { data: membership } = await client
+  const { data: membership, error: membershipError } = await client
     .from("memberships")
     .select("role")
     .eq("workspace_id", workspaceId)
     .eq("user_id", user.id)
     .single();
+  if (membershipError?.code !== "PGRST116") databaseError(membershipError);
   if (!membership) throw new ApiError("Cet espace est inaccessible.", 403);
   if (write && membership.role === "viewer")
     throw new ApiError("Vous avez un accès en lecture seule.", 403);
@@ -68,11 +70,32 @@ export function fail(error: unknown) {
     );
   if (!(error instanceof ApiError) || error.status >= 500) {
     const status = error instanceof ApiError ? error.status : 500;
-    Sentry.captureException(new Error("api_failure"), { tags: { status: String(status) } });
+    const requestId = crypto.randomUUID();
+    const code =
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      typeof error.code === "string" &&
+      /^[A-Z0-9_]{1,40}$/.test(error.code)
+        ? error.code
+        : undefined;
+    Sentry.captureException(new Error("api_failure"), {
+      tags: { status: String(status), request_id: requestId, ...(code ? { code } : {}) },
+    });
     after(async () => {
-      await logEvent("error", "api_failure", { status });
+      await logEvent("error", "api_failure", { status, request_id: requestId, code });
       await Sentry.flush(2000);
     });
+    return NextResponse.json(
+      {
+        error:
+          status === 503
+            ? "Service temporairement indisponible. Réessayez."
+            : "Impossible de terminer cette action. Réessayez ou contactez votre administrateur.",
+        requestId,
+      },
+      { status, headers: { "X-Request-ID": requestId } },
+    );
   }
   if (error instanceof ApiError)
     return NextResponse.json({ error: error.message }, { status: error.status });
@@ -82,7 +105,21 @@ export function fail(error: unknown) {
   );
 }
 export function databaseError(error: { message: string; code?: string } | null) {
-  if (error)
+  if (error) {
+    const unavailable =
+      /fetch failed|ECONNRESET|ECONNREFUSED|timeout|network|abort/i.test(error.message) ||
+      ["08000", "08001", "08006", "53300", "57P01", "PGRST000", "PGRST001", "PGRST002"].includes(
+        error.code ?? "",
+      );
+    const status = unavailable
+      ? 503
+      : error.code === "42501"
+        ? 403
+        : ["23505", "PGRST116"].includes(error.code ?? "")
+          ? 409
+          : error.code?.startsWith("22") || error.code?.startsWith("23")
+            ? 400
+            : 500;
     throw new ApiError(
       error.code === "23503"
         ? "Une relation est invalide ou encore utilisée."
@@ -91,6 +128,15 @@ export function databaseError(error: { message: string; code?: string } | null) 
           : error.code === "42501"
             ? "Vous ne disposez pas des droits nécessaires."
             : "La modification n’a pas pu être enregistrée.",
-      error.code === "42501" ? 403 : 400,
+      status,
+      error.code,
     );
+  }
+}
+export async function jsonBody(request: NextRequest): Promise<unknown> {
+  try {
+    return await request.json();
+  } catch {
+    throw new ApiError("Le contenu envoyé est invalide.", 400);
+  }
 }

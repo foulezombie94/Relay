@@ -33,5 +33,5 @@
     ".next-build/types/**/*.ts",
     ".next-build/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "mobile", "supabase/functions"]
+  "exclude": ["node_modules", ".agents", "mobile", "supabase/functions"]
 }

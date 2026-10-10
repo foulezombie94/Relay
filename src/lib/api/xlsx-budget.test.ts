@@ -47,6 +47,22 @@ describe("bounded XLSX imports", () => {
     const sheet = workbook.addWorksheet("Contacts");
     sheet.addRow(["Nom", "Email"]);
     sheet.addRow(["Alice", "alice@example.invalid"]);
+    // Extended conditional formatting exercises ExcelJS's UUID v4 dependency.
+    sheet.addConditionalFormatting({
+      ref: "A2:A2",
+      rules: [
+        {
+          type: "iconSet",
+          iconSet: "3Triangles",
+          priority: 1,
+          cfvo: [
+            { type: "percent", value: 0 },
+            { type: "percent", value: 33 },
+            { type: "percent", value: 67 },
+          ],
+        },
+      ],
+    });
     const data = await workbook.xlsx.writeBuffer();
     const table = await readImportFile(new File([data as ArrayBuffer], "contacts.xlsx"));
     expect(table).toEqual({

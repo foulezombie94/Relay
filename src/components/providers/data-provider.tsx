@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Workspace, ObjectDefinition, Row } from "@/lib/domain/types";
 import { toast } from "sonner";
@@ -7,30 +7,11 @@ import Link from "next/link";
 import { AppearanceProvider } from "./appearance-provider";
 import { browserDb } from "@/lib/supabase/client";
 import { observeSession } from "@/lib/supabase/session";
-
-export class RequestError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-  }
-}
-export async function request<T = Record<string, unknown>>(
-  url: string,
-  method = "GET",
-  body?: unknown,
-): Promise<T> {
-  const r = await fetch(url, {
-    method,
-    headers: body ? { "Content-Type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store",
-  });
-  const data = await r.json();
-  if (!r.ok) throw new RequestError(data.error || "Action impossible", r.status);
-  return data;
-}
+import { request, RequestError, confirmedRow, confirmedRows } from "@/lib/api/request";
+import { creationAttempt } from "@/lib/api/save-attempt";
+import { isResource, resources } from "@/lib/domain/resource-schemas";
+import { EditorDraftScope, clearEditorStorage } from "../ui/editor-draft";
+export { request, RequestError } from "@/lib/api/request";
 const Context = createContext<{
   workspace: Workspace;
   objects: ObjectDefinition[];
@@ -54,35 +35,59 @@ export function useRows<T extends Row = Row>(
   });
   return useQuery({
     queryKey: ["rows", workspace.id, resource, params],
-    queryFn: () =>
-      request<{ data: T[]; count: number }>("/api/" + workspace.id + "/" + resource + "?" + p),
+    queryFn: async () =>
+      confirmedRows(
+        await request<{ data: T[]; count: number }>(
+          "/api/" + workspace.id + "/" + resource + "?" + p,
+        ),
+      ),
   });
 }
 export function useSave() {
-  const { workspace } = useWorkspace();
+  const { workspace, user } = useWorkspace();
   const cache = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const saving = useRef(false);
   async function save(resource: string, values: Record<string, unknown>, row?: Row) {
+    if (saving.current) throw new RequestError("Un enregistrement est déjà en cours.", 409);
+    saving.current = true;
     setBusy(true);
     try {
+      if (!isResource(resource)) throw new RequestError("Ressource inconnue.", 400);
+      const parsed = (row ? resources[resource].partial() : resources[resource]).safeParse(values);
+      if (!parsed.success)
+        throw new RequestError(parsed.error.issues.map((issue) => issue.message).join(" "), 400);
+      const attempt = row
+        ? null
+        : await creationAttempt(
+            `${process.env.NEXT_PUBLIC_RELAY_ENVIRONMENT}:${process.env.NEXT_PUBLIC_SUPABASE_URL}:${user.id}:${workspace.id}`,
+            resource,
+            parsed.data,
+          );
       const data = await request<{ data: Row }>(
         "/api/" + workspace.id + "/" + resource,
         row ? "PATCH" : "POST",
-        row ? { id: row.id, version: row.version, values } : values,
+        row ? { id: row.id, version: row.version, values: parsed.data } : parsed.data,
+        { idempotencyKey: attempt?.id },
       );
-      await cache.invalidateQueries({ queryKey: ["rows", workspace.id] });
+      const saved = confirmedRow(data.data, row?.id ?? attempt?.id);
+      attempt?.confirm();
+      void cache.invalidateQueries({ queryKey: ["rows", workspace.id] }).catch(() => {});
       toast.success("Enregistré");
-      return data.data;
+      return saved;
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Enregistrement impossible");
       throw e;
     } finally {
+      saving.current = false;
       setBusy(false);
     }
   }
   async function remove(resource: string, id: string) {
     try {
-      await request("/api/" + workspace.id + "/" + resource + "?id=" + id, "DELETE");
+      const result = await request("/api/" + workspace.id + "/" + resource + "?id=" + id, "DELETE");
+      if (result.ok !== true)
+        throw new RequestError("La suppression n’a pas été confirmée. Réessayez.", 502);
       await cache.invalidateQueries({ queryKey: ["rows", workspace.id] });
       toast.success("Élément retiré");
     } catch (e) {
@@ -106,7 +111,10 @@ export function AppProvider({ children, userId }: { children: ReactNode; userId:
       observeSession(
         browserDb().auth,
         userId,
-        () => client.clear(),
+        () => {
+          client.clear();
+          clearEditorStorage();
+        },
         () => window.location.replace("/login"),
         () => window.location.reload(),
       ),
@@ -127,17 +135,33 @@ function Gate({ children }: { children: ReactNode }) {
   );
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const creating = useRef(false);
   const q = useQuery({
     queryKey: ["workspaces"],
-    queryFn: () =>
-      request<{ data: Workspace[]; user: { id: string; email?: string } }>("/api/workspaces"),
+    queryFn: async () => {
+      const result = await request<{ data: Workspace[]; user: { id: string; email?: string } }>(
+        "/api/workspaces",
+      );
+      if (!Array.isArray(result.data) || !result.user?.id)
+        throw new RequestError(
+          "Le chargement de votre espace n’a pas été confirmé. Réessayez.",
+          502,
+        );
+      return result;
+    },
   });
   const workspace = q.data?.data.find((w) => w.id === selected) ?? q.data?.data[0];
   const objects = useQuery({
     queryKey: ["rows", workspace?.id, "objects"],
     enabled: !!workspace,
-    queryFn: () =>
-      request<{ data: ObjectDefinition[] }>("/api/" + workspace!.id + "/objects?size=100"),
+    queryFn: async () => {
+      const result = await request<{ data: ObjectDefinition[] }>(
+        "/api/" + workspace!.id + "/objects?size=100",
+      );
+      if (!Array.isArray(result.data))
+        throw new RequestError("Le chargement des types de fiches a échoué. Réessayez.", 502);
+      return result;
+    },
   });
   if (q.isPending) return <div className="page-loader">Ouverture de votre espace…</div>;
   if (q.error)
@@ -162,13 +186,23 @@ function Gate({ children }: { children: ReactNode }) {
         <form
           onSubmit={async (e) => {
             e.preventDefault();
+            if (creating.current) return;
+            if (!name.trim()) {
+              toast.error("Nom de votre entreprise requis.");
+              return;
+            }
+            creating.current = true;
             setBusy(true);
             try {
-              await request("/api/workspaces", "POST", { name });
+              const result = await request<{ id: string }>("/api/workspaces", "POST", {
+                name: name.trim(),
+              });
+              confirmedRow(result);
               await cache.invalidateQueries({ queryKey: ["workspaces"] });
             } catch (e) {
               toast.error(e instanceof Error ? e.message : "Création impossible");
             } finally {
+              creating.current = false;
               setBusy(false);
             }
           }}
@@ -197,9 +231,13 @@ function Gate({ children }: { children: ReactNode }) {
         },
       }}
     >
-      <AppearanceProvider key={q.data!.user.id} user={q.data!.user.id}>
-        {children}
-      </AppearanceProvider>
+      <EditorDraftScope.Provider
+        value={`${process.env.NEXT_PUBLIC_RELAY_ENVIRONMENT}:${process.env.NEXT_PUBLIC_SUPABASE_URL}:${q.data!.user.id}:${workspace.id}`}
+      >
+        <AppearanceProvider key={q.data!.user.id} user={q.data!.user.id}>
+          {children}
+        </AppearanceProvider>
+      </EditorDraftScope.Provider>
     </Context.Provider>
   );
 }

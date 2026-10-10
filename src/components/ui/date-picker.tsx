@@ -95,7 +95,7 @@ export function DatePicker({
     : "Choisir une date";
 
   function choose(day: Date | undefined) {
-    if (!day) return;
+    if (!day || disabled) return;
     const next = new Date(day);
     if (withTime) next.setHours(selected?.getHours() ?? 9, selected?.getMinutes() ?? 0, 0, 0);
     setSelected(next);
@@ -104,7 +104,7 @@ export function DatePicker({
     if (!withTime) setOpen(false);
   }
   function changeTime(part: "hours" | "minutes", next: string) {
-    if (!selected) return;
+    if (!selected || disabled) return;
     const updated = new Date(selected);
     if (part === "hours") updated.setHours(Number(next));
     else updated.setMinutes(Number(next));
@@ -114,7 +114,7 @@ export function DatePicker({
 
   return (
     <Popover.Root
-      open={open}
+      open={open && !disabled}
       onOpenChange={(next) => {
         setBoundary(triggerRef.current?.closest<HTMLElement>("[role=dialog]") ?? undefined);
         setOpen(next);
@@ -127,8 +127,7 @@ export function DatePicker({
           ref={triggerRef}
           className={`${styles.trigger} ${selected ? "" : styles.empty}`}
           disabled={disabled}
-          aria-label={`${label} : ${display}`}
-          aria-required={required || undefined}
+          aria-label={`${label} : ${display}${required ? " (champ obligatoire)" : ""}`}
         >
           <CalendarDays size={16} />
           <span>{display}</span>

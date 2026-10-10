@@ -59,8 +59,11 @@ function json(value: unknown, status = 200) {
 }
 beforeEach(() => {
   vi.stubEnv("NODE_ENV", "production");
+  vi.stubEnv("NEXT_PUBLIC_RELAY_ENVIRONMENT", "production");
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_PROJECT_REF", "fixture");
+  vi.stubEnv("NEXT_PUBLIC_RELAY_PRODUCTION_PROJECT_REF", "fixture");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", authUrl);
-  vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "fixture-publishable-key");
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_fixture");
 });
 afterEach(() => {
   vi.unstubAllGlobals();

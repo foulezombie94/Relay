@@ -1,10 +1,7 @@
+import { localTestDatabaseUrl } from "./database-target";
 import { Client } from "pg";
 import { randomUUID } from "node:crypto";
-const url = process.env.RELAY_TEST_DATABASE_URL;
-if (!url)
-  throw new Error(
-    "Use a migrated test database. This test commits isolated fixtures, then deletes them.",
-  );
+const url = localTestDatabaseUrl();
 const db = new Client({ connectionString: url });
 await db.connect();
 const user = randomUUID();
