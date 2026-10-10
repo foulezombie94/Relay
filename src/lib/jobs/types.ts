@@ -5,6 +5,10 @@ export const jobTypes = [
   "workflow_run",
   "notifications",
   "imports",
+  "integration_sync",
+  "integration_webhook",
+  "integration_delivery",
+  "integration_revoke",
 ] as const;
 export type JobType = (typeof jobTypes)[number];
 export type Job = {

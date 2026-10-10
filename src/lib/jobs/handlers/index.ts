@@ -5,6 +5,7 @@ import { syncJob } from "./sync";
 import { sequenceJob } from "./sequence";
 import { databaseJob } from "./database";
 import { workflowJob } from "./workflow";
+import { integrationJob } from "@/lib/integrations/platform/jobs";
 const handlers: Record<JobType, (admin: SupabaseClient, job: Job) => Promise<JobResult>> = {
   email_sync: syncJob,
   calendar_sync: syncJob,
@@ -12,6 +13,10 @@ const handlers: Record<JobType, (admin: SupabaseClient, job: Job) => Promise<Job
   workflow_run: workflowJob,
   notifications: databaseJob,
   imports: databaseJob,
+  integration_sync: integrationJob,
+  integration_webhook: integrationJob,
+  integration_delivery: integrationJob,
+  integration_revoke: integrationJob,
 };
 export function handleJob(admin: SupabaseClient, job: Job) {
   return handlers[job.type](admin, job);

@@ -6,6 +6,7 @@ export function enabledJobTypes(): JobType[] {
   return jobTypes.filter(
     (kind) =>
       selected.includes(kind) &&
+      (!kind.startsWith("integration_") || process.env.FEATURE_INTEGRATION_PLATFORM === "true") &&
       (kind !== "sequence_send" || process.env.FEATURE_SEQUENCE_SEND === "true"),
   );
 }

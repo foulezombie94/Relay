@@ -16,7 +16,7 @@ export function workerLanes(
       throw new Error(`${key} must be an integer between 1 and 4`);
     return n;
   };
-  const bulk = new Set<JobType>(["imports", "email_sync", "calendar_sync"]);
+  const bulk = new Set<JobType>(["imports", "email_sync", "calendar_sync", "integration_sync"]);
   return [
     {
       name: "interactive" as const,

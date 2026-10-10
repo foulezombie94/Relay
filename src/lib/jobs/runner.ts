@@ -56,7 +56,16 @@ export async function runJob(admin: SupabaseClient, job: Job) {
         ...lease,
         permanent,
         code,
-        retry_seconds: backoff(job.attempts),
+        retry_seconds: Math.max(
+          backoff(job.attempts),
+          typeof error === "object" &&
+            error !== null &&
+            "retryAfter" in error &&
+            typeof error.retryAfter === "number" &&
+            Number.isFinite(error.retryAfter)
+            ? Math.min(3600, Math.max(1, error.retryAfter))
+            : 0,
+        ),
       });
     } catch {
       await logEvent("warn", "job_lease_unavailable", fields);

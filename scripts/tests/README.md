@@ -12,6 +12,9 @@ Les tests unitaires sont à côté du code (`*.test.ts` / `*.test.tsx`) et lanc�
 | `npm run test:performance:load`                     | Charge CRM locale avec fixtures et nettoyage                                                 |
 | `npm run eval:agent`                                | Évaluation du modèle ; configurer le fournisseur de test et lire le script avant utilisation |
 | `npm run test:queue`                                | Tests de queue SQL avec `RELAY_TEST_DATABASE_URL` ; base locale jetable uniquement           |
+| `npm run test:integrations`                         | Framework et adapter Google avec réponses simulées, OAuth et webhooks authentifiés           |
+| `npm run test:integrations:db`                      | Vault privé, isolation tenant, états OAuth, confirmations, cursor/lease et révocation SQL    |
+| `npm run check:secrets:bundles`                     | Scan des bundles navigateur générés, sans afficher de credential                             |
 
 Tous les runners utilisent `RELAY_TEST_DATABASE_URL` et refusent une destination distante, les paramètres de connexion dans l’URL et les bases ne portant pas un nom `relay_test` ou `relay_test_*`. Le bootstrap émule les composants Auth nécessaires, sans remplacer Supabase Auth. Les suites SQL annulent leurs transactions ; les runners de charge/concurrence nettoient leurs fixtures. Aucun runner ne charge implicitement les credentials applicatifs de `.env.local`.
 

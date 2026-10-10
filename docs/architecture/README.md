@@ -102,6 +102,8 @@ L'exécution différée passe par la route `assistant/actions/`, les fonctions S
 
 ### Intégrations et worker
 
+La [nouvelle plateforme d’intégrations](../integrations/README.md) est une fondation séparée, désactivée par défaut. Son vault privé, OAuth partagé Google, commandes confirmées et jobs utilisent les mécanismes existants ; les connecteurs et connexions historiques ne sont pas remplacés implicitement. Le document précise les contrôles réalisés et ce qui reste nécessaire avant activation générale.
+
 Les routes OAuth et connexions s'appuient sur `src/lib/integrations/oauth.ts`, `services.ts` et `crypto.ts`. Les jetons OAuth chiffrés restent côté serveur et dans le stockage privé. Synchronisation et livraison sont séparées : `sync.ts`, `meetings.ts`, `delivery.ts`, `sequence-worker.ts`, `worker-client.ts`.
 
 `scripts/worker.mts` démarre santé, métriques, heartbeat, scheduling et slots bornés. `src/lib/jobs/client.ts` adapte les RPC de queue ; `lanes.ts` sépare capacité interactive et import/sync ; `runner.ts` gère résultat/retry ; `handlers/` distribue les jobs. Les leases, `SKIP LOCKED`, outbox et états incertains restent le contrat de fiabilité. Les variables Railway sont indépendantes de Vercel.

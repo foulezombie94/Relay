@@ -15,11 +15,17 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+      - run: npm run check:secrets
       - run: npm run format:check
       - run: npm run check:structure
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm test
+      - name: Tests and log secret scan
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee /tmp/zyliad-test-output.log
+          node --import tsx scripts/tests/secret-boundaries.mts /tmp/zyliad-test-output.log
       - run: npm run test:jobs
       - name: Build with an isolated local test configuration
         run: npm run build
@@ -28,6 +34,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_fixture
           APP_URL: http://127.0.0.1:3000
+      - run: npm run check:secrets:bundles
   agent-database:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -54,6 +61,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node --import tsx scripts/tests/migrate-local.mts
+      - run: npm run test:integrations:db
       - run: npm run test:agent:db
       - run: npm run test:performance:db
       - run: npm run test:agent:concurrency

@@ -64,6 +64,18 @@ describe("queue runner safety", () => {
       }),
     );
   });
+  it("honors provider Retry-After through a counted retry rather than an unlimited deferral", async () => {
+    vi.mocked(handleJob).mockRejectedValue(
+      Object.assign(new Error("provider rate limited"), { code: "rate_limited", retryAfter: 180 }),
+    );
+    await runJob(admin, { ...job, type: "integration_sync" });
+    expect(queueOperation).toHaveBeenCalledWith(
+      admin,
+      "fail",
+      expect.objectContaining({ retry_seconds: 180, permanent: false }),
+    );
+    expect(queueOperation).not.toHaveBeenCalledWith(admin, "defer", expect.anything());
+  });
   it("does not commit a database job twice", async () => {
     vi.mocked(handleJob).mockResolvedValue({ committed: true, result: { inserted: 1 } });
     await runJob(admin, { ...job, type: "imports" });

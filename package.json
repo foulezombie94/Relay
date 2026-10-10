@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test:integrations": "vitest run src/lib/integrations/platform --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false",
+    "test:integrations:db": "node --import tsx scripts/tests/integration-platform.mts",
+    "check:secrets": "secretlint '**/*'",
+    "check:secrets:bundles": "node --import tsx scripts/tests/secret-boundaries.mts --bundles",
     "check:structure": "node --import tsx scripts/maintenance/check-structure.mts",
     "worker": "node --conditions=react-server --import tsx scripts/worker.mts",
     "test:jobs": "vitest run src/lib/jobs/types.test.ts src/lib/jobs/runner.test.ts --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false",
@@ -44,6 +48,7 @@
     "clsx": "2.1.1",
     "date-fns": "4.4.0",
     "exceljs": "4.4.0",
+    "google-auth-library": "11.2.0",
     "lucide-react": "1.52.0",
     "next": "16.3.8",
     "papaparse": "5.7.0",
@@ -65,6 +70,7 @@
   "devDependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
     "@playwright/test": "1.63.0",
+    "@secretlint/secretlint-rule-preset-recommend": "13.0.7",
     "@testing-library/react": "16.3.3",
     "@types/node": "26.6.4",
     "@types/papaparse": "5.5.2",
@@ -76,6 +82,7 @@
     "jsdom": "30.1.2",
     "pg": "8.23.1",
     "prettier": "^3.9.9",
+    "secretlint": "13.0.7",
     "supabase": "2.119.0",
     "typescript": "6.0.3",
     "vitest": "5.0.3"
