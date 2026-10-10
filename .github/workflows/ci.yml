@@ -21,7 +21,13 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run test:jobs
-      - run: npm run build
+      - name: Build with an isolated local test configuration
+        run: npm run build
+        env:
+          NEXT_PUBLIC_RELAY_ENVIRONMENT: test
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_fixture
+          APP_URL: http://127.0.0.1:3000
   agent-database:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -30,6 +36,7 @@ jobs:
         image: public.ecr.aws/docker/library/postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
         env:
           POSTGRES_PASSWORD: fixture-password
+          POSTGRES_DB: relay_test_ci
         ports:
           - 5432:5432
         options: >-
@@ -38,7 +45,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      RELAY_TEST_DATABASE_URL: postgres://postgres:fixture-password@127.0.0.1:5432/postgres
+      RELAY_TEST_DATABASE_URL: postgres://postgres:fixture-password@127.0.0.1:5432/relay_test_ci
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
