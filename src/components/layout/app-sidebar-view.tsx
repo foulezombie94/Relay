@@ -22,14 +22,14 @@ import {
   Plug,
   Settings,
   Search,
-  ChevronsUpDown,
+  Ellipsis,
   LogOut,
   Box,
-  ArrowUpRight,
+  ListChecks,
   Check,
   BookOpen,
-  ChevronDown,
-  ChevronUp,
+  Minus,
+  Plus,
 } from "lucide-react";
 import {
   Sidebar,
@@ -66,7 +66,7 @@ const groups = [
       ["communications", "Messages", MessageSquare],
       ["meetings", "Réunions", Video],
       ["notes", "Notes", MessageSquare],
-      ["sequences", "Séquences", ArrowUpRight],
+      ["sequences", "Séquences", ListChecks],
     ],
   },
   {
@@ -204,7 +204,7 @@ export function AppSidebarView({
               <strong>{workspace.name}</strong>
               <small>Espace de travail</small>
             </span>
-            <ChevronsUpDown size={15} className="sb-workspace-chevron" />
+            <Ellipsis size={15} className="sb-workspace-chevron" />
           </Dropdown.Trigger>
           <Dropdown.Portal>
             <Dropdown.Content
@@ -313,7 +313,7 @@ export function AppSidebarView({
             const Icon = group.icon;
             const active = currentGroup(path) === group.id;
             const open = !compact && (expanded[group.id] ?? active);
-            const GroupChevron = open ? ChevronUp : ChevronDown;
+            const GroupIndicator = open ? Minus : Plus;
             const panelId = "relay-nav-" + group.id;
             return (
               <SidebarGroup key={group.id} className={styles.group}>
@@ -329,7 +329,7 @@ export function AppSidebarView({
                     >
                       <Icon size={18} />
                       <span>{group.label}</span>
-                      <GroupChevron
+                      <GroupIndicator
                         aria-hidden="true"
                         className={styles.chevron}
                         data-open={open}
@@ -437,7 +437,7 @@ export function AppSidebarView({
                       : "Membre"}
               </small>
             </span>
-            <ChevronsUpDown size={15} className="sb-workspace-chevron" />
+            <Ellipsis size={15} className="sb-workspace-chevron" />
           </Dropdown.Trigger>
           <Dropdown.Portal>
             <Dropdown.Content
