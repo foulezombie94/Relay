@@ -134,7 +134,7 @@ export async function GET(
       if ((data?.length ?? 0) < 500) break;
     }
     const filename =
-      "relay-" +
+      "zyliad-" +
       object.slug.replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 60) +
       "-" +
       new Date().toISOString().slice(0, 10) +
@@ -155,7 +155,7 @@ export async function GET(
     if (format === "xlsx") {
       const ExcelJS = (await import("exceljs")).default;
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = "Relay";
+      workbook.creator = "Zyliad";
       const sheet = workbook.addWorksheet("Fiches", { views: [{ state: "frozen", ySplit: 1 }] });
       sheet.columns = fields.map((key, index) => ({
         key,

@@ -163,7 +163,7 @@ export function ProductScene({ kind }: { kind: "relations" | "forecast" | "reali
           </>
         )}
       </div>
-      <figcaption>Interface Relay · Données de démonstration · Lecture seule</figcaption>
+      <figcaption>Interface Zyliad · Données de démonstration · Lecture seule</figcaption>
     </figure>
   );
 }
@@ -317,7 +317,7 @@ export default function ProductPreview() {
         </div>
       </div>
       <p className={styles.actualCaption}>
-        Interface réelle de Relay, en lecture seule · Données de démonstration
+        Interface réelle de Zyliad, en lecture seule · Données de démonstration
       </p>
     </Tabs.Root>
   );

@@ -33,7 +33,7 @@ export function recordExportFields(
   attributes: Pick<Attribute, "key" | "name">[],
 ): ExportField[] {
   return [
-    { key: "id", label: "Identifiant Relay" },
+    { key: "id", label: "Identifiant Zyliad" },
     { key: "display_name", label: "Nom" },
     { key: "email", label: "Email" },
     { key: "domain", label: "Site internet" },

@@ -4,7 +4,7 @@ import { db } from "@/lib/supabase/server";
 import { assertAuthAvailable } from "@/lib/supabase/session";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 export const metadata: Metadata = {
-  title: "Votre espace · Relay",
+  title: "Votre espace · Zyliad",
   robots: { index: false, follow: false },
 };
 export default async function OnboardingPage() {

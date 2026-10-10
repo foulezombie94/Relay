@@ -55,12 +55,12 @@ export function RelayPulse({
       { kind: "commitment", detected: false },
     ] satisfies PulseSignal[]);
   return (
-    <section className={styles.pulse} aria-label="Relay Pulse" aria-busy={query.isPending}>
+    <section className={styles.pulse} aria-label="Zyliad Pulse" aria-busy={query.isPending}>
       <header className={styles.pulseHeader}>
         <div>
           <h2>
             <Activity size={14} />
-            Relay Pulse
+            Zyliad Pulse
           </h2>
           <p>Votre activité, vos priorités, vos opportunités</p>
         </div>

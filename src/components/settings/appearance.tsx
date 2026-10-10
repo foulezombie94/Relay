@@ -133,7 +133,7 @@ export function SettingsAppearance() {
           <Sparkles size={18} />
         </div>
         <div>
-          <strong>Votre Relay, à votre image.</strong>
+          <strong>Votre Zyliad, à votre image.</strong>
           <p>Ces préférences sont personnelles et ne changent pas l’interface de votre équipe.</p>
         </div>
       </div>

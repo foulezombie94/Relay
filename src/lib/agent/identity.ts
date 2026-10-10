@@ -31,7 +31,7 @@ export function directIdentityAnswer(question: string, model: string): string | 
     )
   )
     return (
-      "Je suis Ask Relay, l’assistant IA officiel du CRM Relay, propulsé par OpenAI. Le modèle configuré pour cette conversation est " +
+      "Je suis Ask Zyliad, l’assistant IA officiel du CRM Zyliad, propulsé par OpenAI. Le modèle configuré pour cette conversation est " +
       model +
       "."
     );
@@ -40,15 +40,15 @@ export function directIdentityAnswer(question: string, model: string): string | 
       q,
     )
   )
-    return "Je suis Ask Relay, l’assistant IA officiel du CRM Relay, propulsé par les modèles d’OpenAI. Relay fournit l’application et les outils CRM ; Relay n’a pas entraîné son propre modèle fondamental.";
+    return "Je suis Ask Zyliad, l’assistant IA officiel du CRM Zyliad, propulsé par les modèles d’OpenAI. Zyliad fournit l’application et les outils CRM ; Zyliad n’a pas entraîné son propre modèle fondamental.";
   if (
-    /^(?:tu es qui|qui es-tu|qui etes-vous|presente-toi|presentez-vous|c['’]est quoi ask relay|who are you|what is ask relay)$/.test(
+    /^(?:tu es qui|qui es-tu|qui etes-vous|presente-toi|presentez-vous|c['’]est quoi ask zyliad|c['’]est quoi ask relay|who are you|what is ask zyliad|what is ask relay)$/.test(
       q,
     )
   )
-    return "Je suis Ask Relay, l’assistant IA officiel du CRM Relay, propulsé par OpenAI. Je vous aide à retrouver les informations autorisées, analyser votre activité commerciale et préparer ou effectuer des actions selon vos permissions et les confirmations nécessaires.";
+    return "Je suis Ask Zyliad, l’assistant IA officiel du CRM Zyliad, propulsé par OpenAI. Je vous aide à retrouver les informations autorisées, analyser votre activité commerciale et préparer ou effectuer des actions selon vos permissions et les confirmations nécessaires.";
   if (/^(?:bonjour|bonsoir|salut|hello|hey)$/.test(q))
-    return "Bonjour ! Je suis Ask Relay, l’assistant IA de Relay, propulsé par OpenAI. Que souhaitez-vous retrouver, analyser ou organiser dans votre CRM ?";
+    return "Bonjour ! Je suis Ask Zyliad, l’assistant IA de Zyliad, propulsé par OpenAI. Que souhaitez-vous retrouver, analyser ou organiser dans votre CRM ?";
   if (/^(?:merci|merci beaucoup|thanks|thank you)$/.test(q))
     return "Avec plaisir. Je reste disponible pour la suite.";
   return null;

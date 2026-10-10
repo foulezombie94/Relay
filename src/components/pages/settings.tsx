@@ -64,7 +64,7 @@ const sections = [
     label: "Emails et calendriers",
     group: "Personnel",
     icon: Mail,
-    description: "Vos échanges et vos rendez-vous, réunis dans Relay.",
+    description: "Vos échanges et vos rendez-vous, réunis dans Zyliad.",
   },
   {
     id: "reunions",
@@ -82,7 +82,7 @@ const sections = [
   },
   {
     id: "assistant",
-    label: "Ask Relay",
+    label: "Ask Zyliad",
     group: "Personnel",
     icon: Sparkles,
     description: "Votre assistant CRM, ses sources et ses autorisations.",
@@ -110,7 +110,7 @@ const sections = [
   },
   {
     id: "utilisation",
-    label: "Utilisation Ask Relay",
+    label: "Utilisation Ask Zyliad",
     group: "Espace de travail",
     icon: Gauge,
     description: "Gardez un œil sur les analyses et les budgets de votre espace.",
@@ -127,7 +127,7 @@ const sections = [
     label: "Développeurs",
     group: "Espace de travail",
     icon: Code2,
-    description: "Reliez Relay à vos outils et à vos automatisations.",
+    description: "Reliez Zyliad à vos outils et à vos automatisations.",
   },
   {
     id: "activite",
@@ -373,7 +373,7 @@ function SettingsView() {
               <section className={styles.settingSection}>
                 <div className={styles.sectionCopy}>
                   <h2>Votre compte</h2>
-                  <p>Votre identité de connexion dans Relay.</p>
+                  <p>Votre identité de connexion dans Zyliad.</p>
                 </div>
                 <div className={styles.infoRows}>
                   <div>
@@ -420,7 +420,7 @@ function SettingsView() {
               <div className={styles.sessionRow}>
                 <div>
                   <strong>Session actuelle</strong>
-                  <p>Connecté avec votre compte Relay.</p>
+                  <p>Connecté avec votre compte Zyliad.</p>
                 </div>
                 <button
                   className="button small"
@@ -569,7 +569,7 @@ function SettingsView() {
                   </span>
                   <div>
                     <strong>Webhooks et automatisations</strong>
-                    <small>Préparez vos workflows dans Relay.</small>
+                    <small>Préparez vos workflows dans Zyliad.</small>
                   </div>
                   <ArrowUpRight size={15} />
                 </Link>

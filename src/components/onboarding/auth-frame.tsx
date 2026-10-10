@@ -8,8 +8,8 @@ export function AuthFrame({ children, step }: { children: ReactNode; step?: numb
     <div className={styles.page}>
       <div className={styles.formSide}>
         <header className={styles.header}>
-          <Link href="/" className={styles.brand} aria-label="Relay, accueil">
-            <span className={styles.mark}>r</span> relay
+          <Link href="/" className={styles.brand} aria-label="Zyliad, accueil">
+            <span className={styles.mark}>z</span> Zyliad
           </Link>
           <Link href="/doc" className={styles.help}>
             Besoin d’aide ? <ArrowUpRight size={14} />
@@ -47,7 +47,7 @@ export function AuthFrame({ children, step }: { children: ReactNode; step?: numb
         <div className={styles.preview}>
           <div className={styles.previewNav}>
             <strong>
-              <span className={styles.miniMark}>r</span> Studio Horizon
+              <span className={styles.miniMark}>z</span> Studio Horizon
             </strong>
             <span>
               <Search size={14} /> Rechercher

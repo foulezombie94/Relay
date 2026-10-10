@@ -224,7 +224,7 @@ export function AssistantComposer({
                 sideOffset={12}
               >
                 <strong>Recherche dans votre CRM</strong>
-                <p>Relay choisit les sources utiles à votre demande.</p>
+                <p>Zyliad choisit les sources utiles à votre demande.</p>
                 <button
                   type="button"
                   className={styles.optionsContext}
@@ -250,7 +250,7 @@ export function AssistantComposer({
                   </span>
                 </label>
                 <footer>
-                  Assistant IA de Relay · OpenAI
+                  Assistant IA de Zyliad · OpenAI
                   <br />
                   Modèle : {model || "non configuré"}
                 </footer>
@@ -280,7 +280,7 @@ export function AssistantComposer({
         </div>
       </form>
       <div className={styles.composerNote}>
-        <span>Relay peut se tromper. Vérifiez les sources.</span>
+        <span>Zyliad peut se tromper. Vérifiez les sources.</span>
         <span>Entrée pour envoyer · ⇧ Entrée pour une ligne</span>
       </div>
     </div>

@@ -10,7 +10,7 @@ export default function ResetPassword() {
   const router = useRouter();
   return (
     <main className="onboarding">
-      <span className="brand-mark">r</span>
+      <span className="brand-mark">z</span>
       <h1>Nouveau mot de passe</h1>
       <form
         onSubmit={async (e) => {

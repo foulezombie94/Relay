@@ -326,7 +326,7 @@ function DashboardWorkspace() {
                 );
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = "relay-dashboard.csv";
+                a.download = "zyliad-dashboard.csv";
                 a.click();
                 URL.revokeObjectURL(url);
               } finally {

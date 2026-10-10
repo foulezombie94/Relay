@@ -265,13 +265,13 @@ function AssistantSession() {
       className={styles.layout}
       data-history={historyOpen}
       data-view={started ? "conversation" : "welcome"}
-      aria-label="Ask Relay"
+      aria-label="Ask Zyliad"
     >
       <aside className={styles.history} aria-label="Historique privé">
         <div className={styles.historyHeading}>
           <span>
             <Sparkles size={15} />
-            Ask Relay
+            Ask Zyliad
           </span>
           <button
             type="button"
@@ -429,7 +429,7 @@ function AssistantSession() {
                       )}
                       <Link href="/doc?article=assistant">
                         <CircleHelp size={14} />
-                        Aide Ask Relay
+                        Aide Ask Zyliad
                       </Link>
                     </Popover.Content>
                   </Popover.Portal>
@@ -439,7 +439,11 @@ function AssistantSession() {
               <>
                 <Popover.Root>
                   <Popover.Trigger asChild>
-                    <button type="button" className={styles.help} aria-label="Configurer Ask Relay">
+                    <button
+                      type="button"
+                      className={styles.help}
+                      aria-label="Configurer Ask Zyliad"
+                    >
                       <Settings2 size={13} />
                       Configurer
                     </button>
@@ -457,7 +461,7 @@ function AssistantSession() {
                         Paramètres de l’espace
                       </Link>
                       <p>
-                        Assistant IA de Relay · OpenAI
+                        Assistant IA de Zyliad · OpenAI
                         <br />
                         Modèle : {status.data?.model || "non configuré"}
                       </p>

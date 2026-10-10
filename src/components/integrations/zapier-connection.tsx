@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useWorkspace, request } from "../providers/data-provider";
 import { Badge, ErrorMessage, date } from "../ui";
-type Key = {
+export type ZapierKey = {
   id: string;
   name: string;
   suffix: string;
@@ -31,7 +31,7 @@ export function ZapierConnection() {
     queryKey: ["zapier-keys", workspace.id],
     enabled: admin,
     queryFn: () =>
-      request<{ data: Key[]; configured: boolean }>("/api/" + workspace.id + "/zapier"),
+      request<{ data: ZapierKey[]; configured: boolean }>("/api/" + workspace.id + "/zapier"),
   });
   const active =
     q.data?.data.filter((k) => !k.revoked_at && Date.parse(k.expires_at) > clock) ?? [];
@@ -204,8 +204,8 @@ export function ZapierConnection() {
           dans une URL.
         </p>
         <pre>
-          GET https://votre-relay/api/zapier/auth{"\n"}GET
-          https://votre-relay/api/zapier?resource=people&amp;page=0
+          GET https://votre-zyliad/api/zapier/auth{"\n"}GET
+          https://votre-zyliad/api/zapier?resource=people&amp;page=0
         </pre>
         <p>
           GET retourne un tableau de 100 éléments maximum, trié par création (identifiant stable
@@ -235,7 +235,7 @@ export function ZapierConnection() {
           ne crée pas de doublon. Limite : 60 requêtes/minute par clé.
         </p>
         <p>
-          Les requêtes externes ne peuvent pas atteindre localhost. Aucun connecteur Relay publié
+          Les requêtes externes ne peuvent pas atteindre localhost. Aucun connecteur Zyliad publié
           dans le catalogue Zapier n’est annoncé ici.
         </p>
       </details>

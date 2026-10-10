@@ -51,7 +51,7 @@ export function SettingsUsage({ billing = false }: { billing?: boolean }) {
                 <Sparkles size={23} />
               </span>
               <div>
-                <h2>Relay · {workspace.name}</h2>
+                <h2>Zyliad · {workspace.name}</h2>
                 <p>Votre espace de travail</p>
               </div>
             </div>
@@ -307,7 +307,7 @@ export function SettingsUsage({ billing = false }: { billing?: boolean }) {
               </span>
               <h3>Facturation non connectée</h3>
               <p>
-                Aucun abonnement ni moyen de paiement n’est relié à Relay. Les factures et
+                Aucun abonnement ni moyen de paiement n’est relié à Zyliad. Les factures et
                 changements d’offre seront disponibles après connexion d’un service de paiement.
               </p>
               <Link href="/doc">
@@ -331,7 +331,7 @@ export function SettingsAgent() {
         </span>
         <div>
           <h2>Votre contexte. Vos prochaines actions.</h2>
-          <p>Ask Relay recherche vos sources et vous accompagne dans votre CRM.</p>
+          <p>Ask Zyliad recherche vos sources et vous accompagne dans votre CRM.</p>
           <span className={styles.softBadge}>
             {response
               ? response.configured
@@ -341,7 +341,7 @@ export function SettingsAgent() {
           </span>
         </div>
         <Link className="button primary" href="/app/assistant">
-          Ouvrir Ask Relay <ArrowUpRight size={14} />
+          Ouvrir Ask Zyliad <ArrowUpRight size={14} />
         </Link>
       </div>
       <section className={styles.settingSection}>

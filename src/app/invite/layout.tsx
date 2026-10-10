@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "Invitation à votre équipe · Relay",
+  title: "Invitation à votre équipe · Zyliad",
   robots: { index: false, follow: false },
   referrer: "no-referrer",
 };

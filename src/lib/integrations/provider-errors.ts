@@ -66,7 +66,7 @@ export function providerFailure(status: number, payload: unknown, apiName: strin
     return {
       status: 403,
       message:
-        "L’administrateur de votre organisation bloque l’accès à ce service. Contactez-le pour autoriser Relay.",
+        "L’administrateur de votre organisation bloque l’accès à ce service. Contactez-le pour autoriser Zyliad.",
     };
   }
   if (status === 403) {

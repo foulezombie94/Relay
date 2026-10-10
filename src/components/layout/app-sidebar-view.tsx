@@ -187,11 +187,11 @@ export function AppSidebarView({
           href="/app/dashboard"
           className="sb-brand"
           onClick={close}
-          aria-label="Relay CRM"
+          aria-label="Zyliad CRM"
         >
-          <span className="brand-mark">r</span>
+          <span className="brand-mark">z</span>
           <span className="sb-brand-text">
-            relay <small>CRM</small>
+            Zyliad <small>CRM</small>
           </span>
         </Link>
         <Dropdown.Root>
@@ -273,7 +273,7 @@ export function AppSidebarView({
               {(
                 [
                   ["dashboard", "Dashboard", BarChart3],
-                  ["assistant", "Ask Relay", Sparkles],
+                  ["assistant", "Ask Zyliad", Sparkles],
                 ] as const
               ).map(([slug, label, Icon]) => (
                 <SidebarMenuItem key={slug}>

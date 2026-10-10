@@ -102,7 +102,7 @@ export async function runAgent(
       await guard(c);
       options.step(
         "identity",
-        "Réponse d’Ask Relay",
+        "Réponse d’Ask Zyliad",
         "done",
         "Identité et modèle issus de la configuration du serveur.",
       );

@@ -83,7 +83,7 @@ export default function Invite() {
       <div className="auth-form" style={{ maxWidth: 580, width: "100%" }}>
         <div className="auth-form-inner">
           <Link href="/" className="brand">
-            <span className="brand-mark">r</span>relay
+            <span className="brand-mark">z</span>Zyliad
           </Link>
           <div className="tiny-icon" style={{ marginTop: 36 }}>
             <ShieldCheck size={24} />

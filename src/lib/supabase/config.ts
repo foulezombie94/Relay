@@ -15,7 +15,7 @@ export function supabaseConfig(env: ConfigEnvironment, requireKey = true) {
       "NEXT_PUBLIC_RELAY_ENVIRONMENT must explicitly identify development, test, preview or production.",
     );
   if (env.VERCEL_ENV && env.VERCEL_ENV !== environment)
-    throw new Error("The declared Relay environment does not match VERCEL_ENV.");
+    throw new Error("The declared Zyliad environment does not match VERCEL_ENV.");
   if (environment === "production" && env.NODE_ENV && env.NODE_ENV !== "production")
     throw new Error("Development and test processes cannot connect to production Supabase.");
   let url: URL;

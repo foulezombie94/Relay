@@ -80,7 +80,7 @@ export function CommunicationsPage() {
       <p className="footer-note">
         Retrouvez les emails et événements importés depuis Intégrations. Les emails proposent leurs
         fils et un chargement du contenu complet. Les actions calendrier sont accessibles dans Ask
-        Relay.
+        Zyliad.
       </p>
       {q.isPending ? (
         <Loading />

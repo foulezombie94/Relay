@@ -202,7 +202,7 @@ export function ImportRecords({
     <Modal
       open
       onClose={close}
-      title={"Importer dans Relay"}
+      title={"Importer dans Zyliad"}
       className={styles.dialog}
       description="Reprenez vos données, vérifiez-les, puis confirmez leur import."
       wide
@@ -508,7 +508,7 @@ export function ImportRecords({
                       <tr>
                         <th>Colonne source</th>
                         <th>Exemple</th>
-                        <th>Champ dans Relay</th>
+                        <th>Champ dans Zyliad</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -579,7 +579,7 @@ export function ImportRecords({
                       <section className={styles.stageSection}>
                         <h4>Correspondance des étapes</h4>
                         <p>
-                          Les étapes restent celles de votre pipeline Relay. Une vente perdue sans
+                          Les étapes restent celles de votre pipeline Zyliad. Une vente perdue sans
                           motif reçoit la mention « raison non renseignée dans l’export ».
                         </p>
                         {sourceStages.map((stage) => (
@@ -596,7 +596,7 @@ export function ImportRecords({
                                 invalidatePreview();
                               }}
                             >
-                              <option value="">Choisir une étape Relay…</option>
+                              <option value="">Choisir une étape Zyliad…</option>
                               {stages.map((s) => (
                                 <option key={s}>{s}</option>
                               ))}

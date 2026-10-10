@@ -16,7 +16,7 @@ const names: Record<string, string> = {
   lists: "Listes",
   tasks: "Tâches",
   communications: "Messages",
-  assistant: "Ask Relay",
+  assistant: "Ask Zyliad",
   meetings: "Réunions",
   notes: "Notes",
   workflows: "Automatisations",

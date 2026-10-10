@@ -192,7 +192,7 @@ export function prepareImport(
       if (values.stage && options.stageMap) {
         const mapped = options.stageMap[String(values.stage)];
         if (!mapped && options.deal)
-          throw new Error("Associez l’étape « " + values.stage + " » à une étape Relay.");
+          throw new Error("Associez l’étape « " + values.stage + " » à une étape Zyliad.");
         if (mapped) values.stage = mapped;
       }
       if (options.deal && values.stage === "Perdu" && !values.lost_reason)

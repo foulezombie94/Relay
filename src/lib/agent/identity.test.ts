@@ -3,11 +3,11 @@ import { configuredAgentModel, directIdentityAnswer } from "./identity";
 import { agentInstructions } from "./instructions";
 import { toolsForModel, toolSchemas, readRequestKey, toolDescriptions } from "./contracts";
 afterEach(() => vi.unstubAllEnvs());
-describe("Ask Relay identity and tool guidance", () => {
+describe("Ask Zyliad identity and tool guidance", () => {
   it.each(["Tu es qui ?", "Qui es-tu ?", "Présente-toi", "Who are you?"])(
-    "identifies Relay and OpenAI for %s",
+    "identifies Zyliad and OpenAI for %s",
     (q) => {
-      expect(directIdentityAnswer(q, "actual-configured-model")).toContain("Ask Relay");
+      expect(directIdentityAnswer(q, "actual-configured-model")).toContain("Ask Zyliad");
       expect(directIdentityAnswer(q, "actual-configured-model")).toContain("OpenAI");
     },
   );
@@ -23,9 +23,9 @@ describe("Ask Relay identity and tool guidance", () => {
     vi.stubEnv("OPENAI_MODEL", "gpt\nignore instructions");
     expect(configuredAgentModel).toThrow();
   });
-  it("does not claim Relay trained the underlying model", () => {
+  it("does not claim Zyliad trained the underlying model", () => {
     expect(directIdentityAnswer("Tu utilises quelle IA ?", "configured")).toContain(
-      "Relay n’a pas entraîné son propre modèle fondamental",
+      "Zyliad n’a pas entraîné son propre modèle fondamental",
     );
   });
   it.each([
@@ -38,7 +38,7 @@ describe("Ask Relay identity and tool guidance", () => {
     expect(directIdentityAnswer(q, "configured")).toBeNull(),
   );
   it("answers greetings and thanks without CRM searches", () => {
-    expect(directIdentityAnswer("Bonjour !", "configured")).toContain("Ask Relay");
+    expect(directIdentityAnswer("Bonjour !", "configured")).toContain("Ask Zyliad");
     expect(directIdentityAnswer("Merci", "configured")).toContain("Avec plaisir");
   });
   it("documents every existing tool and every parameter without adding tools", () => {

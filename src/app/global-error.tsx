@@ -9,7 +9,7 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
     <html lang="fr">
       <body>
         <main>
-          <h1>Relay a rencontré un problème.</h1>
+          <h1>Zyliad a rencontré un problème.</h1>
           <p>Réessayez pour reprendre votre travail.</p>
           <button onClick={reset}>Réessayer</button>
         </main>

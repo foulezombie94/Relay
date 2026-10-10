@@ -29,7 +29,7 @@ export const crmSources = [
     steps: [
       "Dans Leads, ouvrez le menu … → Export.",
       "Choisissez Leads, Contacts ou Opportunities, puis CSV ou JSON et All fields.",
-      "Le JSON contenant des leads avec contacts et opportunités propose des collections séparées dans Relay. Les activités ne sont pas reprises.",
+      "Le JSON contenant des leads avec contacts et opportunités propose des collections séparées dans Zyliad. Les activités ne sont pas reprises.",
     ],
   },
   {
@@ -51,7 +51,7 @@ export const crmSources = [
     steps: [
       "Dans Admin Settings → Account, cliquez sur Export data.",
       "Choisissez la période et les types de fiches, puis téléchargez le ZIP reçu par email.",
-      "Choisissez les CSV Contacts, Accounts et Deals dans Relay ; conservez leurs ID.",
+      "Choisissez les CSV Contacts, Accounts et Deals dans Zyliad ; conservez leurs ID.",
     ],
   },
   {
@@ -72,7 +72,7 @@ export const crmSources = [
     url: "https://help.zoho.com/portal/en/kb/crm/data-administration/data-backup/articles/requesting-data-backup",
     steps: [
       "Exportez Accounts, Contacts et Deals depuis leurs modules, ou demandez une sauvegarde dans Setup → Data Administration → Data Backup.",
-      "Téléchargez les données puis choisissez un CSV du ZIP dans Relay.",
+      "Téléchargez les données puis choisissez un CSV du ZIP dans Zyliad.",
       "Gardez Record ID / CONTACTID / ACCOUNTID et les identifiants de relation. Les pièces jointes et paramètres ne sont pas restaurés.",
     ],
   },
@@ -84,7 +84,7 @@ export const crmSources = [
     steps: [
       "Ouvrez le groupe et la vue à migrer, puis son menu d’export.",
       "Exportez les personnes ou entreprises en CSV, avec les champs utiles.",
-      "Si le CSV ne contient que le nom de l’entreprise, reliez les fiches depuis Relations après import : Relay ne rapproche pas les homonymes automatiquement.",
+      "Si le CSV ne contient que le nom de l’entreprise, reliez les fiches depuis Relations après import : Zyliad ne rapproche pas les homonymes automatiquement.",
     ],
   },
   {

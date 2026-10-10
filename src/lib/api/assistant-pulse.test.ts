@@ -53,7 +53,7 @@ function fixture(failure?: "denied" | "missing_count") {
     }),
   };
 }
-describe("Relay Pulse authorized data", () => {
+describe("Zyliad Pulse authorized data", () => {
   it("uses exact counts rather than bounded sample lengths, and keeps labels out of prompts", async () => {
     const f = fixture();
     const result = await readAssistantPulse(

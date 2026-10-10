@@ -158,7 +158,7 @@ export function SignupFlow() {
         </Link>
       </p>
       <p className={styles.account}>
-        <Link href="/demo">Découvrir Relay avant de commencer</Link>
+        <Link href="/demo">Découvrir Zyliad avant de commencer</Link>
       </p>
     </AuthFrame>
   );

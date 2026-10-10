@@ -31,7 +31,7 @@ export const services = {
       "cloud_recording:read:recording",
     ],
     description:
-      "Importer vos transcriptions d’enregistrements cloud Zoom déjà disponibles ; aucune capture n’est lancée par Relay.",
+      "Importer vos transcriptions d’enregistrements cloud Zoom déjà disponibles ; aucune capture n’est lancée par Zyliad.",
   },
   gmail: {
     name: "Gmail",

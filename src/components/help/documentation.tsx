@@ -31,14 +31,14 @@ export function Documentation() {
     <div className={styles.root}>
       <header className={styles.header}>
         <Link href="/" className="brand">
-          <span className="brand-mark">r</span>relay <small>Guide utilisateur</small>
+          <span className="brand-mark">z</span>Zyliad <small>Guide utilisateur</small>
         </Link>
         <nav>
           <Link href="/doc" onNavigate={() => setTerm("")}>
             Tous les guides
           </Link>
           <Link className="button primary" href="/app/companies">
-            Ouvrir Relay <ArrowRight size={14} />
+            Ouvrir Zyliad <ArrowRight size={14} />
           </Link>
         </nav>
       </header>
@@ -111,7 +111,7 @@ export function Documentation() {
                   Ouvrir cette fonction <ArrowRight size={14} />
                 </Link>
               )}
-              <footer className={styles.footer}>Guide Relay · Mis à jour le 6 octobre 2026</footer>
+              <footer className={styles.footer}>Guide Zyliad · Mis à jour le 6 octobre 2026</footer>
             </>
           ) : (
             <>
@@ -130,7 +130,7 @@ export function Documentation() {
               <p role="status" className={styles.resultCount}>
                 {term
                   ? filtered.length + " guide(s) pour « " + term + " »"
-                  : helpArticles.length + " guides pour utiliser Relay au quotidien"}
+                  : helpArticles.length + " guides pour utiliser Zyliad au quotidien"}
               </p>
               {!filtered.length && (
                 <div className={styles.contents}>

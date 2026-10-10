@@ -11,7 +11,7 @@ export const helpArticles: HelpArticle[] = [
   {
     id: "migrations",
     category: "Importer et migrer",
-    title: "Migrer votre CRM vers Relay",
+    title: "Migrer votre CRM vers Zyliad",
     description: "Attio, Pipedrive, Close, HubSpot, Freshsales, Copper, Zoho, folk et monday CRM.",
     href: "/app/companies",
     sections: [
@@ -21,7 +21,7 @@ export const helpArticles: HelpArticle[] = [
           "Choisissez l’origine, déposez l’export, associez les colonnes puis vérifiez l’aperçu. Aucune fiche n’est créée avant votre confirmation. Chaque table est importée dans une transaction ; un échec annule cette table. Plusieurs tables sont des imports distincts, pas une restauration globale atomique.",
         ],
         steps: [
-          "Créez les champs personnalisés nécessaires et les pipelines de destination dans Relay.",
+          "Créez les champs personnalisés nécessaires et les pipelines de destination dans Zyliad.",
           "Importez les entreprises, puis les personnes et les opportunités. Choisissez le même CRM et le même nom de lot pour tous les fichiers du même compte source.",
           "Associez ID de la fiche dans le CRM source, puis ID des entreprises ou personnes associées. Les relations utilisent les identifiants exacts ; les noms seuls ne sont pas rapprochés.",
           "Vérifiez les formats décimaux, les devises, les étapes et les lignes rejetées. Confirmez le rejet des erreurs si vous ne les corrigez pas.",
@@ -34,7 +34,7 @@ export const helpArticles: HelpArticle[] = [
           "4 Mo par fichier, 1 000 lignes par table, 100 colonnes, 20 associations maximum par ligne. Les ZIP sont limités à 256 entrées et 20 Mo décompressés, avec 8 Mo par entrée. Les ZIP chiffrés, imbriqués ou ZIP64 ne sont pas acceptés. Les classeurs Excel à l’intérieur d’un ZIP doivent être extraits puis importés séparément. Les anciens .xls doivent être enregistrés en .xlsx. Les classeurs sont limités à 25 feuilles et 150 000 cellules au total. Exportez les identifiants longs en texte ou CSV pour éviter les arrondis d’Excel.",
           "Les identifiants sont isolés par espace de travail, CRM, lot et type de fiche. Utilisez un autre lot pour un autre compte source. Un ID source déjà importé ne recrée et ne modifie jamais sa fiche. Les rapprochements par email / domaine peuvent être ignorés ; les opportunités sans ID ne sont pas rapprochées par nom.",
           "Le JSON Close permet de sélectionner les leads, contacts et opportunités, y compris les collections imbriquées. Les montants des opportunités JSON Close sont convertis des centimes vers la devise ; choisissez le format international. Les autres JSON doivent contenir un tableau de fiches ou une collection data, records, leads, contacts, companies, accounts, people, deals ou opportunities.",
-          "Relay reprend les personnes, entreprises et opportunités avec les champs explicitement associés. Une sauvegarde ZIP complète peut contenir des tables hors de ce périmètre. N’importez pas une table de notes, membres, tâches ou paramètres comme une entreprise ; conservez la sauvegarde pour ces données.",
+          "Zyliad reprend les personnes, entreprises et opportunités avec les champs explicitement associés. Une sauvegarde ZIP complète peut contenir des tables hors de ce périmètre. N’importez pas une table de notes, membres, tâches ou paramètres comme une entreprise ; conservez la sauvegarde pour ces données.",
         ],
       },
     ],
@@ -56,13 +56,13 @@ export const helpArticles: HelpArticle[] = [
           steps: [...s.steps],
         },
         {
-          title: "Importer dans Relay",
+          title: "Importer dans Zyliad",
           paragraphs: [
             "Dans Entreprises, Personnes ou Opportunités, cliquez sur Importer et choisissez " +
               s.name +
               ". Déposez votre fichier, choisissez sa table puis la destination. Un fichier correspond à un type de fiche.",
             "Associez le nom et les champs utiles. Pour les relations, conservez l’ID de chaque fiche et les ID des cibles, séparés par des points-virgules ou fournis dans un tableau JSON de chaînes. Utilisez le même nom de lot pour tous les fichiers du même compte source.",
-            "Pour les opportunités, choisissez le pipeline et faites correspondre chaque étape source à une étape Relay. Les autres libellés, propriétaires et configurations ne sont pas automatiquement recréés.",
+            "Pour les opportunités, choisissez le pipeline et faites correspondre chaque étape source à une étape Zyliad. Les autres libellés, propriétaires et configurations ne sont pas automatiquement recréés.",
           ],
           steps: [
             "Vérifier l’import affiche jusqu’à 20 lignes valides et le rapport de toutes les erreurs.",
@@ -89,7 +89,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Créer votre compte",
         paragraphs: [
-          "Relay organise votre travail dans un espace qui regroupe les contacts et les ventes de votre équipe.",
+          "Zyliad organise votre travail dans un espace qui regroupe les contacts et les ventes de votre équipe.",
         ],
         steps: [
           "Depuis Connexion, choisissez l’inscription.",
@@ -167,7 +167,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Associer les colonnes",
         paragraphs: [
-          "Prévoyez une colonne Nom et vérifiez les correspondances proposées. Prénom et nom peuvent être réunis automatiquement. Ignorez les colonnes inutiles ou créez vos champs personnalisés dans Relay avant l’import pour pouvoir les associer. Les activités, emails, fichiers joints et paramètres du CRM source ne sont pas restaurés.",
+          "Prévoyez une colonne Nom et vérifiez les correspondances proposées. Prénom et nom peuvent être réunis automatiquement. Ignorez les colonnes inutiles ou créez vos champs personnalisés dans Zyliad avant l’import pour pouvoir les associer. Les activités, emails, fichiers joints et paramètres du CRM source ne sont pas restaurés.",
         ],
         steps: [
           "Ouvrez Personnes, Entreprises ou Opportunités selon le contenu.",
@@ -224,7 +224,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Documenter une perte",
         paragraphs: [
-          "Lorsque vous passez une opportunité à Perdu depuis Relay, renseignez une raison. Cette information aide à comprendre les tendances dans Rapports. Si une ancienne fiche n’a pas de raison, le rapport l’indique au lieu d’en inventer une.",
+          "Lorsque vous passez une opportunité à Perdu depuis Zyliad, renseignez une raison. Cette information aide à comprendre les tendances dans Rapports. Si une ancienne fiche n’a pas de raison, le rapport l’indique au lieu d’en inventer une.",
         ],
       },
     ],
@@ -350,10 +350,10 @@ export const helpArticles: HelpArticle[] = [
         title: "Connecter un compte",
         paragraphs: ["Les messages et événements importés restent privés au compte connecté."],
         steps: [
-          "Ouvrez Intégrations et choisissez Connecter sur le service.",
+          "Ouvrez Intégrations, choisissez une carte dans Apps puis cliquez sur Install app dans sa fiche.",
           "Sélectionnez votre compte Google ou Microsoft et acceptez les permissions.",
-          "Revenez dans Relay et vérifiez le compte affiché.",
-          "Choisissez Synchroniser puis consultez Messages.",
+          "Revenez dans Zyliad et vérifiez le compte affiché.",
+          "Dans la section Configure, choisissez Synchroniser puis consultez Messages. La recherche et les catégories du catalogue vous permettent de retrouver vos autres apps ; Installed affiche les connexions actives.",
         ],
       },
       {
@@ -365,13 +365,13 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Résoudre un refus",
         paragraphs: [
-          "Si Google indique que Relay est en test, demandez à l’administrateur d’autoriser votre adresse. Si les permissions sont refusées ou expirées, reconnectez le service. Si le problème persiste, transmettez le service, l’heure et le message affiché à votre administrateur.",
+          "Si Google indique que Zyliad est en test, demandez à l’administrateur d’autoriser votre adresse. Si les permissions sont refusées ou expirées, reconnectez le service. Si le problème persiste, transmettez le service, l’heure et le message affiché à votre administrateur.",
         ],
       },
       {
         title: "Déconnecter",
         paragraphs: [
-          "Utilisez Déconnecter pour arrêter l’utilisation du compte dans Relay. Vous pouvez aussi retirer l’autorisation depuis votre compte Google ou Microsoft ; la déconnexion dans Relay ne remplace pas cette action.",
+          "Utilisez Déconnecter pour arrêter l’utilisation du compte dans Zyliad. Vous pouvez aussi retirer l’autorisation depuis votre compte Google ou Microsoft ; la déconnexion dans Zyliad ne remplace pas cette action.",
         ],
       },
     ],
@@ -386,13 +386,13 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Décider du doublon",
         paragraphs: [
-          "Qualité des données détecte les doublons potentiels. Comparer affiche les deux fiches. Vous pouvez modifier une fiche ; Relay recalcule alors la comparaison avant une fusion. Garder séparés conserve votre décision ; Ignorer reporte le groupe de sept jours.",
+          "Qualité des données détecte les doublons potentiels. Comparer affiche les deux fiches. Vous pouvez modifier une fiche ; Zyliad recalcule alors la comparaison avant une fusion. Garder séparés conserve votre décision ; Ignorer reporte le groupe de sept jours.",
         ],
       },
       {
         title: "Fusion et restauration",
         paragraphs: [
-          "Fusionner exige un aperçu et une confirmation. Relay vérifie que les fiches n’ont pas changé et conserve la fusion dans un historique. L’annulation est réservée aux administrateurs ; si les données ont changé depuis la fusion, une restauration pouvant écraser ces changements est refusée.",
+          "Fusionner exige un aperçu et une confirmation. Zyliad vérifie que les fiches n’ont pas changé et conserve la fusion dans un historique. L’annulation est réservée aux administrateurs ; si les données ont changé depuis la fusion, une restauration pouvant écraser ces changements est refusée.",
         ],
       },
     ],
@@ -436,8 +436,8 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Modifier les droits",
         paragraphs: [
-          "Dans Membres, choisissez le nouveau rôle puis confirmez. Votre propre accès et celui du propriétaire sont protégés. Un administrateur peut modifier un autre administrateur, avec confirmation et contrôle des modifications concurrentes. Si le rôle a changé entre-temps, Relay refuse la modification : actualisez la liste et recommencez.",
-          "Passer une personne à Lecteur démarre avec aucune fiche autorisée et désactive ses connexions Relay, ses synchronisations et ses traitements en attente. Ses séquences actives sont mises en pause. Revenir à Membre ne réactive pas automatiquement ces connexions : la personne devra les reconnecter.",
+          "Dans Membres, choisissez le nouveau rôle puis confirmez. Votre propre accès et celui du propriétaire sont protégés. Un administrateur peut modifier un autre administrateur, avec confirmation et contrôle des modifications concurrentes. Si le rôle a changé entre-temps, Zyliad refuse la modification : actualisez la liste et recommencez.",
+          "Passer une personne à Lecteur démarre avec aucune fiche autorisée et désactive ses connexions Zyliad, ses synchronisations et ses traitements en attente. Ses séquences actives sont mises en pause. Revenir à Membre ne réactive pas automatiquement ces connexions : la personne devra les reconnecter.",
         ],
       },
       {
@@ -450,7 +450,7 @@ export const helpArticles: HelpArticle[] = [
         ],
         paragraphs: [
           "La réattribution et le retrait sont réalisés ensemble : en cas d’échec, aucun changement partiel n’est conservé. Les notes, documents et historiques restent en place. L’accès à cet espace, y compris ses éventuels accès aux portails clients de cet espace, est retiré, sans supprimer le compte ni ses accès à d’autres espaces. Au-delà de 10 000 éléments attribués, réattribuez-les par lots avant le retrait.",
-          "Relay supprime les identifiants de connexion conservés pour cet espace, désactive ses synchronisations, annule ses jobs actifs et met ses séquences en pause. Un email ou une autre action déjà envoyé au fournisseur externe ne peut pas être rappelé. Cela ne supprime pas les autorisations dans le compte Google ou Microsoft lui-même.",
+          "Zyliad supprime les identifiants de connexion conservés pour cet espace, désactive ses synchronisations, annule ses jobs actifs et met ses séquences en pause. Un email ou une autre action déjà envoyé au fournisseur externe ne peut pas être rappelé. Cela ne supprime pas les autorisations dans le compte Google ou Microsoft lui-même.",
           "Les changements de rôle, invitations et retraits sont conservés dans l’historique des modifications, visible aux administrateurs et au propriétaire.",
         ],
       },
@@ -505,7 +505,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Exporter",
         paragraphs: [
-          "Cliquez sur Exporter dans Entreprises, Personnes ou Opportunités. Choisissez Excel (.xlsx) pour un tableau mis en forme, CSV pour les CRM et Google Sheets, JSON pour des données structurées ou TSV pour un tableau texte. Sélectionnez la vue actuelle (toutes ses pages) ou toutes les fiches actives de cet objet, puis les colonnes de la vue, toutes les propriétés ou une sélection personnalisée. L’identifiant Relay est toujours inclus et la devise accompagne les montants. En CSV, le point-virgule convient à Excel français et la virgule aux CRM internationaux. Pour réimporter, choisissez les identifiants de champs comme en-têtes. Les exports directs sont limités à 10 000 fiches et 4 Mo : affinez les filtres au-delà, aucun fichier partiel n’est téléchargé. Les notes, relations, messages et pièces jointes sont exclus. Les montants affichés dans le tableau concernent la page affichée ; utilisez Rapports pour les totaux.",
+          "Cliquez sur Exporter dans Entreprises, Personnes ou Opportunités. Choisissez Excel (.xlsx) pour un tableau mis en forme, CSV pour les CRM et Google Sheets, JSON pour des données structurées ou TSV pour un tableau texte. Sélectionnez la vue actuelle (toutes ses pages) ou toutes les fiches actives de cet objet, puis les colonnes de la vue, toutes les propriétés ou une sélection personnalisée. L’identifiant Zyliad est toujours inclus et la devise accompagne les montants. En CSV, le point-virgule convient à Excel français et la virgule aux CRM internationaux. Pour réimporter, choisissez les identifiants de champs comme en-têtes. Les exports directs sont limités à 10 000 fiches et 4 Mo : affinez les filtres au-delà, aucun fichier partiel n’est téléchargé. Les notes, relations, messages et pièces jointes sont exclus. Les montants affichés dans le tableau concernent la page affichée ; utilisez Rapports pour les totaux.",
         ],
       },
     ],
@@ -639,7 +639,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Retrouver et corriger",
         paragraphs: [
-          "La recherche globale retrouve le contenu des notes que vous pouvez lire. Si Relay signale que la note a changé pendant votre édition, rechargez-la avant de reprendre votre correction.",
+          "La recherche globale retrouve le contenu des notes que vous pouvez lire. Si Zyliad signale que la note a changé pendant votre édition, rechargez-la avant de reprendre votre correction.",
         ],
       },
     ],
@@ -670,7 +670,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Partager avec un client",
         paragraphs: [
-          "Joindre un fichier à une fiche ne le publie pas automatiquement. Ajoutez un élément dans le portail client et sélectionnez explicitement le document. Si un lien a expiré, rouvrez le fichier dans Relay pour obtenir un lien à jour.",
+          "Joindre un fichier à une fiche ne le publie pas automatiquement. Ajoutez un élément dans le portail client et sélectionnez explicitement le document. Si un lien a expiré, rouvrez le fichier dans Zyliad pour obtenir un lien à jour.",
         ],
       },
     ],
@@ -685,7 +685,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Ajouter le compte rendu",
         paragraphs: [
-          "Relay conserve les informations que vous ajoutez. Il ne rejoint pas vos appels et ne les enregistre pas automatiquement.",
+          "Zyliad conserve les informations que vous ajoutez. Il ne rejoint pas vos appels et ne les enregistre pas automatiquement.",
         ],
         steps: [
           "Ouvrez Réunions et ajoutez un compte rendu.",
@@ -734,7 +734,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Reporter ou annuler",
         paragraphs: [
-          "Mettez à jour le statut et l’échéance si la promesse change. Conservez une note expliquant la décision. Le changement dans Relay n’informe pas automatiquement le client : prévenez-le si nécessaire.",
+          "Mettez à jour le statut et l’échéance si la promesse change. Conservez une note expliquant la décision. Le changement dans Zyliad n’informe pas automatiquement le client : prévenez-le si nécessaire.",
         ],
       },
     ],
@@ -754,7 +754,7 @@ export const helpArticles: HelpArticle[] = [
       },
       {
         title: "Décider avec le contexte",
-        paragraphs: ["Relay ne décide pas quelle source est correcte."],
+        paragraphs: ["Zyliad ne décide pas quelle source est correcte."],
         steps: [
           "Ouvrez Contradictions et lisez les deux informations.",
           "Vérifiez leur date et leur contexte dans la fiche client.",
@@ -879,7 +879,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Délais, branches et historique",
         paragraphs: [
-          "Un délai est enregistré dans la file de travail : il ne garde pas un serveur occupé. À la reprise, Relay vérifie à nouveau les conditions puis évalue les branches avec les valeurs actuelles. L’historique conserve la version, les étapes, les choix de branche et les erreurs. Une exécution en échec reprend au dernier point enregistré ; les actions validées ne sont pas rejouées.",
+          "Un délai est enregistré dans la file de travail : il ne garde pas un serveur occupé. À la reprise, Zyliad vérifie à nouveau les conditions puis évalue les branches avec les valeurs actuelles. L’historique conserve la version, les étapes, les choix de branche et les erreurs. Une exécution en échec reprend au dernier point enregistré ; les actions validées ne sont pas rejouées.",
         ],
         steps: [
           "Mettez un workflow en pause pour stopper ses déclenchements et ses reprises en attente.",
@@ -915,20 +915,20 @@ export const helpArticles: HelpArticle[] = [
         paragraphs: [
           "Choisissez Formulaire signé ou Webhook signé, enregistrez, générez une clé dans le panneau du déclencheur puis publiez. Copiez immédiatement l’endpoint et le secret ; remplacer la clé invalide l’ancienne. Le formulaire doit envoyer la requête depuis son serveur, afin de ne pas exposer la clé aux visiteurs.",
           'Envoyez POST avec un objet JSON {"record_id":"UUID de la fiche existante","data":{"subject":"Titre","body":"Texte"}}. La fiche doit appartenir à l’espace et au type choisi. Les valeurs texte de data peuvent être utilisées via {{event.payload.nom_du_champ}}. Le webhook ne crée pas implicitement un nouveau contact.',
-          "Ajoutez X-Relay-Timestamp (secondes Unix), X-Relay-Event-Id (UUID unique) et X-Relay-Signature. La signature est le HMAC SHA-256 hexadécimal du texte timestamp.eventId.corpsJSONExact, avec le secret comme clé. En Node : createHmac('sha256', secret).update(`${timestamp}.${eventId}.${rawBody}`).digest('hex'). La requête expire après cinq minutes ; réutiliser l’ID empêche un deuxième déclenchement. Limite : 60 événements par minute et par workflow, et 16 Ko par requête.",
+          "Ajoutez X-Zyliad-Timestamp (secondes Unix), X-Zyliad-Event-Id (UUID unique) et X-Zyliad-Signature. La signature est le HMAC SHA-256 hexadécimal du texte timestamp.eventId.corpsJSONExact, avec le secret comme clé. En Node : createHmac('sha256', secret).update(`${timestamp}.${eventId}.${rawBody}`).digest('hex'). La requête expire après cinq minutes ; réutiliser l’ID empêche un deuxième déclenchement. Limite : 60 événements par minute et par workflow, et 16 Ko par requête.",
         ],
       },
       {
         title: "Suivre chaque bloc et résoudre un envoi incertain",
         paragraphs: [
           "Après un lancement, le détail s’ouvre sur la version réellement exécutée. Les blocs montrent À venir, En cours, Réussi, En attente, Échec ou Non parcouru. Cliquez sur un bloc pour voir ses dates et sa sortie. Le détail s’actualise toutes les deux secondes pendant une exécution active, puis s’arrête. Les étapes restent enregistrées quand vous fermez la fenêtre.",
-          "Un échec connu permet Réessayer après correction, sans rejouer les actions validées. Si Relay perd la réponse du fournisseur, l’état devient Envoi à vérifier. Aucun nouvel envoi automatique n’a lieu. Vérifiez les messages envoyés, le calendrier, Slack ou les journaux de l’API ; choisissez Action déjà réalisée pour continuer sans renvoi, ou Confirmé non envoyé pour autoriser une nouvelle tentative. Ces décisions sont auditées. Un changement de définition exige une nouvelle version et un nouveau lancement.",
+          "Un échec connu permet Réessayer après correction, sans rejouer les actions validées. Si Zyliad perd la réponse du fournisseur, l’état devient Envoi à vérifier. Aucun nouvel envoi automatique n’a lieu. Vérifiez les messages envoyés, le calendrier, Slack ou les journaux de l’API ; choisissez Action déjà réalisée pour continuer sans renvoi, ou Confirmé non envoyé pour autoriser une nouvelle tentative. Ces décisions sont auditées. Un changement de définition exige une nouvelle version et un nouveau lancement.",
         ],
       },
       {
         title: "Limites et actions sensibles",
         paragraphs: [
-          "Relay accepte 30 workflows actifs et 200 exécutions en attente par espace. Un workflow contient au plus 40 blocs et un lancement manuel traite jusqu’à 100 fiches. Les aperçus expirent après 15 minutes. L’historique est conservé 90 jours. Par jour UTC et par espace : 200 emails, 100 événements calendrier, 100 analyses IA, 500 appels Slack et 500 webhooks. Chaque tentative est comptée. La publication exige un worker disponible. Un retrait de droits bloque les exécutions concernées. Publier ou confirmer un lancement autorise les actions externes configurées.",
+          "Zyliad accepte 30 workflows actifs et 200 exécutions en attente par espace. Un workflow contient au plus 40 blocs et un lancement manuel traite jusqu’à 100 fiches. Les aperçus expirent après 15 minutes. L’historique est conservé 90 jours. Par jour UTC et par espace : 200 emails, 100 événements calendrier, 100 analyses IA, 500 appels Slack et 500 webhooks. Chaque tentative est comptée. La publication exige un worker disponible. Un retrait de droits bloque les exécutions concernées. Publier ou confirmer un lancement autorise les actions externes configurées.",
         ],
       },
     ],
@@ -971,7 +971,7 @@ export const helpArticles: HelpArticle[] = [
         paragraphs: [
           "Une réponse peut être incomplète ou incorrecte. Vérifiez les échanges originaux, puis le risque et tous les paramètres dans la carte. Confirmer l’action ajoute une proposition à examiner ; cela ne valide pas définitivement une promesse ou une contradiction. Refuser laisse les autres actions disponibles.",
           "La confirmation expire après 30 minutes et autorise uniquement l’action affichée. Vous pouvez lire l’email ou la source directement dans le chat. Le serveur revérifie les citations, les permissions et les paramètres, puis empêche la double exécution. Les anciennes suggestions nécessitent un nouvel aperçu. Les lecteurs ne peuvent pas ajouter de proposition. Une note privée ne devient pas un engagement ou une contradiction partagée.",
-          "Relay recherche dans les données CRM autorisées, avec des résultats paginés. Les emails, calendriers et transcriptions couvrent les données importées ; leur synchronisation ne garantit pas un historique complet. Les actions CRM et calendriers produisent un aperçu à confirmer. Les workflows restent des brouillons. L’envoi direct d’un email exige une demande explicite non ambiguë et l’activation par l’administrateur après les tests fournisseurs ; sinon, confirmez l’aperçu. Approfondir augmente le budget de recherche. Les anciennes réponses ne sont jamais utilisées comme preuves ou autorisations.",
+          "Zyliad recherche dans les données CRM autorisées, avec des résultats paginés. Les emails, calendriers et transcriptions couvrent les données importées ; leur synchronisation ne garantit pas un historique complet. Les actions CRM et calendriers produisent un aperçu à confirmer. Les workflows restent des brouillons. L’envoi direct d’un email exige une demande explicite non ambiguë et l’activation par l’administrateur après les tests fournisseurs ; sinon, confirmez l’aperçu. Approfondir augmente le budget de recherche. Les anciennes réponses ne sont jamais utilisées comme preuves ou autorisations.",
         ],
       },
       {
@@ -1089,7 +1089,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Travail en équipe",
         paragraphs: [
-          "Si un collègue modifie une tâche, un engagement ou une contradiction pendant votre édition, Relay refuse d’écraser sa version. Rouvrez l’élément, comparez ses changements puis enregistrez votre modification.",
+          "Si un collègue modifie une tâche, un engagement ou une contradiction pendant votre édition, Zyliad refuse d’écraser sa version. Rouvrez l’élément, comparez ses changements puis enregistrez votre modification.",
         ],
       },
     ],
@@ -1128,7 +1128,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Contrôler le suivi",
         paragraphs: [
-          "Vous pouvez mettre votre inscription en pause, la reprendre ou l’arrêter. Mettre toute la séquence en pause suspend également ses envois. Relay vérifie les réponses du contact avant chaque message et arrête le suivi s’il détecte une réponse depuis le début de ce suivi.",
+          "Vous pouvez mettre votre inscription en pause, la reprendre ou l’arrêter. Mettre toute la séquence en pause suspend également ses envois. Zyliad vérifie les réponses du contact avant chaque message et arrête le suivi s’il détecte une réponse depuis le début de ce suivi.",
         ],
       },
       {
@@ -1140,7 +1140,7 @@ export const helpArticles: HelpArticle[] = [
       {
         title: "Comprendre un arrêt ou une erreur",
         paragraphs: [
-          "Consultez l’historique d’envoi du contact. Transmis signifie accepté par Gmail ou Outlook, et ne garantit pas la remise dans la boîte de réception. À vérifier signifie que l’envoi est incertain : Relay bloque le suivi et ne renvoie pas automatiquement le message. Vérifiez votre boîte d’envoi avant de décider de la suite.",
+          "Consultez l’historique d’envoi du contact. Transmis signifie accepté par Gmail ou Outlook, et ne garantit pas la remise dans la boîte de réception. À vérifier signifie que l’envoi est incertain : Zyliad bloque le suivi et ne renvoie pas automatiquement le message. Vérifiez votre boîte d’envoi avant de décider de la suite.",
         ],
       },
       {

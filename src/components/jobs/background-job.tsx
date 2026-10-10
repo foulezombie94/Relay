@@ -51,7 +51,7 @@ export function BackgroundJob({
         ? "Traitement terminé."
         : job?.status === "running"
           ? "Traitement en cours…"
-          : "Traitement en attente. Vous pouvez continuer à utiliser Relay."}
+          : "Traitement en attente. Vous pouvez continuer à utiliser Zyliad."}
     </div>
   );
 }

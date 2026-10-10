@@ -8,12 +8,12 @@ function Unsubscribe() {
   const [error, setError] = useState("");
   return (
     <main className="onboarding">
-      <span className="brand-mark">r</span>
+      <span className="brand-mark">z</span>
       <h1>{done ? "Suivi arrêté" : "Arrêter les emails de suivi"}</h1>
       <p>
         {done
           ? "Votre adresse a été exclue des prochains suivis de cet espace."
-          : "Confirmez pour ne plus recevoir de messages de cette entreprise via les séquences Relay."}
+          : "Confirmez pour ne plus recevoir de messages de cette entreprise via les séquences Zyliad."}
       </p>
       {error && <p role="alert">{error}</p>}
       {!done && (

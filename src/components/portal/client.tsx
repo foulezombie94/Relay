@@ -16,7 +16,7 @@ export function PortalList() {
     <main className="portal-page">
       <header className="portal-top">
         <span className="brand">
-          <span className="brand-mark">r</span>relay · Espace client
+          <span className="brand-mark">z</span>Zyliad · Espace client
         </span>
         <Link href="/app/companies">Mon CRM</Link>
       </header>
@@ -70,7 +70,7 @@ export function PortalClient({ id }: { id: string }) {
     <main className="portal-page">
       <header className="portal-top">
         <span className="brand">
-          <span className="brand-mark">r</span>relay · Espace client
+          <span className="brand-mark">z</span>Zyliad · Espace client
         </span>
         <Link href="/portal">Mes portails</Link>
       </header>

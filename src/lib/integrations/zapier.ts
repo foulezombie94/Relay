@@ -59,7 +59,7 @@ export async function zapierRequest(
             : error.code === "23503"
               ? "Fiche liée inexistante dans cet espace."
               : error.message.includes("Required custom attributes")
-                ? "Des champs personnalisés obligatoires exigent une création dans Relay."
+                ? "Des champs personnalisés obligatoires exigent une création dans Zyliad."
                 : "Demande Zapier invalide.",
       error.code === "28000"
         ? 401

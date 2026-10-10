@@ -33,11 +33,11 @@ const body = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Relay — Le CRM qui fait avancer vos ventes et vos clients",
+  title: "Zyliad — Le CRM qui fait avancer vos ventes et vos clients",
   description:
-    "Contacts, pipeline, emails et engagements client dans un même CRM. Découvrez Relay et explorez sa démo sans compte.",
+    "Contacts, pipeline, emails et engagements client dans un même CRM. Découvrez Zyliad et explorez sa démo sans compte.",
   openGraph: {
-    title: "Relay — Faites avancer vos ventes. Tenez vos engagements.",
+    title: "Zyliad — Faites avancer vos ventes. Tenez vos engagements.",
     description: "Un même espace pour vos relations, vos opportunités et la réalisation client.",
     type: "website",
     locale: "fr_FR",
@@ -78,7 +78,7 @@ const integrations = [
 ];
 const questions = [
   {
-    title: "À qui s’adresse Relay ?",
+    title: "À qui s’adresse Zyliad ?",
     text: "Aux équipes B2B qui veulent suivre leurs contacts, leurs ventes et leurs engagements client dans un même espace. Les équipes commerciales, agences et entreprises de services peuvent organiser leurs pipelines et leurs prochaines actions selon leur manière de travailler.",
   },
   {
@@ -87,11 +87,11 @@ const questions = [
   },
   {
     title: "Puis-je importer mes contacts existants ?",
-    text: "Vous pouvez importer des fichiers CSV ou Excel depuis votre espace. Préparez vos colonnes, vérifiez leur correspondance avec les champs de Relay et consultez le guide utilisateur pour les étapes d’import.",
+    text: "Vous pouvez importer des fichiers CSV ou Excel depuis votre espace. Préparez vos colonnes, vérifiez leur correspondance avec les champs de Zyliad et consultez le guide utilisateur pour les étapes d’import.",
   },
   {
     title: "Quels emails et calendriers puis-je connecter ?",
-    text: "Relay propose Gmail, Google Calendar, Outlook et Outlook Calendar. Vous choisissez les services à connecter et autorisez les permissions nécessaires auprès de Google ou Microsoft. Zapier se connecte via webhooks ou intégration privée.",
+    text: "Zyliad propose Gmail, Google Calendar, Outlook et Outlook Calendar. Vous choisissez les services à connecter et autorisez les permissions nécessaires auprès de Google ou Microsoft. Zapier se connecte via webhooks ou intégration privée.",
   },
   {
     title: "Comment fonctionne l’assistant IA ?",
@@ -99,14 +99,14 @@ const questions = [
   },
   {
     title: "Comment mon équipe garde-t-elle le contrôle ?",
-    text: "Les membres travaillent dans un espace avec des rôles et des permissions. Relay conserve un historique des actions et permet de comparer les doublons avant de les fusionner, avec la possibilité d’annuler une fusion. Le guide détaille ces fonctions.",
+    text: "Les membres travaillent dans un espace avec des rôles et des permissions. Zyliad conserve un historique des actions et permet de comparer les doublons avant de les fusionner, avec la possibilité d’annuler une fusion. Le guide détaille ces fonctions.",
   },
 ];
 
 function Logo() {
   return (
     <span className={styles.logo}>
-      <span className={styles.logoMark}>r</span>relay
+      <span className={styles.logoMark}>z</span>Zyliad
       <span className={styles.logoDot}>.</span>
     </span>
   );
@@ -119,12 +119,12 @@ export default function Home() {
         Aller au contenu
       </a>
       <header className={styles.header}>
-        <Link prefetch={false} href="/" aria-label="Relay, accueil">
+        <Link prefetch={false} href="/" aria-label="Zyliad, accueil">
           <Logo />
         </Link>
         <nav className={styles.nav} aria-label="Navigation principale">
           <a href="#produit">Produit</a>
-          <a href="#realisation">Pourquoi Relay</a>
+          <a href="#realisation">Pourquoi Zyliad</a>
           <a href="#integrations">Intégrations</a>
           <Link prefetch={false} href="/doc">
             Doc
@@ -144,7 +144,7 @@ export default function Home() {
           </summary>
           <nav aria-label="Navigation mobile">
             <a href="#produit">Produit</a>
-            <a href="#realisation">Pourquoi Relay</a>
+            <a href="#realisation">Pourquoi Zyliad</a>
             <a href="#integrations">Intégrations</a>
             <Link prefetch={false} href="/doc">
               Documentation
@@ -185,7 +185,7 @@ export default function Home() {
         <section
           className={styles.productSection}
           id="produit"
-          aria-label="Découvrir les vues du CRM Relay"
+          aria-label="Découvrir les vues du CRM Zyliad"
         >
           <ProductPreview />
           <div className={styles.productCaption}>
@@ -215,7 +215,7 @@ export default function Home() {
             </h2>
             <p>
               Un échange dans votre boîte mail. Une opportunité dans un tableau. Une promesse dans
-              vos notes. Relay rassemble le contexte pour que votre équipe sache où reprendre.
+              vos notes. Zyliad rassemble le contexte pour que votre équipe sache où reprendre.
             </p>
           </div>
           <div className={styles.storyRow}>
@@ -283,11 +283,11 @@ export default function Home() {
               <span>La relation continue.</span>
             </h2>
             <p>
-              Ce qui a été promis mérite d’être suivi. Relay relie les engagements client à une
+              Ce qui a été promis mérite d’être suivi. Zyliad relie les engagements client à une
               personne, une échéance et leur réalisation.
             </p>
             <Link prefetch={false} href="/demo" className={styles.lightButton}>
-              Découvrir Relay <ArrowRight size={17} />
+              Découvrir Zyliad <ArrowRight size={17} />
             </Link>
           </div>
           <ProductScene kind="realisation" />
@@ -410,7 +410,7 @@ export default function Home() {
       </main>
       <footer className={styles.footer}>
         <div>
-          <Link prefetch={false} href="/" aria-label="Relay, accueil">
+          <Link prefetch={false} href="/" aria-label="Zyliad, accueil">
             <Logo />
           </Link>
           <p>
@@ -451,7 +451,7 @@ export default function Home() {
           </Link>
         </nav>
         <div className={styles.footerBottom}>
-          <span>© {new Date().getFullYear()} Relay</span>
+          <span>© {new Date().getFullYear()} Zyliad</span>
           <span>
             <LockKeyhole size={13} /> Votre contexte. Vos prochaines actions.
           </span>

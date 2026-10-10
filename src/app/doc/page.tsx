@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { Documentation } from "@/components/help/documentation";
 export const metadata = {
-  title: "Guide utilisateur · Relay CRM",
+  title: "Guide utilisateur · Zyliad CRM",
   description:
-    "Aide Relay : démarrer, gérer vos contacts, suivre vos ventes, travailler en équipe et partager avec vos clients.",
+    "Aide Zyliad : démarrer, gérer vos contacts, suivre vos ventes, travailler en équipe et partager avec vos clients.",
 };
 export default function DocumentationPage() {
   return (

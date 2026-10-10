@@ -88,7 +88,7 @@ export function withFullName(table: ImportTable): ImportTable {
   if (first < 0 && last < 0) return table;
   return {
     ...table,
-    headers: ["Nom complet (Relay)", ...table.headers],
+    headers: ["Nom complet (Zyliad)", ...table.headers],
     rows: table.rows.map((r) => [
       [first >= 0 ? r[first] : "", last >= 0 ? r[last] : ""].filter(Boolean).join(" "),
       ...r,

@@ -76,7 +76,7 @@ export function ExportRecords({
       link.href = url;
       link.download =
         response.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] ??
-        "relay-export." + format;
+        "zyliad-export." + format;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -220,7 +220,7 @@ export function ExportRecords({
                 </div>
               )}
               <p className={styles.hint}>
-                {finalKeys.size} colonnes. L’identifiant Relay est toujours inclus ; la devise
+                {finalKeys.size} colonnes. L’identifiant Zyliad est toujours inclus ; la devise
                 accompagne le montant.
               </p>
             </fieldset>

@@ -136,7 +136,7 @@ export function CommunicationsThread({
           onSent={() => {
             setReply(null);
             setError(
-              "Réponse en attente du worker. Consultez son statut dans Ask Relay ou l’historique des envois.",
+              "Réponse en attente du worker. Consultez son statut dans Ask Zyliad ou l’historique des envois.",
             );
           }}
         />

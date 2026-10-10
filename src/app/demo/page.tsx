@@ -26,7 +26,7 @@ export default function Demo() {
       </div>
       <header className="page-heading">
         <div className="brand">
-          <span className="brand-mark">r</span>relay CRM
+          <span className="brand-mark">z</span>Zyliad CRM
         </div>
         <h1>Le contexte fait la différence.</h1>
         <p>Reliez vos relations, vos opportunités et les engagements de votre équipe.</p>

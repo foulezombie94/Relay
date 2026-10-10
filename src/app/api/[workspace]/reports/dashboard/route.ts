@@ -77,7 +77,7 @@ export async function GET(
         headers: {
           ...headers,
           "Content-Type": "text/csv; charset=utf-8",
-          "Content-Disposition": 'attachment; filename="relay-dashboard.csv"',
+          "Content-Disposition": 'attachment; filename="zyliad-dashboard.csv"',
           "X-Content-Type-Options": "nosniff",
         },
       });
