@@ -947,11 +947,15 @@
   line-height: 1.8;
 }
 .spinning {
-  animation: workflow-spin 1s linear infinite;
+  animation: workflow-loading-pulse 1.2s ease-in-out infinite;
 }
-@keyframes workflow-spin {
+@keyframes workflow-loading-pulse {
+  from,
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
   }
 }
 .connectionForm {

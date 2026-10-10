@@ -6,7 +6,8 @@ import {
   ArrowUpRight,
   CalendarDays,
   Check,
-  ChevronDown,
+  Plus,
+  Minus,
   GitMerge,
   LockKeyhole,
   Mail,
@@ -380,7 +381,10 @@ export default function Home() {
               <details key={title}>
                 <summary>
                   {title}
-                  <ChevronDown size={18} />
+                  <span aria-hidden="true">
+                    <Plus size={18} className={styles.faqExpand} />
+                    <Minus size={18} className={styles.faqCollapse} />
+                  </span>
                 </summary>
                 <p>{text}</p>
               </details>

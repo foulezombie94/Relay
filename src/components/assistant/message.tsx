@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   Check,
   ChevronDown,
+  ChevronUp,
   Copy,
   RotateCcw,
   LoaderCircle,
@@ -125,9 +126,7 @@ export function AgentActivity({
               : `${steps.length} étape${steps.length > 1 ? "s" : ""} effectuée${steps.length > 1 ? "s" : ""}`}
         </span>
         {!active && duration > 0 && <small>{duration} s</small>}
-        {(!active || expanded) && (
-          <ChevronDown size={14} className={expanded ? styles.rotated : ""} />
-        )}
+        {(!active || expanded) && (expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
       </button>
       {expanded && (
         <ol className={styles.steps} id={detailsId}>

@@ -1051,10 +1051,13 @@
 .faqList summary svg {
   flex: none;
   color: #65748c;
-  transition: transform 0.18s ease;
 }
-.faqList details[open] summary svg {
-  transform: rotate(180deg);
+.faqList .faqCollapse,
+.faqList details[open] .faqExpand {
+  display: none;
+}
+.faqList details[open] .faqCollapse {
+  display: block;
 }
 .faqList details p {
   font-size: 13px;

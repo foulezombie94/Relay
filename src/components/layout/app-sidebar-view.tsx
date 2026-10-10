@@ -29,6 +29,7 @@ import {
   Check,
   BookOpen,
   ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   Sidebar,
@@ -312,6 +313,7 @@ export function AppSidebarView({
             const Icon = group.icon;
             const active = currentGroup(path) === group.id;
             const open = !compact && (expanded[group.id] ?? active);
+            const GroupChevron = open ? ChevronUp : ChevronDown;
             const panelId = "relay-nav-" + group.id;
             return (
               <SidebarGroup key={group.id} className={styles.group}>
@@ -327,7 +329,11 @@ export function AppSidebarView({
                     >
                       <Icon size={18} />
                       <span>{group.label}</span>
-                      <ChevronDown aria-hidden="true" className={styles.chevron} data-open={open} />
+                      <GroupChevron
+                        aria-hidden="true"
+                        className={styles.chevron}
+                        data-open={open}
+                      />
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>

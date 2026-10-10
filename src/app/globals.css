@@ -569,11 +569,15 @@ small,
   color: #99a3b3;
 }
 .spin {
-  animation: spin 1.2s linear infinite;
+  animation: loading-pulse 1.2s ease-in-out infinite;
 }
-@keyframes spin {
+@keyframes loading-pulse {
+  from,
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
   }
 }
 .dialog-overlay {
@@ -2106,7 +2110,7 @@ small,
   outline-offset: 2px;
 }
 [dir="rtl"] .sb-trigger svg {
-  transform: rotate(180deg);
+  transform: scaleX(-1);
 }
 @keyframes sb-tooltip-in {
   from {

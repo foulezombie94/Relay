@@ -532,9 +532,6 @@
   color: #a0a1aa;
   font-variant-numeric: tabular-nums;
 }
-.rotated {
-  transform: rotate(180deg);
-}
 .steps {
   list-style: none;
   margin: 0;
@@ -1106,11 +1103,15 @@
   font-size: 12px;
 }
 .spin {
-  animation: spin 0.9s linear infinite;
+  animation: loading-pulse 1.2s ease-in-out infinite;
 }
-@keyframes spin {
+@keyframes loading-pulse {
+  from,
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
   }
 }
 @keyframes shimmer {
