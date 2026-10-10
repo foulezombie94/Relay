@@ -1,6 +1,6 @@
 # Revue de sécurité ciblée — Relay, 10 octobre 2026
 
-Les chemins audités utilisent Next.js 16, React 19, TypeScript, Supabase Auth et PostgreSQL avec RLS. Les corrections portent sur la séparation des environnements, les écritures CRM, les formulaires, les erreurs et leurs confirmations. Les deux skills demandés sont installés dans `.agents/skills` et ont été utilisés, ainsi que les instructions Supabase et les références du plugin Codex Security.
+Les chemins audités utilisent Next.js 16, React 19, TypeScript, Supabase Auth et PostgreSQL avec RLS. Les corrections portent sur la séparation des environnements, les écritures CRM, les formulaires, les erreurs et leurs confirmations. Les deux skills demandés, `typescript-expert` et `security-best-practices`, ont été utilisés, ainsi que les instructions Supabase et les références du plugin Codex Security. Les skills sont conservés dans le dossier personnel de Codex, hors du dépôt de l’application.
 
 Il s’agit d’une revue manuelle du code et des contrôles Supabase. Le workflow automatisé Codex Security n’a pas pu être lancé : ses outils de lancement ne sont pas exposés dans cette session. Ce document ne constitue pas un rapport issu de ce scanner, ni une certification exhaustive du dépôt.
 

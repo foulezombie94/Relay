@@ -24,3 +24,7 @@ work-integration-patch.sql
 .next-check-*/
 
 .impeccable/review/
+
+# Personal Codex skills stay outside the application repository.
+/.agents/
+/skills-lock.json
