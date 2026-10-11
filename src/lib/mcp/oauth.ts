@@ -60,7 +60,11 @@ export function authorizationMetadata() {
     revocation_endpoint_auth_methods_supported: ["none"],
     code_challenge_methods_supported: ["S256"],
     scopes_supported: scopes,
-    authorization_response_iss_parameter_supported: true,
+    // Codex versions still in circulation drop `iss` from the browser callback
+    // before validating it. Advertising true makes those clients reject a
+    // successful consent before they exchange the authorization code. We keep
+    // returning `iss`; clients that support RFC 9207 can still validate it.
+    authorization_response_iss_parameter_supported: false,
   };
 }
 export function resourceMetadata() {
