@@ -131,7 +131,8 @@ export function IntegrationsPage({
     if (id) params.set("app", id);
     else params.delete("app");
     return (
-      (embedded ? "/app/integrations" : pathname) + (params.size ? "?" + params.toString() : "")
+      (embedded || pathname === "/app/settings" ? "/app/integrations" : pathname) +
+      (params.size ? "?" + params.toString() : "")
     );
   }
   async function action(p: string, method: "POST" | "DELETE" | "PATCH", enabled?: boolean) {

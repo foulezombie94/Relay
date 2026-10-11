@@ -5,10 +5,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { marketplaceApps } from "@/lib/integrations/platform/catalog";
 import { fixtureContext } from "@/lib/integrations/platform/test-support";
 import type { MarketplaceSnapshot } from "@/lib/integrations/platform/marketplace";
-const mocks = vi.hoisted(() => ({ request: vi.fn(), app: "", role: "owner" }));
+const mocks = vi.hoisted(() => ({
+  request: vi.fn(),
+  app: "",
+  role: "owner",
+  pathname: "/app/integrations",
+}));
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(mocks.app ? { app: mocks.app } : {}),
-  usePathname: () => "/app/integrations",
+  usePathname: () => mocks.pathname,
 }));
 vi.mock("@/lib/api/request", async (original) => ({
   ...(await original<typeof import("@/lib/api/request")>()),
@@ -48,6 +53,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.app = "";
   mocks.role = "owner";
+  mocks.pathname = "/app/integrations";
   snapshot = {
     enabled: false,
     connections: [],
@@ -93,6 +99,14 @@ it("shows all 19 entries plus Teams and supports category/search filters", async
   fireEvent.click(screen.getByRole("button", { name: /^Fichiers & documents/ }));
   expect(screen.getByRole("link", { name: /OneDrive/ })).toBeDefined();
   expect(screen.queryByRole("link", { name: /^Slack/ })).toBeNull();
+});
+it("opens details in the store when browsing from settings", async () => {
+  mocks.pathname = "/app/settings";
+  mount(<IntegrationsPage />);
+  await waitFor(() => expect(screen.getAllByText("En développement").length).toBeGreaterThan(0));
+  expect(screen.getByRole("link", { name: /Slack/ }).getAttribute("href")).toBe(
+    "/app/integrations?app=slack",
+  );
 });
 it("does not offer a working install or claim vendor approval for an unimplemented connector", async () => {
   mocks.app = "slack";
