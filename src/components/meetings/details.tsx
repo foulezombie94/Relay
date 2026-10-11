@@ -17,7 +17,6 @@ import {
   Users,
   FileText,
   Link2,
-  Mic,
   X,
 } from "lucide-react";
 import { useRows, useSave, useWorkspace } from "../providers/data-provider";
@@ -37,6 +36,7 @@ import { MeetingEditor } from "./editor";
 import { MeetingInsights } from "./insights";
 import styles from "./meetings.module.css";
 import { meetingTabKeys } from "./keyboard-tabs";
+import { MeetingCallout } from "./blocks";
 
 export function MeetingDetails({ id, onClose }: { id: string; onClose: () => void }) {
   const q = useRows<Meeting>("meetings", { id, size: 1 });
@@ -163,31 +163,21 @@ function MeetingContent({ meeting, onClose }: { meeting: Meeting; onClose: () =>
       <ErrorMessage error={error} />
       <div className={styles.detailGrid}>
         <div className={styles.mainPanel}>
-          <div className={styles.recording}>
-            <div className={styles.audioMark}>
-              <Mic size={30} />
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-            <div>
-              <strong>
-                {meeting.transcript
-                  ? "La conversation, au même endroit"
-                  : "Préparez votre prochain échange"}
-              </strong>
-              <p>
-                {meeting.transcript
-                  ? "Retrouvez la transcription, ses passages et les informations de la réunion."
-                  : "Ajoutez vos participants, une fiche CRM et le lien de la visioconférence."}
-              </p>
-              <small>Aucun enregistreur automatique n’est activé pour cet échange.</small>
-            </div>
-          </div>
+          <MeetingCallout
+            icon={<FileText size={22} />}
+            title={
+              meeting.transcript
+                ? "La conversation, au même endroit"
+                : "Préparez votre prochain échange"
+            }
+          >
+            <p>
+              {meeting.transcript
+                ? "Retrouvez la transcription, ses passages et les informations de la réunion."
+                : "Ajoutez vos participants, une fiche CRM et le lien de la visioconférence."}
+            </p>
+            <small>Aucun enregistreur automatique n’est activé pour cet échange.</small>
+          </MeetingCallout>
           <div
             className={styles.tabs}
             role="tablist"

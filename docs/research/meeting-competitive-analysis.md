@@ -33,6 +33,14 @@ L’enregistreur d’Attio rejoint effectivement les visioconférences et fourni
 
 La lecture vidéo, la recherche par chapitre, le mode image dans l’image et la focalisation audio demandent un fichier média réel et sa gestion sécurisée. Le partage public, l’envoi de résumés aux participants et les règles d’auto-enregistrement ne sont pas activés par cette modification. Le lien de partage livré reste interne et soumis à l’authentification.
 
+## Révision visuelle Notion — 11 octobre 2026
+
+Les références officielles consultées sont [Style et personnalisation](https://www.notion.com/help/customize-and-style-your-content), [Layouts](https://www.notion.com/help/layouts), [Galerie](https://www.notion.com/help/galleries) et [Liste](https://www.notion.com/help/lists).
+
+L’adaptation utilise une couverture décorative, une icône de page, des callouts, une bibliothèque à onglets, des propriétés compactes et des fiches structurées avec panneau d’analyse. Ces composants React sont propres à Zyliad ; ils ne prétendent pas être une bibliothèque officielle Notion. Aucun document Notion, asset de marque ou code propriétaire n’est importé.
+
+Liste et Galerie partagent les mêmes résultats paginés, filtres et actions. Les cartes affichent uniquement les métadonnées autorisées, jamais des statistiques fabriquées. Les états vides gardent des actions utiles. Les couleurs viennent du thème Zyliad et fonctionnent en mode sombre. La révision est visuelle : les droits, routes, données, confirmations et outils IA existants restent applicables.
+
 ## Contrats des calendriers
 
 Les champs de conférence proviennent des ressources officielles : [Google Calendar Events](https://developers.google.com/workspace/calendar/api/v3/reference/events) (`hangoutLink`, entrée vidéo de `conferenceData`, `location`) et [Microsoft Graph Event](https://learn.microsoft.com/en-us/graph/api/resources/event?view=graph-rest-1.0) (`onlineMeeting.joinUrl`, `location.displayName`). Aucun nouveau scope ni endpoint n’est introduit. Seuls les liens HTTPS Meet/Teams/Zoom sont proposés à l’utilisateur.

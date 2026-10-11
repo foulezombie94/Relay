@@ -11,16 +11,17 @@ import {
   Search,
   Star,
   SlidersHorizontal,
-  ArrowUpRight,
+  LayoutGrid,
+  List,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   Link2,
-  LockKeyhole,
   FileText,
   RefreshCw,
 } from "lucide-react";
 import { useWorkspace } from "../providers/data-provider";
-import { Empty, ErrorMessage, Loading } from "../ui";
+import { ErrorMessage, Loading } from "../ui";
 import { Pagination } from "../ui/pagination";
 import { RecordPicker } from "../records/picker";
 import { request } from "@/lib/api/request";
@@ -35,6 +36,7 @@ import { MeetingDetails, CalendarDetails } from "./details";
 import { InsightTemplates } from "./templates";
 import styles from "./meetings.module.css";
 import { meetingTabKeys } from "./keyboard-tabs";
+import { MeetingCallout, MeetingEmpty, MeetingLibraryItem, MeetingPageIntro } from "./blocks";
 
 export function MeetingsPage() {
   const { workspace } = useWorkspace();
@@ -52,6 +54,7 @@ function MeetingWorkspace() {
     [sort, setSort] = useState("recent"),
     [favorites, setFavorites] = useState(false),
     [grouped, setGrouped] = useState(true),
+    [layout, setLayout] = useState<"list" | "gallery">("gallery"),
     [settings, setSettings] = useState(false),
     [participant, setParticipant] = useState(""),
     [record, setRecord] = useState("");
@@ -98,6 +101,8 @@ function MeetingWorkspace() {
     retry: false,
   });
   const data = !query.isError ? query.data : undefined;
+  const activeFilters =
+    Number(provider !== "all") + Number(!!participant) + Number(!!record) + Number(favorites);
   const focus = z.uuid().safeParse(params.get("focus"));
   const chosen =
     selected ?? (!dismissed && focus.success ? { id: focus.data, kind: "meeting" as const } : null);
@@ -132,32 +137,29 @@ function MeetingWorkspace() {
   }
   return (
     <main className={styles.page}>
-      <header className={styles.heading}>
-        <div>
-          <span className={styles.eyebrow}>VOTRE MÉMOIRE CLIENT</span>
-          <h1>
-            Réunions{" "}
-            <span className={styles.headingBadge}>
-              <Mic size={13} /> Call intelligence
-            </span>
-          </h1>
-          <p>Préparez vos échanges. Retrouvez les décisions. Faites avancer la suite.</p>
-        </div>
-        <div className={styles.actions}>
-          <Link href={`/app/integrations?workspace=${workspace.id}`} className="button">
-            <Link2 size={14} />
-            Connecter un calendrier
-          </Link>
-          <button
-            className="button primary"
-            disabled={workspace.role === "viewer"}
-            onClick={() => setCreating(true)}
-          >
-            <Plus size={15} />
-            Ajouter une réunion
-          </button>
-        </div>
-      </header>
+      <MeetingPageIntro>
+        <Link href={`/app/integrations?workspace=${workspace.id}`} className="button">
+          <Link2 size={14} />
+          Connecter un calendrier
+        </Link>
+        <button
+          className="button primary"
+          disabled={workspace.role === "viewer"}
+          onClick={() => setCreating(true)}
+        >
+          <Plus size={15} />
+          Ajouter une réunion
+        </button>
+      </MeetingPageIntro>
+      <MeetingCallout icon={<BookOpen size={21} />} title="Chaque échange mérite une place">
+        Votre agenda, vos transcriptions et vos analyses réunis dans un espace clair. Ouvrez une
+        réunion pour retrouver son contexte et préparer les prochaines étapes.
+      </MeetingCallout>
+      <div className={styles.databaseTitle}>
+        <FileText size={18} aria-hidden="true" />
+        <h2>Votre bibliothèque</h2>
+        <span>Le fil de vos conversations</span>
+      </div>
       <div
         className={styles.tabs}
         role="tablist"
@@ -220,7 +222,34 @@ function MeetingWorkspace() {
                 >
                   <SlidersHorizontal size={14} />
                   Filtres & vue
+                  {activeFilters > 0 && (
+                    <span className={styles.filterCount} aria-hidden="true">
+                      {activeFilters}
+                    </span>
+                  )}
                 </button>
+                <div
+                  className={styles.viewSwitch}
+                  role="group"
+                  aria-label="Présentation des réunions"
+                >
+                  <button
+                    type="button"
+                    aria-label="Vue Liste"
+                    aria-pressed={layout === "list"}
+                    onClick={() => setLayout("list")}
+                  >
+                    <List size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Vue Galerie"
+                    aria-pressed={layout === "gallery"}
+                    onClick={() => setLayout("gallery")}
+                  >
+                    <LayoutGrid size={15} />
+                  </button>
+                </div>
                 <button
                   className="icon-button"
                   aria-label="Actualiser les réunions"
@@ -285,6 +314,7 @@ function MeetingWorkspace() {
                 <div>
                   <span>Fiche CRM</span>
                   <RecordPicker
+                    key={record || "none"}
                     name="meeting_filter_record"
                     initial={record}
                     onChange={(id) => {
@@ -301,6 +331,31 @@ function MeetingWorkspace() {
                   />
                   Regrouper par date
                 </label>
+              </div>
+            )}
+            {activeFilters > 0 && (
+              <div className={styles.filterSummary}>
+                {provider !== "all" && <span>Source : {providerName(provider)}</span>}
+                {participant && <span>Participant : {participant}</span>}
+                {record && <span>Fiche CRM sélectionnée</span>}
+                {favorites && (
+                  <span>
+                    <Star size={12} />
+                    Favoris
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProvider("all");
+                    setParticipant("");
+                    setRecord("");
+                    setFavorites(false);
+                    setPage(0);
+                  }}
+                >
+                  Effacer les filtres
+                </button>
               </div>
             )}
             {tab === "agenda" && (
@@ -369,10 +424,12 @@ function MeetingWorkspace() {
                       {data.count} {tab === "agenda" ? "rendez-vous" : "appel"}
                       {data.count > 1 && tab !== "agenda" ? "s" : ""}
                     </span>
-                    <span>{workspace.timezone} · Vos accès sont respectés</span>
+                    <span>
+                      {workspace.timezone} · {layout === "gallery" ? "Galerie" : "Liste"}
+                    </span>
                   </div>
                   {!data.data.length ? (
-                    <Empty
+                    <MeetingEmpty
                       title={
                         favorites ? "Aucun favori" : "Votre prochaine conversation commence ici"
                       }
@@ -383,19 +440,23 @@ function MeetingWorkspace() {
                             ? "Connectez Google Calendar ou Outlook, ou ajoutez votre premier rendez-vous."
                             : "Importez une transcription ou connectez Meet, Teams ou Zoom pour retrouver vos échanges."
                       }
-                      action={
-                        <button
-                          className="button"
-                          disabled={workspace.role === "viewer"}
-                          onClick={() => setCreating(true)}
-                        >
-                          <Plus size={15} />
-                          Ajouter une réunion
-                        </button>
-                      }
-                    />
+                    >
+                      <button
+                        className="button"
+                        disabled={workspace.role === "viewer"}
+                        onClick={() => setCreating(true)}
+                      >
+                        <Plus size={15} />
+                        Ajouter une réunion
+                      </button>
+                    </MeetingEmpty>
                   ) : (
-                    <div className={styles.library}>
+                    <div
+                      className={styles.library}
+                      data-layout={layout}
+                      role="region"
+                      aria-label="Résultats des réunions"
+                    >
                       {data.data.map((item, index) => {
                         const group = meetingDate(
                           item.starts_at ?? item.created_at,
@@ -413,70 +474,14 @@ function MeetingWorkspace() {
                         return (
                           <div key={item.kind + item.id}>
                             {show && <h2 className={styles.dateGroup}>{group}</h2>}
-                            <article className={styles.meetingRow}>
-                              {item.kind === "meeting" ? (
-                                <button
-                                  className={styles.star}
-                                  aria-label={`${item.favorite ? "Retirer" : "Ajouter"} ${item.title} ${item.favorite ? "des" : "aux"} favoris`}
-                                  aria-pressed={item.favorite}
-                                  disabled={starBusy === item.id}
-                                  onClick={() => void favorite(item)}
-                                >
-                                  <Star size={17} fill={item.favorite ? "currentColor" : "none"} />
-                                </button>
-                              ) : (
-                                <span className={styles.star}>
-                                  <CalendarDays size={17} />
-                                </span>
-                              )}
-                              <button
-                                className={styles.rowOpen}
-                                onClick={() => setSelected({ id: item.id, kind: item.kind })}
-                              >
-                                <span className={styles.rowIcon}>
-                                  {item.has_transcript ? (
-                                    <Mic size={19} />
-                                  ) : (
-                                    <CalendarDays size={19} />
-                                  )}
-                                </span>
-                                <span className={styles.rowContent}>
-                                  <strong>{item.title || "Réunion sans titre"}</strong>
-                                  <small>
-                                    {meetingDate(item.starts_at, workspace.timezone, true)} ·{" "}
-                                    {providerName(item.provider)}
-                                    {item.record && ` · ${item.record.display_name}`}
-                                  </small>
-                                  {item.summary && (
-                                    <span className={styles.summaryPreview}>{item.summary}</span>
-                                  )}
-                                </span>
-                                <span className={styles.participants}>
-                                  {item.participants.slice(0, 3).map((p, i) => (
-                                    <span title={p.name} key={i}>
-                                      {p.name.slice(0, 1).toUpperCase()}
-                                    </span>
-                                  ))}
-                                </span>
-                                <span className={styles.rowBadges}>
-                                  {item.private && (
-                                    <span title="Privée">
-                                      <LockKeyhole size={12} />
-                                    </span>
-                                  )}
-                                  <span>
-                                    {item.status === "cancelled"
-                                      ? "Annulée"
-                                      : item.has_transcript
-                                        ? "Transcrite"
-                                        : item.status === "scheduled"
-                                          ? "Planifiée"
-                                          : "Terminée"}
-                                  </span>
-                                </span>
-                                <ArrowUpRight size={15} />
-                              </button>
-                            </article>
+                            <MeetingLibraryItem
+                              item={item}
+                              timezone={workspace.timezone}
+                              providerLabel={providerName(item.provider)}
+                              busy={starBusy === item.id}
+                              onFavorite={() => void favorite(item)}
+                              onOpen={() => setSelected({ id: item.id, kind: item.kind })}
+                            />
                           </div>
                         );
                       })}
@@ -492,20 +497,19 @@ function MeetingWorkspace() {
                 </>
               )
             )}
-            <aside className={styles.importNote}>
-              <Mic size={19} />
-              <div>
-                <strong>Du rendez-vous aux prochaines étapes</strong>
-                <p>
-                  Vos imports Meet, Teams et Zoom restent privés. Ajoutez une transcription pour
-                  l’analyser et retrouver ses passages. Les enregistrements dépendent de votre
-                  fournisseur et de votre abonnement.
-                </p>
-              </div>
-              <Link className="button small" href={`/app/integrations?workspace=${workspace.id}`}>
-                Gérer les intégrations <ArrowUpRight size={13} />
-              </Link>
-            </aside>
+            <MeetingCallout
+              icon={<Mic size={21} />}
+              title="Du rendez-vous aux prochaines étapes"
+              action={
+                <Link className="button small" href={`/app/integrations?workspace=${workspace.id}`}>
+                  Gérer les intégrations
+                </Link>
+              }
+            >
+              Vos imports Meet, Teams et Zoom restent privés. Ajoutez une transcription pour
+              l’analyser et retrouver ses passages. Les enregistrements dépendent de votre
+              fournisseur et de votre abonnement.
+            </MeetingCallout>
           </>
         )}
       </section>

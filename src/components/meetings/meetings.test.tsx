@@ -65,6 +65,74 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 describe("meetings interface trust boundaries", () => {
+  it("changes the database layout without losing filters, favorites or access to the meeting", async () => {
+    mock.rows.mockImplementation((resource: string) => ({
+      data: {
+        data:
+          resource === "meetings"
+            ? [{ ...item, transcript: "Preserved transcript", version: 1 }]
+            : [],
+        count: 1,
+      },
+      isError: false,
+      isPending: false,
+      error: null,
+    }));
+    mount(<MeetingsPage />);
+    await screen.findByRole("button", { name: /^Discovery Atlas/ });
+    fireEvent.click(screen.getByRole("button", { name: "Favoris" }));
+    await waitFor(() =>
+      expect(mock.request.mock.calls.some(([url]) => String(url).includes("favorite=only"))).toBe(
+        true,
+      ),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Vue Galerie" }));
+    expect(
+      screen.getByRole("region", { name: "Résultats des réunions" }).getAttribute("data-layout"),
+    ).toBe("gallery");
+    expect(screen.getByRole("button", { name: "Favoris" }).getAttribute("aria-pressed")).toBe(
+      "true",
+    );
+    expect(
+      screen.getByRole("button", { name: /Ajouter Discovery Atlas aux favoris/ }),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Vue Liste" }));
+    expect(
+      screen.getByRole("region", { name: "Résultats des réunions" }).getAttribute("data-layout"),
+    ).toBe("list");
+    fireEvent.click(screen.getByRole("button", { name: /^Discovery Atlas/ }));
+    await screen.findByText("Preserved transcript");
+  });
+  it("clears the active metadata filters while preserving the chosen layout", async () => {
+    mount(<MeetingsPage />);
+    await screen.findByRole("button", { name: /^Discovery Atlas/ });
+    fireEvent.click(screen.getByRole("button", { name: "Vue Galerie" }));
+    fireEvent.click(screen.getByRole("button", { name: "Filtres & vue" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Source" }), {
+      target: { value: "zoom" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Participant" }), {
+      target: { value: "marie@example.com" },
+    });
+    await waitFor(() =>
+      expect(
+        mock.request.mock.calls.some(
+          ([url]) =>
+            String(url).includes("provider=zoom") && String(url).includes("participant=marie"),
+        ),
+      ).toBe(true),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Effacer les filtres" }));
+    expect((screen.getByRole("combobox", { name: "Source" }) as HTMLSelectElement).value).toBe(
+      "all",
+    );
+    expect((screen.getByRole("textbox", { name: "Participant" }) as HTMLInputElement).value).toBe(
+      "",
+    );
+    expect(
+      screen.getByRole("region", { name: "Résultats des réunions" }).getAttribute("data-layout"),
+    ).toBe("gallery");
+  });
   it("has useful library tabs and hides stale metadata when a fresh access check fails", async () => {
     mount(<MeetingsPage />);
     await screen.findByRole("button", { name: /^Discovery Atlas/ });
