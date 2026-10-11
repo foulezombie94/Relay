@@ -55,6 +55,18 @@
   color: #61748d;
   padding: 0 12px;
 }
+.clients .logoFallback {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e1e5ec;
+  border-radius: 7px;
+  background: #fff;
+  color: #172238;
+  font-size: 13px;
+}
 .panel {
   padding: 24px;
 }

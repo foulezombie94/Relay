@@ -5,6 +5,23 @@ import { useState, useSyncExternalStore } from "react";
 import { Check, Copy, ArrowUpRight, ShieldCheck } from "lucide-react";
 import styles from "./installer.module.css";
 const subscribe = () => () => {};
+function ClientLogo({ client }: { client: "claude" | "codex" }) {
+  const [unavailable, setUnavailable] = useState(false);
+  return unavailable ? (
+    <span className={styles.logoFallback} aria-hidden="true">
+      {client === "claude" ? "C" : "O"}
+    </span>
+  ) : (
+    <Image
+      unoptimized
+      src={client === "claude" ? "https://claude.ai/favicon.ico" : "https://openai.com/favicon.ico"}
+      alt={client === "claude" ? "Logo Claude" : "Logo OpenAI"}
+      width={26}
+      height={26}
+      onError={() => setUnavailable(true)}
+    />
+  );
+}
 export function installationCommands(
   origin: string,
   client: "claude" | "codex",
@@ -59,15 +76,7 @@ export function McpInstaller({ compact = false }: { compact?: boolean }) {
               setCopied(false);
             }}
           >
-            <Image
-              unoptimized
-              src={
-                id === "claude" ? "https://claude.ai/favicon.ico" : "https://openai.com/favicon.ico"
-              }
-              alt={id === "claude" ? "Logo Claude" : "Logo OpenAI"}
-              width={26}
-              height={26}
-            />
+            <ClientLogo client={id} />
             <span>
               {id === "claude" ? "Claude Code" : "Codex"}
               <small>{id === "claude" ? "Anthropic" : "OpenAI"}</small>
