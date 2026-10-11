@@ -1,3 +1,5 @@
+import { marketplaceApps } from "@/lib/integrations/platform/catalog";
+
 export type Connector = {
   provider: string;
   name: string;
@@ -14,12 +16,15 @@ export type Connector = {
   worker_ready?: boolean;
 };
 
-export type AppCategory = "communication" | "calendars" | "calling" | "automations";
+export type AppCategory =
+  "communication" | "calendars" | "calling" | "automations" | "files" | "sales";
 export const appCategories: { id: AppCategory; name: string }[] = [
   { id: "communication", name: "Communication" },
   { id: "calendars", name: "Calendars" },
   { id: "calling", name: "Calling & meetings" },
   { id: "automations", name: "Automations" },
+  { id: "files", name: "Fichiers & documents" },
+  { id: "sales", name: "Ventes & facturation" },
 ];
 
 export type CatalogApp = {
@@ -85,7 +90,7 @@ const meetingFeatures = [
   },
 ];
 
-export const appCatalog: CatalogApp[] = [
+const legacyCatalog: CatalogApp[] = [
   {
     id: "gmail",
     name: "Gmail",
@@ -238,6 +243,121 @@ export const appCatalog: CatalogApp[] = [
     documentation: "https://docs.zapier.com/integrations/build/auth",
     support: "https://help.zapier.com/",
   },
+];
+
+const resources: Record<string, { website: string; documentation: string; support: string }> = {
+  "api-webhooks": {
+    website: "/doc?article=integrations",
+    documentation: "/doc?article=integrations",
+    support: "/doc",
+  },
+  "google-drive": {
+    website: "https://drive.google.com/",
+    documentation: "https://developers.google.com/workspace/drive/api/guides/about-sdk",
+    support: "https://support.google.com/drive/",
+  },
+  "google-sheets": {
+    website: "https://sheets.google.com/",
+    documentation: "https://developers.google.com/workspace/sheets/api/guides/concepts",
+    support: "https://support.google.com/docs/",
+  },
+  slack: {
+    website: "https://slack.com/",
+    documentation: "https://docs.slack.dev/",
+    support: "https://slack.com/help",
+  },
+  stripe: {
+    website: "https://stripe.com/",
+    documentation: "https://docs.stripe.com/connect",
+    support: "https://support.stripe.com/",
+  },
+  calendly: {
+    website: "https://calendly.com/",
+    documentation: "https://developer.calendly.com/",
+    support: "https://help.calendly.com/",
+  },
+  typeform: {
+    website: "https://www.typeform.com/",
+    documentation: "https://www.typeform.com/developers/",
+    support: "https://help.typeform.com/",
+  },
+  notion: {
+    website: "https://www.notion.com/",
+    documentation: "https://developers.notion.com/",
+    support: "https://www.notion.com/help",
+  },
+  dropbox: {
+    website: "https://www.dropbox.com/",
+    documentation: "https://www.dropbox.com/developers/documentation/http/overview",
+    support: "https://help.dropbox.com/",
+  },
+  onedrive: {
+    website: "https://www.microsoft.com/microsoft-365/onedrive/online-cloud-storage",
+    documentation: "https://learn.microsoft.com/graph/onedrive-concept-overview",
+    support: "https://support.microsoft.com/onedrive",
+  },
+  pandadoc: {
+    website: "https://www.pandadoc.com/",
+    documentation: "https://developers.pandadoc.com/",
+    support: "https://support.pandadoc.com/",
+  },
+  apollo: {
+    website: "https://www.apollo.io/",
+    documentation: "https://docs.apollo.io/",
+    support: "https://knowledge.apollo.io/",
+  },
+};
+const categories: Record<(typeof marketplaceApps)[number]["category"], AppCategory> = {
+  Communication: "communication",
+  Calendriers: "calendars",
+  Fichiers: "files",
+  Automatisations: "automations",
+  Ventes: "sales",
+  Réunions: "calling",
+};
+export const appCatalog: CatalogApp[] = [
+  ...legacyCatalog,
+  ...marketplaceApps
+    .filter((app) => !legacyCatalog.some((legacy) => legacy.id === app.id))
+    .map((app) => ({
+      id: app.id,
+      name: app.name,
+      category: categories[app.category],
+      description: app.description,
+      headline: app.description,
+      overview: [
+        app.provider === "google"
+          ? "Une connexion Google partagée, avec les permissions de cette app uniquement. Les autres fonctionnalités Google s’activent par consentement supplémentaire."
+          : "Cette intégration figure dans le catalogue Zyliad. Son connecteur est en développement : aucune donnée n’est importée et aucune connexion n’est proposée avant sa disponibilité.",
+      ],
+      features:
+        app.provider === "google"
+          ? [
+              {
+                title: "Consultez les fichiers autorisés",
+                description:
+                  "L’accès reste limité aux fichiers partagés avec Zyliad, sans importer automatiquement votre espace de stockage.",
+              },
+              {
+                title: "Gardez le contrôle",
+                description:
+                  "Les permissions et l’historique sont accessibles dans la gestion de votre connexion Google.",
+              },
+            ]
+          : [
+              { title: "Fonctionnalités prévues", description: app.description },
+              {
+                title: "Activation à venir",
+                description:
+                  "Les fonctions seront proposées après implémentation et validation du connecteur officiel.",
+              },
+            ],
+      requirements:
+        app.provider === "google"
+          ? "La plateforme Google doit être configurée par votre administrateur et validée avec un compte dédié avant activation générale. Les accès aux fichiers utilisent drive.file."
+          : "Le connecteur doit être implémenté et validé avant installation. Ajouter une clé fournisseur ne suffit pas à l’activer.",
+      ...resources[app.id],
+    })),
 ];
 
 export function categoryName(id: AppCategory) {

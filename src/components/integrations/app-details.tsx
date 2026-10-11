@@ -32,6 +32,7 @@ export function AppDetails({
   busy,
   canInstall,
   needsSetup,
+  comingSoon = false,
   onInstall,
   children,
 }: {
@@ -41,11 +42,18 @@ export function AppDetails({
   busy: boolean;
   canInstall: boolean;
   needsSetup: boolean;
+  comingSoon?: boolean;
   onInstall: () => void;
   children: ReactNode;
 }) {
   const [preview, setPreview] = useState(0);
-  const actionLabel = busy ? "Ouverture…" : installed ? "Configure" : "Install app";
+  const actionLabel = busy
+    ? "Ouverture…"
+    : comingSoon
+      ? "En développement"
+      : installed
+        ? "Configure"
+        : "Install app";
   const previewTitles = ["Vos données", "Synchronisation", "Contexte CRM"];
   const Icon =
     app.category === "communication"
@@ -58,7 +66,7 @@ export function AppDetails({
   const action = (secondary = false) => (
     <button
       className={`button ${secondary ? "" : "primary"} ${styles.installButton}`}
-      disabled={busy || !canInstall || (needsSetup && !installed)}
+      disabled={busy || comingSoon || !canInstall || (needsSetup && !installed)}
       onClick={onInstall}
     >
       {installed ? <CheckCheck size={15} /> : <ArrowRight size={15} />}
@@ -89,7 +97,7 @@ export function AppDetails({
           </div>
           <p>{app.headline}</p>
           {action()}
-          {needsSetup && !installed && (
+          {needsSetup && !installed && !comingSoon && (
             <p className={styles.setupHint}>
               La configuration doit être finalisée par votre administrateur.{" "}
               <a href="#app-configure">Voir Configure</a>
@@ -106,7 +114,7 @@ export function AppDetails({
         <aside className={styles.metadata}>
           <span className={styles.officialBadge}>
             <BadgeCheck size={14} />
-            Official app
+            Connecteur Zyliad
           </span>
           <div>
             <h3>Built by</h3>
@@ -266,7 +274,11 @@ export function AppDetails({
           </section>
           <section id="app-how-it-works" className={styles.articleSection}>
             <h2>How it works</h2>
-            <p>Une fois connectée, cette intégration vous permet de :</p>
+            <p>
+              {comingSoon
+                ? "Fonctionnalités prévues, non activées :"
+                : "Une fois connectée, cette intégration vous permet de :"}
+            </p>
             <ul>
               {app.features.map((feature) => (
                 <li key={feature.title}>
@@ -278,7 +290,7 @@ export function AppDetails({
           <section id="app-configure" className={styles.articleSection}>
             <h2>Configure</h2>
             <p>{app.requirements}</p>
-            {app.id !== "zapier" && (
+            {app.id !== "zapier" && !comingSoon && (
               <ol>
                 <li>
                   Cliquez sur <strong>Install app</strong> pour ouvrir la connexion sécurisée chez

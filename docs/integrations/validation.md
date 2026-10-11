@@ -20,10 +20,14 @@ Les tests simulés ne prouvent pas que Google a approuvé l’application, que l
 
 Sur des comptes dédiés, vérifier : création d’une connexion Calendar minimale ; consentement Gmail supplémentaire sans perdre Calendar ; identité d’un second compte et destruction des mappings du premier ; refresh expiré/révoqué ; lecture bornée ; création et mise à jour avec ETag ; envoi explicitement confirmé ; Sheets RAW ; fichiers explicitement partagés ; rejet de notifications invalides ; reprise après panne et 429 ; déconnexion distante et destruction locale.
 
-La création/rotation des abonnements Gmail/Pub/Sub, le renouvellement Calendar/Drive, le polling de secours, la console UI Manage/permissions, les tools agent/automations et la reprise opérateur de révocation doivent être terminés avant l’activation générale. Les quatorze autres intégrations doivent suivre leur propre documentation officielle et la même Definition of Done ; leur présence dans le catalogue ne vaut pas implémentation.
+La création/rotation des abonnements Gmail/Pub/Sub, le renouvellement Calendar/Drive, le polling de secours, les tools agent/automations et la reprise opérateur de révocation doivent être terminés avant l’activation générale. Les quatorze autres intégrations doivent suivre leur propre documentation officielle et la même Definition of Done ; leur présence dans le catalogue ne vaut pas implémentation.
 
 ## Migration et retour arrière
 
 La migration ajoute dix tables privées avec RLS, des RPC dont les grants sont explicitement restreints et les nouveaux types de jobs. Elle étend le worker existant tout en conservant les dispatchers workflow/agent. Vérifier la liste des migrations, les fonctions attendues et l’absence du nouveau schéma avant application ; vérifier ensuite les tables, grants, RLS et types de queue.
 
 Conserver `FEATURE_INTEGRATION_PLATFORM=false` permet de publier les exécutables sans activer les nouveaux endpoints/jobs. Un rollback applicatif conserve les tables privées et les données chiffrées ; ne pas supprimer des migrations ni détruire les credentials nécessaires à une révocation. Ne pas marquer une connexion ou une intégration « terminée » sur la seule base d’un bouton Connect ou de tests simulés.
+
+## Store et Manage — 11 octobre 2026
+
+596 tests unitaires dans 77 fichiers passent, dont les nouveaux tests du catalogue, des routes et de la gestion Google. Les six groupes SQL du framework passent sur une base locale PostgreSQL 17 initialisée avec toutes les migrations immuables. Le MCP confirme en lecture seule la migration de fondation appliquée et les RLS/grants privés en production. Les parcours OAuth réels demeurent non validés faute d’applications/comptes fournisseurs. Voir [le périmètre détaillé](store.md).

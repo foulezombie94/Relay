@@ -91,9 +91,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
   };
   const PageIcon = pageContent.icon;
   const search = view.search;
-  const [mode, setMode] = useState(
-    slug === "deals" ? "kanban" : "table",
-  );
+  const [mode, setMode] = useState(slug === "deals" ? "kanban" : "table");
   function chooseMode(value: string) {
     const next = value === "kanban" && slug !== "deals" ? "cards" : value;
     setMode(next);

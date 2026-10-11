@@ -123,6 +123,13 @@ const sections = [
     description: "Votre espace, son utilisation et les informations de facturation.",
   },
   {
+    id: "integrations",
+    label: "Intégrations",
+    group: "Espace de travail",
+    icon: Code2,
+    description: "Le store, vos connexions et les permissions de leurs actions IA.",
+  },
+  {
     id: "developpeurs",
     label: "Développeurs",
     group: "Espace de travail",
@@ -549,7 +556,30 @@ function SettingsView() {
               <Notifications embedded />
             </div>
           )}
-          {selected === "assistant" && <SettingsAgent />}
+          {selected === "assistant" && (
+            <>
+              <SettingsAgent />
+              <div className={styles.shortcuts}>
+                <a href="#integrations">
+                  <span>
+                    <ShieldCheck size={19} />
+                  </span>
+                  <div>
+                    <strong>Permissions des intégrations</strong>
+                    <small>
+                      Ouvrez une app connectée pour gérer ses autorisations et confirmations.
+                    </small>
+                  </div>
+                  <ChevronRight size={15} />
+                </a>
+              </div>
+            </>
+          )}
+          {selected === "integrations" && (
+            <div className={styles.integrationContainer}>
+              <IntegrationsPage />
+            </div>
+          )}
           {selected === "utilisation" && <SettingsUsage />}
           {selected === "facturation" && <SettingsUsage billing />}
           {selected === "developpeurs" && (

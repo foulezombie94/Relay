@@ -6,6 +6,27 @@ import styles from "./apps.module.css";
 // Original vendor assets. Keep their colors, proportions and backgrounds intact.
 // unoptimized leaves the provider's SVG/PNG unchanged and avoids server-side CDN fetching.
 const assets: Record<string, { src: string; fallback: string }> = {
+  "api-webhooks": { src: "/icon.svg", fallback: "Z" },
+  "google-drive": {
+    src: "https://www.gstatic.com/images/branding/product/2x/drive_2020q4_48dp.png",
+    fallback: "GD",
+  },
+  "google-sheets": {
+    src: "https://www.gstatic.com/images/branding/product/2x/sheets_2020q4_48dp.png",
+    fallback: "GS",
+  },
+  onedrive: {
+    src: "https://static2.sharepointonline.com/files/fabric/assets/brand-icons/product/svg/onedrive_48x1.svg",
+    fallback: "OD",
+  },
+  slack: { src: "https://slack.com/favicon.ico", fallback: "Sl" },
+  stripe: { src: "https://stripe.com/favicon.ico", fallback: "St" },
+  calendly: { src: "https://calendly.com/favicon.ico", fallback: "Ca" },
+  typeform: { src: "https://www.typeform.com/favicon.ico", fallback: "Ty" },
+  notion: { src: "https://www.notion.com/favicon.ico", fallback: "N" },
+  dropbox: { src: "https://www.dropbox.com/favicon.ico", fallback: "D" },
+  pandadoc: { src: "https://www.pandadoc.com/favicon.ico", fallback: "P" },
+  apollo: { src: "https://www.apollo.io/favicon.ico", fallback: "A" },
   gmail: {
     src: "https://www.gstatic.com/images/branding/product/2x/gmail_2020q4_48dp.png",
     fallback: "G",

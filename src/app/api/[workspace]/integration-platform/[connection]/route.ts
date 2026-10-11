@@ -22,8 +22,19 @@ export async function GET(request: NextRequest, { params }: Params) {
       { user } = await context(workspace, true),
       { store, runtime } = integrationServices(),
       actor = userActor(workspace, user.id);
-    const commandId = z.uuid().parse(request.nextUrl.searchParams.get("command")),
-      loaded = await runtime.load(actor, z.uuid().parse(connection));
+    const loaded = await runtime.load(actor, z.uuid().parse(connection));
+    if (request.nextUrl.searchParams.has("resource")) {
+      const resource = resourceSchema.parse(request.nextUrl.searchParams.get("resource"));
+      assertResourceEnabled(loaded.connection.enabled_integrations, resource);
+      const state = z
+        .object({
+          enabled: z.boolean().default(false),
+          last_sync_at: z.string().nullable().optional(),
+        })
+        .parse(await store.call(actor, "sync_get", { connection_id: connection, resource }));
+      return NextResponse.json(state, { headers: { "Cache-Control": "no-store" } });
+    }
+    const commandId = z.uuid().parse(request.nextUrl.searchParams.get("command"));
     const row = z
       .object({
         encrypted_input: z.string(),
@@ -155,16 +166,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       });
       return NextResponse.json({ healthy: true }, { headers: { "Cache-Control": "no-store" } });
     }
-    if (
-      !loaded.connection.enabled_integrations.includes(
-        input.resource.startsWith("calendar:")
-          ? "google-calendar"
-          : input.resource === "gmail:inbox"
-            ? "gmail"
-            : "google-drive",
-      )
-    )
-      throw new ApiError("Activez cette fonctionnalité avant de synchroniser ses données.", 403);
+    assertResourceEnabled(loaded.connection.enabled_integrations, input.resource);
     if (input.operation === "configure_sync")
       return NextResponse.json(
         {
@@ -260,4 +262,14 @@ export async function POST(request: NextRequest, { params }: Params) {
   } catch (error) {
     return integrationFailure(error);
   }
+}
+
+function assertResourceEnabled(integrations: readonly string[], resource: string) {
+  const integration = resource.startsWith("calendar:")
+    ? "google-calendar"
+    : resource === "gmail:inbox"
+      ? "gmail"
+      : "google-drive";
+  if (!integrations.includes(integration))
+    throw new ApiError("Activez cette fonctionnalité avant de synchroniser ses données.", 403);
 }

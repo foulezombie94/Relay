@@ -6,6 +6,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowUpRight,
   CalendarDays,
+  CreditCard,
+  Folder,
   Check,
   ChevronRight,
   Grid2X2,
@@ -16,7 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useWorkspace, request } from "../providers/data-provider";
-import { Badge, ErrorMessage, date, Loading } from "../ui";
+import { Badge, ErrorMessage, date, Loading, Modal } from "../ui";
 import { ZapierConnection, type ZapierKey } from "../integrations/zapier-connection";
 import { AppLogo } from "../integrations/app-logo";
 import { AppDetails } from "../integrations/app-details";
@@ -28,6 +30,14 @@ import {
   type Connector,
 } from "../integrations/app-catalog";
 import { BackgroundJob } from "../jobs/background-job";
+import { GoogleConsent, PlatformConnection } from "../integrations/platform-connection";
+import {
+  marketplaceSnapshotSchema,
+  appConnection,
+  connectionInstalled,
+  connectionNeedsAttention,
+} from "@/lib/integrations/platform/marketplace";
+import type { IntegrationId } from "@/lib/integrations/platform/contracts";
 import styles from "../integrations/apps.module.css";
 
 const categoryIcons = {
@@ -35,8 +45,10 @@ const categoryIcons = {
   calendars: CalendarDays,
   calling: Video,
   automations: Workflow,
+  files: Folder,
+  sales: CreditCard,
 };
-type Filter = "all" | "installed" | AppCategory;
+type Filter = "all" | "installed" | "attention" | "available" | AppCategory;
 
 export function IntegrationsPage({
   embedded = false,
@@ -50,6 +62,8 @@ export function IntegrationsPage({
   const [term, setTerm] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [clock, setClock] = useState(Date.now);
+  const [consent, setConsent] = useState<string | null>(null);
+  const [legacyDisconnect, setLegacyDisconnect] = useState<string | null>(null);
   const cache = useQueryClient();
   const search = useSearchParams();
   const pathname = usePathname();
@@ -68,25 +82,57 @@ export function IntegrationsPage({
     queryFn: () =>
       request<{ data: ZapierKey[]; configured: boolean }>("/api/" + workspace.id + "/zapier"),
   });
+  const platform = useQuery({
+    queryKey: ["integration-platform", workspace.id],
+    queryFn: async () =>
+      marketplaceSnapshotSchema.parse(await request(`/api/${workspace.id}/integration-platform`)),
+  });
   const apps = appCatalog.filter((app) =>
     providers ? providers.includes(app.id) : !embedded || app.id !== "zapier",
   );
   const isInstalled = (id: string) =>
-    id === "zapier"
+    connectionInstalled(appConnection(platform.data, id)?.status) ||
+    (id === "zapier"
       ? !!zapier.data?.data.some((key) => !key.revoked_at && Date.parse(key.expires_at) > clock)
       : q.data?.data.some(
           (connector) => connector.provider === id && connector.status === "connected",
-        ) === true;
+        ) === true);
+  const needsAttention = (id: string) =>
+    connectionNeedsAttention(appConnection(platform.data, id)?.status) ||
+    q.data?.data.some((row) => row.provider === id && connectionNeedsAttention(row.status)) ===
+      true;
+  const availability = (id: string) => platform.data?.apps.find((app) => app.id === id);
+  const cardStatus = (id: string) => {
+    if (needsAttention(id)) return "À vérifier";
+    if (isInstalled(id)) return "Installed";
+    if (id === "zapier") return zapier.data?.configured ? "Disponible" : "Configuration requise";
+    if (
+      availability(id)?.configured ||
+      q.data?.data.some((row) => row.provider === id && row.configured)
+    )
+      return "Disponible";
+    if (availability(id)?.implemented || q.data?.data.some((row) => row.provider === id))
+      return "Configuration requise";
+    return "En développement";
+  };
   const installedApps = apps.filter((app) => isInstalled(app.id));
   const selectedApp = apps.find((app) => app.id === search.get("app"));
   const connector = q.data?.data.find((item) => item.provider === selectedApp?.id);
+  const selectedAvailability = selectedApp && availability(selectedApp.id);
+  const selectedConnection = selectedApp && appConnection(platform.data, selectedApp.id);
+  const usePlatform =
+    !!selectedAvailability?.implemented &&
+    (!!selectedConnection ||
+      (selectedAvailability.configured && connector?.status !== "connected"));
   function appHref(id?: string) {
     const params = new URLSearchParams(search.toString());
     params.delete("connection_error");
     params.delete("connected");
     if (id) params.set("app", id);
     else params.delete("app");
-    return pathname + (params.size ? "?" + params.toString() : "");
+    return (
+      (embedded ? "/app/integrations" : pathname) + (params.size ? "?" + params.toString() : "")
+    );
   }
   async function action(p: string, method: "POST" | "DELETE" | "PATCH", enabled?: boolean) {
     setBusy(p);
@@ -123,12 +169,20 @@ export function IntegrationsPage({
       setBusy("");
     }
   }
-  async function connect(p: string) {
+  async function connect(p: string, write = false, framework = false) {
     setBusy(p);
     setError("");
     setMessage("");
     try {
-      const r = await request<{ url: string }>("/api/" + workspace.id + "/oauth/" + p, "POST", {});
+      const r = await request<{ url: string }>(
+        framework
+          ? `/api/${workspace.id}/integration-platform/connect`
+          : "/api/" + workspace.id + "/oauth/" + p,
+        "POST",
+        framework
+          ? { integration: p, write, returnPath: embedded ? "/app/settings" : "/app/integrations" }
+          : {},
+      );
       window.location.assign(r.url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Connexion impossible");
@@ -139,7 +193,13 @@ export function IntegrationsPage({
   const visibleApps = apps.filter(
     (app) =>
       (filter === "all" ||
-        (filter === "installed" ? isInstalled(app.id) : app.category === filter)) &&
+        (filter === "installed"
+          ? isInstalled(app.id)
+          : filter === "attention"
+            ? needsAttention(app.id)
+            : filter === "available"
+              ? cardStatus(app.id) === "Disponible"
+              : app.category === filter)) &&
       `${app.name} ${app.description} ${categoryName(app.category)} Zyliad`
         .toLocaleLowerCase("fr")
         .includes(normalizedTerm),
@@ -149,12 +209,18 @@ export function IntegrationsPage({
       ? "All apps"
       : filter === "installed"
         ? "Installed apps"
-        : categoryName(filter);
-  const installationPending = q.isPending || (admin && !embedded && zapier.isPending);
+        : filter === "attention"
+          ? "Needs attention"
+          : filter === "available"
+            ? "Available apps"
+            : categoryName(filter);
+  const installationPending =
+    q.isPending || platform.isPending || (admin && !embedded && zapier.isPending);
 
   return (
     <div className={`${styles.page} ${embedded ? styles.embedded : ""}`}>
       <ErrorMessage error={q.error} />
+      <ErrorMessage error={platform.error} />
       {!embedded && <ErrorMessage error={zapier.error} />}
       {jobId && (
         <BackgroundJob
@@ -187,23 +253,52 @@ export function IntegrationsPage({
           app={selectedApp}
           installed={isInstalled(selectedApp.id)}
           backHref={appHref()}
-          busy={!!busy || q.isPending}
+          busy={!!busy || installationPending}
           canInstall={selectedApp.id === "zapier" ? admin : workspace.role !== "viewer"}
           needsSetup={
-            selectedApp.id === "zapier" ? !zapier.data?.configured : !connector?.configured
+            selectedApp.id === "zapier"
+              ? !zapier.data?.configured
+              : usePlatform
+                ? !selectedAvailability?.configured
+                : !connector?.configured
+          }
+          comingSoon={
+            !selectedAvailability?.implemented && !connector && selectedApp.id !== "zapier"
           }
           onInstall={() => {
             if (selectedApp.id === "zapier" || isInstalled(selectedApp.id)) {
               document
                 .getElementById("app-configure")
                 ?.scrollIntoView({ behavior: "smooth", block: "start" });
-            } else if (connector?.configured) void connect(selectedApp.id);
+            } else if (usePlatform && selectedAvailability?.configured) setConsent(selectedApp.id);
+            else if (connector?.configured) void connect(selectedApp.id);
           }}
         >
           {selectedApp.id === "zapier" ? (
             <ZapierConnection />
-          ) : q.isPending ? (
+          ) : installationPending ? (
             <Loading />
+          ) : usePlatform && selectedConnection && platform.data ? (
+            <PlatformConnection
+              key={`${workspace.id}:${selectedConnection.id}:${selectedApp.id}`}
+              connection={selectedConnection}
+              integration={selectedApp.id as IntegrationId}
+              snapshot={platform.data}
+              workspaceId={workspace.id}
+              admin={admin}
+              writable={workspace.role !== "viewer"}
+              onReconnect={() => setConsent(selectedApp.id)}
+              onChanged={() => platform.refetch()}
+            />
+          ) : usePlatform ? (
+            <div className={styles.setupNotice}>
+              <strong>Connexion Google partagée</strong>
+              <p>
+                Connectez cette fonctionnalité pour accéder à ses permissions et à ses données
+                autorisées. Les autres apps Google demandent leur propre consentement
+                supplémentaire.
+              </p>
+            </div>
           ) : connector ? (
             <div className={styles.connectionPanel}>
               <div className={styles.connectionHeading}>
@@ -254,7 +349,7 @@ export function IntegrationsPage({
                     <button
                       className="button small"
                       disabled={!!busy}
-                      onClick={() => void action(connector.provider, "DELETE")}
+                      onClick={() => setLegacyDisconnect(connector.provider)}
                     >
                       Déconnecter
                     </button>
@@ -305,8 +400,29 @@ export function IntegrationsPage({
               </p>
             </div>
           ) : (
-            <div className="alert error">
-              Impossible de charger cette connexion. Actualisez la page pour réessayer.
+            <div className={styles.setupNotice}>
+              <strong>
+                {selectedAvailability?.implemented
+                  ? "Configuration requise"
+                  : "Connecteur en développement"}
+              </strong>
+              <p>
+                {selectedAvailability?.implemented
+                  ? "Votre administrateur doit configurer et valider la plateforme Google avant activation. Aucun secret ne doit être saisi dans cette page."
+                  : "Cette app est dans le store. Son connecteur n’est pas encore disponible : ajouter une clé API ne l’activera pas."}
+              </p>
+              {admin && !!selectedAvailability?.missing.length && (
+                <details>
+                  <summary>Configuration administrateur</summary>
+                  <p>
+                    Variables serveur : {selectedAvailability.missing.join(", ")}. À configurer sur
+                    Vercel et Railway ; ne remplacez pas la clé de chiffrement des connexions
+                    historiques.
+                  </p>
+                  <code>/api/integration-oauth/google/{workspace.id}/callback</code>
+                  <p>La validation OAuth réelle reste nécessaire avant activation générale.</p>
+                </details>
+              )}
             </div>
           )}
         </AppDetails>
@@ -405,6 +521,23 @@ export function IntegrationsPage({
                   <Check size={16} />
                   Installed<span>{installedApps.length}</span>
                 </button>
+                <button
+                  type="button"
+                  aria-pressed={filter === "available"}
+                  onClick={() => setFilter("available")}
+                >
+                  <Grid2X2 size={16} />
+                  Available
+                  <span>{apps.filter((app) => cardStatus(app.id) === "Disponible").length}</span>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={filter === "attention"}
+                  onClick={() => setFilter("attention")}
+                >
+                  <Workflow size={16} />
+                  Needs attention<span>{apps.filter((app) => needsAttention(app.id)).length}</span>
+                </button>
                 <div className={styles.filterDivider} />
                 {appCategories
                   .filter((category) => apps.some((app) => app.category === category.id))
@@ -440,13 +573,11 @@ export function IntegrationsPage({
                         <div className={styles.appCardHeading}>
                           <AppLogo id={app.id} />
                           <div>
-                            <h4>
-                              {app.name} <BadgeCheckIcon />
-                            </h4>
+                            <h4>{app.name}</h4>
                             <p>By Zyliad</p>
                           </div>
-                          {isInstalled(app.id) && (
-                            <span className={styles.installedBadge}>Installed</span>
+                          {!installationPending && (
+                            <span className={styles.installedBadge}>{cardStatus(app.id)}</span>
                           )}
                         </div>
                         <p className={styles.appDescription}>{app.description}</p>
@@ -486,6 +617,39 @@ export function IntegrationsPage({
           </section>
         </>
       )}
+      {consent && availability(consent) && (
+        <GoogleConsent
+          key={consent}
+          app={availability(consent)!}
+          busy={!!busy}
+          onClose={() => !busy && setConsent(null)}
+          onConnect={(write) => void connect(consent, write, true)}
+        />
+      )}
+      <Modal
+        open={!!legacyDisconnect}
+        onClose={() => !busy && setLegacyDisconnect(null)}
+        title="Déconnecter cette app"
+        description="Cette opération coupe la connexion de ce service pour votre compte."
+      >
+        <p>
+          Les données déjà importées seront conservées. Révoquez aussi le consentement chez le
+          fournisseur si nécessaire.
+        </p>
+        <button className="button" disabled={!!busy} onClick={() => setLegacyDisconnect(null)}>
+          Annuler
+        </button>{" "}
+        <button
+          className="button primary"
+          disabled={!!busy}
+          onClick={() => {
+            if (legacyDisconnect)
+              void action(legacyDisconnect, "DELETE").then(() => setLegacyDisconnect(null));
+          }}
+        >
+          Confirmer la déconnexion
+        </button>
+      </Modal>
     </div>
   );
 }

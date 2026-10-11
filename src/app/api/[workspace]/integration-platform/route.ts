@@ -4,11 +4,9 @@ import { checkOrigin, context, requireAdmin } from "@/lib/api/context";
 import { manageIntegrations } from "@/lib/integrations/platform/store";
 import { sanitizeConnection } from "@/lib/integrations/platform/contracts";
 import { marketplaceApps } from "@/lib/integrations/platform/catalog";
-import {
-  providerConfigured,
-  platformEnabled,
-  scopesFor,
-} from "@/lib/integrations/platform/registry";
+import { platformEnabled } from "@/lib/integrations/platform/registry";
+import { marketplaceAvailability } from "@/lib/integrations/platform/availability";
+import { marketplaceSnapshotSchema } from "@/lib/integrations/platform/marketplace";
 import {
   integrationFailure,
   integrationBody,
@@ -21,8 +19,12 @@ export async function GET(
   try {
     const { workspace } = await params,
       { client } = await context(workspace);
+    const apps = marketplaceAvailability();
     if (!platformEnabled())
-      return NextResponse.json({ enabled: false }, { headers: { "Cache-Control": "no-store" } });
+      return NextResponse.json(
+        { enabled: false, apps, connections: [], policies: [], audit: [], commands: [] },
+        { headers: { "Cache-Control": "no-store" } },
+      );
     const [rows, policies, audit, commands] = await Promise.all([
       manageIntegrations(client, workspace, "list"),
       manageIntegrations(client, workspace, "policies"),
@@ -30,20 +32,14 @@ export async function GET(
       manageIntegrations(client, workspace, "commands"),
     ]);
     return NextResponse.json(
-      {
+      marketplaceSnapshotSchema.parse({
         enabled: true,
         connections: z.array(z.record(z.string(), z.unknown())).parse(rows).map(sanitizeConnection),
         policies,
         audit,
         commands,
-        apps: marketplaceApps.map((app) => {
-          let scopes: string[] = [];
-          try {
-            scopes = scopesFor(app.id);
-          } catch {}
-          return { ...app, configured: providerConfigured(app.provider), scopes };
-        }),
-      },
+        apps,
+      }),
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {

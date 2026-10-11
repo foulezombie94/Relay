@@ -1,6 +1,6 @@
 # Plateforme d’intégrations Zyliad
 
-État au 10 octobre 2026 : fondation backend et premier adapter Google, **désactivés par défaut**. Cette livraison ne certifie pas les 19 intégrations en production. Les applications OAuth et comptes de test ne sont pas encore disponibles. La marketplace et les connecteurs historiques continuent de fonctionner ; aucune connexion historique n’est migrée implicitement.
+État au 11 octobre 2026 : fondation backend et premier adapter Google, **désactivés par défaut**. Cette livraison ne certifie pas les 19 intégrations en production. Les applications OAuth et comptes de test ne sont pas encore disponibles. La marketplace et les connecteurs historiques continuent de fonctionner ; aucune connexion historique n’est migrée implicitement.
 
 ## Composants livrés
 
@@ -15,14 +15,16 @@
 - Déconnexion immédiate côté Zyliad, annulation des jobs de cette connexion, révocation distante différée puis destruction des credentials. Un membership supprimé ou rétrogradé déclenche aussi la révocation.
 - Historique d’audit sans contenu privé, RPC de métriques, tests SQL d’isolation et scan de secrets des sources, logs de tests et bundles navigateur en CI.
 
+Le [store et ses limites](store.md) affichent les 19 fiches avec leur disponibilité réelle. La gestion Google, les permissions et confirmations sont intégrées au store ; les connexions historiques et Zapier limité restent accessibles.
+
 ## Périmètre des fournisseurs
 
-| Intégrations                                                               | État                                                                                                                                                                |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Google Calendar, Gmail, Drive, Sheets, Meet P0                             | Actions backend et synchronisation sélectionnée ; tests locaux simulés. Validation OAuth réelle, UI Manage complète et branchement des tools IA restent à terminer. |
-| Outlook, Outlook Calendar, OneDrive                                        | Catalogue uniquement ; adapter Microsoft à implémenter après consultation officielle.                                                                               |
-| Slack, Stripe, Calendly, Typeform, Notion, Dropbox, PandaDoc, Apollo, Zoom | Catalogue uniquement ; adapters à implémenter après consultation officielle.                                                                                        |
-| API/Webhooks Zyliad, Zapier                                                | Catalogue uniquement ; API publique, livraisons sortantes et intégration Zapier à implémenter.                                                                      |
+| Intégrations                                                               | État                                                                                                                                                                     |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Google Calendar, Gmail, Drive, Sheets, Meet P0                             | Actions backend et synchronisation sélectionnée ; tests locaux simulés. UI Manage et permissions livrées ; validation OAuth réelle et branchement IA restent à terminer. |
+| Outlook, Outlook Calendar, OneDrive                                        | Catalogue uniquement ; adapter Microsoft à implémenter après consultation officielle.                                                                                    |
+| Slack, Stripe, Calendly, Typeform, Notion, Dropbox, PandaDoc, Apollo, Zoom | Catalogue uniquement ; adapters à implémenter après consultation officielle.                                                                                             |
+| API/Webhooks Zyliad, Zapier                                                | Catalogue uniquement ; API publique, livraisons sortantes et intégration Zapier à implémenter.                                                                           |
 
 `providerFor()` rejette explicitement les familles non implémentées. La présence d’une carte catalogue n’implique jamais une connexion disponible. Les policies et commandes du framework ne sont pas encore intégrées à la boucle de l’agent historique ; elles ne changent pas ses permissions existantes.
 
@@ -38,7 +40,7 @@ Le nouveau backend est sous `/api/{workspace}/integration-platform`. GET renvoie
 
 ## Limites à lever avant production
 
-L’enregistrement et le renouvellement automatiques de Gmail/Pub/Sub, le polling de secours, le renouvellement des canaux Calendar/Drive, les alertes opérationnelles, la rétention configurable, la gestion UI complète et le branchement des tools agent/automations ne sont pas terminés. Le vérificateur Gmail est testé, mais aucun abonnement Pub/Sub n’est créé par un bouton actuel. Le job `integration_delivery` est réservé et refuse l’exécution tant que les webhooks sortants ne sont pas implémentés.
+L’enregistrement et le renouvellement automatiques de Gmail/Pub/Sub, le polling de secours, le renouvellement des canaux Calendar/Drive, les alertes opérationnelles, la rétention configurable, la gestion opérationnelle des révocations et le branchement des tools agent/automations ne sont pas terminés. Le vérificateur Gmail est testé, mais aucun abonnement Pub/Sub n’est créé par un bouton actuel. Le job `integration_delivery` est réservé et refuse l’exécution tant que les webhooks sortants ne sont pas implémentés.
 
 Une révocation distante qui échoue demeure en dead letter avec un credential chiffré, inutilisable pour les actions Zyliad et conservé pour la reprise opérateur. La console d’exploitation doit permettre cette reprise avant activation générale. Ne pas détruire l’unique refresh token tant qu’une révocation distante reste à réaliser. Détruire les clés d’un ancien keyring seulement après rotation de **tous** les credentials, états, curseurs, subscriptions, commandes et résultats encore retenus.
 
