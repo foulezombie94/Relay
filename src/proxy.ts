@@ -5,7 +5,15 @@ import { getSupabaseConfig } from "@/lib/supabase/config";
 import { supabaseFetch } from "@/lib/supabase/fetch";
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
-  if (request.nextUrl.pathname === "/api/health" || request.nextUrl.pathname === "/api/jobs/run")
+  if (
+    request.nextUrl.pathname === "/api/health" ||
+    request.nextUrl.pathname === "/api/jobs/run" ||
+    request.nextUrl.pathname === "/api/mcp" ||
+    request.nextUrl.pathname === "/mcp/zyliad-mcp-1.0.0.tgz" ||
+    (request.nextUrl.pathname.startsWith("/api/mcp/oauth/") &&
+      !request.nextUrl.pathname.endsWith("/consent")) ||
+    request.nextUrl.pathname.startsWith("/.well-known/")
+  )
     return response;
   const isHome = request.nextUrl.pathname === "/";
   // The home route varies by session. Even its anonymous response must not be

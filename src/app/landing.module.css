@@ -2043,3 +2043,31 @@
     font-size: 8px;
   }
 }
+.mcpSection {
+  padding: 100px 28px;
+  background: #f9fafc;
+  border-top: 1px solid #e8edf4;
+  color: #1f2e47;
+  scroll-margin-top: 80px;
+}
+.mcpSection h2 {
+  text-align: center;
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: -1.5px;
+  margin: 14px 0;
+  font-weight: 600;
+}
+.mcpEyebrow {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #7e8da6;
+}
+.mcpDescription {
+  max-width: 630px;
+  margin: 0 auto 36px;
+  text-align: center;
+  color: #7d8aa0;
+  font-size: 14px;
+  line-height: 1.8;
+}

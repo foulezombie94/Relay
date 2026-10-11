@@ -40,6 +40,7 @@ import { SettingsUsage, SettingsAgent } from "../settings/usage";
 import { IntegrationsPage } from "./integrations";
 import { Notifications } from "../layout/notifications";
 import { ZapierConnection } from "../integrations/zapier-connection";
+import { McpConnection } from "../mcp/connection";
 import { browserDb } from "@/lib/supabase/client";
 import type { Row } from "@/lib/domain/types";
 import styles from "../settings/settings.module.css";
@@ -584,6 +585,7 @@ function SettingsView() {
           {selected === "facturation" && <SettingsUsage billing />}
           {selected === "developpeurs" && (
             <>
+              <McpConnection key={workspace.id} />
               <div className={styles.inlineNotice}>
                 <ShieldCheck size={16} />
                 Les clés d’intégration restent limitées à leur espace, leurs permissions et leur

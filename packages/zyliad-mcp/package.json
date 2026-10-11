@@ -1,0 +1,21 @@
+{
+  "name": "zyliad-mcp",
+  "version": "1.0.0",
+  "description": "Zyliad OAuth remote MCP bridge for stdio clients, built with the official MCP v2 SDK",
+  "type": "module",
+  "bin": {
+    "zyliad-mcp": "src/cli.mjs"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.3.1",
+    "@modelcontextprotocol/server": "2.3.1",
+    "zod": "4.6.5"
+  }
+}

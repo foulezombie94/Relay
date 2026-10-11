@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import ProductPreview, { ProductScene } from "./landing-preview";
 import styles from "./landing.module.css";
+import { McpInstaller } from "@/components/mcp/installer";
 
 const display = localFont({
   src: "../../public/fonts/manrope.ttf",
@@ -390,6 +391,16 @@ export default function Home() {
               </details>
             ))}
           </div>
+        </section>
+        <section id="mcp" className={styles.mcpSection}>
+          <p className={styles.mcpEyebrow}>ZYLIAD MCP</p>
+          <h2>Votre CRM. Là où vous travaillez.</h2>
+          <p className={styles.mcpDescription}>
+            Retrouvez vos contacts, préparez vos réunions et analysez vos opportunités dans Claude
+            Code ou Codex. Une connexion sécurisée, des permissions explicites, vos modifications
+            sous contrôle.
+          </p>
+          <McpInstaller />
         </section>
         <section className={styles.finalCta}>
           <h2>

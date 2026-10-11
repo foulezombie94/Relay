@@ -13,6 +13,8 @@ Pour débuter : [README](../README.md), [contribution](../CONTRIBUTING.md), [arc
 
 ## Fonctionnalités
 
+- MCP : [serveur distant OAuth, Claude Code/Codex, permissions et validation](features/mcp.md)
+
 - Ask Relay : [agent et sécurité](features/ask-relay/ask-relay-agent.md), [identité](features/ask-relay/ask-relay-identity-intelligence.md), [interface](features/ask-relay/ask-relay-interface.md)
 - CRM : [écrans et flux](features/crm/crm-pages.md), [opérations quotidiennes](features/crm/daily-crm-operations.md), [doublons](features/crm/duplicate-lifecycle.md), [paramètres](features/crm/settings-interface.md)
 - Dashboard : [blocs, widgets, données et validation](features/dashboard.md)

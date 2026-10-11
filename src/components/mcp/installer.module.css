@@ -1,0 +1,175 @@
+.installer {
+  border: 1px solid #dfe3eb;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+  color: #1e293b;
+  box-shadow: 0 18px 60px #1c315908;
+  max-width: 920px;
+  margin: 0 auto;
+}
+.clients {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  gap: 8px;
+  border-bottom: 1px solid #e8ebf0;
+  background: #fafbfc;
+}
+.clients button {
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font: inherit;
+  color: #657086;
+}
+.clients button[aria-selected="true"] {
+  background: white;
+  border-color: #e1e5ec;
+  color: #172238;
+  box-shadow: 0 2px 6px #192f4b06;
+}
+.clients button span {
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+}
+.clients small {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: #8893a5;
+  margin-top: 3px;
+}
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 11px;
+  color: #61748d;
+  padding: 0 12px;
+}
+.panel {
+  padding: 24px;
+}
+.modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 16px;
+}
+.modes button {
+  background: transparent;
+  border: 0;
+  padding: 7px 11px;
+  border-radius: 6px;
+  color: #69758b;
+  font-size: 11px;
+  cursor: pointer;
+}
+.modes button[aria-pressed="true"] {
+  background: #eef2f8;
+  color: #192b4d;
+  font-weight: 600;
+}
+.terminal {
+  border: 1px solid #e1e6ee;
+  border-radius: 10px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+.terminalHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #e5eaf1;
+  font-size: 10px;
+  color: #8390a4;
+}
+.terminalHead button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: #53657f;
+  font-size: 11px;
+  cursor: pointer;
+}
+.terminal pre {
+  margin: 0;
+  padding: 22px 16px;
+  overflow: auto;
+  font:
+    12px/1.9 ui-monospace,
+    SFMono-Regular,
+    Consolas,
+    monospace;
+  color: #27364d;
+}
+.panel p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #798599;
+  margin: 16px 0 0;
+}
+.footer {
+  margin-top: 20px;
+  border-top: 1px solid #edf0f5;
+  padding-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 11px;
+  color: #8993a5;
+}
+.footer a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #334d76;
+  text-decoration: none;
+}
+.compact {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: none;
+}
+.compact .panel {
+  padding: 18px;
+}
+.compact .clients button {
+  padding: 8px 12px;
+}
+@media (max-width: 600px) {
+  .clients {
+    gap: 4px;
+    padding: 8px;
+  }
+  .clients button {
+    padding: 10px;
+  }
+  .clients button span {
+    font-size: 12px;
+  }
+  .badge {
+    padding: 0 5px;
+    font-size: 10px;
+  }
+  .panel {
+    padding: 16px;
+  }
+  .terminal pre {
+    font-size: 11px;
+  }
+  .footer {
+    flex-direction: column;
+  }
+}

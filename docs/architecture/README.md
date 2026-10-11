@@ -32,6 +32,7 @@ src/
     records/             fiches, tableaux, vues, import/export
     settings/            apparence, usage, équipe et accès
     communications/      lecture de fils et composition de modèles
+    mcp/                 installation, consentement et confirmations MCP
     integrations/        interface Zapier
     reports/             prévisions et constructeur de rapports
     portal/              interface du portail client
@@ -46,6 +47,7 @@ src/
     domain/              types, schemas et calculs métier
     api/                 session, validation, filtres, lectures et RPC
     agent/               orchestration, outils, sécurité et fournisseur IA
+    mcp/                 serveur SDK v2, OAuth et contrats des outils
     integrations/        OAuth, sync, livraison et adaptateurs externes
     jobs/                queue, lanes, runner et handlers
     supabase/            clients navigateur/serveur/privilégié et session
@@ -99,6 +101,10 @@ L'écran `src/components/pages/assistant.tsx` utilise les composants de `assista
 Les 37 outils métier restent disponibles avec découverte progressive. Le message utilisateur est séparé des résultats non fiables. Les citations sont vérifiées sur les sources autorisées et consultées. Les mutations passent par les autorisations et confirmations exactes du backend ; une instruction d'email ne devient jamais une autorisation. Les quotas et événements fournisseur sont réservés et enregistrés en base.
 
 L'exécution différée passe par la route `assistant/actions/`, les fonctions SQL et `src/lib/jobs/handlers/agent.ts`. L'interface montre le statut de l'action renvoyé par le serveur. Elle ne déduit pas « envoyé » du texte du modèle. Voir [l'agent et sa sécurité](../features/ask-relay/ask-relay-agent.md).
+
+### MCP distant avec OAuth
+
+`src/lib/mcp/` et `/api/mcp` servent le protocole avec le SDK v2. Le consentement authentifié sélectionne un workspace et des scopes. Les tokens sont hashés en privé ; le backend réduit ses privilèges à un rôle soumis aux RLS métier. Les écritures restent des propositions exactes, confirmées dans Paramètres → Développeurs. Le pont npm optionnel est dans `packages/zyliad-mcp`, son archive distribuée par le site dans `public/mcp`. Voir [contrats, sécurité, déploiement et tests](../features/mcp.md).
 
 ### Intégrations et worker
 

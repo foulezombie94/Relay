@@ -63,6 +63,7 @@ jobs:
       - run: node --import tsx scripts/tests/migrate-local.mts
       - run: npm run test:integrations:db
       - run: npm run test:agent:db
+      - run: npm run test:mcp:db
       - run: npm run test:performance:db
       - run: npm run test:agent:concurrency
       - run: npm run test:agent:tokens

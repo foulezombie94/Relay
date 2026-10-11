@@ -85,6 +85,10 @@ describe("persistent session security", () => {
   ])("rejects untrusted redirect destinations: %s", (next) => {
     expect(loginDestination(next)).toBe("/app/dashboard");
   });
+  it("preserves only the fixed MCP consent path", () => {
+    expect(loginDestination("/mcp/authorize")).toBe("/mcp/authorize");
+    expect(loginDestination("/mcp/authorize?next=https://evil.example")).toBe("/app/dashboard");
+  });
   it("preserves the invitation flow", () => expect(loginDestination("/invite")).toBe("/invite"));
   it("resumes onboarding after login", () =>
     expect(loginDestination("/onboarding")).toBe("/onboarding"));
