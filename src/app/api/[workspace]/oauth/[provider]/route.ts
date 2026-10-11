@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { context, checkOrigin, databaseError, fail } from "@/lib/api/context";
 import { config, provider, seal, state, digest } from "@/lib/integrations/oauth";
 import { services } from "@/lib/integrations/services";
+import { credentialClient } from "@/lib/integrations/credential-client";
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ workspace: string; provider: string }> },
@@ -14,7 +15,8 @@ export async function POST(
     // Next may canonicalize the request URL to localhost; preserve the validated browser origin for OAuth cookies.
     const c = config(name, req.headers.get("origin") || req.nextUrl.origin);
     const s = state();
-    const { error } = await client.rpc("integration_oauth_begin", {
+    const credentials = await credentialClient(client);
+    const { error } = await credentials.rpc("integration_oauth_begin", {
       w: workspace,
       p: name,
       state_hash: digest(s.state),

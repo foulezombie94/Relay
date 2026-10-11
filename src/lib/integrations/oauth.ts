@@ -12,6 +12,7 @@ import {
 } from "./services";
 import { seal, unseal } from "./crypto";
 import { providerFailure } from "./provider-errors";
+import { credentialClient } from "./credential-client";
 export { seal, unseal, state, digest } from "./crypto";
 export type Provider = Service;
 export function provider(value: string): Service {
@@ -129,6 +130,7 @@ async function saved(client: SupabaseClient, w: string, p: Service) {
   return data as SavedConnection;
 }
 export async function connection(client: SupabaseClient, w: string, p: Service) {
+  client = await credentialClient(client);
   let data = await saved(client, w, p);
   let tokens = unseal<Tokens>(data.encrypted_tokens);
   if (!hasRequiredScopes(p, (tokens.scope || "").split(/\s+/).filter(Boolean)))
@@ -194,6 +196,7 @@ export async function storeTokens(
   tokens: Tokens,
   oauthHash: string,
 ) {
+  client = await credentialClient(client);
   const { error } = await client.rpc("integration_save", {
     w,
     p,

@@ -9,6 +9,7 @@ import {
   digest,
 } from "@/lib/integrations/oauth";
 import { services, hasRequiredScopes } from "@/lib/integrations/services";
+import { credentialClient } from "@/lib/integrations/credential-client";
 export async function GET(req: NextRequest, { params }: { params: Promise<{ provider: string }> }) {
   const raw = (await params).provider;
   let message = "Connexion impossible. Recommencez depuis les intégrations.";
@@ -29,7 +30,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
       throw new ApiError("Autorisation invalide ou expirée.");
     const { client, user } = await context(s.workspace, true);
     if (user.id !== s.user) throw new ApiError("La session a changé.");
-    const { data: consumed, error } = await client.rpc("integration_oauth_consume", {
+    const credentials = await credentialClient(client);
+    const { data: consumed, error } = await credentials.rpc("integration_oauth_consume", {
       w: s.workspace,
       p,
       state_hash: digest(s.state),

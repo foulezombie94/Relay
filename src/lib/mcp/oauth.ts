@@ -14,6 +14,7 @@ import {
   opaque,
 } from "./oauth-validation";
 import { defaultScopes, scopes } from "./contracts";
+import { oauthRateKey } from "./oauth-rate-key";
 
 const noStore = { "Cache-Control": "no-store", Pragma: "no-cache" };
 export const randomSecret = () => randomBytes(32).toString("base64url");
@@ -86,7 +87,7 @@ export async function oauthGet(req: NextRequest, operation: string) {
     if (body.resource !== mcpResource())
       throw new ApiError("Wrong resource.", 400, "invalid_target");
     const flow = randomSecret();
-    await oauthDb("begin", { ...body, flow_hash: hash(flow) });
+    await oauthDb("begin", { ...body, flow_hash: hash(flow), rate_limit_key: oauthRateKey(req) });
     const response = NextResponse.redirect(mcpOrigin() + "/mcp/authorize", 303);
     response.cookies.set(flowCookie, flow, {
       httpOnly: true,
@@ -108,7 +109,7 @@ export async function oauthPost(req: NextRequest, operation: string) {
       if (req.headers.get("content-type")?.split(";")[0] !== "application/json")
         throw new ApiError("JSON required.", 415);
       const body = registrationSchema.parse(await boundedJsonBody(req, 12000));
-      const registered = await oauthDb("register", body);
+      const registered = await oauthDb("register", { ...body, rate_limit_key: oauthRateKey(req) });
       return NextResponse.json(
         {
           ...body,
@@ -132,6 +133,7 @@ export async function oauthPost(req: NextRequest, operation: string) {
           resource: body.resource,
           access_hash: hash(access),
           new_refresh_hash: hash(refresh),
+          rate_limit_key: oauthRateKey(req),
           ...(body.grant_type === "authorization_code"
             ? {
                 code_hash: hash(body.code),
