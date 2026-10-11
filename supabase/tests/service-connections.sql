@@ -7,6 +7,10 @@ begin
  perform set_config('request.jwt.claim.sub',u::text,true);perform set_config('request.jwt.claims',jsonb_build_object('sub',u,'role','authenticated')::text,true);
  w:=public.create_workspace('Integration fixture — rollback');w2:=public.create_workspace('Other fixture — rollback');
  execute 'set local role authenticated';
+ begin perform public.integration_get(w,'gmail');raise exception 'Browser can read credential ciphertext';exception when insufficient_privilege then null;end;
+ begin perform public.integration_oauth_begin(w,'gmail',h);raise exception 'Browser can create credential state';exception when insufficient_privilege then null;end;
+ begin perform public.integration_server(w,'gmail',u,'integration_get');raise exception 'Browser can call server credential gateway';exception when insufficient_privilege then null;end;
+ execute 'set local role service_role';
  perform public.integration_oauth_begin(w,'gmail',h);
  if public.integration_oauth_consume(w2,'gmail',h) or public.integration_oauth_consume(w,'outlook',h) then raise exception 'OAuth context escaped';end if;
  if not public.integration_oauth_consume(w,'gmail',h) or public.integration_oauth_consume(w,'gmail',h) then raise exception 'OAuth replay';end if;
@@ -19,6 +23,7 @@ begin
  perform public.integration_oauth_begin(w,'gmail',h);perform public.integration_oauth_consume(w,'gmail',h);perform public.integration_disconnect(w,'gmail');
  begin perform public.integration_save(w,'gmail','fixture@example.invalid','late fixture',array['scope'],h);raise exception 'Cancelled OAuth saved';exception when insufficient_privilege then null;end;
  insert into integration_results values('OAuth context, single use, refresh lock/version and cancellation');
+ execute 'set local role authenticated';
  k:=public.zapier_key_create(w,'Fixture','test',secret_hash,array['records:read','records:write','tasks:read','tasks:write']);
  begin perform public.zapier_request(secret_hash,'verify','people');raise exception 'Authenticated called privileged gateway';exception when insufficient_privilege then null;end;
  insert into integration_results values('Privileged Zapier gateway inaccessible to authenticated');

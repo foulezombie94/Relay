@@ -38,6 +38,7 @@ try {
     "commercial-features",
     "duplicate-lifecycle",
     "service-connections",
+    "security-boundaries",
     "crm-migrations",
     "crm-save-reliability",
     "onboarding",
