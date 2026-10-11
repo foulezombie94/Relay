@@ -1,0 +1,6234 @@
+{
+  "reviewed_on": "2026-10-11",
+  "method": "Each of 468 originals opened individually; four GIFs additionally examined at four frame positions.",
+  "images": [
+    {
+      "id": 1,
+      "file": "12-Settings/001-update-profile.png",
+      "width": 2630,
+      "height": 1362,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/account-settings/account-settings",
+          "title": "Account settings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "file": "12-Settings/002-notifications-inbox.png",
+      "width": 1471,
+      "height": 1299,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/account-settings/notifications",
+          "title": "Notifications | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "file": "12-Settings/003-notifications-settings.png",
+      "width": 2614,
+      "height": 1414,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/account-settings/notifications",
+          "title": "Notifications | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/tools-and-extensions/attio-on-mobile",
+          "title": "Attio on mobile | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "file": "12-Settings/004-attio-appearance-settings.png",
+      "width": 2716,
+      "height": 1254,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/account-settings/personalize-attios-appearance",
+          "title": "Personalize Attio's appearance | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "file": "12-Settings/005-sign-in-page-min.png",
+      "width": 1880,
+      "height": 1206,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/account-settings/signing-into-attio",
+          "title": "Signing into Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "file": "12-Settings/007-workspace.png",
+      "width": 1796,
+      "height": 804,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "file": "12-Settings/008-members.png",
+      "width": 2100,
+      "height": 1144,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "file": "12-Settings/009-standard-and-custom-objects.png",
+      "width": 2116,
+      "height": 1250,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/define-your-data-model-objects-lists-and-views",
+          "title": "Define your data model: objects, lists, and views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "file": "02-CRM-Records/010-single-record.png",
+      "width": 2026,
+      "height": 152,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "file": "02-CRM-Records/011-view-all-companies.png",
+      "width": 2284,
+      "height": 1128,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "file": "12-Settings/012-system-attributes.png",
+      "width": 2060,
+      "height": 1398,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "file": "02-CRM-Records/013-one-to-many-relationship-attribute-setup.png",
+      "width": 1720,
+      "height": 856,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/relationship-attributes",
+          "title": "Relationship attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "file": "03-Lists-Tables/014-lists.png",
+      "width": 2460,
+      "height": 1468,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/create-lists",
+          "title": "Create lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "file": "03-Lists-Tables/015-list-entry.png",
+      "width": 1588,
+      "height": 450,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "file": "03-Lists-Tables/016-views.png",
+      "width": 1230,
+      "height": 742,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "file": "03-Lists-Tables/017-table-view.png",
+      "width": 1458,
+      "height": 1032,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "file": "03-Lists-Tables/018-kanban-view.png",
+      "width": 2068,
+      "height": 1392,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-kanban-views",
+          "title": "Create and manage kanban views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "file": "02-CRM-Records/019-enriched-data.png",
+      "width": 1514,
+      "height": 580,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "file": "09-Reports/020-time-in-stage.png",
+      "width": 2442,
+      "height": 1350,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/set-up-a-time-in-stage-report",
+          "title": "Set up a Time in stage report | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "file": "09-Reports/021-dashboard.png",
+      "width": 2446,
+      "height": 1452,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attio-glossary",
+          "title": "Attio glossary | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "file": "02-CRM-Records/022-understanding_attributes_columns.png",
+      "width": 1848,
+      "height": 726,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "file": "02-CRM-Records/023-understandingattributes002.png",
+      "width": 1019,
+      "height": 677,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "file": "02-CRM-Records/024-record-details-record-page.png",
+      "width": 1920,
+      "height": 1224,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/enriched-data",
+          "title": "Enriched data | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+          "title": "Create and view records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "file": "02-CRM-Records/025-understandingattributes004.png",
+      "width": 1523,
+      "height": 867,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "file": "02-CRM-Records/026-understandingattributes005.png",
+      "width": 2529,
+      "height": 730,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "file": "02-CRM-Records/027-understandingattributes006.png",
+      "width": 1586,
+      "height": 1332,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "file": "02-CRM-Records/028-understandingattributes007.png",
+      "width": 1192,
+      "height": 260,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "file": "02-CRM-Records/029-understandingattributes008.png",
+      "width": 1175,
+      "height": 416,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "file": "02-CRM-Records/030-understandingattributes009.png",
+      "width": 1590,
+      "height": 818,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "file": "02-CRM-Records/031-understandingattributes010.png",
+      "width": 1528,
+      "height": 488,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "file": "02-CRM-Records/032-understandingattributes011.png",
+      "width": 2512,
+      "height": 792,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "file": "03-Lists-Tables/033-lists-section-record-page.png",
+      "width": 1962,
+      "height": 1550,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-attio-data-model",
+          "title": "Understanding Attio's data model | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+          "title": "Create and view records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "file": "02-CRM-Records/034-understandingattributes014.png",
+      "width": 1584,
+      "height": 1204,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "file": "02-CRM-Records/035-understandingattributes015.png",
+      "width": 1567,
+      "height": 386,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "file": "02-CRM-Records/036-understandingattributes016.png",
+      "width": 2212,
+      "height": 1094,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "file": "02-CRM-Records/037-understandingattributes017.png",
+      "width": 2222,
+      "height": 1129,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "file": "02-CRM-Records/038-understandingattributes018.png",
+      "width": 1524,
+      "height": 515,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+          "title": "Understanding attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "file": "02-CRM-Records/039-attiodatamodel_objects.png",
+      "width": 2030,
+      "height": 1466,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/define-your-data-model-objects-lists-and-views",
+          "title": "Define your data model: objects, lists, and views | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-attio-data-model",
+          "title": "Understanding Attio's data model | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "file": "03-Lists-Tables/040-deals-kanban.png",
+      "width": 10320,
+      "height": 5816,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/define-your-data-model-objects-lists-and-views",
+          "title": "Define your data model: objects, lists, and views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 41,
+      "file": "01-Navigation/041-workspaces-nobg.png",
+      "width": 4395,
+      "height": 2686,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/define-your-data-model-objects-lists-and-views",
+          "title": "Define your data model: objects, lists, and views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "file": "02-CRM-Records/042-user-record.png",
+      "width": 1675,
+      "height": 159,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/define-your-data-model-objects-lists-and-views",
+          "title": "Define your data model: objects, lists, and views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "file": "03-Lists-Tables/043-understandinglists_1.png",
+      "width": 2526,
+      "height": 1166,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/define-your-data-model-objects-lists-and-views",
+          "title": "Define your data model: objects, lists, and views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "file": "02-CRM-Records/044-attiodatamodel_attributes.png",
+      "width": 1670,
+      "height": 576,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-attio-data-model",
+          "title": "Understanding Attio's data model | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "file": "01-Navigation/045-understanding-attios-data-model-2.png",
+      "width": 2106,
+      "height": 180,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-attio-data-model",
+          "title": "Understanding Attio's data model | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "file": "03-Lists-Tables/046-understandingdatamodel_kanban.png",
+      "width": 1796,
+      "height": 876,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-attio-data-model",
+          "title": "Understanding Attio's data model | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "file": "02-CRM-Records/047-full-record-page-overview.png",
+      "width": 1829,
+      "height": 1067,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-attio-data-model",
+          "title": "Understanding Attio's data model | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+          "title": "Create and view records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "file": "03-Lists-Tables/048-attiodatamodel_lists1.png",
+      "width": 2252,
+      "height": 1538,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-attio-data-model",
+          "title": "Understanding Attio's data model | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "file": "03-Lists-Tables/049-recruiting-list.png",
+      "width": 2458,
+      "height": 1464,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-table-views",
+          "title": "Create and manage table views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "file": "03-Lists-Tables/050-recruiting-list-example.png",
+      "width": 1344,
+      "height": 1186,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "file": "03-Lists-Tables/051-recruiting-list-kanban.png",
+      "width": 2460,
+      "height": 1454,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "file": "03-Lists-Tables/052-list-stages.png",
+      "width": 1642,
+      "height": 1008,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "file": "03-Lists-Tables/053-create-a-list.png",
+      "width": 1250,
+      "height": 914,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/create-lists",
+          "title": "Create lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "file": "03-Lists-Tables/054-understandinglists_7.png",
+      "width": 2470,
+      "height": 1260,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 55,
+      "file": "03-Lists-Tables/055-new-list.png",
+      "width": 1454,
+      "height": 528,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "file": "03-Lists-Tables/056-new-view-table-kanban.png",
+      "width": 2460,
+      "height": 1456,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "file": "03-Lists-Tables/057-new-kanban-view.png",
+      "width": 1276,
+      "height": 742,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "file": "03-Lists-Tables/058-new-kanban-stage.png",
+      "width": 988,
+      "height": 680,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 59,
+      "file": "03-Lists-Tables/059-understanding_lists_table.png",
+      "width": 1344,
+      "height": 618,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 60,
+      "file": "03-Lists-Tables/060-new-table-view.png",
+      "width": 2444,
+      "height": 1458,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 61,
+      "file": "03-Lists-Tables/061-add-person-to-list.png",
+      "width": 1856,
+      "height": 1276,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 62,
+      "file": "03-Lists-Tables/062-add-column-table-view.png",
+      "width": 1844,
+      "height": 1268,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 63,
+      "file": "03-Lists-Tables/063-table-view-with-attributes.png",
+      "width": 2468,
+      "height": 966,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 64,
+      "file": "03-Lists-Tables/064-edit-column-label.png",
+      "width": 1578,
+      "height": 950,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-table-views",
+          "title": "Create and manage table views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 65,
+      "file": "03-Lists-Tables/065-original-attribute-name.png",
+      "width": 1574,
+      "height": 992,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-table-views",
+          "title": "Create and manage table views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 66,
+      "file": "03-Lists-Tables/066-enriched-attribute-label.png",
+      "width": 1563,
+      "height": 762,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 67,
+      "file": "03-Lists-Tables/067-add-list-stage.png",
+      "width": 2158,
+      "height": 996,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 68,
+      "file": "03-Lists-Tables/068-new-list-attribute.png",
+      "width": 1808,
+      "height": 1304,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 69,
+      "file": "03-Lists-Tables/069-hiring-manager-attribute.png",
+      "width": 1836,
+      "height": 1234,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 70,
+      "file": "03-Lists-Tables/070-filter-list.png",
+      "width": 2460,
+      "height": 736,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 71,
+      "file": "03-Lists-Tables/071-kanban-cards.png",
+      "width": 2082,
+      "height": 732,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 72,
+      "file": "03-Lists-Tables/072-add-card-rows-kanban.png",
+      "width": 2078,
+      "height": 1292,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 73,
+      "file": "09-Reports/073-time-in-stage-kanban.png",
+      "width": 1568,
+      "height": 1290,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 74,
+      "file": "03-Lists-Tables/074-hide-delete-stage-kanban.png",
+      "width": 1578,
+      "height": 1062,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 75,
+      "file": "03-Lists-Tables/075-remove-no-stage-kanban.png",
+      "width": 1566,
+      "height": 1064,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 76,
+      "file": "03-Lists-Tables/076-bulk-stage-updates.png",
+      "width": 1976,
+      "height": 1452,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-lists",
+          "title": "Understanding lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 77,
+      "file": "01-Navigation/077-enable-objects.png",
+      "width": 2106,
+      "height": 1154,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-objects",
+          "title": "Understanding objects | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 78,
+      "file": "02-CRM-Records/078-understanding_records_create_new_view.png",
+      "width": 1957,
+      "height": 921,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 79,
+      "file": "02-CRM-Records/079-underestanding_records_home_view.png",
+      "width": 1838,
+      "height": 703,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 80,
+      "file": "02-CRM-Records/080-new-companies-view-add-columns.png",
+      "width": 2137,
+      "height": 1476,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 81,
+      "file": "02-CRM-Records/081-underestanding_records_homeview.png",
+      "width": 2932,
+      "height": 1664,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 82,
+      "file": "02-CRM-Records/082-underestanding_records_city.png",
+      "width": 1506,
+      "height": 936,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 83,
+      "file": "02-CRM-Records/083-underestanding_records_estimated_arr.png",
+      "width": 1902,
+      "height": 853,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 84,
+      "file": "02-CRM-Records/084-understanding_records_take-action.png",
+      "width": 2129,
+      "height": 1329,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 85,
+      "file": "02-CRM-Records/085-configure-record-page.png",
+      "width": 888,
+      "height": 576,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+          "title": "Configure record pages | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 86,
+      "file": "01-Navigation/086-configure-highlights-widgets.png",
+      "width": 1702,
+      "height": 786,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+          "title": "Configure record pages | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 87,
+      "file": "02-CRM-Records/087-configure-record-page-tabs.png",
+      "width": 2451,
+      "height": 807,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+          "title": "Configure record pages | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 88,
+      "file": "02-CRM-Records/088-understandingrecords7.png",
+      "width": 1591,
+      "height": 972,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+          "title": "Understanding records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 90,
+      "file": "13-Imports-Exports/090-import-csv.png",
+      "width": 592,
+      "height": 294,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/introduction-to-data-importing",
+          "title": "Introduction to data importing | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv",
+          "title": "Import data into Attio via CSV | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 91,
+      "file": "13-Imports-Exports/091-select-attribute-import.png",
+      "width": 1652,
+      "height": 1270,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/introduction-to-data-importing",
+          "title": "Introduction to data importing | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 92,
+      "file": "13-Imports-Exports/092-review-values-import.png",
+      "width": 1974,
+      "height": 796,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/introduction-to-data-importing",
+          "title": "Introduction to data importing | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 93,
+      "file": "13-Imports-Exports/093-preview-import.png",
+      "width": 1222,
+      "height": 732,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/introduction-to-data-importing",
+          "title": "Introduction to data importing | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 94,
+      "file": "13-Imports-Exports/094-completed-import.png",
+      "width": 2428,
+      "height": 892,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/introduction-to-data-importing",
+          "title": "Introduction to data importing | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 95,
+      "file": "13-Imports-Exports/095-newly-imported-companies.png",
+      "width": 1216,
+      "height": 586,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/introduction-to-data-importing",
+          "title": "Introduction to data importing | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 96,
+      "file": "01-Navigation/096-attio-sidebar.png",
+      "width": 626,
+      "height": 921,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/introduction-to-navigating-attio",
+          "title": "Introduction to navigating Attio | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/navigating-your-workspace",
+          "title": "Navigating your workspace | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 97,
+      "file": "01-Navigation/097-navigatingattio_mainpanel.png",
+      "width": 2221,
+      "height": 1532,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/introduction-to-navigating-attio",
+          "title": "Introduction to navigating Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 98,
+      "file": "12-Settings/098-navigatingattio_settings.png",
+      "width": 1311,
+      "height": 604,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/introduction-to-navigating-attio",
+          "title": "Introduction to navigating Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 99,
+      "file": "01-Navigation/099-comint001.png",
+      "width": 2231,
+      "height": 1388,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/communications-intelligence",
+          "title": "Introduction to communication intelligence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 100,
+      "file": "01-Navigation/100-comint002.png",
+      "width": 1243,
+      "height": 797,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/communications-intelligence",
+          "title": "Introduction to communication intelligence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 101,
+      "file": "02-CRM-Records/101-record-page-activity-tab.png",
+      "width": 1920,
+      "height": 1428,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/communications-intelligence",
+          "title": "Introduction to communication intelligence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "file": "01-Navigation/102-comint004.png",
+      "width": 1587,
+      "height": 974,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/communications-intelligence",
+          "title": "Introduction to communication intelligence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "file": "01-Navigation/103-comint005.png",
+      "width": 1318,
+      "height": 598,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/communications-intelligence",
+          "title": "Introduction to communication intelligence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 104,
+      "file": "01-Navigation/104-comint008.png",
+      "width": 1191,
+      "height": 812,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/communications-intelligence",
+          "title": "Introduction to communication intelligence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 105,
+      "file": "10-Tasks-Notes/105-notes001.png",
+      "width": 1375,
+      "height": 847,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 106,
+      "file": "10-Tasks-Notes/106-notes002.png",
+      "width": 1971,
+      "height": 1140,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 107,
+      "file": "10-Tasks-Notes/107-notes003.png",
+      "width": 1578,
+      "height": 1004,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 108,
+      "file": "10-Tasks-Notes/108-notes004.png",
+      "width": 2139,
+      "height": 1210,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 109,
+      "file": "10-Tasks-Notes/109-note-mention-notification.png",
+      "width": 1280,
+      "height": 1121,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 110,
+      "file": "10-Tasks-Notes/110-notes006.png",
+      "width": 1357,
+      "height": 774,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 111,
+      "file": "10-Tasks-Notes/111-notes007.png",
+      "width": 1379,
+      "height": 825,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 112,
+      "file": "10-Tasks-Notes/112-notes008.png",
+      "width": 1818,
+      "height": 984,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 113,
+      "file": "10-Tasks-Notes/113-notes009.png",
+      "width": 2020,
+      "height": 1400,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 114,
+      "file": "10-Tasks-Notes/114-notes010.png",
+      "width": 2253,
+      "height": 1433,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 115,
+      "file": "10-Tasks-Notes/115-notes011.png",
+      "width": 1980,
+      "height": 1304,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 116,
+      "file": "10-Tasks-Notes/116-notes012.png",
+      "width": 1977,
+      "height": 1173,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-notes",
+          "title": "Introduction to notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 117,
+      "file": "10-Tasks-Notes/117-tasks002.png",
+      "width": 1146,
+      "height": 582,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-tasks",
+          "title": "Introduction to tasks | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 118,
+      "file": "10-Tasks-Notes/118-tasks003.png",
+      "width": 1778,
+      "height": 516,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-tasks",
+          "title": "Introduction to tasks | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 119,
+      "file": "10-Tasks-Notes/119-tasks004.png",
+      "width": 1628,
+      "height": 1072,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-tasks",
+          "title": "Introduction to tasks | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 120,
+      "file": "10-Tasks-Notes/120-tasks005.png",
+      "width": 1823,
+      "height": 633,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-tasks",
+          "title": "Introduction to tasks | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 121,
+      "file": "10-Tasks-Notes/121-tasks006.png",
+      "width": 1468,
+      "height": 1112,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-tasks",
+          "title": "Introduction to tasks | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 122,
+      "file": "10-Tasks-Notes/122-task-assignment-notification.png",
+      "width": 1438,
+      "height": 1307,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/productivity/introduction-to-tasks",
+          "title": "Introduction to tasks | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 123,
+      "file": "04-Emails-Sequences/123-settingupattio_emailsharing.png",
+      "width": 1586,
+      "height": 996,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/syncing-people-and-companies",
+          "title": "Introduction to email sync | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 124,
+      "file": "12-Settings/124-settingupattio_specificaccess.png",
+      "width": 1652,
+      "height": 374,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-101/syncing-people-and-companies",
+          "title": "Introduction to email sync | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 125,
+      "file": "11-Ask-Attio-AI/125-web-research-attribute.png",
+      "width": 908,
+      "height": 914,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ai-attributes",
+          "title": "AI attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 126,
+      "file": "11-Ask-Attio-AI/126-confidence-level.png",
+      "width": 842,
+      "height": 782,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ai-attributes",
+          "title": "AI attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 127,
+      "file": "11-Ask-Attio-AI/127-ask-attio-home-composer.png",
+      "width": 1920,
+      "height": 1080,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 128,
+      "file": "11-Ask-Attio-AI/128-ask-attio-quick-actions-tab.png",
+      "width": 1920,
+      "height": 629,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 129,
+      "file": "11-Ask-Attio-AI/129-ask-attio-composer-mention.png",
+      "width": 1920,
+      "height": 782,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 130,
+      "file": "11-Ask-Attio-AI/130-ask-attio-add-a-prompt.png",
+      "width": 1920,
+      "height": 1563,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/create-and-use-ask-attio-prompts",
+          "title": "Create and use Ask Attio prompts | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 131,
+      "file": "11-Ask-Attio-AI/131-ask-attio-chat-history.png",
+      "width": 1920,
+      "height": 1349,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 132,
+      "file": "11-Ask-Attio-AI/132-ask-attio-change-model.png",
+      "width": 1920,
+      "height": 649,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 133,
+      "file": "11-Ask-Attio-AI/133-ask-attio-options-menu.png",
+      "width": 1920,
+      "height": 912,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 134,
+      "file": "11-Ask-Attio-AI/134-ask-attio-cancel-message.png",
+      "width": 1920,
+      "height": 649,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 135,
+      "file": "11-Ask-Attio-AI/135-ask-attio-edit-message.png",
+      "width": 1920,
+      "height": 912,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 136,
+      "file": "11-Ask-Attio-AI/136-ask-attio-copy-response.png",
+      "width": 1920,
+      "height": 649,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 137,
+      "file": "11-Ask-Attio-AI/137-retry-response-ask-attio.png",
+      "width": 360,
+      "height": 324,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 138,
+      "file": "11-Ask-Attio-AI/138-ask-attio-message-retries-arrows.png",
+      "width": 1920,
+      "height": 1554,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 139,
+      "file": "11-Ask-Attio-AI/139-ask-attio-summarize-last-meeting.png",
+      "width": 1920,
+      "height": 1380,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 140,
+      "file": "11-Ask-Attio-AI/140-ask-attio-prep-next-meeting.png",
+      "width": 1920,
+      "height": 1390,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 141,
+      "file": "11-Ask-Attio-AI/141-ask-attio-search-web.png",
+      "width": 1920,
+      "height": 488,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 142,
+      "file": "11-Ask-Attio-AI/142-ask-attio-allow-share-feedback.png",
+      "width": 1920,
+      "height": 873,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/chat-with-ask-attio",
+          "title": "Chat with Ask Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 143,
+      "file": "11-Ask-Attio-AI/143-ask-attio-prompts-settings.png",
+      "width": 1920,
+      "height": 1080,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/create-and-use-ask-attio-prompts",
+          "title": "Create and use Ask Attio prompts | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 144,
+      "file": "11-Ask-Attio-AI/144-ask-attio-browse-prompts.png",
+      "width": 1920,
+      "height": 975,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/create-and-use-ask-attio-prompts",
+          "title": "Create and use Ask Attio prompts | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 145,
+      "file": "11-Ask-Attio-AI/145-ask-attio-create-prompt-from-scratch.png",
+      "width": 1920,
+      "height": 1080,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/create-and-use-ask-attio-prompts",
+          "title": "Create and use Ask Attio prompts | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 146,
+      "file": "11-Ask-Attio-AI/146-prompts-create-prompt-scratch.png",
+      "width": 1920,
+      "height": 1080,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/create-and-use-ask-attio-prompts",
+          "title": "Create and use Ask Attio prompts | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 148,
+      "file": "11-Ask-Attio-AI/148-ask-attio-edit-copy-prompt.png",
+      "width": 1920,
+      "height": 978,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/create-and-use-ask-attio-prompts",
+          "title": "Create and use Ask Attio prompts | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 149,
+      "file": "11-Ask-Attio-AI/149-manage-ask-attio-settings.png",
+      "width": 2454,
+      "height": 1592,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/manage-ask-attio-settings",
+          "title": "Manage Ask Attio settings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 150,
+      "file": "11-Ask-Attio-AI/150-ask-attio-workspace-context.png",
+      "width": 2638,
+      "height": 1386,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/attio-ai/ask-attio/manage-ask-attio-settings",
+          "title": "Manage Ask Attio settings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 151,
+      "file": "05-Workflows/151-aggregate-values.png",
+      "width": 778,
+      "height": 718,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/legacy-workflows-block-library",
+          "title": "Legacy workflows block library | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 152,
+      "file": "05-Workflows/152-formula-block.png",
+      "width": 766,
+      "height": 322,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/legacy-workflows-block-library",
+          "title": "Legacy workflows block library | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 153,
+      "file": "05-Workflows/153-formula-result.png",
+      "width": 764,
+      "height": 360,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/legacy-workflows-block-library",
+          "title": "Legacy workflows block library | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 154,
+      "file": "05-Workflows/154-http-request-body.png",
+      "width": 378,
+      "height": 194,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/legacy-workflows-block-library",
+          "title": "Legacy workflows block library | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 155,
+      "file": "05-Workflows/155-set-trigger-and-input.png",
+      "width": 2452,
+      "height": 1228,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/legacy-workflows-builder",
+          "title": "Legacy workflows builder | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 156,
+      "file": "05-Workflows/156-choose-action-block.png",
+      "width": 2000,
+      "height": 1176,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/legacy-workflows-builder",
+          "title": "Legacy workflows builder | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 157,
+      "file": "05-Workflows/157-variable.png",
+      "width": 1614,
+      "height": 1024,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/legacy-workflows-builder",
+          "title": "Legacy workflows builder | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 158,
+      "file": "05-Workflows/158-workflow-filter.png",
+      "width": 1954,
+      "height": 672,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/legacy-workflows-builder",
+          "title": "Legacy workflows builder | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 159,
+      "file": "05-Workflows/159-fallback.png",
+      "width": 1440,
+      "height": 574,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/legacy-workflows-builder",
+          "title": "Legacy workflows builder | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 160,
+      "file": "05-Workflows/160-notes.png",
+      "width": 1312,
+      "height": 574,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/legacy-workflows-builder",
+          "title": "Legacy workflows builder | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 161,
+      "file": "05-Workflows/161-workspace-access.png",
+      "width": 938,
+      "height": 612,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/manage-legacy-workflows",
+          "title": "Manage legacy workflows | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/manage-workflows",
+          "title": "Manage workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 162,
+      "file": "05-Workflows/162-team-member-access.png",
+      "width": 924,
+      "height": 734,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/manage-legacy-workflows",
+          "title": "Manage legacy workflows | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/manage-workflows",
+          "title": "Manage workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 163,
+      "file": "05-Workflows/163-sort-filter-workflows-page.png",
+      "width": 1252,
+      "height": 838,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/manage-legacy-workflows",
+          "title": "Manage legacy workflows | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/manage-workflows",
+          "title": "Manage workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 164,
+      "file": "05-Workflows/164-group-by-workflows.png",
+      "width": 1420,
+      "height": 826,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/manage-legacy-workflows",
+          "title": "Manage legacy workflows | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/manage-workflows",
+          "title": "Manage workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 165,
+      "file": "05-Workflows/165-favorite-workflow.png",
+      "width": 2470,
+      "height": 538,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/manage-legacy-workflows",
+          "title": "Manage legacy workflows | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/manage-workflows",
+          "title": "Manage workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 166,
+      "file": "05-Workflows/166-restore-workflow.png",
+      "width": 2454,
+      "height": 708,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/manage-legacy-workflows",
+          "title": "Manage legacy workflows | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/manage-workflows",
+          "title": "Manage workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 167,
+      "file": "05-Workflows/167-quotas-notifications-settings-workflows.png",
+      "width": 2048,
+      "height": 908,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/manage-legacy-workflows",
+          "title": "Manage legacy workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 168,
+      "file": "05-Workflows/168-1-highlighted-workflow-row.png",
+      "width": 3582,
+      "height": 934,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/troubleshooting-legacy-workflows",
+          "title": "Troubleshooting legacy workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 169,
+      "file": "05-Workflows/169-view-runs.png",
+      "width": 1232,
+      "height": 660,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/troubleshooting-legacy-workflows",
+          "title": "Troubleshooting legacy workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 170,
+      "file": "05-Workflows/170-3-view-run_example-run.png",
+      "width": 2539,
+      "height": 1473,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/troubleshooting-legacy-workflows",
+          "title": "Troubleshooting legacy workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 171,
+      "file": "05-Workflows/171-5-example-run-w-sidebar-highlighted-block.png",
+      "width": 3087,
+      "height": 1971,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/troubleshooting-legacy-workflows",
+          "title": "Troubleshooting legacy workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 172,
+      "file": "05-Workflows/172-research-record-outputs.png",
+      "width": 1930,
+      "height": 858,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/legacy-workflows/troubleshooting-legacy-workflows",
+          "title": "Troubleshooting legacy workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 173,
+      "file": "04-Emails-Sequences/173-unsubscribe-sequence-options.png",
+      "width": 1312,
+      "height": 622,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/create-a-sequence",
+          "title": "Create a sequence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 174,
+      "file": "04-Emails-Sequences/174-thread-signature-settings.png",
+      "width": 846,
+      "height": 410,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/create-a-sequence",
+          "title": "Create a sequence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 175,
+      "file": "04-Emails-Sequences/175-set-signature-sequence.png",
+      "width": 2202,
+      "height": 624,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/create-a-sequence",
+          "title": "Create a sequence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 176,
+      "file": "04-Emails-Sequences/176-ai-variable-sequence.png",
+      "width": 1568,
+      "height": 818,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/create-a-sequence",
+          "title": "Create a sequence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 177,
+      "file": "04-Emails-Sequences/177-delegated-sending.png",
+      "width": 2200,
+      "height": 1268,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/create-a-sequence",
+          "title": "Create a sequence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 178,
+      "file": "04-Emails-Sequences/178-sequence-sender.png",
+      "width": 1286,
+      "height": 660,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/create-a-sequence",
+          "title": "Create a sequence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 179,
+      "file": "04-Emails-Sequences/179-select-email-recipient.png",
+      "width": 1213,
+      "height": 644,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/create-a-sequence",
+          "title": "Create a sequence | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 180,
+      "file": "04-Emails-Sequences/180-workspace-access-sequence.png",
+      "width": 840,
+      "height": 614,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/manage-sequences",
+          "title": "Manage sequences | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 181,
+      "file": "04-Emails-Sequences/181-team-member-sequence-access.png",
+      "width": 846,
+      "height": 534,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/manage-sequences",
+          "title": "Manage sequences | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 182,
+      "file": "04-Emails-Sequences/182-sort-sequences.png",
+      "width": 1038,
+      "height": 598,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/manage-sequences",
+          "title": "Manage sequences | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 183,
+      "file": "04-Emails-Sequences/183-filter-sequence.png",
+      "width": 1152,
+      "height": 730,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/manage-sequences",
+          "title": "Manage sequences | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 184,
+      "file": "04-Emails-Sequences/184-view-settings-sequences.png",
+      "width": 1072,
+      "height": 692,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/manage-sequences",
+          "title": "Manage sequences | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 185,
+      "file": "04-Emails-Sequences/185-archive-sequence.png",
+      "width": 1064,
+      "height": 542,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/manage-sequences",
+          "title": "Manage sequences | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 186,
+      "file": "04-Emails-Sequences/186-exit-active-recipients.png",
+      "width": 1050,
+      "height": 572,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/manage-sequences",
+          "title": "Manage sequences | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 187,
+      "file": "04-Emails-Sequences/187-unsubscribe-list-sequences.png",
+      "width": 1656,
+      "height": 1016,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/manage-sequences",
+          "title": "Manage sequences | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 188,
+      "file": "04-Emails-Sequences/188-admin-sequence-permissions.png",
+      "width": 2682,
+      "height": 1458,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/manage-sequences",
+          "title": "Manage sequences | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 189,
+      "file": "04-Emails-Sequences/189-track-recipients.png",
+      "width": 2336,
+      "height": 1770,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/sequences/track-status-of-sequence-recipients",
+          "title": "Track status of sequence recipients | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 190,
+      "file": "05-Workflows/190-create-workflow.png",
+      "width": 4892,
+      "height": 2336,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/create-a-workflow",
+          "title": "Create a workflow | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 191,
+      "file": "05-Workflows/191-ask-attio-workflow-builder.png",
+      "width": 2460,
+      "height": 1212,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/create-a-workflow",
+          "title": "Create a workflow | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 192,
+      "file": "05-Workflows/192-navigate-workflow-canvas.png",
+      "width": 2469,
+      "height": 1554,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/create-a-workflow",
+          "title": "Create a workflow | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 193,
+      "file": "05-Workflows/193-multiple-data-sources.png",
+      "width": 2252,
+      "height": 1002,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/create-a-workflow",
+          "title": "Create a workflow | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 194,
+      "file": "05-Workflows/194-variables-workflow-example.png",
+      "width": 2458,
+      "height": 1270,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/create-a-workflow",
+          "title": "Create a workflow | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 195,
+      "file": "05-Workflows/195-workflow-version-history.png",
+      "width": 1642,
+      "height": 1040,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/manage-workflows",
+          "title": "Manage workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 196,
+      "file": "05-Workflows/196-restore-workflow-version.png",
+      "width": 1586,
+      "height": 774,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/manage-workflows",
+          "title": "Manage workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 197,
+      "file": "05-Workflows/197-access-the-run-viewer.png",
+      "width": 2471,
+      "height": 1521,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/troubleshooting-workflows",
+          "title": "Troubleshooting workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 198,
+      "file": "05-Workflows/198-workflow-outputs.png",
+      "width": 2484,
+      "height": 1477,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/troubleshooting-workflows",
+          "title": "Troubleshooting workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 199,
+      "file": "05-Workflows/199-failed-run-error-message.png",
+      "width": 1618,
+      "height": 994,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/troubleshooting-workflows",
+          "title": "Troubleshooting workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 200,
+      "file": "05-Workflows/200-retry-with-live-workflow.png",
+      "width": 1202,
+      "height": 758,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/troubleshooting-workflows",
+          "title": "Troubleshooting workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 201,
+      "file": "05-Workflows/201-run-attempts.png",
+      "width": 1380,
+      "height": 750,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/troubleshooting-workflows",
+          "title": "Troubleshooting workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 202,
+      "file": "05-Workflows/202-cancel-run.png",
+      "width": 1413,
+      "height": 1027,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/troubleshooting-workflows",
+          "title": "Troubleshooting workflows | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 203,
+      "file": "05-Workflows/203-aggregate-values-example.png",
+      "width": 1458,
+      "height": 946,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/workflows-block-library",
+          "title": "Workflows block library | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 204,
+      "file": "05-Workflows/204-loop-block-example.png",
+      "width": 1964,
+      "height": 1286,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/automations/workflows/workflows-block-library",
+          "title": "Workflows block library | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 205,
+      "file": "04-Emails-Sequences/205-connect-email-account.png",
+      "width": 2465,
+      "height": 1579,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/email-and-calendar-syncing",
+          "title": "Sync your email and calendar | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 206,
+      "file": "04-Emails-Sequences/206-automatic-record-creation-settings.png",
+      "width": 3012,
+      "height": 1302,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/email-and-calendar-syncing",
+          "title": "Sync your email and calendar | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 207,
+      "file": "04-Emails-Sequences/207-record-suppression-setting.png",
+      "width": 2438,
+      "height": 1649,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/email-and-calendar-syncing",
+          "title": "Sync your email and calendar | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 208,
+      "file": "04-Emails-Sequences/208-reconnect-email-account.png",
+      "width": 2462,
+      "height": 1001,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/email-and-calendar-syncing",
+          "title": "Sync your email and calendar | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 209,
+      "file": "04-Emails-Sequences/209-remove-email-account.png",
+      "width": 2472,
+      "height": 999,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/email-and-calendar-syncing",
+          "title": "Sync your email and calendar | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 210,
+      "file": "04-Emails-Sequences/210-forwarding-address.png",
+      "width": 2464,
+      "height": 1187,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/email-forwarding",
+          "title": "Forward emails into Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 211,
+      "file": "04-Emails-Sequences/211-forwarding-email-visibility-setting.png",
+      "width": 2152,
+      "height": 1330,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/email-forwarding",
+          "title": "Forward emails into Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 212,
+      "file": "04-Emails-Sequences/212-forwarding-blocklist.png",
+      "width": 1894,
+      "height": 1434,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/email-forwarding",
+          "title": "Forward emails into Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 213,
+      "file": "04-Emails-Sequences/213-outbox.png",
+      "width": 2334,
+      "height": 1800,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/email-outbox",
+          "title": "Email outbox | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 214,
+      "file": "04-Emails-Sequences/214-nothing-to-show-here-protected-record.png",
+      "width": 949,
+      "height": 641,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/keep-emails-and-calendar-events-private",
+          "title": "Keep emails and calendar events private | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 215,
+      "file": "04-Emails-Sequences/215-add-to-mailbox-only-blocklist.png",
+      "width": 2086,
+      "height": 1392,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/keep-emails-and-calendar-events-private",
+          "title": "Keep emails and calendar events private | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 216,
+      "file": "04-Emails-Sequences/216-compose-an-email.png",
+      "width": 800,
+      "height": 620,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 217,
+      "file": "04-Emails-Sequences/217-reply-to-emails.png",
+      "width": 800,
+      "height": 400,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 218,
+      "file": "04-Emails-Sequences/218-email-attachments.png",
+      "width": 600,
+      "height": 430,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 219,
+      "file": "04-Emails-Sequences/219-image-in-email.png",
+      "width": 1672,
+      "height": 1296,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 220,
+      "file": "04-Emails-Sequences/220-mass-send-email-to-list.png",
+      "width": 2462,
+      "height": 1324,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 221,
+      "file": "04-Emails-Sequences/221-mass-sending.png",
+      "width": 1046,
+      "height": 614,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 222,
+      "file": "04-Emails-Sequences/222-email-variables-fallback.png",
+      "width": 1138,
+      "height": 888,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 223,
+      "file": "04-Emails-Sequences/223-company-attribute-email-variable.png",
+      "width": 1000,
+      "height": 702,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 224,
+      "file": "04-Emails-Sequences/224-email-templates.png",
+      "width": 1804,
+      "height": 630,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 225,
+      "file": "04-Emails-Sequences/225-set-default-email.png",
+      "width": 437,
+      "height": 291,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 226,
+      "file": "04-Emails-Sequences/226-add-image-to-signature.png",
+      "width": 1763,
+      "height": 1002,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 227,
+      "file": "04-Emails-Sequences/227-delete-signature.png",
+      "width": 2050,
+      "height": 1356,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 228,
+      "file": "04-Emails-Sequences/228-change-email-signature.png",
+      "width": 862,
+      "height": 706,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 229,
+      "file": "04-Emails-Sequences/229-email-tracking.png",
+      "width": 1580,
+      "height": 256,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/send-emails-in-attio",
+          "title": "Send emails in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 230,
+      "file": "04-Emails-Sequences/230-email-visibility-setting.png",
+      "width": 2258,
+      "height": 1228,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/sharing-emails",
+          "title": "Share emails with your team | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 231,
+      "file": "04-Emails-Sequences/231-share-email.png",
+      "width": 958,
+      "height": 650,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/sharing-emails",
+          "title": "Share emails with your team | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 232,
+      "file": "04-Emails-Sequences/232-share-emails-record.png",
+      "width": 1992,
+      "height": 902,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/sharing-emails",
+          "title": "Share emails with your team | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 233,
+      "file": "04-Emails-Sequences/233-manage-email-access-retained-emails.png",
+      "width": 1237,
+      "height": 399,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/sharing-emails",
+          "title": "Share emails with your team | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 234,
+      "file": "04-Emails-Sequences/234-email-labels.png",
+      "width": 1233,
+      "height": 611,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/view-emails-and-meetings",
+          "title": "View emails and meetings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 235,
+      "file": "04-Emails-Sequences/235-activity-tab-meeting.png",
+      "width": 853,
+      "height": 343,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/view-emails-and-meetings",
+          "title": "View emails and meetings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 236,
+      "file": "04-Emails-Sequences/236-quick-actions-meeting.png",
+      "width": 736,
+      "height": 636,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/view-emails-and-meetings",
+          "title": "View emails and meetings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 237,
+      "file": "04-Emails-Sequences/237-ask-attio-home-meetings.png",
+      "width": 1920,
+      "height": 1080,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/email-calendar/view-emails-and-meetings",
+          "title": "View emails and meetings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 238,
+      "file": "01-Navigation/238-mcp-workspace-connection.png",
+      "width": 486,
+      "height": 413,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/how-to-guides/attio-mcp-prompts-and-best-practices",
+          "title": "Attio MCP: prompts and best practices | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 239,
+      "file": "01-Navigation/239-create_attribute_weighted_value.png",
+      "width": 1214,
+      "height": 665,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/how-to-guides/setting-up-a-weighted-pipeline",
+          "title": "Setting up a weighted pipeline | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 240,
+      "file": "01-Navigation/240-paste_prompt_for_formula.gif",
+      "width": 800,
+      "height": 599,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/how-to-guides/setting-up-a-weighted-pipeline",
+          "title": "Setting up a weighted pipeline | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 241,
+      "file": "01-Navigation/241-currency_settings_formula.gif",
+      "width": 800,
+      "height": 650,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/how-to-guides/setting-up-a-weighted-pipeline",
+          "title": "Setting up a weighted pipeline | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 242,
+      "file": "13-Imports-Exports/242-back-up-workspace.png",
+      "width": 2604,
+      "height": 1158,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/back-up-your-workspace-data",
+          "title": "Back up your workspace data | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 243,
+      "file": "13-Imports-Exports/243-map-unique-attributes-import.png",
+      "width": 1582,
+      "height": 616,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/bulk-update-records-via-csv-import",
+          "title": "Bulk update records or lists via CSV import | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 244,
+      "file": "13-Imports-Exports/244-for-records-already-in-list.png",
+      "width": 1558,
+      "height": 616,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/bulk-update-records-via-csv-import",
+          "title": "Bulk update records or lists via CSV import | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv",
+          "title": "Import data into Attio via CSV | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 245,
+      "file": "13-Imports-Exports/245-number-attribute-format-import.png",
+      "width": 1964,
+      "height": 436,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/csv-import-formatting-guide",
+          "title": "CSV import formatting guide | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 246,
+      "file": "13-Imports-Exports/246-date-attribute-format-import.png",
+      "width": 1982,
+      "height": 710,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/csv-import-formatting-guide",
+          "title": "CSV import formatting guide | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 247,
+      "file": "13-Imports-Exports/247-timestamp-attribute-format-import.png",
+      "width": 1968,
+      "height": 506,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/csv-import-formatting-guide",
+          "title": "CSV import formatting guide | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 248,
+      "file": "13-Imports-Exports/248-importing-name.png",
+      "width": 1544,
+      "height": 336,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/csv-import-formatting-guide",
+          "title": "CSV import formatting guide | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 253,
+      "file": "13-Imports-Exports/253-upload-file.png",
+      "width": 2316,
+      "height": 1178,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv",
+          "title": "Import data into Attio via CSV | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 254,
+      "file": "13-Imports-Exports/254-uploaded-file-confirmation.png",
+      "width": 1638,
+      "height": 927,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv",
+          "title": "Import data into Attio via CSV | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 255,
+      "file": "13-Imports-Exports/255-import-companies-with-team-emails.png",
+      "width": 1582,
+      "height": 790,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv",
+          "title": "Import data into Attio via CSV | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 257,
+      "file": "13-Imports-Exports/257-review-values-import.png",
+      "width": 2460,
+      "height": 1470,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv",
+          "title": "Import data into Attio via CSV | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 258,
+      "file": "13-Imports-Exports/258-sort-review-values-step-import.png",
+      "width": 866,
+      "height": 486,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv",
+          "title": "Import data into Attio via CSV | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 259,
+      "file": "13-Imports-Exports/259-select-date-format-import.png",
+      "width": 1930,
+      "height": 690,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv",
+          "title": "Import data into Attio via CSV | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 260,
+      "file": "13-Imports-Exports/260-create-missing-select-options.png",
+      "width": 1000,
+      "height": 415,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv",
+          "title": "Import data into Attio via CSV | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 261,
+      "file": "13-Imports-Exports/261-preview-import.png",
+      "width": 2460,
+      "height": 1474,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv",
+          "title": "Import data into Attio via CSV | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 262,
+      "file": "13-Imports-Exports/262-import-progress.png",
+      "width": 2450,
+      "height": 1460,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/import-data-into-attio-via-csv",
+          "title": "Import data into Attio via CSV | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 263,
+      "file": "13-Imports-Exports/263-import-error-message.png",
+      "width": 1732,
+      "height": 744,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/troubleshooting-csv-imports",
+          "title": "Troubleshooting CSV imports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 264,
+      "file": "13-Imports-Exports/264-update-or-duplicate-list-entries.png",
+      "width": 1558,
+      "height": 616,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/troubleshooting-csv-imports",
+          "title": "Troubleshooting CSV imports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 265,
+      "file": "13-Imports-Exports/265-remove-duplicate-list-entries.png",
+      "width": 1848,
+      "height": 1470,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/troubleshooting-csv-imports",
+          "title": "Troubleshooting CSV imports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 266,
+      "file": "13-Imports-Exports/266-manage-imports.png",
+      "width": 2572,
+      "height": 1338,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/view-and-manage-csv-imports",
+          "title": "View and manage CSV imports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 267,
+      "file": "13-Imports-Exports/267-delete-import-draft.png",
+      "width": 1558,
+      "height": 680,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/csv-imports/view-and-manage-csv-imports",
+          "title": "View and manage CSV imports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 268,
+      "file": "13-Imports-Exports/268-export-view.png",
+      "width": 876,
+      "height": 594,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/exporting-lists-and-views",
+          "title": "Export lists and views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 269,
+      "file": "13-Imports-Exports/269-disable-exports-for-non-admins.png",
+      "width": 1784,
+      "height": 368,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/exporting-lists-and-views",
+          "title": "Export lists and views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 270,
+      "file": "13-Imports-Exports/270-protect-exports-formula-injection.png",
+      "width": 1752,
+      "height": 344,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/exporting-lists-and-views",
+          "title": "Export lists and views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 271,
+      "file": "13-Imports-Exports/271-migrate-crm.png",
+      "width": 2610,
+      "height": 1498,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/imports-exports/migrate-data-from-another-crm",
+          "title": "Migrate data from another CRM | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 272,
+      "file": "02-CRM-Records/272-attribute-columns.png",
+      "width": 1668,
+      "height": 1086,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 273,
+      "file": "02-CRM-Records/273-manage-attributes.png",
+      "width": 1028,
+      "height": 594,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 274,
+      "file": "02-CRM-Records/274-create-attribute.png",
+      "width": 2473,
+      "height": 1661,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 275,
+      "file": "02-CRM-Records/275-create-attribute.png",
+      "width": 1662,
+      "height": 1094,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 276,
+      "file": "02-CRM-Records/276-ai-attribute-example.png",
+      "width": 1648,
+      "height": 1082,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 277,
+      "file": "02-CRM-Records/277-select-multi-attribute-options.png",
+      "width": 1682,
+      "height": 1120,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 278,
+      "file": "02-CRM-Records/278-unique-required-attribute.png",
+      "width": 1658,
+      "height": 1088,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 279,
+      "file": "02-CRM-Records/279-currency-number-attribute-options.png",
+      "width": 1636,
+      "height": 1084,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 280,
+      "file": "02-CRM-Records/280-edit-attribute.png",
+      "width": 1620,
+      "height": 670,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 281,
+      "file": "02-CRM-Records/281-attribute-edit-history.png",
+      "width": 586,
+      "height": 230,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/create-manage-attributes",
+          "title": "Create and manage attributes | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-table-views",
+          "title": "Create and manage table views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 282,
+      "file": "02-CRM-Records/282-ai_composer_fa.png",
+      "width": 810,
+      "height": 608,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/formula-attribute-examples",
+          "title": "Formula attribute examples | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 283,
+      "file": "02-CRM-Records/283-count_formula_1.png",
+      "width": 1608,
+      "height": 1204,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/formula-attribute-examples",
+          "title": "Formula attribute examples | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 284,
+      "file": "02-CRM-Records/284-count_formula_2.png",
+      "width": 1608,
+      "height": 1204,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/formula-attribute-examples",
+          "title": "Formula attribute examples | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 285,
+      "file": "02-CRM-Records/285-count_formula_3.png",
+      "width": 1596,
+      "height": 604,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/formula-attribute-examples",
+          "title": "Formula attribute examples | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 286,
+      "file": "02-CRM-Records/286-stale_deals_filter.png",
+      "width": 1650,
+      "height": 366,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/formula-attribute-examples",
+          "title": "Formula attribute examples | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 287,
+      "file": "02-CRM-Records/287-save_view.png",
+      "width": 1064,
+      "height": 290,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/formula-attribute-examples",
+          "title": "Formula attribute examples | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 288,
+      "file": "02-CRM-Records/288-workflow.png",
+      "width": 2690,
+      "height": 1166,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/formula-attribute-examples",
+          "title": "Formula attribute examples | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 289,
+      "file": "02-CRM-Records/289-reorder_email.gif",
+      "width": 492,
+      "height": 254,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/formula-attribute-examples",
+          "title": "Formula attribute examples | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 290,
+      "file": "02-CRM-Records/290-create-formula-attribute.png",
+      "width": 1680,
+      "height": 920,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/formula-attributes",
+          "title": "Formula attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 291,
+      "file": "02-CRM-Records/291-use-attributes-in-formula.gif",
+      "width": 1380,
+      "height": 1080,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/formula-attributes",
+          "title": "Formula attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 292,
+      "file": "02-CRM-Records/292-formula-error.png",
+      "width": 996,
+      "height": 528,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/formula-attributes",
+          "title": "Formula attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 293,
+      "file": "02-CRM-Records/293-system-relationship-attributes.png",
+      "width": 1618,
+      "height": 1048,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/relationship-attributes",
+          "title": "Relationship attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 294,
+      "file": "02-CRM-Records/294-user-referrals-example.png",
+      "width": 1130,
+      "height": 552,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/relationship-attributes",
+          "title": "Relationship attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 295,
+      "file": "02-CRM-Records/295-filter-team-location.png",
+      "width": 1794,
+      "height": 750,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/relationship-attributes",
+          "title": "Relationship attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 296,
+      "file": "02-CRM-Records/296-view-only-multi-relationship-attribute.png",
+      "width": 1168,
+      "height": 606,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/relationship-attributes",
+          "title": "Relationship attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 297,
+      "file": "02-CRM-Records/297-edit-attribute-via-relationship.png",
+      "width": 1596,
+      "height": 616,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/attributes/relationship-attributes",
+          "title": "Relationship attributes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 298,
+      "file": "02-CRM-Records/298-create-template.png",
+      "width": 1606,
+      "height": 952,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/create-record-and-list-entry-templates",
+          "title": "Create record and list entry templates | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 299,
+      "file": "02-CRM-Records/299-new-template.png",
+      "width": 1744,
+      "height": 1188,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/create-record-and-list-entry-templates",
+          "title": "Create record and list entry templates | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 300,
+      "file": "02-CRM-Records/300-edit-delete-duplicate-template.png",
+      "width": 1612,
+      "height": 810,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/create-record-and-list-entry-templates",
+          "title": "Create record and list entry templates | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 301,
+      "file": "09-Reports/301-deals-in-stage-report.png",
+      "width": 2420,
+      "height": 1430,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/build-a-sales-reporting-dashboard",
+          "title": "Build a sales reporting dashboard | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 302,
+      "file": "09-Reports/302-funnel-analysis-report.png",
+      "width": 2424,
+      "height": 1296,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/build-a-sales-reporting-dashboard",
+          "title": "Build a sales reporting dashboard | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 303,
+      "file": "09-Reports/303-funnel-analysis-report-date-filters.png",
+      "width": 1540,
+      "height": 644,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/build-a-sales-reporting-dashboard",
+          "title": "Build a sales reporting dashboard | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 304,
+      "file": "09-Reports/304-average-time-to-close-report.png",
+      "width": 2420,
+      "height": 1336,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/build-a-sales-reporting-dashboard",
+          "title": "Build a sales reporting dashboard | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 305,
+      "file": "09-Reports/305-number-qualified-deals-each-month-report.png",
+      "width": 2434,
+      "height": 1412,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/build-a-sales-reporting-dashboard",
+          "title": "Build a sales reporting dashboard | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 306,
+      "file": "09-Reports/306-win-rate-report.png",
+      "width": 2424,
+      "height": 1176,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/build-a-sales-reporting-dashboard",
+          "title": "Build a sales reporting dashboard | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 307,
+      "file": "09-Reports/307-win-rate-date-filters.png",
+      "width": 1430,
+      "height": 630,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/build-a-sales-reporting-dashboard",
+          "title": "Build a sales reporting dashboard | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 308,
+      "file": "09-Reports/308-dashboard-description.png",
+      "width": 2476,
+      "height": 1172,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/dashboards",
+          "title": "Dashboards | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 309,
+      "file": "09-Reports/309-customize-dashboard-layout.png",
+      "width": 2469,
+      "height": 1459,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/dashboards",
+          "title": "Dashboards | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 310,
+      "file": "09-Reports/310-manage-dashboard-access.png",
+      "width": 1080,
+      "height": 640,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/dashboards",
+          "title": "Dashboards | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 311,
+      "file": "09-Reports/311-team-member-access-dashboard.png",
+      "width": 888,
+      "height": 558,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/dashboards",
+          "title": "Dashboards | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 312,
+      "file": "09-Reports/312-add-dashboard-to-favorites.png",
+      "width": 2464,
+      "height": 844,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/dashboards",
+          "title": "Dashboards | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 313,
+      "file": "09-Reports/313-manage-reports.png",
+      "width": 1208,
+      "height": 950,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/manage-reports",
+          "title": "Manage reports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 314,
+      "file": "09-Reports/314-refresh-report-data.png",
+      "width": 1320,
+      "height": 766,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/manage-reports",
+          "title": "Manage reports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 315,
+      "file": "09-Reports/315-duplicate-report.png",
+      "width": 1210,
+      "height": 948,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/reports",
+          "title": "Create reports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 316,
+      "file": "09-Reports/316-report-type-options.png",
+      "width": 1904,
+      "height": 910,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/reports",
+          "title": "Create reports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 317,
+      "file": "09-Reports/317-save-report.png",
+      "width": 1354,
+      "height": 560,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/reports",
+          "title": "Create reports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 318,
+      "file": "09-Reports/318-download-report-table.png",
+      "width": 1454,
+      "height": 1092,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/reports",
+          "title": "Create reports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 319,
+      "file": "09-Reports/319-filter-reports.png",
+      "width": 2164,
+      "height": 684,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/reports",
+          "title": "Create reports | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 320,
+      "file": "09-Reports/320-funnel-report-deals.png",
+      "width": 2428,
+      "height": 1358,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/set-up-a-funnel-report",
+          "title": "Set up a Funnel report | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 321,
+      "file": "09-Reports/321-funnel-metric-deals.png",
+      "width": 2446,
+      "height": 1218,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/set-up-a-funnel-report",
+          "title": "Set up a Funnel report | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 322,
+      "file": "09-Reports/322-funnel-steps-deals.png",
+      "width": 2444,
+      "height": 1246,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/set-up-a-funnel-report",
+          "title": "Set up a Funnel report | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 323,
+      "file": "09-Reports/323-historical-values-report-deals.png",
+      "width": 2432,
+      "height": 1342,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/set-up-a-historical-values-report",
+          "title": "Set up a Historical values report | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 324,
+      "file": "09-Reports/324-stage-changed-report.png",
+      "width": 2438,
+      "height": 1296,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/set-up-a-stage-changed-report",
+          "title": "Set up a Stage changed report | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 325,
+      "file": "09-Reports/325-insight-groupby-visualization.png",
+      "width": 2408,
+      "height": 1246,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/set-up-an-insight-report",
+          "title": "Set up an Insight report | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 326,
+      "file": "09-Reports/326-comparison-insight-report.png",
+      "width": 1632,
+      "height": 1232,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/set-up-an-insight-report",
+          "title": "Set up an Insight report | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 327,
+      "file": "09-Reports/327-map-insight-report.png",
+      "width": 2432,
+      "height": 1358,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/dashboard-and-reports/set-up-an-insight-report",
+          "title": "Set up an Insight report | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 328,
+      "file": "02-CRM-Records/328-enriched-datav2-min.png",
+      "width": 1880,
+      "height": 1206,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/enriched-data",
+          "title": "Enriched data | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 329,
+      "file": "02-CRM-Records/329-first-last-next-interaction.png",
+      "width": 1342,
+      "height": 844,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/enriched-data",
+          "title": "Enriched data | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 330,
+      "file": "02-CRM-Records/330-interaction-type.png",
+      "width": 1250,
+      "height": 622,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/enriched-data",
+          "title": "Enriched data | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 331,
+      "file": "02-CRM-Records/331-when-with-interaction.png",
+      "width": 1198,
+      "height": 544,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/enriched-data",
+          "title": "Enriched data | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 332,
+      "file": "02-CRM-Records/332-company-job-title-attributes.png",
+      "width": 1818,
+      "height": 860,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/enriched-data",
+          "title": "Enriched data | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 333,
+      "file": "03-Lists-Tables/333-list-templates.png",
+      "width": 2526,
+      "height": 1370,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/create-lists",
+          "title": "Create lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 334,
+      "file": "03-Lists-Tables/334-duplicate-list.png",
+      "width": 1088,
+      "height": 498,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/create-lists",
+          "title": "Create lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 335,
+      "file": "03-Lists-Tables/335-create-new-view.png",
+      "width": 1026,
+      "height": 704,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/create-lists",
+          "title": "Create lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 336,
+      "file": "03-Lists-Tables/336-manage-workspace-access-list.png",
+      "width": 1166,
+      "height": 706,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/lists-access",
+          "title": "Manage access to lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 337,
+      "file": "03-Lists-Tables/337-team-member-list-access.png",
+      "width": 1178,
+      "height": 690,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/lists-access",
+          "title": "Manage access to lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 338,
+      "file": "03-Lists-Tables/338-give-workflow-access-list.png",
+      "width": 1182,
+      "height": 562,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/lists-access",
+          "title": "Manage access to lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 339,
+      "file": "03-Lists-Tables/339-list-settings-permissions.png",
+      "width": 2734,
+      "height": 1602,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/lists-access",
+          "title": "Manage access to lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 340,
+      "file": "03-Lists-Tables/340-rename-list.png",
+      "width": 1132,
+      "height": 526,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/manage-lists",
+          "title": "Manage lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 341,
+      "file": "03-Lists-Tables/341-rename-favorite-duplicate-view.png",
+      "width": 1224,
+      "height": 882,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/manage-lists",
+          "title": "Manage lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 342,
+      "file": "03-Lists-Tables/342-delete-list.png",
+      "width": 1072,
+      "height": 728,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/lists/manage-lists",
+          "title": "Manage lists | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 343,
+      "file": "02-CRM-Records/343-create-custom-object.png",
+      "width": 2159,
+      "height": 1375,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/create-and-manage-custom-objects",
+          "title": "Create and manage custom objects | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 344,
+      "file": "02-CRM-Records/344-plural-singular-nouns.png",
+      "width": 2068,
+      "height": 894,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/create-and-manage-custom-objects",
+          "title": "Create and manage custom objects | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 345,
+      "file": "02-CRM-Records/345-appearance-custom-object.png",
+      "width": 2452,
+      "height": 1562,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/create-and-manage-custom-objects",
+          "title": "Create and manage custom objects | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 346,
+      "file": "02-CRM-Records/346-delete-custom-object.png",
+      "width": 2090,
+      "height": 1418,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/create-and-manage-custom-objects",
+          "title": "Create and manage custom objects | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 347,
+      "file": "02-CRM-Records/347-create-requirement-rule.png",
+      "width": 1116,
+      "height": 966,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/create-and-manage-rules",
+          "title": "Create and manage rules | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 348,
+      "file": "02-CRM-Records/348-edit-delete-requirement-rule.png",
+      "width": 2116,
+      "height": 1182,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/create-and-manage-rules",
+          "title": "Create and manage rules | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 349,
+      "file": "02-CRM-Records/349-updates-required-rule.png",
+      "width": 1156,
+      "height": 618,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/create-and-manage-rules",
+          "title": "Create and manage rules | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 350,
+      "file": "02-CRM-Records/350-object-access-settings.png",
+      "width": 1243,
+      "height": 1100,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/manage-access-to-objects",
+          "title": "Manage access to objects | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 351,
+      "file": "02-CRM-Records/351-manage-object-access-share.png",
+      "width": 1240,
+      "height": 734,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/manage-access-to-objects",
+          "title": "Manage access to objects | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 352,
+      "file": "02-CRM-Records/352-give-workflow-object-access.png",
+      "width": 1244,
+      "height": 588,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/manage-access-to-objects",
+          "title": "Manage access to objects | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 353,
+      "file": "02-CRM-Records/353-workspaces.png",
+      "width": 3922,
+      "height": 2274,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/manage-standard-objects",
+          "title": "Manage standard objects | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 354,
+      "file": "02-CRM-Records/354-activate-standard-object.png",
+      "width": 2169,
+      "height": 1374,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/manage-standard-objects",
+          "title": "Manage standard objects | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 355,
+      "file": "02-CRM-Records/355-deactivate-standard-object.png",
+      "width": 2444,
+      "height": 1658,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/objects/manage-standard-objects",
+          "title": "Manage standard objects | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 356,
+      "file": "02-CRM-Records/356-add-meeting.png",
+      "width": 1510,
+      "height": 720,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/add-record-activities",
+          "title": "Add record activities | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 357,
+      "file": "02-CRM-Records/357-meeting-activity.png",
+      "width": 1678,
+      "height": 1090,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/add-record-activities",
+          "title": "Add record activities | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 358,
+      "file": "02-CRM-Records/358-delete-activity.png",
+      "width": 1674,
+      "height": 1092,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/add-record-activities",
+          "title": "Add record activities | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 359,
+      "file": "02-CRM-Records/359-edit-emails-tab-record-page.png",
+      "width": 2024,
+      "height": 1182,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+          "title": "Configure record pages | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 360,
+      "file": "02-CRM-Records/360-edit-emails-section-event-attendees.png",
+      "width": 1940,
+      "height": 1114,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+          "title": "Configure record pages | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 361,
+      "file": "02-CRM-Records/361-edit-section-legal-emails-record-page.png",
+      "width": 1930,
+      "height": 1082,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+          "title": "Configure record pages | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 362,
+      "file": "02-CRM-Records/362-edit-section-record-details.png",
+      "width": 1938,
+      "height": 1146,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+          "title": "Configure record pages | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 363,
+      "file": "02-CRM-Records/363-reorder-record-actions-buttons.png",
+      "width": 1270,
+      "height": 776,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+          "title": "Configure record pages | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 364,
+      "file": "02-CRM-Records/364-create-record-quick-actions.png",
+      "width": 1520,
+      "height": 1070,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+          "title": "Create and view records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 365,
+      "file": "02-CRM-Records/365-add-record-all-records-pgae.png",
+      "width": 852,
+      "height": 580,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+          "title": "Create and view records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 366,
+      "file": "02-CRM-Records/366-all-records-actions.png",
+      "width": 1832,
+      "height": 1478,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+          "title": "Create and view records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 367,
+      "file": "02-CRM-Records/367-favorite-record.png",
+      "width": 895,
+      "height": 365,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+          "title": "Create and view records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 368,
+      "file": "02-CRM-Records/368-record-actions.png",
+      "width": 990,
+      "height": 503,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+          "title": "Create and view records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 369,
+      "file": "02-CRM-Records/369-activity-tab.png",
+      "width": 866,
+      "height": 676,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+          "title": "Create and view records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 370,
+      "file": "02-CRM-Records/370-company-tab.png",
+      "width": 1516,
+      "height": 637,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+          "title": "Create and view records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 371,
+      "file": "02-CRM-Records/371-merge-records.png",
+      "width": 969,
+      "height": 573,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+          "title": "Merge and delete records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 372,
+      "file": "02-CRM-Records/372-merge-records.png",
+      "width": 1686,
+      "height": 912,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+          "title": "Merge and delete records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 373,
+      "file": "02-CRM-Records/373-delete-record.png",
+      "width": 967,
+      "height": 584,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+          "title": "Merge and delete records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 374,
+      "file": "02-CRM-Records/374-delete-records.png",
+      "width": 1872,
+      "height": 1470,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+          "title": "Merge and delete records | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 375,
+      "file": "03-Lists-Tables/375-create-kanban-view.png",
+      "width": 1850,
+      "height": 1020,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-kanban-views",
+          "title": "Create and manage kanban views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 376,
+      "file": "03-Lists-Tables/376-toggle-kanban-stages.png",
+      "width": 976,
+      "height": 792,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-kanban-views",
+          "title": "Create and manage kanban views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 377,
+      "file": "03-Lists-Tables/377-collapse-columns-kanban.png",
+      "width": 2469,
+      "height": 1006,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-kanban-views",
+          "title": "Create and manage kanban views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 378,
+      "file": "03-Lists-Tables/378-move-kanban-stage.png",
+      "width": 2069,
+      "height": 1248,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-kanban-views",
+          "title": "Create and manage kanban views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 379,
+      "file": "03-Lists-Tables/379-kanban-confetti.png",
+      "width": 2110,
+      "height": 1390,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-kanban-views",
+          "title": "Create and manage kanban views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 380,
+      "file": "03-Lists-Tables/380-visible-attributes-kanban.png",
+      "width": 1218,
+      "height": 1000,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-kanban-views",
+          "title": "Create and manage kanban views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 381,
+      "file": "03-Lists-Tables/381-kanban-attribute-edit-history.png",
+      "width": 1154,
+      "height": 456,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-kanban-views",
+          "title": "Create and manage kanban views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 382,
+      "file": "03-Lists-Tables/382-grouped-by-kanban.png",
+      "width": 1120,
+      "height": 578,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-kanban-views",
+          "title": "Create and manage kanban views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 383,
+      "file": "03-Lists-Tables/383-sort-kanban.png",
+      "width": 1000,
+      "height": 564,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-kanban-views",
+          "title": "Create and manage kanban views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 384,
+      "file": "03-Lists-Tables/384-track-time-in-stage-kanban.png",
+      "width": 1024,
+      "height": 682,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-kanban-views",
+          "title": "Create and manage kanban views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 385,
+      "file": "03-Lists-Tables/385-view-settings.png",
+      "width": 1528,
+      "height": 954,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-table-views",
+          "title": "Create and manage table views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 386,
+      "file": "03-Lists-Tables/386-sort-settings.png",
+      "width": 1402,
+      "height": 748,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-table-views",
+          "title": "Create and manage table views | Attio Help Center"
+        },
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/filter-and-sort-views",
+          "title": "Filter and sort views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 387,
+      "file": "03-Lists-Tables/387-calculations-min.png",
+      "width": 1176,
+      "height": 726,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/create-and-manage-table-views",
+          "title": "Create and manage table views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 388,
+      "file": "03-Lists-Tables/388-advanced-filter-groups.png",
+      "width": 1396,
+      "height": 792,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/managing-your-data/views/filter-and-sort-views",
+          "title": "Filter and sort views | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 389,
+      "file": "08-Call-Intelligence/389-create-insight-template.png",
+      "width": 2475,
+      "height": 1397,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/create-insight-templates-for-call-recordings",
+          "title": "Create insight templates for call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 390,
+      "file": "08-Call-Intelligence/390-insight-templates-templates.png",
+      "width": 2538,
+      "height": 1118,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/create-insight-templates-for-call-recordings",
+          "title": "Create insight templates for call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 391,
+      "file": "08-Call-Intelligence/391-new-insight-template.png",
+      "width": 2462,
+      "height": 1192,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/create-insight-templates-for-call-recordings",
+          "title": "Create insight templates for call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 392,
+      "file": "08-Call-Intelligence/392-insight-template-preview.png",
+      "width": 2464,
+      "height": 1208,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/create-insight-templates-for-call-recordings",
+          "title": "Create insight templates for call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 393,
+      "file": "08-Call-Intelligence/393-default-insights-template.png",
+      "width": 2132,
+      "height": 1144,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/create-insight-templates-for-call-recordings",
+          "title": "Create insight templates for call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 394,
+      "file": "08-Call-Intelligence/394-archive-insight-template.png",
+      "width": 1032,
+      "height": 570,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/create-insight-templates-for-call-recordings",
+          "title": "Create insight templates for call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 395,
+      "file": "08-Call-Intelligence/395-auto-record-settings.png",
+      "width": 2674,
+      "height": 988,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/enable-call-recording",
+          "title": "Enable call recording in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 396,
+      "file": "08-Call-Intelligence/396-call-recorder-workspace-settings.png",
+      "width": 2048,
+      "height": 1392,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/enable-call-recording",
+          "title": "Enable call recording in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 397,
+      "file": "08-Call-Intelligence/397-start-recording-meeting.png",
+      "width": 1536,
+      "height": 1024,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/recording-calls-with-attio",
+          "title": "Recording calls with Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 398,
+      "file": "08-Call-Intelligence/398-manually-override-recording-settings.png",
+      "width": 1730,
+      "height": 1054,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/recording-calls-with-attio",
+          "title": "Recording calls with Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 406,
+      "file": "08-Call-Intelligence/406-recorder-denied-entry.png",
+      "width": 1536,
+      "height": 1024,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/troubleshoot-call-recording-in-attio",
+          "title": "Troubleshooting call recording in Attio | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 407,
+      "file": "08-Call-Intelligence/407-call-recording-transcript.png",
+      "width": 1240,
+      "height": 800,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/view-and-manage-call-recordings",
+          "title": "View and manage call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 408,
+      "file": "08-Call-Intelligence/408-share-section-of-call-transcript.jpg",
+      "width": 3840,
+      "height": 2160,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/view-and-manage-call-recordings",
+          "title": "View and manage call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 409,
+      "file": "08-Call-Intelligence/409-call-recording-speakers.png",
+      "width": 1240,
+      "height": 800,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/view-and-manage-call-recordings",
+          "title": "View and manage call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 410,
+      "file": "08-Call-Intelligence/410-video-controls.png",
+      "width": 660,
+      "height": 382,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/view-and-manage-call-recordings",
+          "title": "View and manage call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 411,
+      "file": "08-Call-Intelligence/411-pin-to-screen.png",
+      "width": 660,
+      "height": 320,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/view-and-manage-call-recordings",
+          "title": "View and manage call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 412,
+      "file": "08-Call-Intelligence/412-copy-link-share-call-externally.png",
+      "width": 1122,
+      "height": 604,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/view-and-manage-call-recordings",
+          "title": "View and manage call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 413,
+      "file": "08-Call-Intelligence/413-share-call-recording.png",
+      "width": 1632,
+      "height": 602,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/view-and-manage-call-recordings",
+          "title": "View and manage call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 414,
+      "file": "08-Call-Intelligence/414-delete-recording.png",
+      "width": 1128,
+      "height": 640,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/view-and-manage-call-recordings",
+          "title": "View and manage call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 415,
+      "file": "08-Call-Intelligence/415-filter-calls-by-team.png",
+      "width": 1264,
+      "height": 342,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/view-and-manage-call-recordings",
+          "title": "View and manage call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 416,
+      "file": "08-Call-Intelligence/416-add-call-to-favorites.png",
+      "width": 1058,
+      "height": 522,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/call-intelligence/view-and-manage-call-recordings",
+          "title": "View and manage call recordings | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 417,
+      "file": "10-Tasks-Notes/417-storage-accounts.png",
+      "width": 2614,
+      "height": 1268,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/cloud-storage",
+          "title": "Cloud storage integrations | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 418,
+      "file": "10-Tasks-Notes/418-files-cloud-storage.png",
+      "width": 1524,
+      "height": 1028,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/cloud-storage",
+          "title": "Cloud storage integrations | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 419,
+      "file": "10-Tasks-Notes/419-reply-in-thread.png",
+      "width": 1258,
+      "height": 704,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/comments-and-mentions",
+          "title": "Comments and mentions | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 420,
+      "file": "10-Tasks-Notes/420-mention.png",
+      "width": 1756,
+      "height": 798,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/comments-and-mentions",
+          "title": "Comments and mentions | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 421,
+      "file": "01-Navigation/421-list-settings-sidebar.png",
+      "width": 930,
+      "height": 726,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/navigating-your-workspace",
+          "title": "Navigating your workspace | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 422,
+      "file": "01-Navigation/422-all-lists-sidebar.png",
+      "width": 1258,
+      "height": 830,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/navigating-your-workspace",
+          "title": "Navigating your workspace | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 423,
+      "file": "01-Navigation/423-quick-actions.png",
+      "width": 1542,
+      "height": 1086,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/navigating-your-workspace",
+          "title": "Navigating your workspace | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 424,
+      "file": "01-Navigation/424-quick-actions-meetings.jpg",
+      "width": 3840,
+      "height": 2160,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/navigating-your-workspace",
+          "title": "Navigating your workspace | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 425,
+      "file": "10-Tasks-Notes/425-note.png",
+      "width": 1404,
+      "height": 702,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/notes",
+          "title": "Notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 426,
+      "file": "10-Tasks-Notes/426-delete-note.png",
+      "width": 1976,
+      "height": 1094,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/notes",
+          "title": "Notes | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 427,
+      "file": "01-Navigation/427-realtime-collaboration.png",
+      "width": 381,
+      "height": 226,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/real-time-updates",
+          "title": "Real-time updates | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 428,
+      "file": "10-Tasks-Notes/428-filter-tasks.png",
+      "width": 1218,
+      "height": 534,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/tasks",
+          "title": "Tasks | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 429,
+      "file": "10-Tasks-Notes/429-ask-attio-home-tasks.png",
+      "width": 1920,
+      "height": 574,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/tasks",
+          "title": "Tasks | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 430,
+      "file": "10-Tasks-Notes/430-record-page-tasks.png",
+      "width": 1520,
+      "height": 666,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/productivity-collaborating/tasks",
+          "title": "Tasks | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 431,
+      "file": "12-Settings/431-access-past-support-conversations.png",
+      "width": 1664,
+      "height": 1468,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/support/contact-attio-support",
+          "title": "Contact Attio Support | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 432,
+      "file": "12-Settings/432-support-access-request.png",
+      "width": 1880,
+      "height": 624,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/support/support-access-requests",
+          "title": "Support access requests | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 434,
+      "file": "06-Integrations/434-chrome-extension-gmail.png",
+      "width": 1830,
+      "height": 790,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/tools-and-extensions/attio-chrome-extension",
+          "title": "Attio Chrome extension | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 435,
+      "file": "06-Integrations/435-extension-add-new-record-website.png",
+      "width": 2916,
+      "height": 1066,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/tools-and-extensions/attio-chrome-extension",
+          "title": "Attio Chrome extension | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 436,
+      "file": "06-Integrations/436-extension-add-existing-record-website.png",
+      "width": 2908,
+      "height": 1060,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/tools-and-extensions/attio-chrome-extension",
+          "title": "Attio Chrome extension | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 437,
+      "file": "06-Integrations/437-associated-deals-chrome-extension.png",
+      "width": 702,
+      "height": 378,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/tools-and-extensions/attio-chrome-extension",
+          "title": "Attio Chrome extension | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 438,
+      "file": "06-Integrations/438-extension-navigation.png",
+      "width": 2606,
+      "height": 1536,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/tools-and-extensions/attio-chrome-extension",
+          "title": "Attio Chrome extension | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 439,
+      "file": "12-Settings/439-check-attio-app-for-updates.png",
+      "width": 1270,
+      "height": 812,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/tools-and-extensions/attio-on-desktop",
+          "title": "Attio on desktop | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 441,
+      "file": "12-Settings/441-reload-app.png",
+      "width": 984,
+      "height": 522,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/tools-and-extensions/attio-on-desktop",
+          "title": "Attio on desktop | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 442,
+      "file": "12-Settings/442-clear-app-data.png",
+      "width": 1262,
+      "height": 660,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/tools-and-extensions/attio-on-desktop",
+          "title": "Attio on desktop | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 443,
+      "file": "01-Navigation/443-mobile-main.png",
+      "width": 360,
+      "height": 780,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/tools-and-extensions/attio-on-mobile",
+          "title": "Attio on mobile | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 453,
+      "file": "12-Settings/453-billing-settings-page.png",
+      "width": 2481,
+      "height": 1786,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/billing-and-payments",
+          "title": "Billing and payments | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 454,
+      "file": "12-Settings/454-credits-records-usage.png",
+      "width": 1583,
+      "height": 305,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/billing-and-payments",
+          "title": "Billing and payments | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 455,
+      "file": "12-Settings/455-billing-contact-details.png",
+      "width": 1717,
+      "height": 753,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/billing-and-payments",
+          "title": "Billing and payments | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 456,
+      "file": "12-Settings/456-retry-payment.png",
+      "width": 1020,
+      "height": 590,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/billing-and-payments",
+          "title": "Billing and payments | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 457,
+      "file": "12-Settings/457-billing-invoices-history.png",
+      "width": 1798,
+      "height": 752,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/billing-and-payments",
+          "title": "Billing and payments | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 458,
+      "file": "12-Settings/458-plans-settings-page.png",
+      "width": 1070,
+      "height": 1017,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/billing-and-payments",
+          "title": "Billing and payments | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 459,
+      "file": "12-Settings/459-cancel-subscription.png",
+      "width": 2082,
+      "height": 824,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/billing-and-payments",
+          "title": "Billing and payments | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 460,
+      "file": "12-Settings/460-delete-workspace.png",
+      "width": 2594,
+      "height": 1366,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/delete-a-workspace",
+          "title": "Delete a workspace | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 461,
+      "file": "12-Settings/461-delete-workspace-expired-trial.png",
+      "width": 1524,
+      "height": 910,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/delete-a-workspace",
+          "title": "Delete a workspace | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 462,
+      "file": "12-Settings/462-delete-workspace-confirmation.png",
+      "width": 942,
+      "height": 728,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/delete-a-workspace",
+          "title": "Delete a workspace | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 463,
+      "file": "12-Settings/463-invite-attio-experts.png",
+      "width": 1712,
+      "height": 1025,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/expert-access-grants",
+          "title": "Grant workspace access to an Attio Expert | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 464,
+      "file": "12-Settings/464-reinvite-expert.png",
+      "width": 1712,
+      "height": 1025,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/expert-access-grants",
+          "title": "Grant workspace access to an Attio Expert | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 465,
+      "file": "12-Settings/465-revoke-expert-user.png",
+      "width": 1712,
+      "height": 1025,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/expert-access-grants",
+          "title": "Grant workspace access to an Attio Expert | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 466,
+      "file": "12-Settings/466-invite-members.png",
+      "width": 888,
+      "height": 534,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 467,
+      "file": "12-Settings/467-revoke-invite.png",
+      "width": 816,
+      "height": 564,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 468,
+      "file": "12-Settings/468-make-workspace-admin.png",
+      "width": 816,
+      "height": 564,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 469,
+      "file": "12-Settings/469-suspend-from-workspace.png",
+      "width": 816,
+      "height": 564,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 470,
+      "file": "12-Settings/470-suspend-member-with-retain-emails-option.png",
+      "width": 1151,
+      "height": 774,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 471,
+      "file": "12-Settings/471-reactivate-user.png",
+      "width": 816,
+      "height": 596,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 472,
+      "file": "12-Settings/472-end-workspace-sessions.png",
+      "width": 816,
+      "height": 564,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 473,
+      "file": "12-Settings/473-end-session.png",
+      "width": 1716,
+      "height": 612,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 474,
+      "file": "12-Settings/474-filter-report-by-team.png",
+      "width": 1410,
+      "height": 1050,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 475,
+      "file": "12-Settings/475-create-and-configure-team.png",
+      "width": 1512,
+      "height": 900,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 476,
+      "file": "12-Settings/476-add-to-team.png",
+      "width": 816,
+      "height": 564,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 477,
+      "file": "12-Settings/477-remove-member-from-team.png",
+      "width": 1512,
+      "height": 900,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 478,
+      "file": "12-Settings/478-delete-team.png",
+      "width": 1512,
+      "height": 900,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 479,
+      "file": "12-Settings/479-non-admin-members-page.png",
+      "width": 2600,
+      "height": 1236,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-members-and-admins",
+          "title": "Manage members, admins, and teams | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 480,
+      "file": "12-Settings/480-ask-attio-credits-settings-page.png",
+      "width": 3064,
+      "height": 1840,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-workspace-and-seat-credits",
+          "title": "Manage workspace and seat credits | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 481,
+      "file": "12-Settings/481-ask-attio-credits-usage-settings.png",
+      "width": 1512,
+      "height": 970,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-workspace-and-seat-credits",
+          "title": "Manage workspace and seat credits | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 482,
+      "file": "12-Settings/482-workflow-example-1.png",
+      "width": 2030,
+      "height": 1312,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-workspace-and-seat-credits",
+          "title": "Manage workspace and seat credits | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 483,
+      "file": "12-Settings/483-workflow-example-2.png",
+      "width": 2012,
+      "height": 1316,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-workspace-and-seat-credits",
+          "title": "Manage workspace and seat credits | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 484,
+      "file": "12-Settings/484-workflow-example-3.png",
+      "width": 2136,
+      "height": 1290,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-workspace-and-seat-credits",
+          "title": "Manage workspace and seat credits | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 485,
+      "file": "12-Settings/485-workflow-example-4.png",
+      "width": 1986,
+      "height": 1290,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/manage-workspace-and-seat-credits",
+          "title": "Manage workspace and seat credits | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 486,
+      "file": "12-Settings/486-scim-management-access-token.png",
+      "width": 2104,
+      "height": 1242,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/security/set-up-scim-with-microsoft-entra",
+          "title": "Set up SCIM with Microsoft Entra | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 490,
+      "file": "12-Settings/490-enable-require-sso.png",
+      "width": 1686,
+      "height": 464,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/security/single-sign-on",
+          "title": "Single sign-on | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 491,
+      "file": "12-Settings/491-sso-config.png",
+      "width": 1412,
+      "height": 957,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/security/single-sign-on",
+          "title": "Single sign-on | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 492,
+      "file": "12-Settings/492-domain-verification.png",
+      "width": 1622,
+      "height": 588,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/security/verify-a-domain",
+          "title": "Verify a domain | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 493,
+      "file": "12-Settings/493-show-dns-details.png",
+      "width": 1891,
+      "height": 971,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/security/verify-a-domain",
+          "title": "Verify a domain | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 494,
+      "file": "12-Settings/494-general-workspace-settings.png",
+      "width": 2580,
+      "height": 1106,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/update-workspace-name-and-logo",
+          "title": "Update workspace name and logo | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 495,
+      "file": "12-Settings/495-connected-email-storage-accounts.png",
+      "width": 1686,
+      "height": 452,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/view-and-manage-member-accounts",
+          "title": "View and manage member accounts | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 496,
+      "file": "12-Settings/496-retain-data-suspended-member.png",
+      "width": 2184,
+      "height": 568,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/view-and-manage-member-accounts",
+          "title": "View and manage member accounts | Attio Help Center"
+        }
+      ]
+    },
+    {
+      "id": 497,
+      "file": "12-Settings/497-change-email-access-handler.png",
+      "width": 2292,
+      "height": 732,
+      "reviewed": true,
+      "sources": [
+        {
+          "url": "https://attio.com/help/reference/workspace-settings-billing/view-and-manage-member-accounts",
+          "title": "View and manage member accounts | Attio Help Center"
+        }
+      ]
+    }
+  ]
+}

@@ -451,7 +451,7 @@
 }
 .emptyDirectory {
   border: 1px solid var(--p-border);
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--p-surface);
   text-align: center;
   padding: 46px 28px 0;

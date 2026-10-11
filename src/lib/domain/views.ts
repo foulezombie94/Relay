@@ -44,7 +44,7 @@ export function normalizeView(value: unknown, deals = false) {
 
 export function defaultRecordView(slug: string): ViewConfig {
   const view = defaultView(slug === "deals");
-  view.layout = slug === "deals" ? "kanban" : slug === "companies" ? "cards" : "table";
+  view.layout = slug === "deals" ? "kanban" : "table";
   if (slug === "companies") view.columns = ["display_name", "domain", "email"];
   if (slug === "people") view.columns = ["display_name", "email"];
   if (slug === "deals") view.columns = ["display_name", "amount", "stage", "close_date"];

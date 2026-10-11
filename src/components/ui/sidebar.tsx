@@ -98,7 +98,7 @@ export function SidebarProvider({
           className={"sb-layout " + className}
           style={
             {
-              "--sidebar-width": "18rem",
+              "--sidebar-width": "15.5rem",
               "--sidebar-width-mobile": "18rem",
               "--sidebar-width-icon": "4rem",
               ...style,

@@ -6,10 +6,11 @@
   margin-top: 3px;
 }
 .trigger {
-  font-weight: 600;
+  font-weight: 450;
+  color: var(--relay-muted);
 }
 .trigger[data-current="true"] {
-  color: var(--sidebar-primary);
+  color: var(--relay-muted);
 }
 .trigger > .chevron {
   margin-left: auto;
@@ -17,16 +18,15 @@
   height: 14px;
 }
 .content {
-  margin: 3px 0 5px 18px;
-  padding-left: 7px;
-  border-left: 1px solid var(--sidebar-border);
+  margin: 3px 0 5px;
+  padding-left: 0;
 }
 .content[hidden] {
   display: none;
 }
 .objectLabel {
   padding: 12px 10px 5px;
-  color: #8998af;
+  color: var(--relay-muted);
   font-size: 11px;
 }
 :global(.sb-desktop[data-collapsible="icon"]) .trigger > .chevron {

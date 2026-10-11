@@ -1,9 +1,9 @@
 .root {
-  --wf-ink: #263449;
-  --wf-muted: #718096;
-  --wf-blue: #4169e1;
+  --wf-ink: var(--relay-ink);
+  --wf-muted: var(--relay-muted);
+  --wf-blue: var(--blue);
   --wf-green: #25836b;
-  --wf-line: #e5eaf2;
+  --wf-line: var(--relay-border);
   color: var(--wf-ink);
 }
 .topTools,
@@ -50,9 +50,9 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  background: #f4f7fd;
-  border: 1px solid #e2e9f7;
-  border-radius: 12px;
+  background: var(--relay-surface-soft);
+  border: 1px solid var(--relay-border);
+  border-radius: 8px;
   padding: 23px;
   margin: 20px 0;
 }
@@ -62,13 +62,13 @@
 }
 .intro h3 {
   font:
-    700 19px "Manrope",
+    700 19px var(--font-ui),
     sans-serif;
   margin: 0 0 8px;
 }
 .intro p {
   margin: 0;
-  color: #667891;
+  color: var(--relay-muted);
   line-height: 1.7;
   max-width: 700px;
 }
@@ -80,7 +80,7 @@
 }
 .workflowList {
   border: 1px solid var(--wf-line);
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
 }
 .workflowRow {
@@ -90,13 +90,13 @@
   gap: 18px;
   padding: 22px;
   border-bottom: 1px solid var(--wf-line);
-  background: #fff;
+  background: var(--relay-surface);
 }
 .workflowRow:last-child {
   border: 0;
 }
 .workflowRow:hover {
-  background: #fbfcff;
+  background: var(--relay-surface-soft);
 }
 .workflowIdentity {
   display: flex;
@@ -185,11 +185,11 @@
 .template {
   border: 1px solid var(--wf-line);
   padding: 23px;
-  border-radius: 12px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: white;
+  background: var(--relay-surface);
 }
 .template > svg {
   color: var(--wf-blue);
@@ -203,7 +203,7 @@
 }
 .template h3 {
   font:
-    700 17px "Manrope",
+    700 17px var(--font-ui),
     sans-serif;
   line-height: 1.5;
   margin: 0;
@@ -309,7 +309,7 @@
 }
 .help {
   color: #64758d;
-  background: #f5f8fd;
+  background: var(--relay-surface-soft);
   border-radius: 8px;
   padding: 13px;
   font-size: 12px;
@@ -330,7 +330,7 @@
 .builder > div:first-child {
   padding: 20px 25px;
   margin-bottom: 0;
-  border-bottom: 1px solid #e5eaf2;
+  border-bottom: 1px solid var(--relay-border);
 }
 .editorFieldset {
   border: 0;
@@ -344,8 +344,8 @@
   align-items: center;
   gap: 20px;
   padding: 18px 23px;
-  border-bottom: 1px solid #e5eaf2;
-  background: #fff;
+  border-bottom: 1px solid var(--relay-border);
+  background: var(--relay-surface);
 }
 .editorToolbar > div:first-child {
   flex: 1;
@@ -353,7 +353,7 @@
 }
 .nameInput {
   font:
-    700 18px "Manrope",
+    700 18px var(--font-ui),
     sans-serif !important;
   border: 1px solid transparent !important;
   padding: 5px !important;
@@ -361,7 +361,7 @@
   background: transparent !important;
 }
 .nameInput:hover {
-  border-color: #e5eaf2 !important;
+  border-color: var(--relay-border) !important;
 }
 .draftLabel {
   display: block;
@@ -378,7 +378,7 @@
 .canvas {
   background:
     radial-gradient(#dce3ee 1px, transparent 1px) 0 0/18px 18px,
-    #f8faff;
+    var(--relay-surface-soft);
   padding: 28px;
   overflow: auto;
   display: flex;
@@ -397,7 +397,7 @@
 .criteriaNode,
 .node {
   border: 1px solid #dae3f0;
-  background: #fff;
+  background: var(--relay-surface);
   border-radius: 10px;
   box-shadow: 0 3px 9px #273b5910;
   width: 330px;
@@ -409,7 +409,7 @@
   gap: 13px;
   text-align: left;
   padding: 18px;
-  border-top: 3px solid #4169e1;
+  border-top: 3px solid var(--blue);
 }
 .triggerNode small,
 .node small {
@@ -438,7 +438,7 @@
   width: 34px;
   height: 34px;
   background: #eef3ff;
-  color: #4169e1;
+  color: var(--blue);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -484,7 +484,7 @@
 }
 .node[data-selected="true"],
 .triggerNode[data-selected="true"] {
-  border-color: #4169e1;
+  border-color: var(--blue);
   box-shadow: 0 0 0 2px #4169e11c;
 }
 .node[data-type="branch"] {
@@ -510,7 +510,7 @@
   gap: 5px;
   border-top: 1px solid #eef1f6;
   padding: 5px 8px;
-  background: #fcfdff;
+  background: var(--relay-surface-soft);
 }
 .nodeTools button {
   border: 0;
@@ -525,7 +525,7 @@
 }
 .nodeTools button:hover {
   background: #eef3fd;
-  color: #4169e1;
+  color: var(--blue);
 }
 .addNode {
   border: 1px dashed #c8d6ea;
@@ -535,14 +535,14 @@
   align-items: center;
   justify-content: center;
   color: #637b9d;
-  background: #fff;
+  background: var(--relay-surface);
   padding: 11px 18px;
   font-size: 12px;
   max-width: 100%;
 }
 .addNode:hover {
-  border-color: #4169e1;
-  color: #4169e1;
+  border-color: var(--blue);
+  color: var(--blue);
 }
 .endNode {
   font-size: 11px;
@@ -550,7 +550,7 @@
   padding: 8px 16px;
   border: 1px solid #dde5ef;
   border-radius: 20px;
-  background: #fff;
+  background: var(--relay-surface);
 }
 .branches {
   display: grid;
@@ -594,8 +594,8 @@
   font-size: 11px;
 }
 .inspector {
-  border-left: 1px solid #e5eaf2;
-  background: white;
+  border-left: 1px solid var(--relay-border);
+  background: var(--relay-surface);
   padding: 23px;
   overflow: auto;
 }
@@ -611,7 +611,7 @@
 }
 .inspectorHeading h3 {
   font:
-    700 17px "Manrope",
+    700 17px var(--font-ui),
     sans-serif;
   line-height: 1.5;
   margin: 8px 0 0;
@@ -642,13 +642,13 @@
   font-size: 12px;
 }
 .condition {
-  border: 1px solid #e5eaf2;
+  border: 1px solid var(--relay-border);
   border-radius: 8px;
   padding: 13px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: #fcfdff;
+  background: var(--relay-surface-soft);
 }
 .condition button {
   align-self: flex-end;
@@ -666,9 +666,9 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  border: 1px solid #e5eaf2;
+  border: 1px solid var(--relay-border);
   border-radius: 9px;
-  background: #fff;
+  background: var(--relay-surface);
   padding: 17px;
   text-align: left;
 }
@@ -677,7 +677,7 @@
   border-color: #bacdf6;
 }
 .catalogItem > svg:first-child {
-  color: #4169e1;
+  color: var(--blue);
   flex: none;
 }
 .catalogItem span {
@@ -701,7 +701,7 @@
 }
 .previewList article {
   padding: 17px;
-  border: 1px solid #e5eaf2;
+  border: 1px solid var(--relay-border);
   border-radius: 9px;
 }
 .previewList p {
@@ -711,7 +711,7 @@
 }
 .testOptions {
   padding: 18px;
-  border: 1px solid #e5eaf2;
+  border: 1px solid var(--relay-border);
   border-radius: 9px;
   margin: 15px 0;
   display: flex;
@@ -720,7 +720,7 @@
 }
 .root button:focus-visible,
 .builder button:focus-visible {
-  outline: 2px solid #4169e1;
+  outline: 2px solid var(--blue);
   outline-offset: 3px;
 }
 @media (max-width: 1100px) {
@@ -759,7 +759,7 @@
   .inspector {
     overflow: visible;
     border-left: 0;
-    border-top: 1px solid #e5eaf2;
+    border-top: 1px solid var(--relay-border);
   }
   .editorToolbar {
     align-items: flex-start;
@@ -845,8 +845,8 @@
   min-width: 200px;
   padding: 16px;
   border: 1px solid #d9e3ef;
-  border-radius: 12px;
-  background: #fff;
+  border-radius: 8px;
+  background: var(--relay-surface);
   color: #233651;
   text-align: left;
   box-shadow: 0 3px 10px #23365108;
@@ -963,7 +963,7 @@
   gap: 16px;
   padding: 24px;
   border: 1px solid #e1e8f2;
-  border-radius: 12px;
+  border-radius: 8px;
   margin-top: 24px;
   max-width: 620px;
 }

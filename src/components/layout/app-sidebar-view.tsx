@@ -28,8 +28,8 @@ import {
   ListChecks,
   Check,
   BookOpen,
-  Minus,
-  Plus,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import {
   Sidebar,
@@ -182,70 +182,69 @@ export function AppSidebarView({
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <Link
-          prefetch={persistPreferences ? undefined : false}
-          href="/app/dashboard"
-          className="sb-brand"
-          onClick={close}
-          aria-label="Zyliad CRM"
-        >
-          <span className="brand-mark">z</span>
-          <span className="sb-brand-text">
-            Zyliad <small>CRM</small>
-          </span>
-        </Link>
-        <Dropdown.Root>
-          <Dropdown.Trigger
-            className="sb-workspace-button"
-            aria-label={"Changer d’espace : " + workspace.name}
+        <div className="sb-workspace-row">
+          <Link
+            prefetch={persistPreferences ? undefined : false}
+            href="/app/dashboard"
+            className="sb-brand"
+            onClick={close}
+            aria-label="Zyliad CRM"
           >
-            <span className="sb-workspace-avatar">{workspace.name.slice(0, 1).toUpperCase()}</span>
-            <span className="sb-workspace-copy">
-              <strong>{workspace.name}</strong>
-              <small>Espace de travail</small>
-            </span>
-            <Ellipsis size={15} className="sb-workspace-chevron" />
-          </Dropdown.Trigger>
-          <Dropdown.Portal>
-            <Dropdown.Content
-              className="sb-dropdown"
-              data-mobile={isMobile ? "true" : undefined}
-              side={isMobile ? "bottom" : "right"}
-              align="start"
-              sideOffset={isMobile ? 6 : 9}
-              collisionPadding={12}
-              sticky="always"
+            <span className="brand-mark">z</span>
+          </Link>
+          <Dropdown.Root>
+            <Dropdown.Trigger
+              className="sb-workspace-button"
+              aria-label={"Changer d’espace : " + workspace.name}
             >
-              <Dropdown.Label className="sb-dropdown-label">Vos espaces de travail</Dropdown.Label>
-              {workspaces.map((w) => (
-                <Dropdown.Item
-                  key={w.id}
-                  className="sb-dropdown-item"
-                  onSelect={() => {
-                    switchWorkspace(w.id);
-                    close();
-                  }}
-                >
-                  <span className="sb-workspace-avatar">{w.name.slice(0, 1).toUpperCase()}</span>
-                  <span>{w.name}</span>
-                  {w.id === workspace.id && <Check size={15} />}
+              <span className="sb-workspace-copy">
+                <strong>{workspace.name}</strong>
+              </span>
+              <ChevronDown size={14} className="sb-workspace-chevron" />
+            </Dropdown.Trigger>
+            <Dropdown.Portal>
+              <Dropdown.Content
+                className="sb-dropdown"
+                data-mobile={isMobile ? "true" : undefined}
+                side={isMobile ? "bottom" : "right"}
+                align="start"
+                sideOffset={isMobile ? 6 : 9}
+                collisionPadding={12}
+                sticky="always"
+              >
+                <Dropdown.Label className="sb-dropdown-label">
+                  Vos espaces de travail
+                </Dropdown.Label>
+                {workspaces.map((w) => (
+                  <Dropdown.Item
+                    key={w.id}
+                    className="sb-dropdown-item"
+                    onSelect={() => {
+                      switchWorkspace(w.id);
+                      close();
+                    }}
+                  >
+                    <span className="sb-workspace-avatar">{w.name.slice(0, 1).toUpperCase()}</span>
+                    <span>{w.name}</span>
+                    {w.id === workspace.id && <Check size={15} />}
+                  </Dropdown.Item>
+                ))}
+                <Dropdown.Separator className="sb-separator" />
+                <Dropdown.Item asChild>
+                  <Link
+                    prefetch={persistPreferences ? undefined : false}
+                    className="sb-dropdown-item"
+                    href="/app/settings"
+                    onClick={close}
+                  >
+                    <Settings size={15} />
+                    Gérer l’espace
+                  </Link>
                 </Dropdown.Item>
-              ))}
-              <Dropdown.Separator className="sb-separator" />
-              <Dropdown.Item asChild>
-                <Link
-                  prefetch={persistPreferences ? undefined : false}
-                  className="sb-dropdown-item"
-                  href="/app/settings"
-                  onClick={close}
-                >
-                  <Settings size={15} />
-                  Gérer l’espace
-                </Link>
-              </Dropdown.Item>
-            </Dropdown.Content>
-          </Dropdown.Portal>
-        </Dropdown.Root>
+              </Dropdown.Content>
+            </Dropdown.Portal>
+          </Dropdown.Root>
+        </div>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -313,7 +312,7 @@ export function AppSidebarView({
             const Icon = group.icon;
             const active = currentGroup(path) === group.id;
             const open = !compact && (expanded[group.id] ?? active);
-            const GroupIndicator = open ? Minus : Plus;
+            const GroupIndicator = open ? ChevronDown : ChevronRight;
             const panelId = "relay-nav-" + group.id;
             return (
               <SidebarGroup key={group.id} className={styles.group}>
@@ -354,7 +353,13 @@ export function AppSidebarView({
                           tooltip={label}
                           onClick={close}
                         >
-                          <ItemIcon size={18} />
+                          {["companies", "people", "deals"].includes(slug) ? (
+                            <span className={"sb-object-icon sb-object-" + slug} aria-hidden="true">
+                              <ItemIcon size={13} />
+                            </span>
+                          ) : (
+                            <ItemIcon size={18} />
+                          )}
                           <span>{label}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>

@@ -10,7 +10,7 @@ export function RecordSegments({
   onChange: (v: Filters) => void;
 }) {
   return (
-    <details className="detail-card">
+    <details className="detail-card segment-filter">
       <summary>Segment dynamique avancé ({value.length} conditions)</summary>
       <p>Les conditions se cumulent et sont enregistrées avec la vue.</p>
       {value.map((f, i) => (

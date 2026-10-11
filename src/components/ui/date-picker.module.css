@@ -3,13 +3,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 41px;
+  min-height: 32px;
   text-align: left;
-  border: 1px solid #dce3ed;
+  border: 1px solid var(--relay-border);
   border-radius: 8px;
-  padding: 10px 12px;
-  background: white;
-  color: #293242;
+  padding: 7px 10px;
+  background: var(--relay-surface);
+  color: var(--relay-ink);
   font-size: 12px;
   margin-top: 7px;
   transition:
@@ -25,10 +25,10 @@
 }
 .trigger:hover {
   border-color: #a9bbe6;
-  background: #fcfdff;
+  background: var(--relay-surface-soft);
 }
 .trigger[data-state="open"] {
-  border-color: #4169e1;
+  border-color: var(--blue);
   box-shadow: 0 0 0 3px #4169e112;
 }
 .trigger > span {
@@ -46,16 +46,16 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 18px;
-  background: white;
-  border: 1px solid #e3e8f1;
-  border-radius: 15px;
-  box-shadow: 0 12px 45px #21355924;
+  background: var(--relay-surface);
+  border: 1px solid var(--relay-border);
+  border-radius: 9px;
+  box-shadow: var(--relay-popover-shadow);
   z-index: 130;
   outline: none;
   animation: appear 0.15s ease-out;
   transform-origin: var(--radix-popover-content-transform-origin);
   font-family: "DM Sans", Arial, sans-serif;
-  color: #293242;
+  color: var(--relay-ink);
 }
 .heading {
   display: flex;
@@ -72,7 +72,7 @@
 }
 .heading h3 {
   font:
-    700 15px "Manrope",
+    700 15px var(--font-ui),
     Arial,
     sans-serif;
   letter-spacing: -0.3px;
@@ -90,7 +90,7 @@
 }
 .close:hover {
   background: #eaf0ff;
-  color: #4169e1;
+  color: var(--blue);
 }
 .shortcuts {
   display: flex;
@@ -99,28 +99,28 @@
 }
 .shortcuts button {
   flex: 1;
-  border: 1px solid #e4eaf5;
+  border: 1px solid var(--relay-border);
   border-radius: 6px;
   padding: 7px 4px;
   font-size: 10px;
   font-weight: 500;
   color: #6c80a5;
-  background: #f8faff;
+  background: var(--relay-surface-soft);
 }
 .shortcuts button:hover {
   background: #edf2ff;
   border-color: #c8d5f3;
-  color: #4169e1;
+  color: var(--blue);
 }
 .calendar {
-  --rdp-accent-color: #4169e1;
+  --rdp-accent-color: var(--blue);
   --rdp-accent-background-color: #edf2ff;
   --rdp-day-height: 39px;
   --rdp-day-width: 40px;
   --rdp-day_button-width: 35px;
   --rdp-day_button-height: 35px;
   --rdp-day_button-border-radius: 8px;
-  --rdp-selected-border: 1px solid #4169e1;
+  --rdp-selected-border: 1px solid var(--blue);
   --rdp-outside-opacity: 0.35;
   --rdp-nav_button-height: 29px;
   --rdp-nav_button-width: 29px;
@@ -139,7 +139,7 @@
 }
 .calendar :global(.rdp-month_caption) {
   font:
-    600 13px "Manrope",
+    600 13px var(--font-ui),
     sans-serif;
   margin-bottom: 10px;
   text-transform: capitalize;
@@ -149,15 +149,15 @@
 }
 .calendar :global(.rdp-button_previous),
 .calendar :global(.rdp-button_next) {
-  border: 1px solid #e5eaf3;
+  border: 1px solid var(--relay-border);
   border-radius: 7px;
-  background: white;
+  background: var(--relay-surface);
   color: #7488ab;
 }
 .calendar :global(.rdp-button_previous:hover),
 .calendar :global(.rdp-button_next:hover) {
   background: #edf2ff;
-  color: #4169e1;
+  color: var(--blue);
 }
 .calendar :global(.rdp-weekday) {
   font-size: 9px;
@@ -180,17 +180,17 @@
 }
 .calendar :global(.rdp-day_button:hover) {
   background: #edf2ff;
-  color: #4169e1;
+  color: var(--blue);
 }
 .calendar :global(.rdp-selected .rdp-day_button) {
-  background: #4169e1;
+  background: var(--blue);
   color: white;
   font-weight: 600;
   box-shadow: 0 2px 6px #4169e125;
 }
 .calendar :global(.rdp-today:not(.rdp-selected) .rdp-day_button) {
   background: #f0f4ff;
-  color: #4169e1;
+  color: var(--blue);
   border: 1px solid #d2def8;
   font-weight: 600;
 }
@@ -242,7 +242,7 @@
   max-height: 220px;
   border: 1px solid #e1e7f2;
   border-radius: 9px;
-  background: white;
+  background: var(--relay-surface);
   padding: 5px;
   box-shadow: 0 8px 30px #21355920;
   overflow: hidden;
@@ -265,10 +265,10 @@
 }
 .timeItem[data-highlighted] {
   background: #edf2ff;
-  color: #4169e1;
+  color: var(--blue);
 }
 .timeItem[data-state="checked"] {
-  color: #4169e1;
+  color: var(--blue);
   font-weight: 600;
 }
 .scrollButton {
@@ -298,7 +298,7 @@
   color: #7a8ba7;
 }
 .clear:hover {
-  color: #4169e1;
+  color: var(--blue);
 }
 .apply {
   display: flex;
@@ -307,7 +307,7 @@
   border: 0;
   border-radius: 7px;
   padding: 8px 12px;
-  background: #4169e1;
+  background: var(--blue);
   color: white;
   font-size: 11px;
   font-weight: 500;
@@ -318,7 +318,7 @@
 .content button:focus-visible,
 .trigger:focus-visible,
 .timeTrigger:focus-visible {
-  outline: 2px solid #4169e1;
+  outline: 2px solid var(--blue);
   outline-offset: 2px;
 }
 .content button:disabled {

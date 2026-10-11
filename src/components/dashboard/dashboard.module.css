@@ -39,7 +39,7 @@
   height: 55px;
   background: var(--dash-soft);
   border: 1px solid var(--dash-border);
-  border-radius: 12px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
