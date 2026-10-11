@@ -22,15 +22,35 @@ export function bearer(request: Request) {
   return hash(value.slice(7));
 }
 export async function mcpDb(tokenHash: string, operation: string, payload: unknown = {}) {
-  const { data, error } = await adminDb().rpc("mcp_request", {
-    token_hash: tokenHash,
-    operation,
-    payload: { ...(payload as Record<string, unknown>), resource: mcpResource() },
-  });
-  if (error) throw new ApiError("Service MCP temporairement indisponible.", 503);
+  const { data, error } = await adminDb()
+    .rpc("mcp_request", {
+      token_hash: tokenHash,
+      operation,
+      payload: { ...(payload as Record<string, unknown>), resource: mcpResource() },
+    })
+    .abortSignal(AbortSignal.timeout(10000));
+  if (error)
+    throw new ApiError(
+      "Service MCP temporairement indisponible. Réessayez après quelques secondes.",
+      503,
+      "temporarily_unavailable",
+    );
   if (data?.error)
     throw new ApiError(
-      "Cette action MCP n’est pas autorisée ou ses données ont changé.",
+      (
+        {
+          unauthorized:
+            "Votre connexion MCP a expiré ou a été révoquée. Reconnectez Zyliad dans votre client.",
+          forbidden: "Cette action n’est pas autorisée par vos permissions actuelles.",
+          conflict:
+            "Les données ont changé. Relisez la version actuelle avant de préparer une nouvelle proposition.",
+          rate_limited:
+            "La limite de requêtes MCP est atteinte. Attendez 60 secondes avant de réessayer.",
+          not_found: "Cette ressource est introuvable ou inaccessible dans ce workspace.",
+          validation_error:
+            "Les paramètres ne sont pas valides pour cette opération. Consultez le schéma de l’outil.",
+        } as Record<string, string>
+      )[data.error] ?? "Cette action MCP n’est pas autorisée.",
       data.error === "unauthorized"
         ? 401
         : data.error === "rate_limited"
@@ -39,7 +59,9 @@ export async function mcpDb(tokenHash: string, operation: string, payload: unkno
             ? 403
             : data.error === "conflict"
               ? 409
-              : 400,
+              : data.error === "not_found"
+                ? 404
+                : 400,
       data.error,
     );
   return data;

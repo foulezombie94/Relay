@@ -12,6 +12,9 @@ type Fields = {
   provider?: string;
   input_tokens?: number;
   output_tokens?: number;
+  workspace_id?: string;
+  connection_id?: string;
+  action?: string;
 };
 const pending = new Set<Promise<void>>();
 let dropped = 0;

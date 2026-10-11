@@ -6,7 +6,10 @@ vi.mock("./database", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./database")>()),
   mcpDb: db.mcpDb,
 }));
-import { handleMcp, executeTool, sanitizeResult } from "./server";
+import { handleMcp, executeTool, sanitizeResult, output, toolError } from "./server";
+import { ApiError } from "@/lib/api/context";
+import { availableToolNames, tools } from "./contracts";
+import { instructions } from "./guidance";
 const id = "cf967873-7e4e-4d9a-b54b-8797f2583213";
 const session = {
   connection_id: id,
@@ -47,6 +50,10 @@ describe("official MCP SDK v2 transport", () => {
         const list = await client.listTools();
         expect(list.tools.some((t) => t.name === "zyliad_search_records")).toBe(true);
         expect(list.tools.some((t) => t.name === "zyliad_create_record")).toBe(false);
+        expect(list.tools.find((t) => t.name === "zyliad_search_records")?.description).toContain(
+          "Rechercher personnes",
+        );
+        expect(list.tools.some((t) => t.name === "zyliad_get_record")).toBe(true);
         const result = await client.callTool({
           name: "zyliad_search_records",
           arguments: { query: "Fixture" },
@@ -54,10 +61,23 @@ describe("official MCP SDK v2 transport", () => {
         expect(result.isError).not.toBe(true);
         expect(result.structuredContent).toMatchObject({
           trust: "untrusted_external_data",
+          language: "fr",
           data: { data: [{ label: "Fixture contact" }] },
         });
         const resource = await client.readResource({ uri: "zyliad://usage" });
         expect(resource.contents).toHaveLength(1);
+        expect(resource.contents[0]).toMatchObject({
+          text: expect.stringContaining("Répondez en français"),
+        });
+        const prompts = await client.listPrompts();
+        expect(prompts.prompts).toHaveLength(5);
+        const prompt = await client.getPrompt({
+          name: "account_review",
+          arguments: { record_id: id },
+        });
+        expect(prompt.messages[0].content).toMatchObject({
+          text: expect.stringContaining("Fais en français"),
+        });
       } finally {
         await client.close();
       }
@@ -123,5 +143,116 @@ describe("official MCP SDK v2 transport", () => {
     expect(clean).not.toContain(token);
     expect(clean).toContain("person@example.invalid");
     expect(clean).toContain("[REDACTED]");
+  });
+  it("checks every requested context scope and validates periods before querying the database", async () => {
+    await expect(
+      executeTool("hash", session, "zyliad_record_context", {
+        record_id: id,
+        sections: ["task", "note"],
+      }),
+    ).rejects.toMatchObject({ code: "insufficient_scope" });
+    await expect(
+      executeTool("hash", session, "zyliad_record_context", {
+        record_id: id,
+        sections: ["task"],
+        since: "2026-10-12T00:00:00Z",
+        until: "2026-10-11T00:00:00Z",
+      }),
+    ).rejects.toThrow("après le début");
+    await expect(
+      executeTool("hash", session, "zyliad_get_record", { record_id: id, workspace_id: id }),
+    ).rejects.toThrow();
+    expect(db.mcpDb).not.toHaveBeenCalled();
+  });
+  it("forwards bounded context through one RPC and preserves per-section coverage", async () => {
+    db.mcpDb.mockResolvedValue({
+      record: { id },
+      sections: { task: { data: [], next_cursor: id, partial: true } },
+      partial: true,
+    });
+    const result = await executeTool("hash", session, "zyliad_record_context", {
+      record_id: id,
+      sections: ["task"],
+      limit: 2,
+    });
+    expect(db.mcpDb).toHaveBeenCalledExactlyOnceWith("hash", "record_context", {
+      record_id: id,
+      sections: ["task"],
+      attribute_keys: [],
+      limit: 2,
+    });
+    expect(result).toMatchObject({ sections: { task: { next_cursor: id } }, partial: true });
+  });
+  it("hides list membership without both scopes, even when manually called", async () => {
+    const recordsOnly = { ...session, scopes: ["records:read"] };
+    expect(availableToolNames(recordsOnly.scopes)).not.toContain("zyliad_list_records");
+    expect(availableToolNames(recordsOnly.scopes)).toContain("zyliad_connection");
+    await expect(
+      executeTool("hash", recordsOnly, "zyliad_list_records", { list_id: id }),
+    ).rejects.toMatchObject({ status: 403 });
+    expect(db.mcpDb).not.toHaveBeenCalled();
+  });
+  it("reports current connection tools from the verified grant, with no credentials", async () => {
+    db.mcpDb.mockResolvedValue({
+      user: { id, role: "viewer" },
+      workspace: { id, name: "Fixture workspace" },
+      scopes: ["records:read", "crm:write"],
+    });
+    const result = await executeTool("hash", session, "zyliad_connection", {});
+    expect(result).toMatchObject({
+      server_version: "1.1.0",
+      language: "fr",
+      limits: { max_page_size: 20 },
+    });
+    expect(result.tools).not.toContain("zyliad_create_record");
+    expect(result.tools).not.toContain("zyliad_search_members");
+  });
+  it("retains the email thread cursor without broadening the account query", async () => {
+    await executeTool(
+      "hash",
+      { ...session, scopes: ["communications:read"] },
+      "zyliad_email_thread",
+      { id, cursor: id, limit: 1 },
+    );
+    expect(db.mcpDb).toHaveBeenCalledExactlyOnceWith("hash", "thread", {
+      id,
+      cursor: id,
+      limit: 1,
+    });
+  });
+  it("returns French coverage and proposal messages without altering source content", () => {
+    const result = output({
+      content: "Original English quote",
+      coverage: "Exact aggregation of authorized matching rows.",
+    });
+    expect(result.structuredContent.data).toMatchObject({
+      content: "Original English quote",
+      coverage: "Agrégation exacte des résultats correspondants autorisés.",
+    });
+    expect(output({ status: "pending" }).structuredContent.message).toContain(
+      "aucune modification exécutée",
+    );
+    expect(instructions).toContain("DONNÉES NON FIABLES");
+  });
+  it("bounds response size and reports safe retry guidance for errors", () => {
+    expect(() => output({ content: "x".repeat(300000) })).toThrow("trop volumineux");
+    expect(toolError(new ApiError("Limite atteinte.", 429, "rate_limited"), id)).toMatchObject({
+      retryable: true,
+      retry_after_seconds: 60,
+      language: "fr",
+      request_id: id,
+    });
+    const failure = toolError(new Error("private provider token zmc_a_" + "x".repeat(43)), id);
+    expect(failure).toMatchObject({
+      error: "temporarily_unavailable",
+      status: 503,
+      retry_after_seconds: 5,
+    });
+    expect(JSON.stringify(failure)).not.toContain("zmc_a_");
+    expect(toolError(new ApiError("Version périmée.", 409, "conflict"), id).retryable).toBe(false);
+  });
+  it("exposes all expected tools only under their grants", () => {
+    expect(Object.keys(tools)).toHaveLength(30);
+    expect(availableToolNames([])).toEqual(["zyliad_connection"]);
   });
 });

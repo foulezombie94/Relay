@@ -32,6 +32,36 @@ const actionLabels: Record<string, string> = {
   update_task: "Modifier une tâche",
   create_note: "Créer une note privée",
   update_note: "Modifier une note",
+  connection: "Vérifier la connexion",
+  record: "Lire une fiche",
+  records: "Lire plusieurs fiches",
+  record_context: "Lire le contexte d’une fiche",
+  relations: "Lire les relations",
+  list_records: "Lire les fiches d’une liste",
+  members: "Rechercher des membres",
+  thread: "Lire un fil d’emails",
+  search: "Rechercher des données",
+  source: "Lire une source",
+  aggregate: "Calculer un agrégat",
+  workspace: "Lire les définitions CRM",
+  connect: "Connecter une application",
+  disconnect: "Déconnecter une application",
+  refresh: "Renouveler la connexion",
+};
+const resultLabels: Record<string, string> = {
+  pending: "En attente de confirmation",
+  pending_confirmation: "En attente de confirmation",
+  executed: "Exécutée",
+  rejected: "Refusée",
+  expired: "Expirée",
+  success: "Réussi",
+  forbidden: "Accès refusé",
+  conflict: "Données modifiées",
+  validation_error: "Paramètres invalides",
+  not_found: "Introuvable ou inaccessible",
+  consented: "Autorisée",
+  revoked: "Révoquée",
+  reuse_rejected: "Réutilisation refusée",
 };
 export function McpConnection() {
   const { workspace } = useWorkspace();
@@ -113,7 +143,7 @@ export function McpConnection() {
         <article className={styles.card} key={c.id}>
           <div className={styles.cardHead}>
             <strong>{actionLabels[c.action] ?? c.action}</strong>
-            <span>{c.status}</span>
+            <span>{resultLabels[c.status] ?? c.status}</span>
           </div>
           {c.status === "pending" && (
             <>
@@ -140,7 +170,7 @@ export function McpConnection() {
         {q.data?.data.audit.map((a, i) => (
           <div className={styles.audit} key={i}>
             <span>
-              {a.action} · {a.result}
+              {actionLabels[a.action] ?? a.action} · {resultLabels[a.result] ?? a.result}
             </span>
             <time>{date(a.created_at)}</time>
           </div>

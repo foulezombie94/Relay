@@ -6,6 +6,7 @@ await db.connect();
 db.on("notice", (n) => console.log(n.message));
 try {
   await db.query(await readFile("supabase/tests/mcp.sql", "utf8"));
+  await db.query(await readFile("supabase/tests/mcp-read-context.sql", "utf8"));
 } finally {
   await db.end();
 }

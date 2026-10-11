@@ -19,7 +19,7 @@ La landing propose aussi `npx --yes "https://VOTRE-DOMAINE/mcp/zyliad-mcp-1.0.0.
 
 ## Contrats disponibles
 
-22 outils fortement typés sont définis dans `src/lib/mcp/contracts.ts` :
+La version serveur **1.1.0** expose 30 outils fortement typés définis dans `src/lib/mcp/contracts.ts` :
 
 - contexte du workspace, objets et champs ;
 - recherche paginée de fiches (contacts, entreprises, deals et objets personnalisés), tâches, notes, réunions, emails, calendriers, documents, engagements, conflits, listes, pipelines et workflows ;
@@ -27,9 +27,15 @@ La landing propose aussi `npx --yes "https://VOTRE-DOMAINE/mcp/zyliad-mcp-1.0.0.
 - agrégats CRM soumis aux permissions ;
 - propositions de création/modification de fiches, tâches et notes, puis suivi de leur statut.
 
+Les nouvelles lectures comprennent : identité et permissions actuelles (`zyliad_connection`), fiche précise (`zyliad_get_record`), jusqu’à 10 fiches par IDs (`zyliad_get_records`), contexte ciblé (`zyliad_record_context`), relations paginées (`zyliad_record_relations`), fiches d’une liste (`zyliad_list_records`), responsables (`zyliad_search_members`) et fils d’emails importés (`zyliad_email_thread`). Le contexte et les lots utilisent un seul RPC métier ; chaque opération conserve sa vérification OAuth et les requêtes SQL internes restent soumises aux RLS. Les nouvelles lectures ne nécessitent aucun nouveau scope. La liste des membres appartient au consentement configuration, dont le libellé le précise.
+
+`zyliad_connection` renvoie le rôle courant, les scopes accordés et effectifs (écriture retirée des capacités en cas de rôle viewer), le catalogue des outils et les limites. Il reste disponible pour toute connexion valide. Les champs personnalisés ne sont lus que sur sélection explicite de leurs clés : `attributes_partial` signale une sélection incomplète, qui ne doit jamais remplacer un objet `attributes` entier. Les IDs absents et inaccessibles sont indistinguables. Les pages nouvelles utilisent une ligne supplémentaire pour déterminer `has_more` et `next_cursor` sans compter tout le jeu de données ; leurs curseurs sont des UUID et ne garantissent aucun ordre chronologique.
+
 Les recherches réutilisent les RPC métier existantes, leurs curseurs, limites et indicateurs `partial/coverage`. Les agrégats multi-devise ne prétendent pas convertir des montants. Aucune fonction SQL, shell, URL arbitraire, téléchargement, envoi d'email, suppression, modification financière ou changement de permissions n'est exposée. Les intégrations OAuth externes en attente d'app review ne sont pas activées implicitement.
 
-Les outils visibles correspondent aux scopes de la connexion. `zyliad_read_source` et `zyliad_aggregate` vérifient aussi le scope propre à la ressource à chaque appel. Le resource `zyliad://usage` et le prompt `prepare_meeting` explicitent les frontières de confiance.
+Les outils visibles correspondent aux scopes de la connexion. `zyliad_read_source` et `zyliad_aggregate` vérifient aussi le scope propre à la ressource à chaque appel. Le contexte vérifie chaque section côté TypeScript et SQL avant lecture. Les entrées de liste exigent les scopes configuration et fiches. Les RLS existantes continuent de protéger notes, listes, communications et fiches des lecteurs limités. Les helpers privés sont réservés au rôle MCP, `SECURITY INVOKER`, et ne créent aucun droit supplémentaire sur les tables.
+
+Les instructions, descriptions, paramètres, messages d’erreur et couverture générés par le serveur sont en français ; le modèle est invité à répondre en français par défaut, avec respect de la langue explicitement demandée. Les données d’origine et citations ne sont pas traduites. Le resource `zyliad://usage` et les cinq prompts `prepare_meeting`, `account_review`, `follow_up`, `pipeline_review`, `daily_brief` guident les recherches bornées, les citations, les incertitudes et les confirmations. Les noms d’outils et marqueurs de protocole restent compatibles.
 
 ## OAuth et stockage
 
@@ -52,11 +58,14 @@ Les réponses sont marquées `untrusted_external_data` et les instructions exter
 - Limite 120 vérifications/minute/connexion, 600/workspace ; handshake + outil peut consommer plusieurs vérifications. Distribution en PostgreSQL, 429 + Retry-After 60.
 - Enregistrement/exchanges OAuth : 120/minute/opération globalement, 10 000 clients maximum ; prévoir une protection WAF si trafic abusif. Pas de fetching d'URLs de DCR.
 - 20 connexions actives/user/workspace, 30 propositions pendantes/connexion, requêtes MCP 64 KiB, requêtes OAuth 12 KiB, statements SQL 8 secondes, route Vercel 30 secondes.
+- Résultats d’outils bornés à 256 KiB ; requête de base interrompue après 10 secondes. En cas de dépassement, choisir moins de champs ou réduire les filtres/pages plutôt que réessayer le même résultat volumineux.
+- Erreurs en français avec code stable, `retryable`, `retry_after_seconds` et `request_id`. 429 conseille 60 secondes ; 503 conseille 5 secondes. Aucun retry serveur de mutation. Conserver le `request_id` de proposition pour une reprise identique et contrôler son statut si l’ID est connu.
+- Logs d’action structurés : workspace, connexion, outil, résultat, durée et corrélation ; aucun payload, résultat CRM, secret ou token. `X-Request-ID` identifie aussi la requête HTTP. Le handler est fermé dans un `finally`, même en cas d’échec.
 - Aucun état de session CRM partagé entre requêtes ou instances Vercel ; pas de subscriptions/SSE persistant. Les lectures sont bornées ; la réponse de définitions de workspace dépend du catalogue du tenant.
 - La passerelle locale n'écrit aucun fichier de tokens. Les clients natifs conservent leurs autorisations selon leur propre stockage sécurisé.
 - Aucun client secret Google/Microsoft/Claude/OpenAI n'est nécessaire pour ce serveur first-party. Les variables Vercel Supabase serveur existantes et APP_URL canonique sont requises ; aucune clé service_role publique.
 
-La migration additive `secure_zyliad_mcp` crée les tables, rôle et RPC sans modifier les tables CRM existantes ni leurs RLS. Vérifier les grants via les advisors Supabase après déploiement. Pour désactiver, révoquer les connexions dans Zyliad et retirer le serveur des clients. Ne pas supprimer les tables CRM ni réécrire une migration appliquée.
+La migration additive `secure_zyliad_mcp` crée les tables, rôle et RPC sans modifier les tables CRM existantes ni leurs RLS. `mcp_crm_context_and_french` ajoute les lectures : elle conserve l’implémentation précédente en privé et la délègue pour toutes les opérations existantes ; l’endpoint public garde son contrat. Aucun token ou consentement existant n’est modifié. Vérifier les grants via les advisors Supabase après déploiement. Pour désactiver, révoquer les connexions dans Zyliad et retirer le serveur des clients. Ne pas supprimer les tables CRM ni réécrire une migration appliquée.
 
 ## Validation reproductible
 
@@ -71,7 +80,7 @@ npm run check:secrets:bundles
 npm run format:check
 ```
 
-Le test SQL utilise exclusivement une base locale jetable, fixtures rollback : PKCE/audience, redirection, state de retour, code/consentement à usage unique, refresh rotation/rejeu, RLS inter-tenant/notes privées, scopes, confirmation exacte, idempotence/version, downgrade, quotas, révocation et audit. Les tests SDK négocient vraiment moderne + compatibilité puis listent/appellent les outils via HTTP. Les tests OAuth HTTP contrôlent CSRF, cookie, découverte et absence de tokens bruts dans les RPC. La CI exécute aussi ces tests SQL avec toutes les migrations depuis zéro.
+Les tests SQL utilisent exclusivement une base locale jetable, fixtures rollback : PKCE/audience, redirection, state de retour, code/consentement à usage unique, refresh rotation/rejeu, RLS inter-tenant/notes privées, scopes, confirmation exacte, idempotence/version, downgrade, quotas, révocation et audit. `mcp-read-context.sql` ajoute les scopes composés, contexte et lots inter-tenant, listes/notes privées, fils limités au compte, lecteurs limités, sélection de champs et pagination sans doublon. Les tests SDK négocient vraiment moderne + compatibilité puis listent/appellent les outils et prompts via HTTP, et vérifient le français. Les tests OAuth HTTP contrôlent CSRF, cookie, découverte et absence de tokens bruts dans les RPC. La CI exécute aussi ces tests SQL avec toutes les migrations depuis zéro.
 
 Les comptes personnels Claude Code/Codex ne sont pas disponibles dans l'environnement de développement : valider une première connexion réelle depuis chacun après publication. Les tests locaux et le build ne remplacent pas cette vérification client en production ni un audit de sécurité indépendant ou une mesure de charge réelle.
 
@@ -85,3 +94,8 @@ Les comptes personnels Claude Code/Codex ne sont pas disponibles dans l'environn
 - [Codex MCP](https://developers.openai.com/codex/mcp)
 - [Notion MCP et OAuth](https://developers.notion.com/guides/mcp/overview)
 - [Marque OpenAI](https://openai.com/brand/)
+- [Attio MCP — catalogue des outils](https://docs.attio.com/mcp/overview)
+- [HubSpot MCP — données et permissions](https://developers.hubspot.com/docs/apps/developer-platform/build-apps/integrate-with-the-remote-hubspot-mcp-server)
+- [Salesforce — serveurs et permissions](https://developer.salesforce.com/docs/platform/hosted-mcp-servers/guide/servers-reference.html)
+
+Voir aussi [la comparaison datée et les décisions de portée](../research/mcp-crm-comparison-2026-10-11.md).
