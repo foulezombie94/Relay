@@ -69,10 +69,16 @@ describe("MCP npm bridge security", () => {
 it("ships the reviewed bridge sources in the public npm archive", async () => {
   const { execFileSync } = await import("node:child_process");
   const { readFileSync } = await import("node:fs");
-  for (const file of ["package.json", "README.md", "src/cli.mjs", "src/oauth-provider.mjs"]) {
+  for (const file of [
+    "package.json",
+    "README.md",
+    "src/cli.mjs",
+    "src/oauth-provider.mjs",
+    "src/install.mjs",
+  ]) {
     const packed = execFileSync(
       "tar",
-      ["-xOzf", "public/mcp/zyliad-mcp-1.0.0.tgz", "package/" + file],
+      ["-xOzf", "public/mcp/zyliad-mcp-1.1.0.tgz", "package/" + file],
       { encoding: "utf8" },
     );
     expect(packed).toBe(readFileSync("packages/zyliad-mcp/" + file, "utf8"));

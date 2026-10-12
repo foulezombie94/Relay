@@ -1,3 +1,4 @@
+import { mcpOrigin } from "@/lib/mcp/config";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { context, checkOrigin, databaseError, fail, ApiError } from "@/lib/api/context";
@@ -13,7 +14,7 @@ export async function GET(_: NextRequest, { params }: P) {
     const { client } = await context(workspace);
     const { data, error } = await client.rpc("mcp_manage", { w: workspace, operation: "list" });
     databaseError(error);
-    return NextResponse.json({ data }, { headers });
+    return NextResponse.json({ data, origin: mcpOrigin() }, { headers });
   } catch (e) {
     const r = fail(e);
     r.headers.set("Cache-Control", "no-store");

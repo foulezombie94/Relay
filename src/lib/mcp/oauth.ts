@@ -122,15 +122,15 @@ export async function oauthPost(req: NextRequest, operation: string) {
     }
     if (operation === "token") {
       const body = tokenSchema.parse(await form(req));
-      if (body.resource !== mcpResource())
-        throw new ApiError("Wrong resource.", 400, "invalid_target");
+      const resource = body.resource ?? mcpResource();
+      if (resource !== mcpResource()) throw new ApiError("Wrong resource.", 400, "invalid_target");
       const access = "zmc_a_" + randomSecret(),
         refresh = "zmc_r_" + randomSecret();
       const tokens = await oauthDb(
         body.grant_type === "authorization_code" ? "exchange" : "refresh",
         {
           client_id: body.client_id,
-          resource: body.resource,
+          resource,
           access_hash: hash(access),
           new_refresh_hash: hash(refresh),
           rate_limit_key: oauthRateKey(req),

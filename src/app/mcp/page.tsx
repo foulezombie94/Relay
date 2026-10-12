@@ -1,3 +1,4 @@
+import { mcpInstallationOrigin } from "@/lib/domain/mcp-installation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { McpInstaller } from "@/components/mcp/installer";
@@ -20,7 +21,7 @@ export default function McpPage() {
         votre compte Zyliad et choisissez un espace : aucun secret d’intégration n’est transmis à
         l’IA.
       </p>
-      <McpInstaller />
+      <McpInstaller origin={mcpInstallationOrigin(process.env.APP_URL)} />
       <section style={{ marginTop: 40, lineHeight: 1.8 }}>
         <h2>Une connexion, des permissions explicites</h2>
         <ol>
@@ -57,8 +58,9 @@ export default function McpPage() {
         <p>
           Si l’accès expire ou est révoqué, reconnectez Zyliad depuis <code>/mcp</code> dans Claude
           Code ou <code>codex mcp login zyliad</code>. En cas de limite de requêtes, attendez une
-          minute. Les clients anciens peuvent utiliser le pont npx/npm ; les clients distants n’ont
-          besoin d’aucun package local.
+          minute. Si l’ancien pont vous redemande de vous connecter à chaque démarrage, utilisez une
+          fois l’installateur npx/npm ci-dessus : il le remplace par HTTP natif. Le client conserve
+          ensuite l’autorisation. La commande doit utiliser le domaine canonique de Zyliad.
         </p>
       </section>
     </main>

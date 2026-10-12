@@ -61,7 +61,9 @@ export const tokenSchema = z.discriminatedUnion("grant_type", [
       grant_type: z.literal("refresh_token"),
       client_id: z.uuid(),
       refresh_token: z.string().regex(/^zmc_r_[A-Za-z0-9_-]{43}$/),
-      resource: z.string().url(),
+      // Some native clients omit resource on refresh; the server binds it
+      // to its sole canonical audience and checks the stored family again.
+      resource: z.string().url().optional(),
       scope: scopeSchema.optional(),
     })
     .strict(),

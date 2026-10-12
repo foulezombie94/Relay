@@ -1,4 +1,4 @@
-# MCP distant Zyliad — 11 octobre 2026
+# MCP distant Zyliad — 12 octobre 2026
 
 Le serveur `/api/mcp` permet à Claude Code, Codex et aux clients compatibles d'accéder au workspace choisi par un utilisateur authentifié. Il utilise les packages officiels TypeScript **SDK v2 2.3.1**, `createMcpHandler` et Streamable HTTP. Le protocole moderne **2026-07-28** est pris en charge ; les clients négociant une version datée antérieure utilisent la compatibilité stateless du SDK v2. Aucun SDK v1 n'est installé.
 
@@ -7,15 +7,26 @@ Le serveur `/api/mcp` permet à Claude Code, Codex et aux clients compatibles d'
 La landing et `/mcp` présentent les commandes Claude Code et Codex, avec les marques officielles Claude/OpenAI, sans recoloration. La méthode recommandée est distante :
 
 ```sh
-claude mcp add --transport http zyliad "https://VOTRE-DOMAINE/api/mcp"
+claude mcp add --scope user --transport http zyliad "https://VOTRE-DOMAINE/api/mcp"
 # Puis /mcp dans Claude Code pour s'authentifier.
 codex mcp add zyliad --url "https://VOTRE-DOMAINE/api/mcp"
-codex mcp login zyliad
+
 ```
 
 OAuth ouvre une page Zyliad : connexion normale, choix d'un workspace dont l'utilisateur est membre, permissions cochées explicitement, consentement puis retour au client enregistré. Par défaut, seules les fiches, tâches et définitions CRM sont cochées. Notes, communications, documents et propositions d'écriture sont optionnels. Les emails accessibles sont les emails déjà importés du compte de cet utilisateur, pas toute une mailbox distante.
 
-La landing propose aussi `npx --yes "https://VOTRE-DOMAINE/mcp/zyliad-mcp-1.0.0.tgz" "https://VOTRE-DOMAINE/api/mcp"` et l'installation globale npm du même archive. Cette archive est effectivement livrée dans `public/mcp` : aucune publication sur le registre npm ni package inexistant n'est présupposé. `npm run pack:mcp` la génère depuis `packages/zyliad-mcp`. Son nom doit changer lors d'une prochaine version. Le pont utilise également le SDK v2, garde les tokens en mémoire et demande une nouvelle connexion à chaque démarrage. Il écrit le protocole sur stdout, les informations de connexion sur stderr. Node 20+ est nécessaire. Pour un premier consentement lent, ajuster le timeout de démarrage du client ; privilégier la connexion distante native.
+La landing utilise `APP_URL` canonique, jamais le domaine de preview ou l’alias du navigateur, pour conserver la même identité de serveur et le même stockage OAuth. Claude est installé au niveau utilisateur (`--scope user`), disponible dans tous les projets. Les versions actuelles de Codex ouvrent OAuth pendant `mcp add` : une seconde commande `mcp login` n’est plus lancée automatiquement, car elle crée un nouveau consentement inutile. Utiliser `codex mcp login zyliad` uniquement pour une autorisation manquante, expirée ou révoquée.
+
+Les modes npx/npm sont maintenant des **installateurs de la connexion native**, pas des ponts stdio à lancer à chaque session :
+
+```sh
+npx --yes "https://VOTRE-DOMAINE/mcp/zyliad-mcp-1.1.0.tgz" install --client claude "https://VOTRE-DOMAINE/api/mcp"
+npx --yes "https://VOTRE-DOMAINE/mcp/zyliad-mcp-1.1.0.tgz" install --client codex "https://VOTRE-DOMAINE/api/mcp"
+```
+
+Node 20+ et le CLI du client sont requis. L’installateur réutilise une configuration HTTP identique sans relancer OAuth ; il remplace uniquement notre ancien pont au même endpoint et refuse un autre serveur/issuer. Le client conserve les credentials dans son propre stockage ; Zyliad n’ajoute aucun fichier de secrets local. `cross-spawn` 7.0.6 gère les shims des CLI Windows et les arguments, sans construire une commande shell à partir de l’URL. L’archive est réellement livrée dans `public/mcp`, générée par `npm run pack:mcp`. La version 1.0.0 est conservée pour les installations existantes ; le correctif exige une migration locale **une seule fois**, car le serveur ne peut pas réécrire la configuration de Claude Code/Codex sur le poste de l’utilisateur.
+
+Le pont avancé `zyliad-mcp https://VOTRE-DOMAINE/api/mcp` reste limité à une session et garde les tokens en mémoire. Les utilisateurs normaux doivent utiliser HTTP natif ou `install`. Ne pas présenter ce mode avancé comme une connexion persistante.
 
 ## Contrats disponibles
 
@@ -43,7 +54,9 @@ L'origine canonique est **APP_URL**, sans path/query/userinfo, HTTPS obligatoire
 
 Le state opaque fourni par le client est conservé et renvoyé avec `iss`. Un défaut connu de certaines versions Codex supprime `iss` avant sa validation et empêche ensuite l'échange du code ; le serveur ne déclare donc pas ce paramètre comme requis dans la découverte OAuth, mais continue de le renvoyer. Le pont inclus vérifie state avec une comparaison constante, utilise un callback loopback à usage unique et contrôle strictement l'issuer et l'audience. PKCE S256, state, URI de retour exacte et audience restent vérifiés côté serveur. Une seconde capacité aléatoire de 256 bits lie le navigateur au flow via un cookie HttpOnly, SameSite=Lax, Secure en production. Son hash seul est stocké, 10 minutes, usage unique. Le consentement POST exige Origin canonique, une session vérifiée et le membership courant. Le code d'autorisation expire après 60 secondes et ne peut servir qu'une fois ; client, redirection, PKCE et resource sont revérifiés lors de l'échange.
 
-Access/refresh tokens aléatoires sont renvoyés uniquement au token endpoint OAuth, jamais dans les outils, les pages ou les audits. La base conserve **SHA-256 uniquement** ; il n'existe pas de token récupérable à déchiffrer. Access tokens : 1 heure maximum. Famille : 30 jours maximum. Refresh token à rotation et usage unique ; une réutilisation révoque toute la famille et ses propositions. Les scopes ne peuvent être augmentés au refresh ; une demande de nouveaux scopes nécessite un consentement. Révocation RFC7009 et bouton Déconnecter invalident immédiatement la famille et les propositions pendantes, même après un downgrade en viewer.
+Access/refresh tokens aléatoires sont renvoyés uniquement au token endpoint OAuth, jamais dans les outils, les pages ou les audits. La base conserve **SHA-256 uniquement** ; il n'existe pas de token récupérable à déchiffrer. Access tokens : 1 heure maximum. Famille : 30 jours maximum. Refresh token à rotation et usage unique ; une réutilisation révoque toute la famille et ses propositions. Les scopes ne peuvent être augmentés au refresh ; une demande de nouveaux scopes nécessite un consentement. Compatibilité du refresh : certains clients natifs omettent `resource` lors du renouvellement. Ce seul champ peut être omis pour le grant `refresh_token` : le backend injecte sa propre audience canonique, puis la base vérifie encore que client et audience correspondent à la famille existante. Une audience explicite différente reste refusée. `resource` reste obligatoire lors de l’autorisation initiale et de l’échange de code. La spécification MCP demande aux clients de fournir `resource` dans les requêtes de tokens ; ce comportement serveur est une tolérance d’interopérabilité, pas une autorisation de changer d’audience ou de workspace.
+
+Révocation RFC7009 et bouton Déconnecter invalident immédiatement la famille et les propositions pendantes, même après un downgrade en viewer.
 
 ## Isolation, confirmation et audits
 
@@ -99,3 +112,7 @@ Les comptes personnels Claude Code/Codex ne sont pas disponibles dans l'environn
 - [Salesforce — serveurs et permissions](https://developer.salesforce.com/docs/platform/hosted-mcp-servers/guide/servers-reference.html)
 
 Voir aussi [la comparaison datée et les décisions de portée](../research/mcp-crm-comparison-2026-10-11.md).
+
+## Régression de persistance — 12 octobre 2026
+
+Validation du correctif : les tests MCP passent, ainsi que l’isolation de la landing et la validation du domaine canonique. Typecheck, lint et archive livrée sont vérifiés. Les tests couvrent l’installation native, le remplacement du pont, la réutilisation sans second login, les commandes HTTP au scope utilisateur, le domaine canonique, la nouvelle archive exacte, le refresh avec audience omise, le refus d’une audience étrangère et l’absence de tokens bruts dans les RPC. Les protections existantes de rotation/rejeu et de tenant restent exercées par les suites SQL. Les sessions personnelles Claude Code/Codex ne sont pas accessibles depuis cet environnement ; ne pas confondre ces régressions reproductibles avec une vérification du trousseau de l’utilisateur ou de sa session réelle.

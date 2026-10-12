@@ -144,7 +144,7 @@ describe("MCP OAuth HTTP boundaries", () => {
     expect(JSON.stringify(payload)).not.toContain(tokens.access_token);
     expect(JSON.stringify(payload)).not.toContain(tokens.refresh_token);
   });
-  it("rejects missing audience and duplicate token parameters before vault access", async () => {
+  it("rejects duplicate token parameters before vault access", async () => {
     const form = new URLSearchParams({
       grant_type: "refresh_token",
       client_id: id,
@@ -163,5 +163,64 @@ describe("MCP OAuth HTTP boundaries", () => {
     expect(r.status).toBe(400);
     expect(mocks.oauthDb).not.toHaveBeenCalled();
     expect(JSON.stringify(await r.json())).not.toContain("b".repeat(43));
+  });
+});
+
+describe("native client OAuth refresh persistence", () => {
+  function refreshRequest(params: Record<string, string>) {
+    return new NextRequest(origin + "/api/mcp/oauth/token", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(params),
+    });
+  }
+  it("renews an existing grant without browser consent when a native client omits resource", async () => {
+    mocks.oauthDb.mockResolvedValue({ scope: "records:read", expires_in: 3600 });
+    const oldRefresh = "zmc_r_" + "q".repeat(43);
+    const response = await oauthPost(
+      refreshRequest({ grant_type: "refresh_token", client_id: id, refresh_token: oldRefresh }),
+      "token",
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    const tokens = await response.json();
+    expect(tokens.refresh_token).not.toBe(oldRefresh);
+    expect(mocks.oauthDb).toHaveBeenCalledWith(
+      "refresh",
+      expect.objectContaining({
+        client_id: id,
+        resource,
+        refresh_hash: hash(oldRefresh),
+        access_hash: hash(tokens.access_token),
+        new_refresh_hash: hash(tokens.refresh_token),
+      }),
+    );
+    expect(mocks.context).not.toHaveBeenCalled();
+    expect(JSON.stringify(mocks.oauthDb.mock.calls)).not.toContain(oldRefresh);
+  });
+  it("still rejects an explicit foreign audience and missing code-exchange audience", async () => {
+    const response = await oauthPost(
+      refreshRequest({
+        grant_type: "refresh_token",
+        client_id: id,
+        refresh_token: "zmc_r_" + "q".repeat(43),
+        resource: "https://other.example/api/mcp",
+      }),
+      "token",
+    );
+    expect(response.status).toBe(400);
+    expect(mocks.oauthDb).not.toHaveBeenCalled();
+    const exchange = await oauthPost(
+      refreshRequest({
+        grant_type: "authorization_code",
+        client_id: id,
+        redirect_uri: "http://127.0.0.1:54321/callback",
+        code: "q".repeat(43),
+        code_verifier: "v".repeat(43),
+      }),
+      "token",
+    );
+    expect(exchange.status).toBe(400);
+    expect(mocks.oauthDb).not.toHaveBeenCalled();
   });
 });

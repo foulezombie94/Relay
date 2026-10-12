@@ -1,10 +1,10 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { Check, Copy, ArrowUpRight, ShieldCheck } from "lucide-react";
 import styles from "./installer.module.css";
-const subscribe = () => () => {};
+import { mcpInstallationOrigin } from "@/lib/domain/mcp-installation";
 function ClientLogo({ client }: { client: "claude" | "codex" }) {
   const [unavailable, setUnavailable] = useState(false);
   return unavailable ? (
@@ -27,25 +27,24 @@ export function installationCommands(
   client: "claude" | "codex",
   mode: "remote" | "npx" | "npm",
 ) {
-  const url = origin + "/api/mcp",
-    archive = origin + "/mcp/zyliad-mcp-1.0.0.tgz";
+  const canonical = mcpInstallationOrigin(origin);
+  const url = canonical + "/api/mcp",
+    archive = canonical + "/mcp/zyliad-mcp-1.1.0.tgz";
   if (mode === "remote")
     return client === "claude"
-      ? `claude mcp add --transport http zyliad "${url}"`
-      : `codex mcp add zyliad --url "${url}"\ncodex mcp login zyliad`;
-  const run = mode === "npx" ? `npx --yes "${archive}" "${url}"` : `zyliad-mcp "${url}"`;
-  const command =
-    client === "claude"
-      ? `claude mcp add --transport stdio zyliad -- ${run}`
-      : `codex mcp add zyliad -- ${run}`;
-  return (mode === "npm" ? `npm install --global "${archive}"\n` : "") + command;
+      ? `claude mcp add --scope user --transport http zyliad "${url}"`
+      : `codex mcp add zyliad --url "${url}"`;
+  return mode === "npx"
+    ? `npx --yes "${archive}" install --client ${client} "${url}"`
+    : `npm install --global "${archive}"\nzyliad-mcp install --client ${client} "${url}"`;
 }
-export function McpInstaller({ compact = false }: { compact?: boolean }) {
-  const origin = useSyncExternalStore(
-    subscribe,
-    () => window.location.origin,
-    () => "https://VOTRE-DOMAINE",
-  );
+export function McpInstaller({
+  compact = false,
+  origin = "https://VOTRE-DOMAINE",
+}: {
+  compact?: boolean;
+  origin?: string;
+}) {
   const [client, setClient] = useState<"claude" | "codex">("claude"),
     [mode, setMode] = useState<"remote" | "npx" | "npm">("remote"),
     [copied, setCopied] = useState(false),
@@ -117,18 +116,24 @@ export function McpInstaller({ compact = false }: { compact?: boolean }) {
         {copyError && <p role="status">{copyError}</p>}
         <p>
           {mode === "remote"
-            ? "Connectez-vous dans le navigateur, choisissez votre espace Zyliad et vérifiez les autorisations."
-            : "Pont local officiel Zyliad vers le MCP distant. Node.js 20+ requis ; OAuth s’ouvre dans le navigateur. La connexion directe reste recommandée."}
+            ? "Installez Zyliad une seule fois. Votre client conserve la connexion et renouvelle automatiquement l’accès jusqu’à l’expiration ou la révocation de l’autorisation."
+            : "Cet installateur configure la connexion HTTP native de votre client. Node.js 20+ requis ; aucun pont à reconnecter à chaque démarrage."}
         </p>
         {mode === "remote" && client === "claude" && (
           <p>
             Dans Claude Code, ouvrez <code>/mcp</code>, puis authentifiez Zyliad.
           </p>
         )}
+        {client === "codex" && (
+          <p>
+            Codex ouvre OAuth lors de l’ajout. Utilisez <code>codex mcp login zyliad</code>{" "}
+            uniquement si l’autorisation manque, expire ou est révoquée.
+          </p>
+        )}
         {mode !== "remote" && (
           <p>
-            Le pont conserve les tokens uniquement en mémoire ; chaque redémarrage nécessite une
-            nouvelle connexion.
+            Si vous utilisiez l’ancien pont, exécutez cette commande une fois pour le remplacer.
+            Votre client conserve ensuite l’autorisation OAuth.
           </p>
         )}
         <div className={styles.footer}>

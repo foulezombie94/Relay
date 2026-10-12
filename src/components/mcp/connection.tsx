@@ -69,7 +69,7 @@ export function McpConnection() {
     [error, setError] = useState("");
   const q = useQuery({
     queryKey: ["mcp-connections", workspace.id],
-    queryFn: () => request<{ data: Snapshot }>(`/api/${workspace.id}/mcp`),
+    queryFn: () => request<{ data: Snapshot; origin: string }>(`/api/${workspace.id}/mcp`),
     refetchInterval: 15000,
   });
   async function act(operation: "approve" | "reject" | "revoke", id: string) {
@@ -106,7 +106,7 @@ export function McpConnection() {
           utiles. Les modifications proposées attendent votre validation ci-dessous.
         </p>
       </div>
-      <McpInstaller compact />
+      <McpInstaller compact origin={q.data?.origin} />
       <ErrorMessage error={q.error ?? (error ? new Error(error) : null)} />
       <h3>Vos applications connectées</h3>
       {!q.isPending && !q.error && !q.data?.data.connections.length && (

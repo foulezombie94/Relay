@@ -1,3 +1,4 @@
+import { mcpInstallationOrigin } from "@/lib/domain/mcp-installation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import localFont from "next/font/local";
@@ -400,7 +401,7 @@ export default function Home() {
             Code ou Codex. Une connexion sécurisée, des permissions explicites, vos modifications
             sous contrôle.
           </p>
-          <McpInstaller />
+          <McpInstaller origin={mcpInstallationOrigin(process.env.APP_URL)} />
         </section>
         <section className={styles.finalCta}>
           <h2>
