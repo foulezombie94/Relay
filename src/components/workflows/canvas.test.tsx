@@ -74,6 +74,39 @@ it("offers no editing tools in the run viewer", () => {
   expect(screen.queryByRole("button", { name: "Organiser les blocs" })).toBeNull();
 });
 
+it("keeps dragged positions attached to the same action after reordering", () => {
+  vi.stubGlobal("PointerEvent", MouseEvent);
+  const onSelect = vi.fn(),
+    onAdd = vi.fn();
+  const { container, rerender } = render(
+    <WorkflowCanvas definition={definition} onSelect={onSelect} onAdd={onAdd} />,
+  );
+  const region = screen.getByRole("region") as HTMLElement & {
+    setPointerCapture: () => void;
+    hasPointerCapture: () => boolean;
+  };
+  region.setPointerCapture = vi.fn();
+  region.hasPointerCapture = () => false;
+  fireEvent.pointerDown(
+    screen.getByRole("button", { name: "Créer une tâche : Préparer le dossier" }),
+    { button: 0, clientX: 20, clientY: 20 },
+  );
+  fireEvent.pointerMove(region, { clientX: 100, clientY: 60 });
+  fireEvent.pointerUp(region);
+  const moved = (container.querySelector('[data-node-key="root.0"]') as HTMLElement).style.left;
+  expect(moved).not.toBe("356px");
+  rerender(
+    <WorkflowCanvas
+      definition={{ ...definition, actions: [...definition.actions].reverse() }}
+      onSelect={onSelect}
+      onAdd={onAdd}
+    />,
+  );
+  expect((container.querySelector('[data-node-key="root.1"]') as HTMLElement).style.left).toBe(
+    moved,
+  );
+});
+
 it("does not open the library or select a block while saving", () => {
   const onAdd = vi.fn(),
     onSelect = vi.fn();

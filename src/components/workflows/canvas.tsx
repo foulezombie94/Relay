@@ -94,7 +94,8 @@ export function WorkflowCanvas({
   } | null>(null);
   const moved = useRef(false);
   const initialized = useRef(false);
-  const point = (node: CanvasNode) => positions[node.key] ?? node;
+  const positionKey = (node: CanvasNode) => (node.kind === "action" ? node.selection : node.key);
+  const point = (node: CanvasNode) => positions[positionKey(node)] ?? node;
   const nodes = new Map(graph.nodes.map((n) => [n.key, n]));
   const worldWidth =
     Math.max(graph.width, ...Object.values(positions).map((p) => p.x + NODE_WIDTH)) + 120;
@@ -230,7 +231,7 @@ export function WorkflowCanvas({
           pointer: e.pointerId,
           start: { x: e.clientX, y: e.clientY },
           initial: movingNode ? point(movingNode) : view,
-          node: movingNode?.key,
+          node: movingNode ? positionKey(movingNode) : undefined,
           scale: view.scale,
         };
       }}
