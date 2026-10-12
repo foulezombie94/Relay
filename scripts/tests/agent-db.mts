@@ -9,6 +9,7 @@ try {
   await db.query(await readFile("supabase/tests/agent.sql", "utf8"));
   await db.query(await readFile("supabase/tests/agent-confirmations.sql", "utf8"));
   await db.query(await readFile("supabase/tests/dashboards.sql", "utf8"));
+  await db.query(await readFile("supabase/tests/workflow-creation.sql", "utf8"));
 } finally {
   await db.end();
 }

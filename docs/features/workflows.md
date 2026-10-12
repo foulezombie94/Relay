@@ -31,3 +31,9 @@ Ce changement concerne l’interface ; aucune migration ou modification de RLS, 
 Les tests du modèle contrôlent les clés exactes du worker, les jonctions, les branches vides, les cibles d’insertion, le parcours confirmé et la duplication des IDs. Les tests des composants vérifient navigation, insertion, annuler/rétablir, sauvegarde, revue avant publication, passage vers le test existant, relecture sans réseau, réduction des animations et échappement des sorties.
 
 Les vérifications de navigateur utilisent des données fictives et des réponses API locales. Elles ne créent ni exécution ni donnée en production. Les contrôles du dépôt incluent les tests existants, lint, typecheck, structure, build, secrets et Prettier avant publication.
+
+## Correction de l’enregistrement avec idempotence
+
+Le 12 octobre, un 403 réel a révélé une incompatibilité préexistante : le POST fournit `id` avec `Idempotency-Key`, tandis que les droits par colonne de `workflows` permettaient uniquement workspace, nom, définition et description. La migration `20261012203648_workflow_idempotent_creation.sql` autorise seulement `INSERT(id)` pour `authenticated`. Elle conserve RLS, l’immuabilité de l’identité, le propriétaire calculé par le serveur et la publication explicite.
+
+Le test SQL `supabase/tests/workflow-creation.sql`, exécuté par `test:agent:db`, reproduit le refus 42501 avant migration puis vérifie création propriétaire/membre, déduplication, mise à jour du brouillon, refus d’activation directe, d’usurpation, de modification de l’identifiant, des autres tenants et des lecteurs. Les fixtures sont locales et entièrement annulées. Les tests UI précédents utilisaient des réponses de sauvegarde simulées et ne couvraient pas ce droit de colonne.
