@@ -1,3 +1,4 @@
+import { consentContext } from "@/lib/mcp/consent-context";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -58,6 +59,7 @@ export default async function ConsentPage() {
     );
   return (
     <McpConsent
+      consentContext={consentContext(flow)}
       clientName={info.client_name}
       requestedScopes={info.scopes}
       workspaces={workspaces}

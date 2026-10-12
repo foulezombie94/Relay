@@ -256,3 +256,36 @@ describe("official MCP SDK v2 transport", () => {
     expect(availableToolNames([])).toEqual(["zyliad_connection"]);
   });
 });
+
+const invalidCredentialHeaders: Record<string, string>[] = [
+  {},
+  { cookie: "sb-auth-token=synthetic-session" },
+  { authorization: "Bearer zmc_r_" + "q".repeat(43) },
+  { authorization: "Bearer zmc_a_" + "q".repeat(42) },
+  { authorization: "Basic synthetic-credentials" },
+];
+it.each(invalidCredentialHeaders)(
+  "does not accept browser sessions, query tokens or wrong credential types: %j",
+  async (headers) => {
+    const token = "zmc_a_" + "q".repeat(43);
+    const response = await handleMcp(
+      new Request("http://127.0.0.1:3000/api/mcp?access_token=" + token, { headers }),
+    );
+    expect(response.status).toBe(401);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.text()).not.toContain(token);
+    expect(db.mcpDb).not.toHaveBeenCalled();
+  },
+);
+it("does not expose CRM data for a revoked or unknown well-formed token", async () => {
+  db.mcpDb.mockRejectedValue(new ApiError("Connexion révoquée.", 401, "unauthorized"));
+  const response = await handleMcp(
+    new Request("http://127.0.0.1:3000/api/mcp", {
+      headers: { authorization: "Bearer zmc_a_" + "q".repeat(43) },
+    }),
+  );
+  expect(response.status).toBe(401);
+  expect(db.mcpDb).toHaveBeenCalledTimes(1);
+  expect(db.mcpDb.mock.calls[0][1]).toBe("session");
+  expect(await response.text()).not.toContain("Fixture contact");
+});

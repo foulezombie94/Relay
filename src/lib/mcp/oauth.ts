@@ -1,3 +1,4 @@
+import { matchesConsentContext } from "./consent-context";
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
@@ -174,6 +175,7 @@ export async function oauthPost(req: NextRequest, operation: string) {
         throw new ApiError("JSON required.", 415);
       const body = z
         .object({
+          consent_context: z.string().regex(/^[a-f0-9]{64}$/),
           workspace: z.uuid(),
           scopes: z.array(z.enum(scopes)).max(scopes.length),
           allow: z.boolean(),
@@ -181,6 +183,12 @@ export async function oauthPost(req: NextRequest, operation: string) {
         .strict()
         .parse(await boundedJsonBody(req, 4000));
       const flow = opaque.parse(req.cookies.get(flowCookie)?.value);
+      if (!matchesConsentContext(flow, body.consent_context))
+        throw new ApiError(
+          "Cette page d’autorisation est périmée. Relancez la connexion depuis votre client MCP.",
+          403,
+          "access_denied",
+        );
       const { client } = await context(body.workspace);
       const code = randomSecret();
       const { data, error } = await client.rpc("mcp_consent", {

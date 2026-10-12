@@ -12,6 +12,7 @@ vi.mock("@/lib/api/context", async (importOriginal) => ({
 }));
 import { oauthGet, oauthPost, authorizationMetadata, resourceMetadata } from "./oauth";
 import { hash } from "./database";
+import { consentContext } from "./consent-context";
 import { GET as resourceGet } from "@/app/.well-known/oauth-protected-resource/api/mcp/route";
 const origin = "http://127.0.0.1:3000",
   id = "cf967873-7e4e-4d9a-b54b-8797f2583213",
@@ -90,7 +91,12 @@ describe("MCP OAuth HTTP boundaries", () => {
     );
   });
   it("requires same-origin authenticated human consent and returns registered state/issuer", async () => {
-    const body = { workspace: id, scopes: ["records:read"], allow: true };
+    const body = {
+      consent_context: consentContext("a".repeat(43)),
+      workspace: id,
+      scopes: ["records:read"],
+      allow: true,
+    };
     expect((await oauthPost(post("consent", body), "consent")).status).toBe(403);
     expect(
       (await oauthPost(post("consent", body, { origin: "https://evil.invalid" }), "consent"))
@@ -223,4 +229,60 @@ describe("native client OAuth refresh persistence", () => {
     expect(exchange.status).toBe(400);
     expect(mocks.oauthDb).not.toHaveBeenCalled();
   });
+});
+
+it("denies an unbound approval after another authorization overwrites the browser flow", async () => {
+  // Page A was shown to the user, then another top-level OAuth flow replaces
+  // the shared HttpOnly cookie. The old page must not approve client B.
+  const replacementFlow = "c".repeat(43);
+  const response = await oauthPost(
+    post(
+      "consent",
+      { workspace: id, scopes: ["records:read"], allow: true },
+      {
+        origin,
+        cookie: "zyliad_mcp_flow=" + replacementFlow,
+      },
+    ),
+    "consent",
+  );
+  expect([400, 403]).toContain(response.status);
+  expect(mocks.rpc).not.toHaveBeenCalled();
+});
+
+it.each([true, false])(
+  "rejects a stale page context for allow=%s without consuming another flow",
+  async (allow) => {
+    const flowA = "a".repeat(43),
+      flowB = "b".repeat(43);
+    const response = await oauthPost(
+      post(
+        "consent",
+        { consent_context: consentContext(flowA), workspace: id, scopes: ["records:read"], allow },
+        { origin, cookie: "zyliad_mcp_flow=" + flowB },
+      ),
+      "consent",
+    );
+    expect(response.status).toBe(403);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("set-cookie")).toBeNull();
+    expect(mocks.context).not.toHaveBeenCalled();
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  },
+);
+it.each([true, false])("still permits matching displayed context for allow=%s", async (allow) => {
+  const flow = "a".repeat(43);
+  const response = await oauthPost(
+    post(
+      "consent",
+      { consent_context: consentContext(flow), workspace: id, scopes: ["records:read"], allow },
+      { origin, cookie: "zyliad_mcp_flow=" + flow },
+    ),
+    "consent",
+  );
+  expect(response.status).toBe(200);
+  expect(mocks.rpc).toHaveBeenCalledWith(
+    "mcp_consent",
+    expect.objectContaining({ flow_hash: hash(flow), allow }),
+  );
 });

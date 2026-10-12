@@ -5,10 +5,12 @@ import { scopeLabels } from "@/lib/mcp/contracts";
 import styles from "./mcp.module.css";
 type Workspace = { id: string; name: string; role: string };
 export function McpConsent({
+  consentContext,
   clientName,
   requestedScopes,
   workspaces,
 }: {
+  consentContext: string;
   clientName: string;
   requestedScopes: string[];
   workspaces: Workspace[];
@@ -28,6 +30,7 @@ export function McpConsent({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          consent_context: consentContext,
           workspace,
           scopes: selected.filter((s) => !viewer || s !== "crm:write"),
           allow,
@@ -52,8 +55,9 @@ export function McpConsent({
       <p className={styles.eyebrow}>CONNEXION MCP · ZYLIAD</p>
       <h1>Connecter votre CRM à {clientName}</h1>
       <p>
-        Cette application externe demande l’accès à Zyliad. Vérifiez son nom, puis choisissez les
-        données que vous souhaitez lui partager.
+        Ce nom est fourni par l’application externe et n’est pas vérifié par Zyliad. Vérifiez
+        l’application à l’origine de cette demande, puis choisissez les données que vous souhaitez
+        lui partager.
       </p>
       <label className={styles.field}>
         Espace de travail
