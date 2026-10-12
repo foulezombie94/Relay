@@ -101,6 +101,16 @@ export function WorkflowHistory({
       pending.includes(query.state.data?.data[0]?.status ?? "") ? 2000 : false,
   });
   const run = detail.data?.data[0];
+  const siblings = useQuery({
+    queryKey: ["workflow-history", workspace.id, "run-list", run?.workflow_id],
+    enabled: !!run,
+    queryFn: () =>
+      request<{ data: Execution[]; count: number }>(
+        `/api/${workspace.id}/automation?` +
+          new URLSearchParams({ workflow: run!.workflow_id, page: "0" }),
+      ),
+    refetchInterval: pending.includes(run?.status ?? "") ? 5000 : false,
+  });
   const flowLookup = useQuery({
     queryKey: ["workflow-history-flow", workspace.id, run?.workflow_id],
     enabled: !!run && !workflows.some((w) => w.id === run.workflow_id),
@@ -245,8 +255,9 @@ export function WorkflowHistory({
       {focused && (
         <Modal
           open
-          className={styles.root}
-          title="Détail de l’exécution"
+          wide
+          className={`${styles.root} ${styles.runViewer}`}
+          title={flow?.name ?? "Exécutions du workflow"}
           description="Chaque action réalisée reste visible, même si le workflow est modifié ensuite."
           onClose={() => {
             if (!busy) setFocused(null);
@@ -267,14 +278,14 @@ export function WorkflowHistory({
                   </small>
                 </div>
                 <State value={run.status} />
+                <Link
+                  className="button small"
+                  href={`/app/${workspaceRecordPage(run.record_object_id)}?focus=${run.record_id}`}
+                >
+                  <ExternalLink size={13} />
+                  Ouvrir la fiche
+                </Link>
               </div>
-              <Link
-                className="button"
-                href={`/app/${workspaceRecordPage(run.record_object_id)}?focus=${run.record_id}`}
-              >
-                <ExternalLink size={14} />
-                Ouvrir la fiche
-              </Link>
               {run.error_code && (
                 <p className={styles.help}>
                   {errors[run.error_code] ??
@@ -288,11 +299,56 @@ export function WorkflowHistory({
                   nouveau.
                 </p>
               )}
-              {(detail.data?.steps?.length ?? 0) > 0 ? (
+              {detail.data?.definition || (detail.data?.steps?.length ?? 0) > 0 ? (
                 <ExecutionCanvas
                   key={run.id}
                   definition={detail.data?.definition}
                   steps={detail.data?.steps ?? []}
+                  runStatus={run.status}
+                  runList={
+                    <div className={styles.runList}>
+                      <div className={styles.inspectorHeading}>
+                        <span>HISTORIQUE DU WORKFLOW</span>
+                        <h3>{flow?.name ?? "Exécutions"}</h3>
+                        <p>{siblings.data?.count ?? 0} exécution(s) · 25 dernières</p>
+                      </div>
+                      <ErrorMessage error={siblings.error} />
+                      {siblings.isPending && <p className="caption">Chargement des exécutions…</p>}
+                      {(siblings.data?.data ?? []).map((item) => (
+                        <button
+                          type="button"
+                          className={styles.runListItem}
+                          key={item.id}
+                          aria-pressed={item.id === run.id}
+                          disabled={busy}
+                          onClick={() => {
+                            setFocused(item.id);
+                            setError("");
+                          }}
+                        >
+                          <span>
+                            <strong>{item.record_name}</strong>
+                            <small>
+                              {new Date(item.created_at).toLocaleString("fr-FR")} · v
+                              {item.workflow_version}
+                            </small>
+                          </span>
+                          <State value={item.status} />
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        className="button small"
+                        onClick={() => {
+                          onFilter(run.workflow_id);
+                          setPage(0);
+                          setFocused(null);
+                        }}
+                      >
+                        Toutes les exécutions
+                      </button>
+                    </div>
+                  }
                 />
               ) : (
                 <ol className={styles.trace}>

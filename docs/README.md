@@ -18,6 +18,7 @@ Pour débuter : [README](../README.md), [contribution](../CONTRIBUTING.md), [arc
 - Ask Relay : [agent et sécurité](features/ask-relay/ask-relay-agent.md), [identité](features/ask-relay/ask-relay-identity-intelligence.md), [interface](features/ask-relay/ask-relay-interface.md)
 - CRM : [écrans et flux](features/crm/crm-pages.md), [opérations quotidiennes](features/crm/daily-crm-operations.md), [doublons](features/crm/duplicate-lifecycle.md), [paramètres](features/crm/settings-interface.md)
 - Dashboard : [blocs, widgets, données et validation](features/dashboard.md)
+- Workflows : [canvas, blocs et exécutions](features/workflows.md)
 - Réunions : [bibliothèque, agenda et analyses](features/meetings.md), [étude Attio](research/meeting-competitive-analysis.md)
 - Portails clients : [parcours, permissions et validation](features/client-portals.md)
 

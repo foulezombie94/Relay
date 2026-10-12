@@ -106,8 +106,8 @@ export function WorkflowsPage() {
   return (
     <div className={styles.root}>
       <PageHeader
-        title="Automatisations"
-        description="Organisez le suivi commercial, du premier contact à la réalisation client."
+        title="Workflows"
+        description="Automatisez votre suivi avec des déclencheurs, des conditions et des actions."
         action={
           <div className={styles.topTools}>
             <button className="button" disabled={readonly} onClick={() => setTab("templates")}>
@@ -136,9 +136,9 @@ export function WorkflowsPage() {
           >
             {
               {
-                workflows: "Mes workflows",
+                workflows: "Workflows",
                 templates: "Modèles",
-                history: "Historique",
+                history: "Exécutions",
                 connections: "Connexions",
               }[key]
             }
@@ -147,17 +147,19 @@ export function WorkflowsPage() {
       </div>
       {tab === "workflows" && (
         <>
-          <div className={styles.intro}>
-            <Zap size={28} />
-            <div>
-              <h3>Le bon suivi, au bon moment.</h3>
-              <p>
-                Déclenchez un processus à la création d’une fiche ou au changement d’étape. Ajoutez
-                des conditions, des délais et des actions attribuées à votre équipe.
-              </p>
+          {q.data?.count === 0 && (
+            <div className={styles.intro}>
+              <Zap size={28} />
+              <div>
+                <h3>Le bon suivi, au bon moment.</h3>
+                <p>
+                  Déclenchez un processus à la création d’une fiche ou au changement d’étape.
+                  Ajoutez des conditions, des délais et des actions attribuées à votre équipe.
+                </p>
+              </div>
+              <Link href="/doc?article=automatisations">Comprendre les workflows →</Link>
             </div>
-            <Link href="/doc?article=automatisations">Comprendre les workflows →</Link>
-          </div>
+          )}
           <div className={styles.toolbar}>
             <form
               className={styles.filters}
@@ -213,6 +215,12 @@ export function WorkflowsPage() {
             />
           ) : (
             <div className={styles.workflowList}>
+              <div className={styles.listHeading} aria-hidden="true">
+                <span>Nom du workflow</span>
+                <span>Fiches et blocs</span>
+                <span>État</span>
+                <span>Actions</span>
+              </div>
               {q.data?.data.map((w) => (
                 <article className={styles.workflowRow} key={w.id}>
                   <div className={styles.workflowIdentity}>
@@ -364,6 +372,18 @@ export function WorkflowsPage() {
           onClose={() => setEditing(null)}
           onSave={async (draft, row) => (await save("workflows", draft, row)) as Workflow}
           onPublish={(row) => control(row, "publish")}
+          onRuns={(row) => {
+            setEditing(null);
+            setFocusId(undefined);
+            setHistoryFilter(row.id);
+            setTab("history");
+          }}
+          onTest={(row) => {
+            setEditing(null);
+            setRecord("");
+            setError("");
+            setTest(row);
+          }}
         />
       )}
       {test && (

@@ -1,9 +1,10 @@
 "use client";
-import { useState } from "react";
-import { Check, Clock3, Circle, AlertCircle, Loader2, GitBranch, SkipForward } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { ArrowLeft, Circle, List, Pause, Play, RotateCcw } from "lucide-react";
 import type { WorkflowAction, WorkflowDefinition } from "@/lib/domain/types";
 import { actionLabel } from "@/lib/domain/workflows";
-import { workflowActionTypes } from "@/lib/domain/workflow-templates";
+import { WorkflowCanvas, stepLabels } from "./canvas";
+import { workflowGraph } from "./canvas-model";
 import styles from "./workflows.module.css";
 export type StepRun = {
   step_key: string;
@@ -18,85 +19,76 @@ export type StepRun = {
   error_code?: string;
   output: Record<string, unknown>;
 };
-const states: Record<string, string> = {
-  queued: "À venir",
-  running: "En cours",
-  waiting: "En attente",
-  completed: "Réussi",
-  failed: "Échec",
-  skipped: "Non parcouru",
-  unknown: "Résultat à vérifier",
-};
-const icons = {
-  queued: Circle,
-  running: Loader2,
-  waiting: Clock3,
-  completed: Check,
-  failed: AlertCircle,
-  skipped: SkipForward,
-  unknown: AlertCircle,
-};
 export function ExecutionCanvas({
   definition,
   steps,
+  runStatus = "queued",
+  runList,
 }: {
   definition?: WorkflowDefinition;
   steps: StepRun[];
+  runStatus?: string;
+  runList?: ReactNode;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [panel, setPanel] = useState<"runs" | "block">(runList ? "runs" : "block");
+  const [playing, setPlaying] = useState(false),
+    [replayIndex, setReplayIndex] = useState(0);
+  const resolved = useMemo(
+    () =>
+      definition ?? {
+        object_id: "",
+        conditions: [],
+        actions: steps.map((s) => ({ type: s.type as WorkflowAction["type"], title: s.title })),
+      },
+    [definition, steps],
+  );
+  const graph = useMemo(() => workflowGraph(resolved), [resolved]);
+  const completed = useMemo(
+    () =>
+      steps
+        .filter((s) => s.status === "completed")
+        .sort(
+          (a, b) =>
+            (a.completed_at ?? a.started_at ?? "").localeCompare(
+              b.completed_at ?? b.started_at ?? "",
+            ) || a.position - b.position,
+        ),
+    [steps],
+  );
   const active =
-    steps.find((s) => s.step_key === selected) ??
-    steps.find((s) => ["running", "waiting", "failed", "unknown"].includes(s.status)) ??
-    steps.find((s) => s.status === "queued") ??
-    steps.at(-1);
-  const done = steps.filter((s) => s.status === "completed").length;
-  function node(a: WorkflowAction, key: string) {
-    const step = steps.find((s) => s.step_key === key),
-      status = step?.status ?? "queued",
-      Icon = icons[status as keyof typeof icons] ?? Circle;
-    return (
-      <div key={key} className={styles.flowStep}>
-        <button
-          type="button"
-          className={styles.executionNode}
-          data-state={status}
-          data-selected={active?.step_key === key}
-          onClick={() => setSelected(key)}
-        >
-          <span className={styles.executionIcon}>
-            <Icon size={18} className={status === "running" ? styles.spinning : undefined} />
-          </span>
-          <span>
-            <small>{workflowActionTypes[a.type]}</small>
-            <strong>{actionLabel(a)}</strong>
-            <em>{states[status]}</em>
-          </span>
-          {a.type === "branch" && <GitBranch size={16} />}
-        </button>
-        {a.type === "branch" && (
-          <div className={styles.branches}>
-            {(["then", "otherwise"] as const).map((side) => (
-              <div className={styles.branch} key={side}>
-                <span className={styles.branchLabel}>{side === "then" ? "Oui" : "Non"}</span>
-                {(a[side] ?? []).map((child, i) =>
-                  node(child, `${key}.${side === "then" ? "yes" : "no"}.${i}`),
-                )}
-                {!a[side]?.length && <small>Aucune action</small>}
-              </div>
-            ))}
-          </div>
-        )}
-        <div className={styles.connector} />
-      </div>
-    );
-  }
+    selected !== null
+      ? steps.find((s) => s.step_key === selected)
+      : (steps.find((s) => ["running", "waiting", "failed", "unknown"].includes(s.status)) ??
+        steps.at(-1));
+  const activeNode = graph.nodes.find((n) => n.key === (selected ?? active?.step_key));
+  useEffect(() => {
+    if (!playing) return;
+    const timer = window.setTimeout(() => {
+      if (replayIndex + 1 >= completed.length) {
+        setPlaying(false);
+        return;
+      }
+      setReplayIndex(replayIndex + 1);
+      setSelected(completed[replayIndex + 1].step_key);
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [playing, replayIndex, completed]);
+  const terminal = ["completed", "failed", "cancelled", "skipped", "unknown"].includes(runStatus);
   return (
     <>
-      <div className={styles.runProgress}>
-        <strong>{done} bloc(s) réussi(s)</strong>
+      <div className={styles.runProgress} aria-live="polite">
+        <span className={styles.liveStatus} data-live={!terminal}>
+          <Circle size={7} fill="currentColor" />
+          {playing
+            ? "Relecture du parcours enregistré"
+            : terminal
+              ? "Parcours enregistré"
+              : "Suivi en direct"}
+        </span>
         <span>
-          {steps.filter((s) => s.status === "skipped").length} non parcouru(s) · {steps.length} au
-          total
+          {completed.length} réussi(s) · {steps.filter((s) => s.status === "skipped").length} non
+          parcouru(s) · {steps.length} blocs
         </span>
         <progress
           max={Math.max(1, steps.length)}
@@ -105,59 +97,159 @@ export function ExecutionCanvas({
         />
       </div>
       <div className={styles.executionLayout}>
-        <div className={styles.canvas}>
-          <div className={styles.canvasCaption}>SUIVI EN DIRECT · VERSION EXÉCUTÉE</div>
-          {definition?.actions.map((a, i) => node(a, `root.${i}`)) ??
-            steps.map((s) =>
-              node({ type: s.type as WorkflowAction["type"], title: s.title }, s.step_key),
-            )}
-          <div className={styles.endNode}>Fin du processus</div>
-        </div>
+        <WorkflowCanvas
+          definition={resolved}
+          steps={steps}
+          runStatus={runStatus}
+          selected={selected ?? active?.step_key}
+          replayKey={playing ? completed[replayIndex]?.step_key : undefined}
+          onSelect={(node) => {
+            setSelected(node.key);
+            setPanel("block");
+            setPlaying(false);
+          }}
+          tools={
+            terminal && completed.length > 0 ? (
+              <button
+                type="button"
+                className="button small"
+                aria-pressed={playing}
+                onClick={() => {
+                  if (playing) {
+                    setPlaying(false);
+                    return;
+                  }
+                  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+                    setSelected(completed.at(-1)!.step_key);
+                    setPanel("block");
+                    return;
+                  }
+                  setReplayIndex(0);
+                  setSelected(completed[0].step_key);
+                  setPanel("block");
+                  setPlaying(true);
+                }}
+              >
+                {playing ? <Pause size={13} /> : <RotateCcw size={13} />}
+                {playing ? "Arrêter la relecture" : "Revoir le parcours"}
+              </button>
+            ) : (
+              <span className={styles.liveStatus}>
+                <Play size={12} />
+                {stepLabels[runStatus] ?? runStatus}
+              </span>
+            )
+          }
+        />
         <aside className={styles.inspector}>
-          {active ? (
+          {runList && (
+            <div className={styles.panelTabs} role="group" aria-label="Panneau de l’exécution">
+              <button
+                type="button"
+                aria-pressed={panel === "runs"}
+                onClick={() => setPanel("runs")}
+              >
+                <List size={14} />
+                Exécutions
+              </button>
+              <button
+                type="button"
+                aria-pressed={panel === "block"}
+                onClick={() => setPanel("block")}
+              >
+                Détail du bloc
+              </button>
+            </div>
+          )}
+          {panel === "runs" && runList ? (
+            runList
+          ) : (
             <>
               <div className={styles.inspectorHeading}>
-                <span>DÉTAIL DU BLOC</span>
-                <h3>{active.title}</h3>
-                <p>{states[active.status]}</p>
+                {runList && (
+                  <button
+                    type="button"
+                    className="icon-button"
+                    aria-label="Revenir aux exécutions"
+                    onClick={() => setPanel("runs")}
+                  >
+                    <ArrowLeft size={16} />
+                  </button>
+                )}
+                <span>BLOC EXÉCUTÉ</span>
+                <h3>
+                  {activeNode?.action
+                    ? actionLabel(activeNode.action)
+                    : (active?.title ?? "Déclenchement")}
+                </h3>
+                <p>
+                  {active
+                    ? (stepLabels[active.status] ?? active.status)
+                    : "Déclencheur et critères de la version exécutée"}
+                </p>
               </div>
-              {active.started_at && (
-                <p className="caption">
-                  Début : {new Date(active.started_at).toLocaleString("fr-FR")}
-                </p>
-              )}
-              {active.completed_at && (
-                <p className="caption">
-                  Fin : {new Date(active.completed_at).toLocaleString("fr-FR")}
-                </p>
-              )}
-              {active.next_at && active.status === "waiting" && (
-                <p className={styles.help}>
-                  Prochaine vérification : {new Date(active.next_at).toLocaleString("fr-FR")}
-                </p>
-              )}
-              {active.error_code && (
-                <div className="alert error">
-                  {active.error_code === "delivery_uncertain"
-                    ? "Le fournisseur a peut-être exécuté cette action. Vérifiez avant de choisir la suite."
-                    : active.error_code === "wait_timeout"
-                      ? "Le délai maximal d’attente est dépassé."
-                      : "Le bloc a échoué. Consultez le message de l’exécution et corrigez sa configuration."}
-                </div>
-              )}
-              <h4>Sortie du bloc</h4>
-              {Object.keys(active.output ?? {}).length ? (
-                <pre className={styles.output}>{JSON.stringify(active.output, null, 2)}</pre>
+              {active ? (
+                <>
+                  <dl className={styles.stepTiming}>
+                    {active.started_at && (
+                      <>
+                        <dt>Début</dt>
+                        <dd>{new Date(active.started_at).toLocaleString("fr-FR")}</dd>
+                      </>
+                    )}
+                    {active.completed_at && (
+                      <>
+                        <dt>Fin</dt>
+                        <dd>{new Date(active.completed_at).toLocaleString("fr-FR")}</dd>
+                      </>
+                    )}
+                    {active.next_at && active.status === "waiting" && (
+                      <>
+                        <dt>Reprise prévue</dt>
+                        <dd>{new Date(active.next_at).toLocaleString("fr-FR")}</dd>
+                      </>
+                    )}
+                  </dl>
+                  {active.error_code && (
+                    <div className="alert error">
+                      {active.error_code === "delivery_uncertain"
+                        ? "Le fournisseur a peut-être réalisé cette action. Vérifiez avant de choisir la suite."
+                        : active.error_code === "wait_timeout"
+                          ? "Le délai maximal d’attente est dépassé."
+                          : "Ce bloc a échoué. Vérifiez la configuration et le message de l’exécution."}
+                    </div>
+                  )}
+                  {activeNode?.action && (
+                    <details className={styles.runData}>
+                      <summary>Configuration exécutée</summary>
+                      <pre className={styles.output}>
+                        {JSON.stringify(activeNode.action, null, 2)}
+                      </pre>
+                    </details>
+                  )}
+                  <section className={styles.runData}>
+                    <h4>Sortie du bloc</h4>
+                    {Object.keys(active.output ?? {}).length ? (
+                      <pre className={styles.output}>{JSON.stringify(active.output, null, 2)}</pre>
+                    ) : (
+                      <p className="caption">
+                        {active.status === "skipped"
+                          ? "Ce parcours n’a pas été exécuté."
+                          : "Aucune sortie enregistrée pour ce bloc."}
+                      </p>
+                    )}
+                  </section>
+                </>
               ) : (
-                <p className="caption">Le résultat s’affichera après validation de l’action.</p>
+                <p className="caption">
+                  Sélectionnez une action pour consulter son état, sa configuration et sa sortie.
+                </p>
               )}
-              <p className="caption">
-                Cliquez sur un bloc pour consulter son état. L’avancement provient du worker et
-                reste enregistré après fermeture de cette fenêtre.
+              <p className={styles.help}>
+                Les états proviennent des exécutions enregistrées. La relecture anime le parcours
+                sans relancer d’action.
               </p>
             </>
-          ) : (
-            <p>Aucun bloc disponible.</p>
           )}
         </aside>
       </div>
