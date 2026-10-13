@@ -22,10 +22,10 @@ export type CanvasGraph = {
   width: number;
   height: number;
 };
-export const NODE_WIDTH = 288;
-export const NODE_HEIGHT = 136;
-const COLUMN = 388;
-const ROW = 200;
+export const NODE_WIDTH = 304;
+export const NODE_HEIGHT = 176;
+const COLUMN = 416;
+const ROW = 240;
 type Link = Omit<CanvasEdge, "key" | "to">;
 
 function lanes(actions: WorkflowAction[]): number {

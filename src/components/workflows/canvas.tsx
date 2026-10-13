@@ -218,7 +218,13 @@ export function WorkflowCanvas({
     <div
       className={styles.viewport}
       style={
-        { "--node-width": `${NODE_WIDTH}px`, "--node-height": `${NODE_HEIGHT}px` } as CSSProperties
+        {
+          "--node-width": `${NODE_WIDTH}px`,
+          "--node-height": `${NODE_HEIGHT}px`,
+          "--grid-size": `${Math.max(8, 24 * view.scale)}px`,
+          "--grid-x": `${view.x}px`,
+          "--grid-y": `${view.y}px`,
+        } as CSSProperties
       }
       ref={region}
       tabIndex={0}
@@ -377,9 +383,12 @@ export function WorkflowCanvas({
                   markerEnd={`url(#${arrow})`}
                 />
                 {edge.branch && (
-                  <g transform={`translate(${x + 23},${y + (ty >= y ? 17 : -17)})`}>
-                    <rect x="-12" y="-9" width="29" height="18" rx="4" />
-                    <text x="2" y="3" textAnchor="middle">
+                  <g
+                    data-branch={edge.branch.side}
+                    transform={`translate(${x + 31},${y + (ty >= y ? 19 : -19)})`}
+                  >
+                    <rect x="-17" y="-10" width="36" height="20" rx="7" />
+                    <text x="1" y="3" textAnchor="middle">
                       {edge.branch.side === "yes" ? "Oui" : "Non"}
                     </text>
                   </g>
@@ -433,17 +442,15 @@ export function WorkflowCanvas({
                     onClick={() => select(node)}
                   >
                     <span className={styles.cardHeading}>
-                      <Icon size={17} />
-                      <span>
+                      <span className={styles.cardIcon}>
+                        <Icon size={18} strokeWidth={1.8} />
+                      </span>
+                      <span className={styles.cardCategory}>
                         {meta?.category ?? (node.kind === "trigger" ? "Déclencheur" : "Logique")}
                       </span>
-                      {node.action?.alias && <code title="Nom de sortie">{node.action.alias}</code>}
-                      {state !== "idle" && (
-                        <StatusIcon
-                          size={14}
-                          className={state === "running" ? styles.spinner : undefined}
-                        />
-                      )}
+                      <span className={styles.cardOrder}>
+                        {String(navigable.indexOf(node) + 1).padStart(2, "0")}
+                      </span>
                     </span>
                     <strong>
                       {node.action
@@ -459,13 +466,24 @@ export function WorkflowCanvas({
                           ? (objectName ?? "Fiches du workflow")
                           : "Vérifiées avant le lancement"}
                     </span>
-                    <small>
-                      {runStatus
-                        ? (stepLabels[state] ?? state)
-                        : node.action
-                          ? workflowActionTypes[node.action.type]
-                          : (objectName ?? "Fiches du workflow")}
-                    </small>
+                    <span className={styles.cardFooter}>
+                      <span className={styles.cardTag} data-status={runStatus ? state : undefined}>
+                        {runStatus && (
+                          <StatusIcon
+                            size={12}
+                            className={state === "running" ? styles.spinner : undefined}
+                          />
+                        )}
+                        {runStatus
+                          ? (stepLabels[state] ?? state)
+                          : node.action
+                            ? workflowActionTypes[node.action.type]
+                            : "Début du parcours"}
+                      </span>
+                      {node.action?.alias && (
+                        <code title="Nom de sortie">{`{x} ${node.action.alias}`}</code>
+                      )}
+                    </span>
                   </button>
                   <span className={styles.inputPort} />
                   {onAdd && node.kind === "action" ? (
@@ -477,7 +495,7 @@ export function WorkflowCanvas({
                       disabled={disabled}
                       onClick={() => onAdd({ ...node.target, after: node.action!.id })}
                     >
-                      <Plus size={10} />
+                      <Plus size={12} />
                     </button>
                   ) : (
                     <span className={styles.outputPort} />
