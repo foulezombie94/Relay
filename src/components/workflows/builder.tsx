@@ -206,9 +206,8 @@ export function WorkflowBuilder({
     define({ actions: insert(draft.definition.actions) });
     setSelected(duplicate.id!);
   }
-  function addBlock(type: WorkflowAction["type"]) {
+  function addBlock(action: WorkflowAction) {
     if (!catalog || busy) return;
-    const action = newWorkflowAction(type);
     if (catalog.after) {
       const insert = (actions: WorkflowAction[]): WorkflowAction[] =>
         actions.flatMap((a) =>

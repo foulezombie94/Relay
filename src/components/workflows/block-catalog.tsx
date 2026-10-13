@@ -3,6 +3,8 @@ import { useState } from "react";
 import { ArrowLeft, Plus, Search } from "lucide-react";
 import type { WorkflowAction } from "@/lib/domain/types";
 import { workflowActionTypes } from "@/lib/domain/workflow-templates";
+import { blockPresets, createPreset } from "./block-presets";
+import { newWorkflowAction } from "@/lib/domain/workflow-templates";
 import { blockMeta } from "./block-meta";
 import styles from "./canvas.module.css";
 export function BlockCatalog({
@@ -11,18 +13,35 @@ export function BlockCatalog({
   onClose,
 }: {
   branch?: boolean;
-  onSelect: (type: WorkflowAction["type"]) => void;
+  onSelect: (action: WorkflowAction) => void;
   onClose: () => void;
 }) {
   const [search, setSearch] = useState("");
-  const types = (Object.keys(blockMeta) as WorkflowAction["type"][]).filter(
-    (type) =>
-      (!branch || type !== "branch") &&
-      `${workflowActionTypes[type]} ${blockMeta[type].category} ${blockMeta[type].description}`
-        .toLocaleLowerCase("fr")
-        .includes(search.toLocaleLowerCase("fr")),
+  const [category, setCategory] = useState("Tous");
+  const normalize = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase("fr");
+  const entries = [
+    ...(Object.keys(blockMeta) as WorkflowAction["type"][]).map((type) => ({
+      id: type,
+      type,
+      name: workflowActionTypes[type],
+      description: blockMeta[type].description,
+      create: () => newWorkflowAction(type),
+    })),
+    ...blockPresets.map((p) => ({ ...p, create: () => createPreset(p.id)! })),
+  ].filter((entry) => !branch || entry.type !== "branch");
+  const categories = ["Tous", ...new Set(entries.map((entry) => blockMeta[entry.type].category))];
+  const matches = entries.filter(
+    (entry) =>
+      (category === "Tous" || blockMeta[entry.type].category === category) &&
+      normalize(`${entry.name} ${blockMeta[entry.type].category} ${entry.description}`).includes(
+        normalize(search),
+      ),
   );
-  const groups = [...new Set(types.map((type) => blockMeta[type].category))];
+  const groups = [...new Set(matches.map((entry) => blockMeta[entry.type].category))];
   return (
     <div className={styles.catalog}>
       <div className={styles.panelHeading}>
@@ -50,27 +69,42 @@ export function BlockCatalog({
           onChange={(e) => setSearch(e.target.value)}
         />
       </label>
+      <div className={styles.categories} aria-label="Catégories de blocs">
+        {categories.map((name) => (
+          <button
+            key={name}
+            type="button"
+            aria-pressed={category === name}
+            onClick={() => setCategory(name)}
+          >
+            {name}
+          </button>
+        ))}
+      </div>
+      <p className={styles.hint} role="status">
+        {matches.length} bloc(s) disponible(s)
+      </p>
       {groups.map((group) => (
         <section key={group}>
           <h4>{group}</h4>
-          {types
-            .filter((type) => blockMeta[type].category === group)
-            .map((type) => {
-              const meta = blockMeta[type],
+          {matches
+            .filter((entry) => blockMeta[entry.type].category === group)
+            .map((entry) => {
+              const meta = blockMeta[entry.type],
                 Icon = meta.icon;
               return (
                 <button
                   type="button"
                   className={styles.catalogItem}
-                  key={type}
-                  onClick={() => onSelect(type)}
+                  key={entry.id}
+                  onClick={() => onSelect(entry.create())}
                 >
                   <span data-color={meta.color} className={styles.blockIcon}>
                     <Icon size={18} />
                   </span>
                   <span>
-                    <strong>{workflowActionTypes[type]}</strong>
-                    <small>{meta.description}</small>
+                    <strong>{entry.name}</strong>
+                    <small>{entry.description}</small>
                   </span>
                   <Plus size={14} />
                 </button>
@@ -78,7 +112,9 @@ export function BlockCatalog({
             })}
         </section>
       ))}
-      {!types.length && <p className={styles.hint}>Aucun bloc ne correspond à votre recherche.</p>}
+      {!matches.length && (
+        <p className={styles.hint}>Aucun bloc ne correspond à votre recherche.</p>
+      )}
     </div>
   );
 }

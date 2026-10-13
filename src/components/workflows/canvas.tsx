@@ -1,5 +1,13 @@
 "use client";
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import {
   AlertCircle,
   Check,
@@ -8,6 +16,7 @@ import {
   Flag,
   Hand,
   LayoutGrid,
+  List,
   Loader2,
   Maximize,
   Minus,
@@ -29,6 +38,7 @@ import {
   type CanvasNode,
   type StepState,
 } from "./canvas-model";
+import { blockSummary } from "./block-presets";
 import { blockMeta } from "./block-meta";
 import styles from "./canvas.module.css";
 
@@ -83,6 +93,8 @@ export function WorkflowCanvas({
   const region = useRef<HTMLDivElement>(null);
   const arrow = useId().replaceAll(":", "");
   const [view, setView] = useState({ x: 40, y: 80, scale: 1 });
+  const [outline, setOutline] = useState(false);
+  const [size, setSize] = useState({ width: 600, height: 400 });
   const [mode, setMode] = useState<"pointer" | "hand">("pointer");
   const [positions, setPositions] = useState<Record<string, Point>>({});
   const drag = useRef<{
@@ -106,7 +118,9 @@ export function WorkflowCanvas({
     const el = region.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(([entry]) => {
-      if (initialized.current || !entry.contentRect.width) return;
+      if (!entry.contentRect.width) return;
+      setSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+      if (initialized.current) return;
       initialized.current = true;
       const first = graph.nodes[0];
       setView({
@@ -130,7 +144,7 @@ export function WorkflowCanvas({
           x = e.clientX - rect.left,
           y = e.clientY - rect.top;
         setView((v) => {
-          const scale = clamp(v.scale * Math.exp(-e.deltaY * 0.005), 0.25, 1.5);
+          const scale = clamp(v.scale * Math.exp(-e.deltaY * 0.005), 0.01, 2);
           return {
             scale,
             x: x - ((x - v.x) * scale) / v.scale,
@@ -148,9 +162,9 @@ export function WorkflowCanvas({
     const x = (rect?.width ?? 600) / 2,
       y = (rect?.height ?? 400) / 2;
     setView((v) => ({
-      scale: clamp(scale, 0.25, 1.5),
-      x: x - ((x - v.x) * clamp(scale, 0.25, 1.5)) / v.scale,
-      y: y - ((y - v.y) * clamp(scale, 0.25, 1.5)) / v.scale,
+      scale: clamp(scale, 0.01, 2),
+      x: x - ((x - v.x) * clamp(scale, 0.01, 2)) / v.scale,
+      y: y - ((y - v.y) * clamp(scale, 0.01, 2)) / v.scale,
     }));
   }
   function fit(organize = false) {
@@ -163,7 +177,7 @@ export function WorkflowCanvas({
     const height = Math.max(...points.map((p) => p.y)) + NODE_HEIGHT - minY;
     const scale = clamp(
       Math.min(((rect?.width ?? 600) - 96) / width, ((rect?.height ?? 400) - 120) / height),
-      0.25,
+      0.01,
       1,
     );
     setView({
@@ -172,6 +186,24 @@ export function WorkflowCanvas({
       y: ((rect?.height ?? 400) - height * scale) / 2 - minY * scale,
     });
   }
+  function focusNode(node: CanvasNode) {
+    if (disabled) return;
+    const p = point(node);
+    setView({
+      x: size.width / 2 - p.x - NODE_WIDTH / 2,
+      y: size.height / 2 - p.y - NODE_HEIGHT / 2,
+      scale: 1,
+    });
+    if (!["add", "end"].includes(node.kind)) onSelect(node);
+    setOutline(false);
+  }
+  const navigable = graph.nodes.filter((n) => !["add", "end"].includes(n.kind));
+  const nodeName = (node: CanvasNode) =>
+    node.action
+      ? actionLabel(node.action)
+      : node.kind === "trigger"
+        ? workflowTriggers[definition.trigger?.type ?? "manual"]
+        : "Critères d’entrée";
   function select(node: CanvasNode) {
     if (!moved.current && !disabled) onSelect(node);
   }
@@ -185,6 +217,9 @@ export function WorkflowCanvas({
   return (
     <div
       className={styles.viewport}
+      style={
+        { "--node-width": `${NODE_WIDTH}px`, "--node-height": `${NODE_HEIGHT}px` } as CSSProperties
+      }
       ref={region}
       tabIndex={0}
       role="region"
@@ -264,8 +299,33 @@ export function WorkflowCanvas({
         moved.current = false;
       }}
     >
-      <div className={styles.canvasLabel}>
-        {runStatus ? "Version exécutée · Lecture seule" : "Éditeur de workflow"}
+      <div className={styles.canvasLabel} data-canvas-control>
+        <span>{runStatus ? "Version exécutée · Lecture seule" : "Éditeur de workflow"}</span>
+        <button
+          type="button"
+          aria-expanded={outline}
+          aria-label="Afficher le plan du workflow"
+          disabled={disabled}
+          onClick={() => setOutline(!outline)}
+        >
+          <List size={14} /> {navigable.length} blocs
+        </button>
+        {outline && (
+          <div className={styles.outline} aria-label="Plan du workflow">
+            {navigable.map((node, index) => (
+              <button
+                type="button"
+                key={node.key}
+                aria-label={`${index + 1} · ${nodeName(node)}`}
+                onClick={() => focusNode(node)}
+              >
+                <span>{index + 1}</span>
+                <strong>{nodeName(node)}</strong>
+                {runStatus && <small>{stepLabels[status(node)] ?? status(node)}</small>}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       {tools && (
         <div className={styles.canvasTools} data-canvas-control>
@@ -373,10 +433,11 @@ export function WorkflowCanvas({
                     onClick={() => select(node)}
                   >
                     <span className={styles.cardHeading}>
-                      <Icon size={15} />
+                      <Icon size={17} />
                       <span>
                         {meta?.category ?? (node.kind === "trigger" ? "Déclencheur" : "Logique")}
                       </span>
+                      {node.action?.alias && <code title="Nom de sortie">{node.action.alias}</code>}
                       {state !== "idle" && (
                         <StatusIcon
                           size={14}
@@ -391,6 +452,13 @@ export function WorkflowCanvas({
                           ? workflowTriggers[definition.trigger?.type ?? "manual"]
                           : `${definition.conditions.length} condition(s) · ${definition.condition_mode === "any" ? "OU" : "ET"}`}
                     </strong>
+                    <span className={styles.cardSummary}>
+                      {node.action
+                        ? blockSummary(node.action)
+                        : node.kind === "trigger"
+                          ? (objectName ?? "Fiches du workflow")
+                          : "Vérifiées avant le lancement"}
+                    </span>
                     <small>
                       {runStatus
                         ? (stepLabels[state] ?? state)
@@ -420,6 +488,60 @@ export function WorkflowCanvas({
           );
         })}
       </div>
+      <div className={styles.minimap} data-canvas-control>
+        <span>Vue d’ensemble</span>
+        <svg
+          viewBox={`-24 -24 ${worldWidth + 48} ${worldHeight + 48}`}
+          aria-label="Mini-carte du workflow"
+        >
+          {graph.edges.map((edge) => {
+            const from = point(nodes.get(edge.from)!),
+              to = point(nodes.get(edge.to)!);
+            return (
+              <line
+                key={edge.key}
+                x1={from.x + NODE_WIDTH}
+                y1={from.y + NODE_HEIGHT / 2}
+                x2={to.x}
+                y2={to.y + NODE_HEIGHT / 2}
+              />
+            );
+          })}
+          {navigable.map((node) => {
+            const p = point(node);
+            return (
+              <rect
+                key={node.key}
+                x={p.x}
+                y={p.y}
+                width={NODE_WIDTH}
+                height={NODE_HEIGHT}
+                rx={14}
+                role="button"
+                tabIndex={disabled ? -1 : 0}
+                aria-disabled={disabled}
+                aria-label={`Centrer sur ${nodeName(node)}`}
+                data-selected={selected === node.selection || selected === node.key}
+                onClick={() => focusNode(node)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    focusNode(node);
+                  }
+                }}
+              />
+            );
+          })}
+          <rect
+            className={styles.miniViewport}
+            x={-view.x / view.scale}
+            y={-view.y / view.scale}
+            width={size.width / view.scale}
+            height={size.height / view.scale}
+          />
+        </svg>
+      </div>
       <div className={styles.navigation} data-canvas-control aria-label="Navigation du canvas">
         <button
           type="button"
@@ -445,7 +567,7 @@ export function WorkflowCanvas({
         <button
           type="button"
           aria-label="Réduire le zoom"
-          disabled={disabled || view.scale <= 0.25}
+          disabled={disabled || view.scale <= 0.01}
           onClick={() => zoom(view.scale - 0.1)}
         >
           <Minus size={15} />
@@ -456,7 +578,7 @@ export function WorkflowCanvas({
         <button
           type="button"
           aria-label="Augmenter le zoom"
-          disabled={disabled || view.scale >= 1.5}
+          disabled={disabled || view.scale >= 2}
           onClick={() => zoom(view.scale + 0.1)}
         >
           <Plus size={15} />

@@ -163,3 +163,42 @@ it("never displays another block’s output when the selected block has not been
   expect(screen.queryByText(/fixture-result/)).toBeNull();
   expect(screen.getByText(/Sélectionnez une action/)).toBeDefined();
 });
+
+it("centers and selects from the minimap and workflow outline without running anything", () => {
+  const onSelect = vi.fn();
+  render(<WorkflowCanvas definition={definition} onSelect={onSelect} />);
+  fireEvent.keyDown(screen.getByRole("button", { name: "Centrer sur Préparer le dossier" }), {
+    key: "Enter",
+  });
+  expect(onSelect.mock.calls[0][0].selection).toBe("task");
+  fireEvent.click(screen.getByRole("button", { name: "Afficher le plan du workflow" }));
+  fireEvent.click(screen.getByRole("button", { name: /3.*Enregistrer le bilan/ }));
+  expect(onSelect.mock.calls[1][0].selection).toBe("note");
+  expect(
+    screen
+      .getByRole("button", { name: "Afficher le plan du workflow" })
+      .getAttribute("aria-expanded"),
+  ).toBe("false");
+});
+
+it("fits long workflows below 25 percent and restores readable zoom through the minimap", () => {
+  render(
+    <WorkflowCanvas
+      definition={{
+        ...definition,
+        actions: Array.from({ length: 20 }, (_, i) => ({
+          id: `task-${i}`,
+          type: "task",
+          title: `Tâche ${i}`,
+        })),
+      }}
+      onSelect={vi.fn()}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Ajuster le canvas" }));
+  const percentage = screen.getByText(/^\d+ %$/).textContent!;
+  expect(parseInt(percentage)).toBeLessThan(25);
+  expect(parseInt(percentage)).toBeGreaterThan(0);
+  fireEvent.click(screen.getByRole("button", { name: "Centrer sur Tâche 19" }));
+  expect(screen.getByText("100 %")).toBeDefined();
+});

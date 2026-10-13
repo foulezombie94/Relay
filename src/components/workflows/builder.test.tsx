@@ -105,3 +105,24 @@ it("saves the actual draft before opening the existing test/confirmation flow", 
   await waitFor(() => expect(onTest).toHaveBeenCalledWith(row));
   expect(onSave).toHaveBeenCalledTimes(1);
 });
+
+it("filters preset blocks and saves a configured reply wait at the selected insertion point", async () => {
+  const onSave = vi.fn().mockImplementation(async (draft) => ({ ...row, ...draft }));
+  render(<WorkflowBuilder workflow={row} onClose={vi.fn()} onSave={onSave} onPublish={vi.fn()} />);
+  fireEvent.click(screen.getByRole("button", { name: "Ajouter après Première tâche" }));
+  fireEvent.click(screen.getByRole("button", { name: "Logique" }));
+  fireEvent.change(screen.getByRole("textbox", { name: "Rechercher un bloc" }), {
+    target: { value: "reponse email" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: /Attendre une réponse email.*Reprendre à la réponse/ }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+  await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+  expect(onSave.mock.calls[0][0].definition.actions[1]).toMatchObject({
+    type: "wait_until",
+    wait_mode: "email_reply",
+    timeout_behavior: "stop",
+    timeout_minutes: 10080,
+  });
+});

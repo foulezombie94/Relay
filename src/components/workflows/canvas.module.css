@@ -36,7 +36,9 @@
   left: 22px;
   color: var(--relay-muted);
   font-size: 11px;
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .canvasTools {
   position: absolute;
@@ -92,13 +94,13 @@
 }
 .nodePosition {
   position: absolute;
-  width: 260px;
-  height: 106px;
+  width: var(--node-width);
+  height: var(--node-height);
 }
 .card {
   --block-color: #6184d6;
-  width: 260px;
-  height: 106px;
+  width: var(--node-width);
+  height: var(--node-height);
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -106,7 +108,7 @@
   background: var(--relay-surface);
   color: var(--relay-ink);
   border: 1px solid var(--relay-border);
-  border-radius: 7px;
+  border-radius: 10px;
   box-shadow: 0 2px 4px #15243608;
   cursor: pointer;
   overflow: hidden;
@@ -135,8 +137,8 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--blue) 18%, transparent);
 }
 .cardHeading {
-  height: 31px;
-  min-height: 31px;
+  height: 38px;
+  min-height: 38px;
   padding: 0 12px;
   display: flex;
   align-items: center;
@@ -151,17 +153,17 @@
   flex: 1;
 }
 .card > strong {
-  margin: 11px 12px 0;
-  font-size: 12px;
-  line-height: 16px;
+  margin: 12px 14px 0;
+  font-size: 13px;
+  line-height: 18px;
   font-weight: 550;
-  max-width: 233px;
+  max-width: calc(var(--node-width) - 28px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .card > small {
-  margin: 6px 12px;
+  margin: auto 14px 10px;
   color: var(--relay-muted);
   font-size: 10px;
   line-height: 14px;
@@ -196,7 +198,7 @@
 .inputPort,
 .outputPort {
   position: absolute;
-  top: 48px;
+  top: calc(var(--node-height) / 2 - 5px);
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -217,7 +219,7 @@ button.outputPort {
   color: var(--relay-muted);
   width: 18px;
   height: 18px;
-  top: 44px;
+  top: calc(var(--node-height) / 2 - 9px);
   right: -9px;
   cursor: pointer;
 }
@@ -227,9 +229,9 @@ button.outputPort:hover {
 }
 .addCard {
   position: absolute;
-  top: 29px;
+  top: calc(var(--node-height) / 2 - 24px);
   width: 210px;
-  left: 25px;
+  left: calc((var(--node-width) - 210px) / 2);
   height: 48px;
   display: flex;
   align-items: center;
@@ -238,7 +240,7 @@ button.outputPort:hover {
   border: 1px dashed color-mix(in srgb, var(--relay-muted) 40%, transparent);
   background: var(--relay-surface);
   color: var(--relay-muted);
-  border-radius: 7px;
+  border-radius: 10px;
   font-size: 12px;
   cursor: pointer;
 }
@@ -248,8 +250,8 @@ button.outputPort:hover {
 }
 .end {
   position: absolute;
-  top: 38px;
-  left: 42px;
+  top: calc(var(--node-height) / 2 - 15px);
+  left: calc((var(--node-width) - 176px) / 2);
   width: 176px;
   height: 30px;
   display: flex;
@@ -476,5 +478,149 @@ button.outputPort:hover {
   .spinner {
     animation: none !important;
     transition: none;
+  }
+}
+
+.cardSummary {
+  margin: 5px 14px 0;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--relay-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: calc(var(--node-width) - 28px);
+}
+.cardHeading code {
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--relay-surface);
+}
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 14px;
+}
+.categories button,
+.canvasLabel > button {
+  background: var(--relay-surface);
+  color: var(--relay-muted);
+  border: 1px solid var(--relay-border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 10px;
+  cursor: pointer;
+}
+.categories button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--blue) 9%, var(--relay-surface));
+  color: var(--blue);
+  border-color: color-mix(in srgb, var(--blue) 40%, var(--relay-border));
+}
+.canvasLabel > button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.outline {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  width: min(300px, calc(100vw - 90px));
+  max-height: 280px;
+  overflow: auto;
+  background: var(--relay-surface);
+  border: 1px solid var(--relay-border);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 8px 30px #15243615;
+}
+.outline button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 5px;
+  padding: 9px 7px;
+  background: none;
+  color: var(--relay-ink);
+  cursor: pointer;
+  text-align: left;
+}
+.outline button:hover {
+  background: var(--relay-surface-soft);
+}
+.outline button > span {
+  color: var(--relay-muted);
+  font-size: 10px;
+}
+.outline strong {
+  font-size: 11px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.outline small {
+  font-size: 9px;
+  color: var(--relay-muted);
+}
+.minimap {
+  position: absolute;
+  right: 16px;
+  bottom: 94px;
+  width: 172px;
+  border: 1px solid var(--relay-border);
+  border-radius: 10px;
+  padding: 9px;
+  background: var(--relay-surface);
+  box-shadow: 0 3px 12px #15243608;
+}
+.minimap > span {
+  font-size: 9px;
+  color: var(--relay-muted);
+}
+.minimap svg {
+  width: 100%;
+  height: 72px;
+  display: block;
+}
+.minimap line {
+  stroke: var(--relay-muted);
+  stroke-width: 8px;
+}
+.minimap rect {
+  fill: color-mix(in srgb, var(--blue) 18%, var(--relay-surface));
+  stroke: var(--relay-muted);
+  stroke-width: 6px;
+  cursor: pointer;
+}
+.minimap rect[data-selected="true"],
+.minimap rect:focus {
+  fill: var(--blue);
+  outline: none;
+}
+.minimap .miniViewport {
+  fill: color-mix(in srgb, var(--blue) 6%, transparent);
+  stroke: var(--blue);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+@media (max-width: 620px) {
+  .minimap {
+    display: none;
+  }
+  .canvasLabel {
+    top: 14px;
+    left: 14px;
+    gap: 8px;
   }
 }
