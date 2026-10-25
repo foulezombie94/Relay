@@ -18,23 +18,20 @@ import {
   Settings2,
   CircleHelp,
   MoreHorizontal,
-  CalendarDays,
-  Mic,
   LoaderCircle,
+  Activity,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace, request } from "../providers/data-provider";
 import { Modal } from "../ui";
 import { AssistantComposer, type RecordContext } from "../assistant/composer";
 import { ChatMessage } from "../assistant/message";
+import { AssistantWelcome, AssistantQuickActions } from "../assistant/start";
 import { RelayPulse } from "../assistant/pulse";
 import { SidebarTrigger } from "../ui/sidebar";
 import { readAssistantStream } from "../assistant/stream";
-import {
-  assistantPrompts,
-  type AssistantConversation,
-  type AssistantMessage,
-} from "@/lib/domain/assistant";
+import { type AssistantConversation, type AssistantMessage } from "@/lib/domain/assistant";
 import styles from "../assistant/assistant.module.css";
 
 type AssistantStatus = {
@@ -47,7 +44,7 @@ export function AssistantPage() {
   return <AssistantSession key={workspace.id + user.id} />;
 }
 function AssistantSession() {
-  const { workspace, user } = useWorkspace();
+  const { workspace } = useWorkspace();
   const url = useSearchParams();
   const endpoint = `/api/${workspace.id}/assistant`;
   const status = useQuery({
@@ -56,13 +53,14 @@ function AssistantSession() {
   });
   const [messages, setMessages] = useState<AssistantMessage[]>([]),
     [conversation, setConversation] = useState("");
-  const [title, setTitle] = useState("Nouvelle conversation"),
+  const [title, setTitle] = useState("Nouvelle discussion"),
     [message, setMessage] = useState("");
   const [context, setContext] = useState<RecordContext>(null);
   const [busy, setBusy] = useState(false),
     [loading, setLoading] = useState(false),
     [error, setError] = useState("");
   const [deepen, setDeepen] = useState(false);
+  const [pulseOpen, setPulseOpen] = useState(false);
   const [search, setSearch] = useState(""),
     [historyOpen, setHistoryOpen] = useState(false);
   const [rename, setRename] = useState(false),
@@ -107,7 +105,7 @@ function AssistantSession() {
     setLoading(false);
     setMessages([]);
     setConversation("");
-    setTitle("Nouvelle conversation");
+    setTitle("Nouvelle discussion");
     setMessage("");
     setError("");
   }
@@ -260,22 +258,6 @@ function AssistantSession() {
     c.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
   );
   const started = !!messages.length || loading;
-  const nickname = user.email
-    ?.split("@")[0]
-    ?.split(/[._+-]/)[0]
-    ?.slice(0, 40);
-  const greeting = nickname
-    ? `Bonjour, ${nickname.charAt(0).toLocaleUpperCase("fr-FR") + nickname.slice(1)}`
-    : "Bonjour";
-  const shortcuts = [
-    { title: "Préparer un rendez-vous", icon: CalendarDays, prompt: assistantPrompts[1].prompt },
-    {
-      title: "Résumer le dernier appel",
-      icon: Mic,
-      prompt:
-        "Résume ma dernière réunion ou mon dernier appel accessible, ses décisions et engagements. Cite les sources, précise les incertitudes et reste en lecture seule.",
-    },
-  ];
   return (
     <section
       className={styles.layout}
@@ -300,7 +282,7 @@ function AssistantSession() {
         </div>
         <button type="button" className={styles.newChat} disabled={busy} onClick={newChat}>
           <Plus size={16} />
-          Nouvelle conversation
+          Nouvelle discussion
         </button>
         <label className={styles.historySearch}>
           <Search size={14} />
@@ -311,7 +293,7 @@ function AssistantSession() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </label>
-        <span className={styles.historyLabel}>Conversations récentes</span>
+        <span className={styles.historyLabel}>Discussions récentes</span>
         <div className={styles.historyList}>
           {status.isPending ? (
             <p>Chargement…</p>
@@ -374,7 +356,7 @@ function AssistantSession() {
               </button>
             ) : (
               <span className="sb-breadcrumb-current" aria-current="page">
-                Accueil
+                Nouvelle discussion
               </span>
             )}
           </div>
@@ -384,8 +366,8 @@ function AssistantSession() {
                 <button
                   type="button"
                   className={styles.iconButton}
-                  aria-label="Nouvelle conversation"
-                  title="Nouvelle conversation"
+                  aria-label="Nouvelle discussion"
+                  title="Nouvelle discussion"
                   disabled={busy}
                   onClick={newChat}
                 >
@@ -477,7 +459,7 @@ function AssistantSession() {
                         Paramètres de l’espace
                       </Link>
                       <p>
-                        Assistant IA de Zyliad · OpenAI
+                        Assistant IA de votre espace
                         <br />
                         Modèle : {status.data?.model || "non configuré"}
                       </p>
@@ -492,11 +474,7 @@ function AssistantSession() {
             )}
           </div>
         </header>
-        {!messages.length && !loading && (
-          <div className={styles.welcome}>
-            <h1>{greeting}</h1>
-          </div>
-        )}
+        {!messages.length && !loading && <AssistantWelcome />}
         <div
           ref={scroll}
           className={styles.thread}
@@ -594,34 +572,32 @@ function AssistantSession() {
           onStop={() => active.current?.abort()}
         />
         {!messages.length && !loading && (
-          <div className={styles.suggestions}>
-            <div className={styles.promptGrid}>
-              {shortcuts.map((p) => {
-                const Icon = p.icon;
-                return (
-                  <button
-                    type="button"
-                    key={p.title}
-                    aria-label={p.title}
-                    disabled={busy || !status.data?.configured}
-                    onClick={() => setMessage(p.prompt)}
-                  >
-                    <Icon size={14} />
-                    <span>{p.title}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <AssistantQuickActions
+            disabled={busy || !status.data?.configured}
+            onChoose={setMessage}
+          />
         )}
         {!started && (
-          <RelayPulse
-            configured={!!status.data?.configured}
-            onAnalyze={(prompt, scope) => {
-              setContext(scope);
-              void ask(prompt, scope);
-            }}
-          />
+          <details
+            className={styles.pulseDisclosure}
+            open={pulseOpen}
+            onToggle={(event) => setPulseOpen(event.currentTarget.open)}
+          >
+            <summary>
+              <Activity size={14} />
+              <span>Votre activité CRM</span>
+              <ChevronDown size={13} />
+            </summary>
+            {pulseOpen && (
+              <RelayPulse
+                configured={!!status.data?.configured}
+                onAnalyze={(prompt, scope) => {
+                  setContext(scope);
+                  void ask(prompt, scope);
+                }}
+              />
+            )}
+          </details>
         )}
       </div>
       <Modal
