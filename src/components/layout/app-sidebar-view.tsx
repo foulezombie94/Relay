@@ -143,6 +143,7 @@ export function AppSidebarView({
   user,
   path,
   onSignOut,
+  onSearch,
   persistPreferences = true,
 }: {
   workspace: Workspace;
@@ -152,6 +153,7 @@ export function AppSidebarView({
   user: { id: string; email?: string };
   path: string;
   onSignOut: () => void | Promise<void>;
+  onSearch?: () => void;
   persistPreferences?: boolean;
 }) {
   const { setOpenMobile, isMobile } = useSidebar();
@@ -202,6 +204,9 @@ export function AppSidebarView({
   const allEntries = entries.flatMap((entry) => [entry, ...(entry.children ?? [])]);
   const catalog = allEntries.map((entry) => entry.id).join("|");
   const shortcutCatalog = [...shortcutEntries, ...allEntries];
+  const quickEntries = preferences.shortcuts
+    .map((id) => shortcutCatalog.find((entry) => entry.id === id))
+    .filter((entry) => !!entry);
   const navigationKey = "relay_nav_preferences:" + user.id + ":" + workspace.id;
   useEffect(() => {
     let raw: string | null = null;
@@ -285,7 +290,7 @@ export function AppSidebarView({
     );
   }
   useEffect(() => {
-    if (!persistPreferences) return;
+    if (!persistPreferences && !onSearch) return;
     function searchShortcut(event: KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         const target = event.target;
@@ -300,7 +305,7 @@ export function AppSidebarView({
     }
     window.addEventListener("keydown", searchShortcut);
     return () => window.removeEventListener("keydown", searchShortcut);
-  }, [persistPreferences]);
+  }, [persistPreferences, onSearch]);
   useEffect(() => {
     if (!persistPreferences) return;
     const saved: Record<string, boolean> = {};
@@ -363,35 +368,79 @@ export function AppSidebarView({
           href="/app/search"
           className={styles.search}
           aria-label="Rechercher"
-          aria-keyshortcuts={persistPreferences ? (isMac ? "Meta+K" : "Control+K") : undefined}
-          title={persistPreferences ? `Rechercher (${searchShortcutLabel})` : "Rechercher"}
+          aria-keyshortcuts={
+            persistPreferences || onSearch ? (isMac ? "Meta+K" : "Control+K") : undefined
+          }
+          aria-haspopup={onSearch ? "dialog" : undefined}
+          title={
+            persistPreferences || onSearch ? `Rechercher (${searchShortcutLabel})` : "Rechercher"
+          }
           aria-current={path === "/app/search" ? "page" : undefined}
-          onClick={close}
+          onClick={(event) => {
+            if (onSearch && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+              event.preventDefault();
+              onSearch();
+            }
+            close();
+          }}
         >
           <Search size={18} className={styles.searchIcon} />
           <span>Rechercher dans Relay</span>
-          {persistPreferences && <kbd>{searchShortcutLabel}</kbd>}
+          {(persistPreferences || onSearch) && <kbd>{searchShortcutLabel}</kbd>}
         </Link>
         <nav className={styles.quickNav} aria-label="Accès rapide">
-          {preferences.shortcuts
-            .map((id) => shortcutCatalog.find((entry) => entry.id === id))
-            .filter((entry) => !!entry)
-            .map(({ id: slug, label, icon: Icon }) => (
-              <Link
-                key={slug}
-                prefetch={persistPreferences ? undefined : false}
-                href={"/app/" + slug}
-                onClick={close}
-                aria-label={label}
-                title={label}
-                aria-current={path === "/app/" + slug ? "page" : undefined}
-                className={styles.quickLink}
-                data-active={path === "/app/" + slug}
+          {quickEntries.slice(0, 2).map(({ id: slug, label, href, icon: Icon }) => (
+            <Link
+              key={slug}
+              prefetch={persistPreferences ? undefined : false}
+              href={href}
+              onClick={close}
+              aria-label={label}
+              title={label}
+              aria-current={path === href ? "page" : undefined}
+              className={styles.quickLink}
+              data-active={path === href}
+            >
+              <Icon size={20} />
+              <span>{label}</span>
+            </Link>
+          ))}
+          {quickEntries.length > 2 && (
+            <Dropdown.Root>
+              <Dropdown.Trigger
+                type="button"
+                className={styles.quickMore}
+                aria-label="Plus de raccourcis"
+                title="Plus de raccourcis"
+                data-active={quickEntries.slice(2).some((entry) => path === entry.href)}
               >
-                <Icon size={20} />
-                <span>{label}</span>
-              </Link>
-            ))}
+                <Ellipsis size={18} />
+              </Dropdown.Trigger>
+              <Dropdown.Portal>
+                <Dropdown.Content
+                  className="sb-dropdown"
+                  align="end"
+                  sideOffset={6}
+                  aria-label="Autres raccourcis"
+                >
+                  {quickEntries.slice(2).map(({ id, label, href, icon: Icon }) => (
+                    <Dropdown.Item key={id} asChild>
+                      <Link
+                        className="sb-dropdown-item"
+                        href={href}
+                        prefetch={persistPreferences ? undefined : false}
+                        onClick={close}
+                        aria-current={path === href ? "page" : undefined}
+                      >
+                        <Icon size={16} />
+                        {label}
+                      </Link>
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Content>
+              </Dropdown.Portal>
+            </Dropdown.Root>
+          )}
         </nav>
       </SidebarHeader>
       <SidebarContent>

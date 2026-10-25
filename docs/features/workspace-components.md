@@ -38,6 +38,10 @@ Le graphisme des graphiques et du diaporama est une adaptation aux widgets Relay
 
 ## Vérification et aperçu
 
+La rangée d’accès rapide conserve deux raccourcis avec leur libellé ; les suivants restent accessibles dans le menu `Plus de raccourcis`, sans suppression des préférences utilisateur. Le clic sur la recherche et Ctrl+K / ⌘K ouvrent un dialogue au-dessus de la page actuelle. Ses mesures reprennent la recherche Notion inspectée dans Chrome : 1006 × 652 px maximum, position supérieure 80 px et rayon 20 px ; le bouton de réduction passe réellement à 600 px et masque l’aperçu, puis restaure la largeur et l’aperçu. La saisie, les filtres et la sélection sont conservés pendant ce changement.
+
+Le dialogue interroge l’API de recherche authentifiée existante, après 250 ms et deux caractères, avec un cache séparé par espace, utilisateur, requête et filtre. Les résultats et leur aperçu sont masqués pendant un changement de requête ou une erreur. Les extraits restent du texte ; les ressources et les liens sont construits à partir du catalogue autorisé. Les flèches parcourent les résultats, Entrée ouvre la destination, Échap ferme. L’accueil montre des accès rapides, sans fabriquer d’historique de consultation. `/demo/search` utilise uniquement des exemples fictifs et le même composant de présentation.
+
 `/demo/components` présente les composants réellement utilisés avec des données fictives : boutons, menus, formulaires, date, interrupteur, curseur, vues de fiches, graphiques, modal, panneau latéral et diaporama. Les actions de cet aperçu n’écrivent aucune fiche CRM.
 
 Validation : TypeScript, contrôle de structure, lint des fichiers modifiés, build Next.js, tests des sélecteurs, navigation des diapositives, retrait des données, widgets de fiches, sidebar et isolation publique. Inspection Chrome du thème clair/sombre, des dimensions de boutons et de la navigation en présentation. Suite complète : 693 tests réussis ; échec préexistant du test d’archive MCP à cause de la différence LF/CRLF sur Windows.

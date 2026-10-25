@@ -14,7 +14,7 @@ vi.mock("next/link", () => ({
   },
 }));
 const workspace = { id: "workspace-a", name: "Mon équipe", role: "owner" } as Workspace;
-function show(path = "/app/companies", persistPreferences = true) {
+function show(path = "/app/companies", persistPreferences = true, onSearch?: () => void) {
   return render(
     <SidebarProvider interactive={persistPreferences}>
       <AppSidebarView
@@ -26,6 +26,7 @@ function show(path = "/app/companies", persistPreferences = true) {
         path={path}
         onSignOut={vi.fn()}
         persistPreferences={persistPreferences}
+        onSearch={onSearch}
       />
     </SidebarProvider>,
   );
@@ -63,6 +64,37 @@ it("opens the actual child route and lets the user fold it without navigating", 
     "/app/deals",
   );
 });
+it("opens the search overlay from the sidebar click and Ctrl+K without navigating", () => {
+  const onSearch = vi.fn();
+  show("/app/companies", true, onSearch);
+  const url = window.location.href;
+  fireEvent.click(screen.getByRole("link", { name: "Rechercher" }));
+  expect(onSearch).toHaveBeenCalledTimes(1);
+  fireEvent.keyDown(document.body, { key: "k", ctrlKey: true });
+  expect(onSearch).toHaveBeenCalledTimes(2);
+  expect(window.location.href).toBe(url);
+});
+it("keeps extra shortcuts named and reachable in the overflow menu", async () => {
+  localStorage.setItem(
+    "relay_nav_preferences:alice:workspace-a",
+    JSON.stringify({ shortcuts: ["dashboard", "assistant", "priorities", "reports", "deals"] }),
+  );
+  show();
+  const nav = screen.getByRole("navigation", { name: "Accès rapide" });
+  expect(within(nav).getAllByRole("link")).toHaveLength(2);
+  expect(within(nav).getByRole("link", { name: "Dashboard" })).toBeDefined();
+  expect(within(nav).getByRole("link", { name: "Ask Zyliad" })).toBeDefined();
+  fireEvent.keyDown(within(nav).getByRole("button", { name: "Plus de raccourcis" }), {
+    key: "Enter",
+  });
+  expect(await screen.findByRole("menuitem", { name: "À traiter" })).toBeDefined();
+  expect(screen.getByRole("menuitem", { name: "Rapports" }).getAttribute("href")).toBe(
+    "/app/reports",
+  );
+  expect(screen.getByRole("menuitem", { name: "Opportunités" }).getAttribute("href")).toBe(
+    "/app/deals",
+  );
+});
 it.each([
   { platform: "MacIntel", label: "⌘ K", aria: "Meta+K", modifier: { metaKey: true } },
   { platform: "Win32", label: "Ctrl+K", aria: "Control+K", modifier: { ctrlKey: true } },
@@ -73,7 +105,7 @@ it.each([
   expect(within(link).getByText(label)).toBeDefined();
   expect(link.getAttribute("aria-keyshortcuts")).toBe(aria);
   const click = vi.spyOn(link, "click").mockImplementation(() => {});
-    fireEvent.keyDown(document.body, { key: "k", ...modifier });
+  fireEvent.keyDown(document.body, { key: "k", ...modifier });
   expect(click).toHaveBeenCalledTimes(1);
   const input = document.createElement("input");
   document.body.append(input);
