@@ -2,6 +2,7 @@
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import styles from "./sidebar.module.css";
 import { PanelLeft, X } from "lucide-react";
 const COOKIE = "relay_sidebar_open";
 type SidebarContextValue = {
@@ -12,6 +13,10 @@ type SidebarContextValue = {
   setOpenMobile: React.Dispatch<React.SetStateAction<boolean>>;
   isMobile: boolean;
   toggleSidebar: () => void;
+  width: number;
+  setWidth: (width: number) => void;
+  peek: boolean;
+  setPeek: React.Dispatch<React.SetStateAction<boolean>>;
 };
 const SidebarContext = React.createContext<SidebarContextValue | null>(null);
 export function useSidebar() {
@@ -36,8 +41,55 @@ export function SidebarProvider({
 }) {
   const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
   const [openMobile, setOpenMobile] = React.useState(false);
+  const [width, setWidthState] = React.useState(270);
+  const [peek, setPeek] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
   const open = controlledOpen ?? internalOpen;
+  const setWidth = React.useCallback(
+    (value: number) => {
+      const next = Math.min(480, Math.max(220, Math.round(value)));
+      if (!Number.isFinite(next)) return;
+      setWidthState(next);
+      try {
+        if (interactive) localStorage.setItem("relay_sidebar_width", String(next));
+      } catch {
+        /* Resizing works without storage. */
+      }
+    },
+    [interactive],
+  );
+  React.useEffect(() => {
+    if (!interactive) return;
+    try {
+      const saved = Number(localStorage.getItem("relay_sidebar_width"));
+      // Restore the externally stored width after hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (saved >= 220 && saved <= 480) setWidth(saved);
+    } catch {
+      /* Browser preferences are optional. */
+    }
+  }, [interactive, setWidth]);
+  React.useEffect(() => {
+    if (open || !peek) return;
+    function dismiss(event: PointerEvent) {
+      if (
+        event.target instanceof Element &&
+        !event.target.closest(
+          '[data-slot="sidebar"],[data-slot="sidebar-trigger"],[data-radix-popper-content-wrapper]',
+        )
+      )
+        setPeek(false);
+    }
+    function escape(event: KeyboardEvent) {
+      if (event.key === "Escape") setPeek(false);
+    }
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [open, peek]);
   React.useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
     const update = () => {
@@ -53,14 +105,15 @@ export function SidebarProvider({
       const next = typeof value === "function" ? value(open) : value;
       if (onOpenChange) onOpenChange(next);
       else setInternalOpen(next);
-      document.cookie =
-        COOKIE +
-        "=" +
-        String(next) +
-        "; path=/; max-age=2592000; SameSite=Lax" +
-        (window.location.protocol === "https:" ? "; Secure" : "");
+      if (interactive)
+        document.cookie =
+          COOKIE +
+          "=" +
+          String(next) +
+          "; path=/; max-age=2592000; SameSite=Lax" +
+          (window.location.protocol === "https:" ? "; Secure" : "");
     },
-    [open, onOpenChange],
+    [open, onOpenChange, interactive],
   );
   const toggleSidebar = React.useCallback(() => {
     if (isMobile) setOpenMobile((v) => !v);
@@ -89,6 +142,10 @@ export function SidebarProvider({
         setOpenMobile,
         isMobile,
         toggleSidebar,
+        width,
+        setWidth,
+        peek,
+        setPeek,
       }}
     >
       <Tooltip.Provider delayDuration={120}>
@@ -98,7 +155,7 @@ export function SidebarProvider({
           className={"sb-layout " + className}
           style={
             {
-              "--sidebar-width": "270px",
+              "--sidebar-width": width + "px",
               "--sidebar-width-mobile": "18rem",
               "--sidebar-width-icon": "4rem",
               ...style,
@@ -125,7 +182,8 @@ export function Sidebar({
   variant?: "sidebar" | "floating" | "inset";
   collapsible?: "offcanvas" | "icon" | "none";
 }) {
-  const { isMobile, openMobile, setOpenMobile, state } = useSidebar();
+  const { isMobile, openMobile, setOpenMobile, state, peek, setPeek } = useSidebar();
+  const floating = state === "collapsed" && collapsible === "offcanvas";
   const content = (
     <div data-sidebar="sidebar" className={"sb-panel " + className} dir={dir} {...props}>
       {children}
@@ -163,10 +221,29 @@ export function Sidebar({
       data-variant={variant}
       data-collapsible={state === "collapsed" ? collapsible : ""}
       dir={dir}
-      className="sb-desktop"
+      className={"sb-desktop " + styles.desktop}
+      data-peek={floating && peek ? "true" : undefined}
     >
       <div className="sb-spacer" />
-      <div className="sb-container">{content}</div>
+      {floating && (
+        <div className={styles.hoverEdge} onMouseEnter={() => setPeek(true)} aria-hidden="true" />
+      )}
+      <div
+        className={"sb-container " + styles.container}
+        inert={floating && !peek}
+        onMouseEnter={() => {
+          if (floating) setPeek(true);
+        }}
+        onMouseLeave={(event) => {
+          if (!floating) return;
+          const target = event.relatedTarget;
+          if (target instanceof Element && target.closest("[data-radix-popper-content-wrapper]"))
+            return;
+          setPeek(false);
+        }}
+      >
+        {content}
+      </div>
     </div>
   );
 }
@@ -178,7 +255,7 @@ export function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<"button">) {
-  const { toggleSidebar, isMobile, open, openMobile } = useSidebar();
+  const { toggleSidebar, isMobile, open, openMobile, setPeek } = useSidebar();
   return (
     <button
       type="button"
@@ -194,6 +271,9 @@ export function SidebarTrigger({
       }
       aria-expanded={isMobile ? openMobile : open}
       title="Afficher / réduire le menu (Ctrl+B)"
+      onMouseEnter={() => {
+        if (!open && !isMobile) setPeek(true);
+      }}
       className={"sb-trigger " + className}
       onClick={(e) => {
         onClick?.(e);
@@ -205,17 +285,61 @@ export function SidebarTrigger({
     </button>
   );
 }
-export function SidebarRail({ className = "", ...props }: React.ComponentProps<"button">) {
-  const { toggleSidebar, open } = useSidebar();
+export function SidebarRail({ className = "", ...props }: React.ComponentProps<"div">) {
+  const { width, setWidth } = useSidebar();
+  const drag = React.useRef<{ x: number; width: number; direction: number } | null>(null);
   return (
-    <button
-      type="button"
-      tabIndex={-1}
-      aria-label={open ? "Réduire le menu" : "Développer le menu"}
-      title="Afficher / réduire le menu"
+    <div
+      role="separator"
+      tabIndex={0}
+      aria-orientation="vertical"
+      aria-label="Redimensionner la barre latérale"
+      aria-valuemin={220}
+      aria-valuemax={480}
+      aria-valuenow={width}
+      aria-valuetext={width + " pixels"}
+      title="Glisser pour redimensionner · Double-clic pour réinitialiser"
       data-slot="sidebar-rail"
-      className={"sb-rail " + className}
-      onClick={toggleSidebar}
+      className={"sb-rail " + styles.rail + " " + className}
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        const side = event.currentTarget.closest("[data-side]")?.getAttribute("data-side");
+        drag.current = { x: event.clientX, width, direction: side === "right" ? -1 : 1 };
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }}
+      onPointerMove={(event) => {
+        if (drag.current)
+          setWidth(drag.current.width + (event.clientX - drag.current.x) * drag.current.direction);
+      }}
+      onPointerUp={(event) => {
+        drag.current = null;
+        if (event.currentTarget.hasPointerCapture(event.pointerId))
+          event.currentTarget.releasePointerCapture(event.pointerId);
+      }}
+      onPointerCancel={() => {
+        drag.current = null;
+      }}
+      onLostPointerCapture={() => {
+        drag.current = null;
+      }}
+      onDoubleClick={() => setWidth(270)}
+      onKeyDown={(event) => {
+        const right =
+          event.currentTarget.closest("[data-side]")?.getAttribute("data-side") === "right";
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          event.preventDefault();
+          setWidth(width + (event.key === "ArrowRight" ? 10 : -10) * (right ? -1 : 1));
+        }
+        if (event.key === "Home") {
+          event.preventDefault();
+          setWidth(220);
+        }
+        if (event.key === "End") {
+          event.preventDefault();
+          setWidth(480);
+        }
+      }}
       {...props}
     />
   );

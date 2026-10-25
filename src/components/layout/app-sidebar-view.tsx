@@ -3,6 +3,9 @@ import Link from "next/link";
 import type { Workspace, ObjectDefinition } from "@/lib/domain/types";
 import { useEffect, useRef, useState } from "react";
 import styles from "./app-sidebar.module.css";
+import { SidebarEntryRow, type SidebarEntry } from "./sidebar-entry";
+import { SidebarCustomizer } from "./sidebar-customizer";
+import { readSidebarPreferences, type SidebarPreferences } from "./sidebar-preferences";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import {
   Building2,
@@ -33,6 +36,13 @@ import {
   CircleHelp,
   ChevronDown,
   ChevronRight,
+  Ellipsis,
+  Plus,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpRight,
+  ChevronsUpDown,
+  SlidersHorizontal,
 } from "lucide-react";
 import {
   Sidebar,
@@ -41,9 +51,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
   SidebarRail,
   SidebarTrigger,
   useSidebar,
@@ -105,6 +112,11 @@ const groups = [
     items: [["reports", "Rapports", BarChart3]],
   },
 ] as const;
+const shortcutEntries: SidebarEntry[] = [
+  { id: "dashboard", label: "Dashboard", href: "/app/dashboard", icon: Home },
+  { id: "assistant", label: "Ask Zyliad", href: "/app/assistant", icon: Sparkles },
+  { id: "priorities", label: "À traiter", href: "/app/priorities", icon: CheckSquare },
+];
 function itemActive(slug: string, path: string) {
   return (
     path === "/app/" + slug ||
@@ -136,11 +148,134 @@ export function AppSidebarView({
   onSignOut: () => void | Promise<void>;
   persistPreferences?: boolean;
 }) {
-  const { setOpenMobile, setOpen, state, isMobile } = useSidebar();
+  const { setOpenMobile, isMobile } = useSidebar();
   const searchRef = useRef<HTMLAnchorElement>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const preferenceKey = "relay_nav_groups:" + user.id;
-  const compact = state === "collapsed" && !isMobile;
+  const [customizing, setCustomizing] = useState(false);
+  const [preferences, setPreferences] = useState<SidebarPreferences>(() =>
+    readSidebarPreferences(
+      null,
+      groups.map((g) => g.id),
+      [],
+    ),
+  );
+  const entries: SidebarEntry[] = groups.flatMap((group) =>
+    group.items.map(([id, label, icon]) => ({
+      id,
+      label,
+      icon,
+      href: "/app/" + id,
+      children:
+        id === "deals"
+          ? [{ id: "pipelines", label: "Pipelines", icon: Layers, href: "/app/pipelines" }]
+          : id === "communications"
+            ? [
+                {
+                  id: "email-templates",
+                  label: "Modèles email",
+                  icon: MessageSquare,
+                  href: "/app/email-templates",
+                },
+              ]
+            : undefined,
+    })),
+  );
+  entries.push(
+    ...objects
+      .filter((o) => !o.standard)
+      .map((o) => ({
+        id: "object-" + o.slug,
+        label: o.name,
+        href: "/app/object-" + o.slug,
+        icon: Box,
+      })),
+  );
+  const allEntries = entries.flatMap((entry) => [entry, ...(entry.children ?? [])]);
+  const catalog = allEntries.map((entry) => entry.id).join("|");
+  const shortcutCatalog = [...shortcutEntries, ...allEntries];
+  const navigationKey = "relay_nav_preferences:" + user.id + ":" + workspace.id;
+  useEffect(() => {
+    let raw: string | null = null;
+    try {
+      if (persistPreferences) raw = localStorage.getItem(navigationKey);
+    } catch {
+      /* Storage is optional. */
+    }
+    // Restore only IDs from the current workspace's navigation catalog.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPreferences(
+      readSidebarPreferences(
+        raw,
+        groups.map((g) => g.id),
+        catalog.split("|"),
+        [...shortcutEntries.map((entry) => entry.id), ...catalog.split("|")],
+      ),
+    );
+  }, [navigationKey, persistPreferences, catalog]);
+  function savePreferences(next: SidebarPreferences) {
+    setPreferences(next);
+    try {
+      if (persistPreferences) localStorage.setItem(navigationKey, JSON.stringify(next));
+    } catch {
+      /* Keep changes in memory when storage is blocked. */
+    }
+  }
+  function toggleFavorite(id: string) {
+    savePreferences({
+      ...preferences,
+      favorites: preferences.favorites.includes(id)
+        ? preferences.favorites.filter((value) => value !== id)
+        : [...preferences.favorites, id],
+    });
+  }
+  function moveGroup(id: string, delta: number) {
+    const order = [...preferences.order];
+    const index = order.indexOf(id);
+    const target = index + delta;
+    if (index < 0 || target < 0 || target >= order.length) return;
+    [order[index], order[target]] = [order[target], order[index]];
+    savePreferences({ ...preferences, order });
+  }
+  function setGroupOpen(id: string, open: boolean) {
+    const next = { ...expanded, [id]: open };
+    setExpanded(next);
+    try {
+      if (persistPreferences) localStorage.setItem(preferenceKey, JSON.stringify(next));
+    } catch {
+      /* Navigation remains usable without storage. */
+    }
+  }
+  function setAllGroups(open: boolean) {
+    const next = Object.fromEntries(
+      [...groups.map((group) => group.id), "favorites"].map((id) => [id, open]),
+    );
+    setExpanded(next);
+    try {
+      if (persistPreferences) localStorage.setItem(preferenceKey, JSON.stringify(next));
+    } catch {
+      /* Navigation remains usable without storage. */
+    }
+  }
+  function renderEntry(entry: SidebarEntry) {
+    return (
+      <SidebarEntryRow
+        key={entry.id}
+        entry={{
+          ...entry,
+          children: entry.children?.filter(
+            (child) => !preferences.hiddenEntries.includes(child.id),
+          ),
+        }}
+        path={path}
+        favorite={preferences.favorites.includes(entry.id)}
+        favoriteIds={preferences.favorites}
+        onFavorite={toggleFavorite}
+        close={close}
+        persistPreferences={persistPreferences}
+      />
+    );
+  }
   useEffect(() => {
     if (!persistPreferences) return;
     function searchShortcut(event: KeyboardEvent) {
@@ -166,9 +301,9 @@ export function AppSidebarView({
         persistPreferences ? (localStorage.getItem(preferenceKey) ?? "{}") : "{}",
       );
       if (value && typeof value === "object" && !Array.isArray(value)) {
-        for (const group of groups) {
-          const open = (value as Record<string, unknown>)[group.id];
-          if (typeof open === "boolean") saved[group.id] = open;
+        for (const id of [...groups.map((group) => group.id), "favorites"]) {
+          const open = (value as Record<string, unknown>)[id];
+          if (typeof open === "boolean") saved[id] = open;
         }
       }
     } catch {
@@ -179,19 +314,6 @@ export function AppSidebarView({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setExpanded({ ...saved, ...(active ? { [active]: true } : {}) });
   }, [path, preferenceKey, persistPreferences]);
-  function toggleGroup(id: string) {
-    const next = {
-      ...expanded,
-      [id]: compact ? true : !(expanded[id] ?? currentGroup(path) === id),
-    };
-    setExpanded(next);
-    try {
-      if (persistPreferences) localStorage.setItem(preferenceKey, JSON.stringify(next));
-    } catch {
-      /* Navigation remains usable without storage. */
-    }
-    if (compact) setOpen(true);
-  }
   useEffect(() => {
     // Keep the mobile navigation closed when the route changes.
     setOpenMobile(false);
@@ -200,7 +322,7 @@ export function AppSidebarView({
     setOpenMobile(false);
   }
   return (
-    <Sidebar collapsible="icon" className={styles.sidebar}>
+    <Sidebar collapsible="offcanvas" className={styles.sidebar}>
       <SidebarHeader>
         <div className={styles.toolbar}>
           <SidebarTrigger />
@@ -241,128 +363,270 @@ export function AppSidebarView({
           {persistPreferences && <kbd>Ctrl+K</kbd>}
         </Link>
         <nav className={styles.quickNav} aria-label="Accès rapide">
-          {(
-            [
-              ["dashboard", "Dashboard", Home],
-              ["assistant", "Ask Zyliad", Sparkles],
-              ["priorities", "À traiter", CheckSquare],
-            ] as const
-          ).map(([slug, label, Icon]) => (
-            <Link
-              key={slug}
-              prefetch={persistPreferences ? undefined : false}
-              href={"/app/" + slug}
-              onClick={close}
-              aria-label={label}
-              title={label}
-              aria-current={path === "/app/" + slug ? "page" : undefined}
-              className={styles.quickLink}
-              data-active={path === "/app/" + slug}
-            >
-              <Icon size={20} />
-              <span>{label}</span>
-            </Link>
-          ))}
+          {preferences.shortcuts
+            .map((id) => shortcutCatalog.find((entry) => entry.id === id))
+            .filter((entry) => !!entry)
+            .map(({ id: slug, label, icon: Icon }) => (
+              <Link
+                key={slug}
+                prefetch={persistPreferences ? undefined : false}
+                href={"/app/" + slug}
+                onClick={close}
+                aria-label={label}
+                title={label}
+                aria-current={path === "/app/" + slug ? "page" : undefined}
+                className={styles.quickLink}
+                data-active={path === "/app/" + slug}
+              >
+                <Icon size={20} />
+                <span>{label}</span>
+              </Link>
+            ))}
         </nav>
       </SidebarHeader>
       <SidebarContent>
-        <nav aria-label="Navigation principale">
-          {groups.map((group) => {
-            const Icon = group.icon;
-            const active = currentGroup(path) === group.id;
-            const open = !compact && (expanded[group.id] ?? active);
-            const GroupIndicator = open ? ChevronDown : ChevronRight;
-            const panelId = "relay-nav-" + group.id;
-            return (
-              <SidebarGroup key={group.id} className={styles.group}>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      tooltip={group.label}
-                      className={styles.trigger}
-                      data-current={active}
-                      aria-expanded={open}
-                      aria-controls={panelId}
-                      onClick={() => toggleGroup(group.id)}
-                    >
-                      <Icon size={18} className={styles.compactIcon} />
-                      <span>{group.label}</span>
-                      <GroupIndicator
-                        aria-hidden="true"
-                        className={styles.chevron}
-                        data-open={open}
-                      />
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-                <SidebarGroupContent id={panelId} hidden={!open} className={styles.content}>
-                  <SidebarMenu>
-                    {group.items.map(([slug, label, ItemIcon]) => (
-                      <SidebarMenuItem key={slug}>
-                        <SidebarMenuButton
-                          render={
-                            <Link
-                              prefetch={persistPreferences ? undefined : false}
-                              href={"/app/" + slug}
-                            >
-                              {null}
-                            </Link>
-                          }
-                          isActive={itemActive(slug, path)}
-                          tooltip={label}
-                          onClick={close}
-                        >
-                          <ItemIcon size={20} />
-                          <span>{label}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                    {group.id === "crm" && objects.some((o) => !o.standard) && (
-                      <>
-                        <li className={styles.objectLabel}>Vos objets</li>
-                        {objects
-                          .filter((o) => !o.standard)
-                          .map((o) => (
-                            <SidebarMenuItem key={o.id}>
-                              <SidebarMenuButton
-                                render={
-                                  <Link
-                                    prefetch={persistPreferences ? undefined : false}
-                                    href={"/app/object-" + o.slug}
-                                  >
-                                    {null}
-                                  </Link>
-                                }
-                                isActive={path === "/app/object-" + o.slug}
-                                tooltip={o.name}
-                                onClick={close}
-                              >
-                                <Box size={18} />
-                                <span>{o.name}</span>
-                              </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          ))}
-                      </>
-                    )}
-                  </SidebarMenu>
-                </SidebarGroupContent>
+        {customizing ? (
+          <SidebarCustomizer
+            sections={groups.map((group) => ({
+              id: group.id,
+              label: group.label,
+              icon: group.icon,
+              entries: entries
+                .filter(
+                  (entry) =>
+                    group.items.some(([slug]) => slug === entry.id) ||
+                    (group.id === "crm" && entry.id.startsWith("object-")),
+                )
+                .flatMap((entry) => [entry, ...(entry.children ?? [])]),
+            }))}
+            shortcuts={shortcutCatalog}
+            preferences={preferences}
+            onChange={savePreferences}
+          />
+        ) : (
+          <nav aria-label="Navigation principale">
+            {preferences.favorites.length > 0 && (
+              <SidebarGroup className={styles.group}>
+                <button
+                  type="button"
+                  className={"sb-menu-button " + styles.trigger}
+                  aria-expanded={expanded.favorites ?? true}
+                  aria-controls="relay-nav-favorites"
+                  onClick={() => setGroupOpen("favorites", !(expanded.favorites ?? true))}
+                >
+                  <span>Favoris</span>
+                  <ChevronRight
+                    className={styles.chevron}
+                    data-open={expanded.favorites ?? true}
+                    size={12}
+                  />
+                </button>
+                <ul
+                  className={styles.entryList}
+                  id="relay-nav-favorites"
+                  hidden={!(expanded.favorites ?? true)}
+                >
+                  {preferences.favorites
+                    .map((id) => allEntries.find((entry) => entry.id === id))
+                    .filter((entry): entry is SidebarEntry => !!entry)
+                    .map(renderEntry)}
+                </ul>
               </SidebarGroup>
-            );
-          })}
-        </nav>
+            )}
+            {preferences.order
+              .map((id) => groups.find((group) => group.id === id))
+              .filter((group) => !!group)
+              .map((group) => {
+                const active = currentGroup(path) === group.id;
+                const open = expanded[group.id] ?? active;
+                const hidden = preferences.hidden.includes(group.id);
+                if (hidden) return null;
+                const panelId = "relay-nav-" + group.id;
+                const groupEntries = entries
+                  .filter(
+                    (entry) =>
+                      group.items.some(([slug]) => slug === entry.id) ||
+                      (group.id === "crm" && entry.id.startsWith("object-")),
+                  )
+                  .sort(
+                    (a, b) =>
+                      preferences.entryOrder.indexOf(a.id) - preferences.entryOrder.indexOf(b.id),
+                  );
+                return (
+                  <SidebarGroup key={group.id} className={styles.group} data-hidden={hidden}>
+                    <div className={styles.sectionHead}>
+                      <button
+                        type="button"
+                        className={"sb-menu-button " + styles.trigger}
+                        aria-label={group.label}
+                        aria-expanded={open}
+                        aria-controls={panelId}
+                        onClick={() => setGroupOpen(group.id, !open)}
+                      >
+                        <span>{group.label}</span>
+                        <ChevronRight
+                          aria-hidden="true"
+                          className={styles.chevron}
+                          data-open={open}
+                          size={12}
+                        />
+                      </button>
+                      <div className={styles.sectionActions}>
+                        <Link
+                          prefetch={persistPreferences ? undefined : false}
+                          href={groupEntries[0]?.href ?? "/app/dashboard"}
+                          onClick={close}
+                          aria-label={"Ouvrir " + group.label}
+                          title={"Ouvrir " + group.label}
+                          className={styles.smallAction}
+                        >
+                          <ArrowUpRight size={14} />
+                        </Link>
+                        <Dropdown.Root>
+                          <Dropdown.Trigger
+                            className={styles.smallAction}
+                            aria-label={"Ajouter un raccourci : " + group.label}
+                            title="Ajouter un raccourci"
+                          >
+                            <Plus size={14} />
+                          </Dropdown.Trigger>
+                          <Dropdown.Portal>
+                            <Dropdown.Content
+                              className={"sb-dropdown " + styles.actionMenu}
+                              side="right"
+                              align="start"
+                              sideOffset={6}
+                              collisionPadding={8}
+                            >
+                              <Dropdown.Label className="sb-dropdown-label">
+                                Ajouter aux favoris
+                              </Dropdown.Label>
+                              {groupEntries.map((entry) => (
+                                <Dropdown.CheckboxItem
+                                  key={entry.id}
+                                  className="sb-dropdown-item"
+                                  checked={preferences.favorites.includes(entry.id)}
+                                  onCheckedChange={() => toggleFavorite(entry.id)}
+                                >
+                                  <entry.icon size={16} />
+                                  <span>{entry.label}</span>
+                                  <Dropdown.ItemIndicator>
+                                    <Check size={14} />
+                                  </Dropdown.ItemIndicator>
+                                </Dropdown.CheckboxItem>
+                              ))}
+                            </Dropdown.Content>
+                          </Dropdown.Portal>
+                        </Dropdown.Root>
+                        <Dropdown.Root>
+                          <Dropdown.Trigger
+                            className={styles.smallAction}
+                            aria-label={"Menu de la section : " + group.label}
+                            title="Ouvrir le menu"
+                          >
+                            <Ellipsis size={14} />
+                          </Dropdown.Trigger>
+                          <Dropdown.Portal>
+                            <Dropdown.Content
+                              className={"sb-dropdown " + styles.actionMenu}
+                              side="right"
+                              align="start"
+                              sideOffset={6}
+                              collisionPadding={8}
+                            >
+                              <Dropdown.Label className="sb-dropdown-label">
+                                {group.label}
+                              </Dropdown.Label>
+                              <Dropdown.Item
+                                className="sb-dropdown-item"
+                                onSelect={() => setGroupOpen(group.id, !open)}
+                              >
+                                <ChevronRight size={16} />
+                                {open ? "Replier la section" : "Déplier la section"}
+                              </Dropdown.Item>
+                              <Dropdown.Separator className="sb-separator" />
+                              <Dropdown.Item
+                                className="sb-dropdown-item"
+                                disabled={preferences.order.indexOf(group.id) === 0}
+                                onSelect={() => moveGroup(group.id, -1)}
+                              >
+                                <ArrowUp size={16} />
+                                Remonter
+                              </Dropdown.Item>
+                              <Dropdown.Item
+                                className="sb-dropdown-item"
+                                disabled={
+                                  preferences.order.indexOf(group.id) ===
+                                  preferences.order.length - 1
+                                }
+                                onSelect={() => moveGroup(group.id, 1)}
+                              >
+                                <ArrowDown size={16} />
+                                Descendre
+                              </Dropdown.Item>
+                              <Dropdown.Separator className="sb-separator" />
+                              <Dropdown.Item
+                                className="sb-dropdown-item"
+                                onSelect={() => setAllGroups(true)}
+                              >
+                                <ChevronsUpDown size={16} />
+                                Tout déplier
+                              </Dropdown.Item>
+                              <Dropdown.Item
+                                className="sb-dropdown-item"
+                                onSelect={() => setAllGroups(false)}
+                              >
+                                <ChevronsUpDown size={16} />
+                                Tout replier
+                              </Dropdown.Item>
+                              <Dropdown.Item
+                                className="sb-dropdown-item"
+                                onSelect={() => setCustomizing(true)}
+                              >
+                                <SlidersHorizontal size={16} />
+                                Personnaliser la barre latérale
+                              </Dropdown.Item>
+                            </Dropdown.Content>
+                          </Dropdown.Portal>
+                        </Dropdown.Root>
+                      </div>
+                    </div>
+                    <SidebarGroupContent id={panelId} hidden={!open} className={styles.content}>
+                      <ul className={styles.entryList}>
+                        {groupEntries
+                          .filter((entry) => !preferences.hiddenEntries.includes(entry.id))
+                          .map(renderEntry)}
+                      </ul>
+                    </SidebarGroupContent>
+                  </SidebarGroup>
+                );
+              })}
+          </nav>
+        )}
       </SidebarContent>
       <SidebarFooter>
-        <Link
-          prefetch={persistPreferences ? undefined : false}
-          href="/app/settings"
-          className={styles.settingsLink}
-          aria-label="Paramètres"
-          aria-current={path === "/app/settings" ? "page" : undefined}
-          onClick={close}
+        <button
+          type="button"
+          className={customizing ? styles.doneButton : styles.settingsLink}
+          aria-expanded={customizing}
+          onClick={() => setCustomizing(!customizing)}
         >
-          <Settings size={18} />
-          <span>Paramètres</span>
-        </Link>
+          {customizing ? <Check size={16} /> : <SlidersHorizontal size={18} />}
+          <span>{customizing ? "Terminé" : "Personnaliser la barre latérale"}</span>
+        </button>
+        {!customizing && (
+          <Link
+            prefetch={persistPreferences ? undefined : false}
+            href="/app/settings"
+            className={styles.settingsLink}
+            aria-label="Paramètres"
+            aria-current={path === "/app/settings" ? "page" : undefined}
+            onClick={close}
+          >
+            <Settings size={18} />
+            <span>Paramètres</span>
+          </Link>
+        )}
         <div className={styles.bottomBar}>
           <Dropdown.Root>
             <Dropdown.Trigger

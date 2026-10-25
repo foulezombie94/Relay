@@ -1,0 +1,36 @@
+.desktop[data-collapsible="offcanvas"] .container {
+  visibility: hidden;
+}
+.desktop[data-collapsible="offcanvas"][data-peek="true"] .container {
+  left: 0;
+  top: 48px;
+  bottom: 12px;
+  visibility: visible;
+  border-radius: 0 12px 12px 0;
+  overflow: hidden;
+  box-shadow:
+    0 8px 28px rgb(0 0 0 / 15%),
+    0 0 0 1px rgb(0 0 0 / 6%);
+}
+.hoverEdge {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  z-index: 34;
+}
+.rail {
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+}
+.rail:focus-visible::after,
+.rail:hover::after {
+  background: #a19e99;
+}
+@media (prefers-reduced-motion: reduce) {
+  .desktop .container {
+    transition: none;
+  }
+}

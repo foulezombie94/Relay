@@ -391,3 +391,272 @@
     height: 40px;
   }
 }
+/* Notion's section actions appear on hover and remain available from the keyboard. */
+.sectionHead {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  border-radius: 6px;
+}
+.sidebar .trigger {
+  justify-content: flex-start;
+  width: 100%;
+}
+.sidebar .trigger > .chevron {
+  margin-left: 0;
+  transform: rotate(0deg);
+  transition: transform 160ms ease;
+}
+.sidebar .trigger > .chevron[data-open="true"] {
+  transform: rotate(90deg);
+}
+.sectionHead:hover,
+.sectionHead:focus-within {
+  background: var(--sidebar-accent);
+}
+.sectionHead:hover .chevron,
+.sectionHead:focus-within .chevron {
+  opacity: 1;
+}
+.sectionHead:hover .trigger,
+.sectionHead:focus-within .trigger {
+  padding-right: 78px;
+}
+.sectionActions {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  pointer-events: none;
+}
+.sectionHead:hover .sectionActions,
+.sectionHead:focus-within .sectionActions,
+.sectionHead:has([data-state="open"]) .sectionActions {
+  opacity: 1;
+  pointer-events: auto;
+}
+.smallAction,
+.entryMore,
+.disclosure {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  padding: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--nav-icon);
+  cursor: pointer;
+  text-decoration: none;
+}
+.smallAction:hover,
+.entryMore:hover,
+.disclosure:hover {
+  background: rgb(33 27 23 / 8%);
+}
+.group[data-hidden="true"] {
+  opacity: 0.5;
+}
+.entryList,
+.entryChildren {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0;
+  margin: 1px 0 0;
+}
+.entryChildren {
+  margin-left: 8px;
+}
+.entryList[hidden],
+.entryChildren[hidden] {
+  display: none;
+}
+.entry {
+  list-style: none;
+  min-width: 0;
+}
+.entryRow {
+  position: relative;
+  height: 30px;
+  border-radius: 6px;
+}
+.entryRow:hover,
+.entryRow:focus-within,
+.entryRow[data-active="true"] {
+  background: var(--sidebar-accent);
+}
+.entryLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--sidebar-foreground);
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 400;
+}
+.entryRow[data-active="true"] .entryLink {
+  color: var(--sidebar-accent-foreground);
+}
+.entryLink > svg {
+  width: 20px;
+  height: 20px;
+  color: var(--nav-icon);
+  flex: none;
+  stroke-width: 1.25;
+}
+.entryLink > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.entryMore {
+  position: absolute;
+  right: 8px;
+  top: 5px;
+  opacity: 0;
+  pointer-events: none;
+}
+.entryRow:hover .entryMore,
+.entryRow:focus-within .entryMore,
+.entryMore[data-state="open"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+.entryRow:hover .entryLink,
+.entryRow:focus-within .entryLink {
+  padding-right: 34px;
+}
+.disclosure {
+  position: absolute;
+  left: 8px;
+  top: 5px;
+  opacity: 0;
+}
+.disclosure > svg {
+  transition: transform 160ms ease;
+}
+.disclosure > svg[data-open="true"] {
+  transform: rotate(90deg);
+}
+.entryRow:hover .disclosure,
+.entryRow:focus-within .disclosure {
+  opacity: 1;
+}
+.entryRow:hover .branchIcon,
+.entryRow:focus-within .branchIcon {
+  opacity: 0;
+}
+.sidebar button.settingsLink {
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.sidebar button.settingsLink:hover {
+  background: var(--sidebar-accent);
+}
+.actionMenu {
+  font-family:
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI Variable Display",
+    "Segoe UI",
+    Helvetica,
+    Arial,
+    sans-serif;
+  min-width: 240px;
+  padding: 4px;
+  border-radius: 8px;
+}
+.actionMenu :global(.sb-dropdown-item) {
+  min-height: 28px;
+  font-size: 14px;
+  line-height: 20px;
+}
+.actionMenu [data-disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+@media (hover: none) {
+  .sectionActions,
+  .entryMore,
+  .disclosure {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .sectionHead .trigger {
+    padding-right: 100px;
+  }
+  .entryLink {
+    padding-right: 34px;
+  }
+  .branchIcon {
+    opacity: 0;
+  }
+}
+@media (max-width: 767px) {
+  .entryRow {
+    height: 40px;
+  }
+  .entryMore,
+  .disclosure {
+    top: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar .trigger > .chevron,
+  .disclosure > svg {
+    transition: none;
+  }
+}
+.sidebar .doneButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  min-height: 28px;
+  margin: 0 8px 8px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: #2783de;
+  color: #f3f9fd;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sidebar .doneButton:hover {
+  background: #2274c4;
+}
+.sidebar .quickNav {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.sidebar .quickLink {
+  flex-shrink: 0;
+  max-width: calc(var(--sidebar-width) - 24px);
+}
+.sidebar .quickLink > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
