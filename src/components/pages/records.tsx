@@ -24,6 +24,10 @@ import {
 } from "../ui";
 import { RecordDetails } from "./record-details";
 import { RecordQuickPeek } from "../records/quick-peek";
+import { ContactsToolbar } from "../records/contacts-toolbar";
+import { ContactsTable } from "../records/contacts-table";
+import { contactColumns, contactPatch, contactAttributeKey } from "../records/contacts-model";
+import contactStyles from "../records/contacts.module.css";
 import { RecordBoard } from "../records/board";
 import { RecordDirectory } from "../records/directory";
 import { RecordTable } from "../records/table";
@@ -150,6 +154,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
   const [importing, setImporting] = useState(() => url.get("import") === "1");
   const [lost, setLost] = useState<CrmRecord | null>(null);
   const [error, setError] = useState("");
+  const [property, setProperty] = useState<Attribute | true | null>(null);
   const q = useRows<CrmRecord>("records", {
     object_id: object?.id,
     pipeline_id: slug === "deals" ? view.pipeline_id || undefined : undefined,
@@ -248,6 +253,12 @@ function RecordsPageContents({ slug }: { slug: string }) {
     });
   if (!object) return <Loading />;
   const rows = q.data?.data ?? [];
+  const contactFields = contactColumns(custom);
+  const manageProperties = workspace.role === "owner" || workspace.role === "admin";
+  function changeContactView(value: ViewConfig) {
+    setView(value);
+    setPage(1);
+  }
   const preview = q.error ? undefined : rows.find((record) => record.id === previewId);
   const exportParams = new URLSearchParams({
     object_id: object.id,
@@ -261,156 +272,187 @@ function RecordsPageContents({ slug }: { slug: string }) {
     filters: JSON.stringify(view.filters ?? []),
     pipeline_id: slug === "deals" ? view.pipeline_id : "",
   });
+  const exportControl = (
+    <ExportRecords
+      key={object.id}
+      workspaceId={workspace.id}
+      objectName={object.name}
+      slug={slug}
+      params={exportParams}
+      columns={view.columns}
+      attributes={custom}
+      count={q.data?.count ?? 0}
+      compact={slug === "people"}
+    />
+  );
+  const viewControls = (
+    <RecordViews
+      key={object.id}
+      compact={slug === "people"}
+      object={object}
+      attributes={custom}
+      config={view}
+      mode={mode}
+      onMode={chooseMode}
+      onChange={(value) => {
+        setView(value);
+        setPage(1);
+      }}
+    />
+  );
   return (
-    <>
-      <div className={`${styles.pageHeading} ${styles[slug] ?? ""}`}>
-        <span className={styles.pageIcon}>
-          <PageIcon size={24} strokeWidth={1.6} />
-        </span>
-        <PageHeader
-          title={object.name}
-          description={pageContent.description}
-          action={
-            <AddButton
-              label={pageContent.action}
-              disabled={workspace.role === "viewer"}
-              onClick={() => {
-                setNewStage("Nouveau");
-                setEdit(true);
-              }}
-            />
-          }
-        />
-      </div>
-      <div className={styles.quickViews} role="group" aria-label="Vues rapides">
-        {[
-          {
-            value: "",
-            label:
-              slug === "deals"
-                ? "Toutes les opportunités"
-                : slug === "people"
-                  ? "Tous les contacts"
-                  : slug === "companies"
-                    ? "Toutes les entreprises"
-                    : "Toutes les fiches",
-          },
-          {
-            value: "me",
-            label:
-              slug === "deals"
-                ? "Mon pipeline"
-                : slug === "people"
-                  ? "Mes contacts"
-                  : slug === "companies"
-                    ? "Mes comptes"
-                    : "Mes fiches",
-          },
-          { value: "unassigned", label: "Sans responsable" },
-        ].map((item) => (
-          <button
-            key={item.value}
-            type="button"
-            aria-pressed={view.owner === item.value}
-            onClick={() => {
-              setView((current) => ({ ...current, owner: item.value }));
-              setPage(1);
-            }}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-      <RecordSegments
-        value={view.filters ?? []}
-        onChange={(filters) => {
-          setPage(1);
-          setView((current) => ({ ...current, filters }));
-        }}
-      />
-      <div className="toolbar">
-        <SearchBox
-          value={search}
-          onChange={(v) => {
-            setView((c) => ({ ...c, search: v }));
-            setPage(1);
-          }}
-        />
-        <span className="pill">
-          {q.data?.count ?? 0} {pageContent.plural}
-        </span>
-        <ViewButtons
-          label="Présentation des fiches"
-          value={mode}
-          options={[
-            { value: "table", label: "Liste", icon: List },
-            slug === "deals"
-              ? { value: "kanban", label: "Kanban", icon: Columns3 }
-              : { value: "cards", label: "Galerie", icon: LayoutGrid },
-            ...(slug === "deals"
-              ? [{ value: "calendar", label: "Calendrier", icon: CalendarDays }]
-              : []),
-          ]}
-          onChange={chooseMode}
-        />
-        <ExportRecords
-          key={object.id}
-          workspaceId={workspace.id}
-          objectName={object.name}
-          slug={slug}
-          params={exportParams}
-          columns={view.columns}
-          attributes={custom}
-          count={q.data?.count ?? 0}
-        />
-        <button
-          className="button small"
-          disabled={workspace.role === "viewer"}
-          onClick={() => setImporting(true)}
-        >
-          Importer
-        </button>
-      </div>
-      {slug === "deals" && (
-        <div className="toolbar">
-          <label>
-            Pipeline
-            <select
-              aria-label="Pipeline affiché"
-              value={view.pipeline_id}
-              onChange={(e) => {
-                setView((current) => ({
-                  ...current,
-                  pipeline_id: e.target.value,
-                }));
-                setPage(1);
-              }}
-            >
-              <option value="">Tous les pipelines</option>
-              {pipelines.data?.data.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Link className="button small" href="/app/pipelines">
-            Paramètres du pipeline
-          </Link>
+    <div className={slug === "people" ? contactStyles.page : undefined}>
+      {slug === "people" ? (
+        <h1 className={contactStyles.heading}>Répertoire des contacts</h1>
+      ) : (
+        <div className={`${styles.pageHeading} ${styles[slug] ?? ""}`}>
+          <span className={styles.pageIcon}>
+            <PageIcon size={24} strokeWidth={1.6} />
+          </span>
+          <PageHeader
+            title={object.name}
+            description={pageContent.description}
+            action={
+              <AddButton
+                label={pageContent.action}
+                disabled={workspace.role === "viewer"}
+                onClick={() => {
+                  setNewStage("Nouveau");
+                  setEdit(true);
+                }}
+              />
+            }
+          />
         </div>
       )}
-      <RecordViews
-        key={object.id}
-        object={object}
-        attributes={custom}
-        config={view}
-        mode={mode}
-        onMode={chooseMode}
-        onChange={(value) => {
-          setView(value);
-          setPage(1);
-        }}
-      />
+      {slug === "people" && (
+        <ContactsToolbar
+          config={view}
+          onChange={changeContactView}
+          mode={mode}
+          onMode={chooseMode}
+          columns={contactFields}
+          members={members.error ? [] : (members.data?.data ?? [])}
+          readonly={workspace.role === "viewer"}
+          onCreate={() => setEdit(true)}
+          onImport={() => setImporting(true)}
+          exportControl={exportControl}
+          viewControl={viewControls}
+        />
+      )}
+      {slug !== "people" && (
+        <>
+          <div className={styles.quickViews} role="group" aria-label="Vues rapides">
+            {[
+              {
+                value: "",
+                label:
+                  slug === "deals"
+                    ? "Toutes les opportunités"
+                    : slug === "people"
+                      ? "Tous les contacts"
+                      : slug === "companies"
+                        ? "Toutes les entreprises"
+                        : "Toutes les fiches",
+              },
+              {
+                value: "me",
+                label:
+                  slug === "deals"
+                    ? "Mon pipeline"
+                    : slug === "people"
+                      ? "Mes contacts"
+                      : slug === "companies"
+                        ? "Mes comptes"
+                        : "Mes fiches",
+              },
+              { value: "unassigned", label: "Sans responsable" },
+            ].map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                aria-pressed={view.owner === item.value}
+                onClick={() => {
+                  setView((current) => ({ ...current, owner: item.value }));
+                  setPage(1);
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <RecordSegments
+            value={view.filters ?? []}
+            onChange={(filters) => {
+              setPage(1);
+              setView((current) => ({ ...current, filters }));
+            }}
+          />
+          <div className="toolbar">
+            <SearchBox
+              value={search}
+              onChange={(v) => {
+                setView((c) => ({ ...c, search: v }));
+                setPage(1);
+              }}
+            />
+            <span className="pill">
+              {q.data?.count ?? 0} {pageContent.plural}
+            </span>
+            <ViewButtons
+              label="Présentation des fiches"
+              value={mode}
+              options={[
+                { value: "table", label: "Liste", icon: List },
+                slug === "deals"
+                  ? { value: "kanban", label: "Kanban", icon: Columns3 }
+                  : { value: "cards", label: "Galerie", icon: LayoutGrid },
+                ...(slug === "deals"
+                  ? [{ value: "calendar", label: "Calendrier", icon: CalendarDays }]
+                  : []),
+              ]}
+              onChange={chooseMode}
+            />
+            {exportControl}
+            <button
+              className="button small"
+              disabled={workspace.role === "viewer"}
+              onClick={() => setImporting(true)}
+            >
+              Importer
+            </button>
+          </div>
+          {slug === "deals" && (
+            <div className="toolbar">
+              <label>
+                Pipeline
+                <select
+                  aria-label="Pipeline affiché"
+                  value={view.pipeline_id}
+                  onChange={(e) => {
+                    setView((current) => ({
+                      ...current,
+                      pipeline_id: e.target.value,
+                    }));
+                    setPage(1);
+                  }}
+                >
+                  <option value="">Tous les pipelines</option>
+                  {pipelines.data?.data.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <Link className="button small" href="/app/pipelines">
+                Paramètres du pipeline
+              </Link>
+            </div>
+          )}
+          {viewControls}
+        </>
+      )}
       {error && <div className="alert info">{error}</div>}
       <ErrorMessage error={q.error || linked.error || attrs.error || members.error} />
       {linkedId &&
@@ -421,6 +463,27 @@ function RecordsPageContents({ slug }: { slug: string }) {
         )}
       {q.isPending ? (
         <Loading />
+      ) : slug === "people" && mode === "table" ? (
+        <ContactsTable
+          rows={q.error || attrs.error ? [] : rows}
+          columns={contactFields}
+          config={view}
+          onChange={changeContactView}
+          onOpen={setDetail}
+          onCreate={() => setEdit(true)}
+          readonly={workspace.role === "viewer" || busy}
+          onAddProperty={manageProperties ? () => setProperty(true) : undefined}
+          onEditProperty={
+            manageProperties
+              ? (column) => {
+                  if (column.attribute) setProperty(column.attribute);
+                }
+              : undefined
+          }
+          onSave={async (record, column, value) => {
+            await save("records", contactPatch(record, column, value), record);
+          }}
+        />
       ) : mode === "calendar" ? (
         <MonthCalendar
           label="Calendrier des clôtures"
@@ -520,6 +583,81 @@ function RecordsPageContents({ slug }: { slug: string }) {
           Suivant
         </button>
       </div>
+      {property && (
+        <Editor
+          open
+          title={property === true ? "Nouvelle propriété de contact" : "Modifier la propriété"}
+          onClose={() => setProperty(null)}
+          busy={busy}
+          fields={[
+            { key: "name", label: "Nom de la propriété", required: true },
+            ...(property === true
+              ? [
+                  {
+                    key: "type",
+                    label: "Type de propriété",
+                    type: "select" as const,
+                    options: [
+                      { value: "text", label: "Texte" },
+                      { value: "select", label: "Sélection" },
+                      { value: "email", label: "E-mail" },
+                      { value: "phone", label: "Téléphone" },
+                      { value: "url", label: "Lien" },
+                      { value: "number", label: "Nombre" },
+                      { value: "date", label: "Date" },
+                      { value: "boolean", label: "Case à cocher" },
+                    ],
+                  },
+                ]
+              : []),
+            {
+              key: "options_input",
+              label: "Options de sélection · une par ligne",
+              type: "textarea",
+            },
+          ]}
+          initial={
+            property === true
+              ? { type: "text" }
+              : { name: property.name, options_input: (property.options ?? []).join("\n") }
+          }
+          onSave={async (values) => {
+            if (!manageProperties)
+              throw new Error("Vous ne pouvez pas modifier les propriétés de cet espace.");
+            const type = property === true ? String(values.type || "text") : property.type;
+            const options = [
+              ...new Set(
+                String(values.options_input ?? "")
+                  .split("\n")
+                  .map((value) => value.trim())
+                  .filter(Boolean),
+              ),
+            ];
+            if (type === "select" && !options.length)
+              throw new Error("Ajoutez au moins une option de sélection.");
+            if (property === true) {
+              const key = contactAttributeKey(
+                String(values.name),
+                custom.map((attribute) => attribute.key),
+              );
+              await save("attributes", {
+                object_id: object.id,
+                key,
+                name: values.name,
+                type,
+                required: false,
+                options: type === "select" ? options : [],
+              });
+              setView((current) => ({ ...current, columns: [...current.columns, "attr_" + key] }));
+            } else
+              await save(
+                "attributes",
+                { name: values.name, ...(type === "select" ? { options } : {}) },
+                property,
+              );
+          }}
+        />
+      )}
       {preview && (
         <RecordQuickPeek
           record={preview}
@@ -639,6 +777,6 @@ function RecordsPageContents({ slug }: { slug: string }) {
           }}
         />
       )}
-    </>
+    </div>
   );
 }

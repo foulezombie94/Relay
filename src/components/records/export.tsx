@@ -15,6 +15,7 @@ export function ExportRecords({
   columns,
   attributes,
   count,
+  compact = false,
 }: {
   workspaceId: string;
   objectName: string;
@@ -23,6 +24,7 @@ export function ExportRecords({
   columns: string[];
   attributes: Attribute[];
   count: number;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [format, setFormat] = useState<ExportFormat>("xlsx");
@@ -94,7 +96,9 @@ export function ExportRecords({
   return (
     <>
       <button
-        className="button small"
+        className={compact ? "icon-button" : "button small"}
+        aria-label={compact ? "Exporter les contacts" : undefined}
+        title={compact ? "Exporter" : undefined}
         onClick={() => {
           setSelected(columns);
           setError("");
@@ -102,7 +106,7 @@ export function ExportRecords({
         }}
       >
         <Download size={15} />
-        Exporter
+        {!compact && "Exporter"}
       </button>
       {open && (
         <Modal

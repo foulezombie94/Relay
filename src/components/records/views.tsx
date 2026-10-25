@@ -7,6 +7,7 @@ import { Editor, ErrorMessage, type Field, str } from "../ui";
 import { defaultRecordView, normalizeView, type ViewConfig } from "@/lib/domain/views";
 import type { ObjectDefinition, Attribute } from "@/lib/domain/types";
 import { stages } from "@/lib/domain/types";
+import contactStyles from "./contacts.module.css";
 export function RecordViews({
   object,
   attributes,
@@ -14,6 +15,7 @@ export function RecordViews({
   mode,
   onChange,
   onMode,
+  compact = false,
 }: {
   object: ObjectDefinition;
   attributes: Attribute[];
@@ -21,6 +23,7 @@ export function RecordViews({
   mode: string;
   onChange: (v: ViewConfig) => void;
   onMode: (v: string) => void;
+  compact?: boolean;
 }) {
   const { workspace } = useWorkspace();
   const views = useRows("views", { object_id: object.id, size: 100 });
@@ -56,46 +59,54 @@ export function RecordViews({
     label: "Nom de la vue partagée",
     required: true,
   };
+  const selector = (
+    <select
+      aria-label="Vue sauvegardée"
+      value={selected}
+      onChange={(e) => {
+        setSelected(e.target.value);
+        const row = views.data?.data.find((v) => v.id === e.target.value);
+        const loaded = row
+          ? normalizeView(row.config, object.slug === "deals")
+          : defaultRecordView(object.slug);
+        const allowed = new Set([
+          "display_name",
+          "email",
+          "domain",
+          ...(salesFields ? ["amount", "stage", "close_date"] : []),
+          ...attributes.map((a) => "attr_" + a.key),
+        ]);
+        const visible = loaded.columns.filter((c) => allowed.has(c));
+        onChange({
+          ...loaded,
+          stage: salesFields ? loaded.stage : "",
+          minimum: salesFields ? loaded.minimum : "",
+          sort: !salesFields && loaded.sort === "amount" ? "updated_at" : loaded.sort,
+          columns: visible.length ? visible : ["display_name"],
+        });
+        onMode(loaded.layout ?? (str(row?.type) || "table"));
+      }}
+    >
+      <option value="">Vue personnalisée</option>
+      {views.data?.data.map((v) => (
+        <option value={v.id} key={v.id}>
+          {str(v.name)}
+        </option>
+      ))}
+    </select>
+  );
   return (
     <>
-      <div className="view-toolbar">
-        <select
-          aria-label="Vue sauvegardée"
-          value={selected}
-          onChange={(e) => {
-            setSelected(e.target.value);
-            const row = views.data?.data.find((v) => v.id === e.target.value);
-            const loaded = row
-              ? normalizeView(row.config, object.slug === "deals")
-              : defaultRecordView(object.slug);
-            const allowed = new Set([
-              "display_name",
-              "email",
-              "domain",
-              ...(salesFields ? ["amount", "stage", "close_date"] : []),
-              ...attributes.map((a) => "attr_" + a.key),
-            ]);
-            const visible = loaded.columns.filter((c) => allowed.has(c));
-            onChange({
-              ...loaded,
-              stage: salesFields ? loaded.stage : "",
-              minimum: salesFields ? loaded.minimum : "",
-              sort: !salesFields && loaded.sort === "amount" ? "updated_at" : loaded.sort,
-              columns: visible.length ? visible : ["display_name"],
-            });
-            onMode(loaded.layout ?? (str(row?.type) || "table"));
-          }}
-        >
-          <option value="">Vue personnalisée</option>
-          {views.data?.data.map((v) => (
-            <option value={v.id} key={v.id}>
-              {str(v.name)}
-            </option>
-          ))}
-        </select>
+      <div className={compact ? contactStyles.viewControls : "view-toolbar"}>
+        {!compact && selector}
         <Popover.Root>
-          <Popover.Trigger className="button small">
-            <SlidersHorizontal size={14} /> Réglages de la vue
+          <Popover.Trigger
+            className={compact ? contactStyles.icon : "button small"}
+            aria-label={compact ? "Paramètres de la vue des contacts" : undefined}
+            title={compact ? "Paramètres" : undefined}
+          >
+            <SlidersHorizontal size={14} />
+            {!compact && " Réglages de la vue"}
           </Popover.Trigger>
           <Popover.Portal>
             <Popover.Content
@@ -110,6 +121,7 @@ export function RecordViews({
                   <X size={16} />
                 </Popover.Close>
               </div>
+              {compact && selector}
               {salesFields && (
                 <select
                   aria-label="Filtrer par étape"
