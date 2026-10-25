@@ -1,42 +1,393 @@
-.group {
-  padding-top: 3px;
-  padding-bottom: 3px;
+/* Measurements from the Notion sidebar in Chrome, 25 October 2026. */
+.sidebar {
+  --sidebar-background: #f9f8f7;
+  --sidebar-foreground: #5f5e59;
+  --sidebar-accent: rgb(33 27 23 / 5%);
+  --sidebar-accent-foreground: #2c2c2b;
+  --sidebar-border: #f0efed;
+  --nav-icon: #7d7a75;
+  --nav-label: #a19e99;
+  --nav-line: rgb(28 19 1 / 11%);
+  font-family:
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI Variable Display",
+    "Segoe UI",
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--sidebar-foreground);
+  background: var(--sidebar-background);
+  border-right: 0;
+  box-shadow: inset -1px 0 0 var(--sidebar-border);
 }
-.group + .group {
-  margin-top: 3px;
+:global(html[data-relay-theme="dark"]) .sidebar {
+  --sidebar-background: #202020;
+  --sidebar-foreground: #d4d4d4;
+  --sidebar-accent: rgb(255 255 255 / 6%);
+  --sidebar-accent-foreground: #f0f0f0;
+  --sidebar-border: #2b2b2b;
+  --nav-icon: #9b9b9b;
+  --nav-label: #8f8f8f;
+  --nav-line: rgb(255 255 255 / 13%);
 }
-.trigger {
-  font-weight: 450;
-  color: var(--relay-muted);
+.sidebar :global(.sb-header) {
+  padding: 0;
+  gap: 0;
+  align-items: stretch;
 }
-.trigger[data-current="true"] {
-  color: var(--relay-muted);
+.toolbar {
+  height: 44px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
-.trigger > .chevron {
+.toolbarActions {
+  display: flex;
+  gap: 2px;
   margin-left: auto;
-  width: 14px;
-  height: 14px;
+}
+.iconButton,
+.sidebar :global(.sb-trigger) {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  flex: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: var(--nav-icon);
+  background: transparent;
+  text-decoration: none;
+  cursor: pointer;
+}
+.iconButton svg,
+.sidebar :global(.sb-trigger) svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.25;
+}
+.iconButton:hover,
+.sidebar :global(.sb-trigger):hover {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+}
+.search {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  min-height: 32px;
+  margin: 0 12px 6px;
+  padding: 0 6px 0 8px;
+  gap: 6px;
+  border: 1px solid var(--nav-line);
+  border-radius: 8px;
+  color: var(--nav-label);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16.8px;
+  text-decoration: none;
+  box-shadow: none;
+}
+.search:hover {
+  background: var(--sidebar-accent);
+}
+.search > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search kbd {
+  margin-left: auto;
+  padding: 0 3px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--nav-icon);
+  background: var(--sidebar-accent);
+}
+.searchIcon {
+  display: none;
+}
+.quickNav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px 6px 11px;
+  height: 44px;
+}
+.quickLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 5px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--nav-icon);
+  font-size: 14px;
+  line-height: 16.8px;
+  font-weight: 500;
+}
+.quickLink svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  stroke-width: 1.5;
+}
+.quickLink > span {
+  display: none;
+}
+.quickLink:first-child {
+  margin-right: 4px;
+}
+.quickLink:first-child > span,
+.quickLink[data-active="true"] > span {
+  display: inline;
+  padding-right: 5px;
+}
+.quickLink:hover,
+.quickLink[data-active="true"] {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+}
+.sidebar :global(.sb-content) {
+  padding: 6px 8px 12px;
+  scrollbar-color: var(--nav-line) transparent;
+}
+.sidebar .group {
+  padding: 0;
+  margin: 0 0 12px;
+}
+.sidebar .group + .group {
+  margin-top: 0;
+}
+.sidebar :global(.sb-menu) {
+  gap: 1px;
+}
+.sidebar :global(.sb-menu-button) {
+  height: 30px;
+  min-height: 30px;
+  padding: 5px 8px;
+  gap: 10px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 400;
+  color: var(--sidebar-foreground);
+}
+.sidebar :global(.sb-menu-button) > svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: var(--nav-icon);
+  stroke-width: 1.25;
+}
+.sidebar :global(.sb-menu-button):hover,
+.sidebar :global(.sb-menu-button)[data-active="true"] {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+}
+.sidebar :global(.sb-menu-button)[data-active="true"]::before {
+  display: none;
+}
+.sidebar :global(.sb-menu-button)[data-active="true"] > svg {
+  color: var(--nav-icon);
+}
+.sidebar .trigger {
+  gap: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--nav-label);
+}
+.sidebar .trigger > .compactIcon {
+  display: none;
+}
+.sidebar .trigger > .chevron {
+  width: 12px;
+  height: 12px;
+  margin-left: auto;
+  color: var(--nav-label);
+  opacity: 0;
+}
+.sidebar .trigger:hover > .chevron,
+.sidebar .trigger:focus-visible > .chevron {
+  opacity: 1;
 }
 .content {
-  margin: 3px 0 5px;
-  padding-left: 0;
+  margin: 1px 0 0;
+  padding: 0;
 }
 .content[hidden] {
   display: none;
 }
 .objectLabel {
-  padding: 12px 10px 5px;
-  color: var(--relay-muted);
-  font-size: 11px;
+  padding: 8px 8px 4px;
+  font-size: 12px;
+  color: var(--nav-label);
 }
-:global(.sb-desktop[data-collapsible="icon"]) .trigger > .chevron {
+.sidebar :global(.sb-footer) {
+  padding: 0;
+  gap: 0;
+  border: 0;
+  background: var(--sidebar-background);
+  align-items: stretch;
+}
+.settingsLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+  height: 30px;
+  margin: 0 8px 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--nav-label);
+  font-size: 14px;
+  text-decoration: none;
+}
+.settingsLink svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  stroke-width: 1.25;
+}
+.settingsLink:hover {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+}
+.bottomBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 0 8px;
+  border-top: 1px solid var(--nav-line);
+}
+.sidebar .workspaceButton {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+  width: auto;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 8px;
+  gap: 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sidebar-foreground);
+  font-family: inherit;
+}
+.sidebar .workspaceButton:hover {
+  background: var(--sidebar-accent);
+}
+.sidebar .workspaceButton :global(.sb-workspace-copy) {
+  display: block;
+}
+.sidebar .workspaceButton strong {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.sidebar .workspaceButton :global(.sb-workspace-chevron) {
+  width: 12px;
+  height: 12px;
+  color: var(--nav-icon);
+}
+.workspaceAvatar {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  background: #087cb6;
+  color: #fff;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 500;
+}
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .toolbar {
+  justify-content: center;
+  padding: 0;
+}
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .toolbarActions,
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .search > span,
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .search kbd,
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .quickLink > span,
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .trigger > .chevron,
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .content,
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .settingsLink > span {
   display: none;
 }
-:global(.sb-desktop[data-collapsible="icon"]) .content {
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .search {
+  margin: 0 8px 6px;
+  padding: 0;
+  justify-content: center;
+}
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .searchIcon,
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .trigger > .compactIcon {
+  display: block;
+}
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .quickNav {
+  flex-direction: column;
+  height: auto;
+  padding: 6px 8px;
+}
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .quickLink {
+  width: 100%;
+  margin: 0;
+}
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .group {
+  padding: 0;
+  margin: 0 0 4px;
+  border: 0;
+}
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar :global(.sb-menu-button) {
+  justify-content: center;
+  padding: 5px;
+}
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .bottomBar {
+  flex-direction: column;
+  padding: 8px;
+  gap: 4px;
+}
+:global(.sb-desktop[data-collapsible="icon"]) .sidebar .workspaceButton {
+  display: flex;
+  flex: none;
+  width: 28px;
+  padding: 0;
+  justify-content: center;
+}
+:global(.sb-desktop[data-collapsible="icon"])
+  .sidebar
+  .workspaceButton
+  :global(.sb-workspace-copy) {
   display: none;
 }
-@media (prefers-reduced-motion: reduce) {
-  .trigger > .chevron {
-    transition: none;
+:global(.sb-mobile-sheet) .sidebar .toolbarActions {
+  margin-right: 28px;
+}
+@media (max-width: 767px) {
+  .sidebar :global(.sb-menu-button),
+  .settingsLink {
+    min-height: 40px;
+    height: 40px;
   }
 }

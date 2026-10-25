@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import type { Workspace, ObjectDefinition } from "@/lib/domain/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./app-sidebar.module.css";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import {
@@ -22,12 +22,15 @@ import {
   Plug,
   Settings,
   Search,
-  Ellipsis,
+  Home,
+  Inbox,
+  SquarePen,
+  LayoutGrid,
   LogOut,
   Box,
   ListChecks,
   Check,
-  BookOpen,
+  CircleHelp,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
@@ -37,12 +40,12 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarRail,
+  SidebarTrigger,
   useSidebar,
 } from "../ui/sidebar";
 const groups = [
@@ -134,9 +137,27 @@ export function AppSidebarView({
   persistPreferences?: boolean;
 }) {
   const { setOpenMobile, setOpen, state, isMobile } = useSidebar();
+  const searchRef = useRef<HTMLAnchorElement>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const preferenceKey = "relay_nav_groups:" + user.id;
   const compact = state === "collapsed" && !isMobile;
+  useEffect(() => {
+    if (!persistPreferences) return;
+    function searchShortcut(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        const target = event.target;
+        if (
+          target instanceof HTMLElement &&
+          target.closest('input,textarea,select,[contenteditable="true"]')
+        )
+          return;
+        event.preventDefault();
+        searchRef.current?.click();
+      }
+    }
+    window.addEventListener("keydown", searchShortcut);
+    return () => window.removeEventListener("keydown", searchShortcut);
+  }, [persistPreferences]);
   useEffect(() => {
     if (!persistPreferences) return;
     const saved: Record<string, boolean> = {};
@@ -173,141 +194,79 @@ export function AppSidebarView({
   }
   useEffect(() => {
     // Keep the mobile navigation closed when the route changes.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenMobile(false);
   }, [path, setOpenMobile]);
   function close() {
     setOpenMobile(false);
   }
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className={styles.sidebar}>
       <SidebarHeader>
-        <div className="sb-workspace-row">
-          <Link
-            prefetch={persistPreferences ? undefined : false}
-            href="/app/dashboard"
-            className="sb-brand"
-            onClick={close}
-            aria-label="Zyliad CRM"
-          >
-            <span className="brand-mark">z</span>
-          </Link>
-          <Dropdown.Root>
-            <Dropdown.Trigger
-              className="sb-workspace-button"
-              aria-label={"Changer d’espace : " + workspace.name}
-            >
-              <span className="sb-workspace-copy">
-                <strong>{workspace.name}</strong>
-              </span>
-              <ChevronDown size={14} className="sb-workspace-chevron" />
-            </Dropdown.Trigger>
-            <Dropdown.Portal>
-              <Dropdown.Content
-                className="sb-dropdown"
-                data-mobile={isMobile ? "true" : undefined}
-                side={isMobile ? "bottom" : "right"}
-                align="start"
-                sideOffset={isMobile ? 6 : 9}
-                collisionPadding={12}
-                sticky="always"
-              >
-                <Dropdown.Label className="sb-dropdown-label">
-                  Vos espaces de travail
-                </Dropdown.Label>
-                {workspaces.map((w) => (
-                  <Dropdown.Item
-                    key={w.id}
-                    className="sb-dropdown-item"
-                    onSelect={() => {
-                      switchWorkspace(w.id);
-                      close();
-                    }}
-                  >
-                    <span className="sb-workspace-avatar">{w.name.slice(0, 1).toUpperCase()}</span>
-                    <span>{w.name}</span>
-                    {w.id === workspace.id && <Check size={15} />}
-                  </Dropdown.Item>
-                ))}
-                <Dropdown.Separator className="sb-separator" />
-                <Dropdown.Item asChild>
-                  <Link
-                    prefetch={persistPreferences ? undefined : false}
-                    className="sb-dropdown-item"
-                    href="/app/settings"
-                    onClick={close}
-                  >
-                    <Settings size={15} />
-                    Gérer l’espace
-                  </Link>
-                </Dropdown.Item>
-              </Dropdown.Content>
-            </Dropdown.Portal>
-          </Dropdown.Root>
-        </div>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              render={
-                <Link prefetch={persistPreferences ? undefined : false} href="/app/search">
-                  {null}
-                </Link>
-              }
-              tooltip="Rechercher"
-              isActive={path === "/app/search"}
+        <div className={styles.toolbar}>
+          <SidebarTrigger />
+          <div className={styles.toolbarActions}>
+            <Link
+              prefetch={persistPreferences ? undefined : false}
+              href="/app/communications"
+              className={styles.iconButton}
+              aria-label="Messages"
+              title="Messages"
               onClick={close}
-              className="sb-search-button"
             >
-              <Search size={17} />
-              <span>Rechercher</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+              <Inbox size={20} />
+            </Link>
+            <Link
+              prefetch={persistPreferences ? undefined : false}
+              href="/app/notes"
+              className={styles.iconButton}
+              aria-label="Notes"
+              title="Notes"
+              onClick={close}
+            >
+              <SquarePen size={20} />
+            </Link>
+          </div>
+        </div>
+        <Link
+          ref={searchRef}
+          prefetch={persistPreferences ? undefined : false}
+          href="/app/search"
+          className={styles.search}
+          aria-label="Rechercher"
+          aria-current={path === "/app/search" ? "page" : undefined}
+          onClick={close}
+        >
+          <Search size={18} className={styles.searchIcon} />
+          <span>Rechercher dans Relay</span>
+          {persistPreferences && <kbd>Ctrl+K</kbd>}
+        </Link>
+        <nav className={styles.quickNav} aria-label="Accès rapide">
+          {(
+            [
+              ["dashboard", "Dashboard", Home],
+              ["assistant", "Ask Zyliad", Sparkles],
+              ["priorities", "À traiter", CheckSquare],
+            ] as const
+          ).map(([slug, label, Icon]) => (
+            <Link
+              key={slug}
+              prefetch={persistPreferences ? undefined : false}
+              href={"/app/" + slug}
+              onClick={close}
+              aria-label={label}
+              title={label}
+              aria-current={path === "/app/" + slug ? "page" : undefined}
+              className={styles.quickLink}
+              data-active={path === "/app/" + slug}
+            >
+              <Icon size={20} />
+              <span>{label}</span>
+            </Link>
+          ))}
+        </nav>
       </SidebarHeader>
       <SidebarContent>
         <nav aria-label="Navigation principale">
-          <SidebarGroup>
-            <SidebarGroupLabel>Accueil</SidebarGroupLabel>
-            <SidebarMenu>
-              {(
-                [
-                  ["dashboard", "Dashboard", BarChart3],
-                  ["assistant", "Ask Zyliad", Sparkles],
-                ] as const
-              ).map(([slug, label, Icon]) => (
-                <SidebarMenuItem key={slug}>
-                  <SidebarMenuButton
-                    render={
-                      <Link prefetch={persistPreferences ? undefined : false} href={"/app/" + slug}>
-                        {null}
-                      </Link>
-                    }
-                    tooltip={label}
-                    isActive={path === "/app/" + slug}
-                    onClick={close}
-                  >
-                    <Icon size={18} />
-                    <span>{label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  render={
-                    <Link prefetch={persistPreferences ? undefined : false} href="/app/priorities">
-                      {null}
-                    </Link>
-                  }
-                  tooltip="À traiter"
-                  isActive={path === "/app/priorities"}
-                  onClick={close}
-                >
-                  <CheckSquare size={18} />
-                  <span>À traiter</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroup>
           {groups.map((group) => {
             const Icon = group.icon;
             const active = currentGroup(path) === group.id;
@@ -326,7 +285,7 @@ export function AppSidebarView({
                       aria-controls={panelId}
                       onClick={() => toggleGroup(group.id)}
                     >
-                      <Icon size={18} />
+                      <Icon size={18} className={styles.compactIcon} />
                       <span>{group.label}</span>
                       <GroupIndicator
                         aria-hidden="true"
@@ -353,13 +312,7 @@ export function AppSidebarView({
                           tooltip={label}
                           onClick={close}
                         >
-                          {["companies", "people", "deals"].includes(slug) ? (
-                            <span className={"sb-object-icon sb-object-" + slug} aria-hidden="true">
-                              <ItemIcon size={13} />
-                            </span>
-                          ) : (
-                            <ItemIcon size={18} />
-                          )}
+                          <ItemIcon size={20} />
                           <span>{label}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -399,92 +352,143 @@ export function AppSidebarView({
         </nav>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          {(
-            [
-              ["/app/integrations", "Intégrations", Plug],
-              ["/app/settings", "Paramètres", Settings],
-              ["/doc", "Aide", BookOpen],
-            ] as const
-          ).map(([href, label, Icon]) => {
-            const ItemIcon = Icon;
-            return (
-              <SidebarMenuItem key={String(href)}>
-                <SidebarMenuButton
-                  render={
-                    <Link prefetch={persistPreferences ? undefined : false} href={String(href)}>
-                      {null}
-                    </Link>
-                  }
-                  isActive={path === href}
-                  tooltip={String(label)}
-                  onClick={close}
-                >
-                  <ItemIcon size={18} />
-                  <span>{String(label)}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
-        <Dropdown.Root>
-          <Dropdown.Trigger className="sb-user-button" aria-label="Ouvrir le menu de mon compte">
-            <span className="sb-user-avatar">{(user.email ?? "U").slice(0, 1).toUpperCase()}</span>
-            <span className="sb-user-copy">
-              <strong>{user.email?.split("@")[0] ?? "Mon compte"}</strong>
-              <small>
-                {workspace.role === "owner"
-                  ? "Propriétaire"
-                  : workspace.role === "admin"
-                    ? "Administrateur"
-                    : workspace.role === "viewer"
-                      ? "Lecture seule"
-                      : "Membre"}
-              </small>
-            </span>
-            <Ellipsis size={15} className="sb-workspace-chevron" />
-          </Dropdown.Trigger>
-          <Dropdown.Portal>
-            <Dropdown.Content
-              className="sb-dropdown"
-              data-mobile={isMobile ? "true" : undefined}
-              side={isMobile ? "top" : "right"}
-              align={isMobile ? "start" : "end"}
-              sideOffset={isMobile ? 6 : 9}
-              collisionPadding={12}
-              sticky="always"
+        <Link
+          prefetch={persistPreferences ? undefined : false}
+          href="/app/settings"
+          className={styles.settingsLink}
+          aria-label="Paramètres"
+          aria-current={path === "/app/settings" ? "page" : undefined}
+          onClick={close}
+        >
+          <Settings size={18} />
+          <span>Paramètres</span>
+        </Link>
+        <div className={styles.bottomBar}>
+          <Dropdown.Root>
+            <Dropdown.Trigger
+              className={"sb-workspace-button " + styles.workspaceButton}
+              aria-label={"Changer d’espace : " + workspace.name}
             >
-              <Dropdown.Label className="sb-dropdown-label">{user.email}</Dropdown.Label>
-              <Dropdown.Item asChild>
-                <Link
-                  prefetch={persistPreferences ? undefined : false}
-                  className="sb-dropdown-item"
-                  href="/app/settings"
-                  onClick={close}
-                >
-                  <Settings size={15} />
-                  Paramètres de mon espace
-                </Link>
-              </Dropdown.Item>
-              <Dropdown.Item asChild>
-                <Link
-                  prefetch={persistPreferences ? undefined : false}
-                  className="sb-dropdown-item"
-                  href="/portal"
-                  onClick={close}
-                >
-                  <Globe size={15} />
-                  Mes portails clients
-                </Link>
-              </Dropdown.Item>
-              <Dropdown.Separator className="sb-separator" />
-              <Dropdown.Item className="sb-dropdown-item sb-signout" onSelect={onSignOut}>
-                <LogOut size={15} />
-                Se déconnecter
-              </Dropdown.Item>
-            </Dropdown.Content>
-          </Dropdown.Portal>
-        </Dropdown.Root>
+              <span className={styles.workspaceAvatar} aria-hidden="true">
+                {workspace.name.slice(0, 1).toUpperCase()}
+              </span>
+              <span className="sb-workspace-copy">
+                <strong>{workspace.name}</strong>
+              </span>
+              <ChevronDown size={14} className="sb-workspace-chevron" />
+            </Dropdown.Trigger>
+            <Dropdown.Portal>
+              <Dropdown.Content
+                className="sb-dropdown"
+                data-mobile={isMobile ? "true" : undefined}
+                side="top"
+                align="start"
+                sideOffset={8}
+                collisionPadding={12}
+                sticky="always"
+              >
+                <Dropdown.Label className="sb-dropdown-label">
+                  Vos espaces de travail
+                </Dropdown.Label>
+                {workspaces.map((w) => (
+                  <Dropdown.Item
+                    key={w.id}
+                    className="sb-dropdown-item"
+                    onSelect={() => {
+                      switchWorkspace(w.id);
+                      close();
+                    }}
+                  >
+                    <span className="sb-workspace-avatar">{w.name.slice(0, 1).toUpperCase()}</span>
+                    <span>{w.name}</span>
+                    {w.id === workspace.id && <Check size={15} />}
+                  </Dropdown.Item>
+                ))}
+                <Dropdown.Separator className="sb-separator" />
+                <Dropdown.Item asChild>
+                  <Link
+                    prefetch={persistPreferences ? undefined : false}
+                    className="sb-dropdown-item"
+                    href="/app/settings"
+                    onClick={close}
+                  >
+                    <Settings size={15} />
+                    Gérer l’espace
+                  </Link>
+                </Dropdown.Item>
+              </Dropdown.Content>
+            </Dropdown.Portal>
+          </Dropdown.Root>
+          <Link
+            prefetch={persistPreferences ? undefined : false}
+            href="/app/integrations"
+            className={styles.iconButton}
+            aria-label="Intégrations"
+            title="Intégrations"
+            onClick={close}
+          >
+            <Plug size={18} />
+          </Link>
+          <Link
+            prefetch={persistPreferences ? undefined : false}
+            href="/doc"
+            className={styles.iconButton}
+            aria-label="Aide"
+            title="Aide"
+            onClick={close}
+          >
+            <CircleHelp size={18} />
+          </Link>
+          <Dropdown.Root>
+            <Dropdown.Trigger
+              className={styles.iconButton}
+              aria-label="Ouvrir le menu de mon compte"
+              title={user.email ?? "Mon compte"}
+            >
+              <LayoutGrid size={18} />
+            </Dropdown.Trigger>
+            <Dropdown.Portal>
+              <Dropdown.Content
+                className="sb-dropdown"
+                data-mobile={isMobile ? "true" : undefined}
+                side="top"
+                align={isMobile ? "start" : "end"}
+                sideOffset={isMobile ? 6 : 9}
+                collisionPadding={12}
+                sticky="always"
+              >
+                <Dropdown.Label className="sb-dropdown-label">{user.email}</Dropdown.Label>
+                <Dropdown.Item asChild>
+                  <Link
+                    prefetch={persistPreferences ? undefined : false}
+                    className="sb-dropdown-item"
+                    href="/app/settings"
+                    onClick={close}
+                  >
+                    <Settings size={15} />
+                    Paramètres de mon espace
+                  </Link>
+                </Dropdown.Item>
+                <Dropdown.Item asChild>
+                  <Link
+                    prefetch={persistPreferences ? undefined : false}
+                    className="sb-dropdown-item"
+                    href="/portal"
+                    onClick={close}
+                  >
+                    <Globe size={15} />
+                    Mes portails clients
+                  </Link>
+                </Dropdown.Item>
+                <Dropdown.Separator className="sb-separator" />
+                <Dropdown.Item className="sb-dropdown-item sb-signout" onSelect={onSignOut}>
+                  <LogOut size={15} />
+                  Se déconnecter
+                </Dropdown.Item>
+              </Dropdown.Content>
+            </Dropdown.Portal>
+          </Dropdown.Root>
+        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
