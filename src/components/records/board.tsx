@@ -81,71 +81,78 @@ export function RecordBoard({
               ))}
               {!totals.size && <span>Aucune valeur sur cette page</span>}
             </div>
-            {deals.map((record) => (
-              <article
-                key={record.id}
-                className={`deal-card ${dragging === record.id ? styles.dragging : ""}`}
-                draggable={!readonly && !busy}
-                onDragStart={(event) => {
-                  event.dataTransfer.effectAllowed = "move";
-                  event.dataTransfer.setData("text/plain", record.id);
-                  setDragging(record.id);
-                }}
-                onDragEnd={() => {
-                  setDragging(null);
-                  setDropStage(null);
-                }}
-                tabIndex={0}
-                aria-label={`Ouvrir l’opportunité ${record.display_name}`}
-                onKeyDown={(event) => {
-                  if (
-                    event.target === event.currentTarget &&
-                    (event.key === "Enter" || event.key === " ")
-                  ) {
-                    event.preventDefault();
-                    onOpen(record);
-                  }
-                }}
-                onClick={() => onOpen(record)}
-              >
-                <div className={styles.dealTitle}>
-                  <strong>{record.display_name}</strong>
-                  <GripVertical size={13} aria-hidden="true" />
-                </div>
-                <p>{money(record.amount, record.currency || "EUR")}</p>
-                {record.close_date && (
-                  <span className={styles.dealDate}>
-                    <CalendarDays size={12} /> Clôture :{" "}
-                    {new Date(record.close_date + "T12:00:00").toLocaleDateString("fr-FR")}
-                  </span>
-                )}
-                <div className={styles.dealOwner}>
-                  {owners.get(record.owner_id || "") ||
-                    (record.owner_id ? "Responsable assigné" : "Sans responsable")}
-                </div>
-                <select
-                  aria-label={`Étape de ${record.display_name}`}
-                  value={record.stage}
-                  disabled={readonly || busy}
-                  onClick={(event) => event.stopPropagation()}
-                  onChange={(event) => void onMove(record, event.target.value).catch(() => {})}
+            <div
+              className={styles.stageCards}
+              role="region"
+              aria-label={`Opportunités : ${stageLabels?.[stage] || stage}`}
+              tabIndex={deals.length ? 0 : undefined}
+            >
+              {deals.map((record) => (
+                <article
+                  key={record.id}
+                  className={`deal-card ${dragging === record.id ? styles.dragging : ""}`}
+                  draggable={!readonly && !busy}
+                  onDragStart={(event) => {
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", record.id);
+                    setDragging(record.id);
+                  }}
+                  onDragEnd={() => {
+                    setDragging(null);
+                    setDropStage(null);
+                  }}
+                  tabIndex={0}
+                  aria-label={`Ouvrir l’opportunité ${record.display_name}`}
+                  onKeyDown={(event) => {
+                    if (
+                      event.target === event.currentTarget &&
+                      (event.key === "Enter" || event.key === " ")
+                    ) {
+                      event.preventDefault();
+                      onOpen(record);
+                    }
+                  }}
+                  onClick={() => onOpen(record)}
                 >
-                  {stages.map((value) => (
-                    <option key={value} value={value}>
-                      {stageLabels?.[value] || value}
-                    </option>
-                  ))}
-                </select>
-              </article>
-            ))}
-            {!deals.length && (
-              <div className={styles.stageEmpty}>
-                <span>Aucune opportunité</span>
-                <button type="button" disabled={readonly || busy} onClick={() => onCreate(stage)}>
-                  <Plus size={13} /> Ajouter ici
-                </button>
-              </div>
-            )}
+                  <div className={styles.dealTitle}>
+                    <strong title={record.display_name}>{record.display_name}</strong>
+                    <GripVertical size={13} aria-hidden="true" />
+                  </div>
+                  <p>{money(record.amount, record.currency || "EUR")}</p>
+                  {record.close_date && (
+                    <span className={styles.dealDate}>
+                      <CalendarDays size={12} /> Clôture :{" "}
+                      {new Date(record.close_date + "T12:00:00").toLocaleDateString("fr-FR")}
+                    </span>
+                  )}
+                  <div className={styles.dealOwner}>
+                    {owners.get(record.owner_id || "") ||
+                      (record.owner_id ? "Responsable assigné" : "Sans responsable")}
+                  </div>
+                  <select
+                    aria-label={`Étape de ${record.display_name}`}
+                    value={record.stage}
+                    disabled={readonly || busy}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={(event) => void onMove(record, event.target.value).catch(() => {})}
+                  >
+                    {stages.map((value) => (
+                      <option key={value} value={value}>
+                        {stageLabels?.[value] || value}
+                      </option>
+                    ))}
+                  </select>
+                </article>
+              ))}
+              {!deals.length && (
+                <div className={styles.stageEmpty}>
+                  <span>Aucune opportunité</span>
+                  <button type="button" disabled={readonly || busy} onClick={() => onCreate(stage)}>
+                    <Plus size={13} /> Ajouter ici
+                  </button>
+                </div>
+              )}
+            </div>
           </section>
         );
       })}

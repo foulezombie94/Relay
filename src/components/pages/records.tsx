@@ -23,6 +23,7 @@ import {
   type Field,
 } from "../ui";
 import { RecordDetails } from "./record-details";
+import { RecordQuickPeek } from "../records/quick-peek";
 import { RecordBoard } from "../records/board";
 import { RecordDirectory } from "../records/directory";
 import { RecordTable } from "../records/table";
@@ -109,6 +110,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
   const [newStage, setNewStage] = useState("Nouveau");
   const [edit, setEdit] = useState<CrmRecord | true | null>(null);
   const [selectedDetail, setDetail] = useState<CrmRecord | null>(null);
+  const [previewId, setPreviewId] = useState("");
   const linked = useQuery({
     queryKey: ["rows", workspace.id, "record-link", linkedId],
     enabled: !!linkedId,
@@ -246,6 +248,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
     });
   if (!object) return <Loading />;
   const rows = q.data?.data ?? [];
+  const preview = q.error ? undefined : rows.find((record) => record.id === previewId);
   const exportParams = new URLSearchParams({
     object_id: object.id,
     q: search,
@@ -430,8 +433,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
             detail: money(record.amount, record.currency),
           }))}
           onOpen={(id) => {
-            const record = rows.find((row) => row.id === id);
-            if (record) setDetail(record);
+            setPreviewId(id);
           }}
         />
       ) : rows.length === 0 && mode !== "kanban" ? (
@@ -468,7 +470,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
           members={members.data?.data ?? []}
           readonly={workspace.role === "viewer"}
           busy={busy}
-          onOpen={setDetail}
+          onOpen={(record) => setPreviewId(record.id)}
           onCreate={(stage) => {
             setNewStage(stage);
             setEdit(true);
@@ -518,6 +520,24 @@ function RecordsPageContents({ slug }: { slug: string }) {
           Suivant
         </button>
       </div>
+      {preview && (
+        <RecordQuickPeek
+          record={preview}
+          onClose={() => setPreviewId("")}
+          onDetails={() => {
+            setPreviewId("");
+            setDetail(preview);
+          }}
+          onEdit={
+            workspace.role === "viewer"
+              ? undefined
+              : () => {
+                  setPreviewId("");
+                  setEdit(preview);
+                }
+          }
+        />
+      )}
       {edit && (
         <Editor
           key={edit === true ? "new" : edit.id}

@@ -172,20 +172,34 @@
 .quickViews button:hover {
   background: var(--relay-surface-soft);
 }
+.pipeline {
+  height: clamp(340px, 65dvh, 660px);
+  align-items: stretch;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 .pipeline :global(.kanban-column) {
-  min-height: 330px;
+  min-height: 0;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: 4px;
   background: var(--relay-surface);
   border: 0;
   border-radius: 0;
 }
 .pipeline :global(.column-heading) {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 9px;
 }
 .pipeline :global(.deal-card) {
+  flex: none;
+  padding: 10px;
+  margin-bottom: 0;
   border: 1px solid var(--relay-border);
   border-radius: 9px;
   box-shadow: 0 2px 4px #273e6006;
@@ -214,12 +228,24 @@
   color: var(--blue);
 }
 .stageValue {
+  flex: none;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   padding: 0 5px 13px;
   font-size: 10px;
   color: var(--relay-muted);
+}
+.stageCards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  padding: 3px 4px 6px;
 }
 .stageEmpty {
   display: flex;
@@ -449,6 +475,11 @@
 .dealTitle strong {
   font-size: 13px;
   font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .dealOwner,
 .dealDate {

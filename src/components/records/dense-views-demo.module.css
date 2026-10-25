@@ -1,0 +1,38 @@
+.page {
+  min-height: 100dvh;
+  background: var(--relay-surface);
+  color: var(--relay-ink);
+}
+.header {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--relay-border);
+  font-size: 13px;
+}
+.body {
+  padding: 32px 28px;
+  max-width: 1600px;
+  margin: auto;
+}
+.body h1 {
+  font-size: 26px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+.body > p {
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--relay-muted);
+  margin: 0 0 20px;
+}
+.body > div[role="group"] {
+  margin-bottom: 12px;
+}
+@media (max-width: 600px) {
+  .body {
+    padding: 24px 16px;
+  }
+}

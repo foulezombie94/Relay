@@ -1,0 +1,51 @@
+.popup.popup {
+  width: min(540px, calc(100vw - 32px));
+  max-height: 80dvh;
+  padding: 24px;
+  overflow-y: auto;
+}
+.popup :global(.dialog-heading) {
+  margin: 0 0 20px;
+  padding: 0 0 16px;
+  gap: 16px;
+}
+.popup :global(.dialog-heading h2) {
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+.body {
+  color: var(--relay-ink);
+}
+.body .amount {
+  margin: 0 0 24px;
+  font-size: 30px;
+  line-height: 38px;
+  font-weight: 600;
+  color: var(--relay-ink);
+}
+.body dl {
+  margin: 0;
+  border-top: 1px solid var(--relay-border);
+}
+.body dl > div {
+  display: grid;
+  grid-template-columns: minmax(110px, 38%) 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--relay-border);
+  font-size: 14px;
+}
+.body dt {
+  color: var(--relay-muted);
+}
+.body dd {
+  margin: 0;
+}
+.body footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
