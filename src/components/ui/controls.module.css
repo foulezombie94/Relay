@@ -1,0 +1,204 @@
+.pickerTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  min-height: 28px;
+  max-width: 100%;
+  padding: 3px 8px;
+  border: 1px solid var(--relay-border, #e6e5e3);
+  border-radius: 6px;
+  background: var(--relay-surface, #fff);
+  color: var(--relay-ink, #2c2c2b);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+}
+.pickerTrigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pickerTrigger > svg {
+  flex: none;
+  color: var(--relay-muted, #7d7a75);
+  stroke-width: 1.5;
+}
+.pickerTrigger > svg:last-child {
+  margin-left: auto;
+}
+.pickerTrigger:hover,
+.pickerTrigger[data-state="open"] {
+  background: var(--relay-hover, #f3f2f1);
+}
+.picker {
+  z-index: 140;
+  width: 290px;
+  max-width: calc(100vw - 24px);
+  max-height: min(520px, var(--radix-popover-content-available-height, 520px));
+  overflow: auto;
+  padding: 12px;
+  border-radius: 10px;
+  border: 0;
+  background: var(--relay-surface, #fff);
+  color: var(--relay-ink, #2c2c2b);
+  box-shadow: var(
+    --relay-popover-shadow,
+    0 20px 24px #1919190d,
+    0 5px 8px #19191907,
+    0 0 0 1px #2a1c0012
+  );
+  font-family: var(--font-ui, ui-sans-serif), sans-serif;
+}
+.pickerHeading {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  margin: 2px 4px 12px;
+}
+.pickerSearch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 7px;
+  margin: 0 0 10px;
+  border: 1px solid var(--relay-border);
+  border-radius: 6px;
+  color: var(--relay-muted);
+}
+.pickerSearch input {
+  min-height: 24px;
+  height: 24px;
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12px;
+  color: var(--relay-ink);
+}
+.visualGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.visualOption {
+  position: relative;
+  min-width: 0;
+  min-height: 57px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  border: 0;
+  border-radius: 6px;
+  padding: 6px;
+  background: transparent;
+  color: var(--relay-muted, #7d7a75);
+  box-shadow: inset 0 0 0 1px var(--relay-border, #e6e5e3);
+  cursor: pointer;
+}
+.visualOption > span {
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+}
+.visualOption > svg {
+  stroke-width: 1.4;
+}
+.visualOption:hover {
+  background: var(--relay-hover, #f3f2f1);
+}
+.visualOption[aria-pressed="true"] {
+  color: var(--blue, #2783de);
+  box-shadow: inset 0 0 0 2px var(--blue, #2783de);
+  font-weight: 500;
+}
+.visualCheck {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+.pickerEmpty {
+  margin: 10px 0;
+  color: var(--relay-muted);
+  font-size: 12px;
+}
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 32px;
+  color: var(--relay-ink);
+  font-weight: 400;
+}
+.toggleRow > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.toggleRow strong {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+.toggleRow small {
+  color: var(--relay-muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: none;
+  width: 30px;
+  height: 18px;
+  min-height: 18px;
+  padding: 2px;
+  border: 0;
+  border-radius: 20px;
+  background: #dcdcd9;
+  cursor: pointer;
+}
+.toggle > span {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 2px #0000001a;
+  transition: transform 130ms ease;
+}
+.toggle[aria-checked="true"] {
+  background: var(--blue, #2783de);
+}
+.toggle[aria-checked="true"] > span {
+  transform: translateX(12px);
+}
+:is(.visualOption, .pickerTrigger, .toggle):focus-visible {
+  outline: 2px solid var(--blue, #2783de);
+  outline-offset: 3px;
+}
+@media (max-width: 767px) {
+  .pickerTrigger {
+    min-height: 36px;
+  }
+  .visualOption {
+    min-height: 64px;
+  }
+  .toggleRow {
+    min-height: 40px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toggle > span {
+    transition: none;
+  }
+}

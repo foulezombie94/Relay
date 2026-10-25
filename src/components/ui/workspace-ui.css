@@ -1,0 +1,471 @@
+/* Workspace component measurements taken from Notion in Chrome, 25 October 2026.
+   The public landing page does not opt into this theme. */
+html:has([data-relay-ui]) {
+  --font-ui:
+    ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI",
+    Helvetica, Arial, sans-serif;
+  --relay-accent: #2783de;
+  --relay-surface: #fff;
+  --relay-surface-soft: #f9f8f7;
+  --relay-hover: rgb(33 27 23 / 5%);
+  --relay-border: #e6e5e3;
+  --relay-ink: #2c2c2b;
+  --relay-muted: #7d7a75;
+  --relay-control-shadow: none;
+  --relay-popover-shadow:
+    0 20px 24px rgb(25 25 25 / 5%), 0 5px 8px rgb(25 25 25 / 3%), 0 0 0 1px rgb(42 28 0 / 7%);
+  --blue: var(--relay-accent);
+  --line: var(--relay-border);
+  --text: var(--relay-ink);
+  --muted: var(--relay-muted);
+}
+html[data-relay-theme="dark"]:has([data-relay-ui]) {
+  --relay-surface: #191919;
+  --relay-surface-soft: #202020;
+  --relay-hover: rgb(255 255 255 / 6%);
+  --relay-border: #333331;
+  --relay-ink: #e6e6e4;
+  --relay-muted: #a6a39e;
+  --relay-popover-shadow: 0 20px 24px #00000030, 0 5px 8px #00000030, 0 0 0 1px #ffffff12;
+}
+html:has([data-relay-ui]) body {
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: auto;
+}
+html:has([data-relay-ui]) :is(button, input, select, textarea) {
+  font-family: var(--font-ui);
+}
+html:has([data-relay-ui]) :is(h1, h2, h3) {
+  font-family: var(--font-ui);
+  color: var(--relay-ink);
+}
+html:has([data-relay-ui]) .button {
+  min-height: 28px;
+  padding: 3px 8px;
+  gap: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--relay-border);
+  background: var(--relay-surface);
+  color: var(--relay-ink);
+  box-shadow: none;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  transition:
+    background 100ms ease,
+    border-color 100ms ease;
+}
+html:has([data-relay-ui]) .button:hover:not(:disabled) {
+  background: var(--relay-hover);
+}
+html:has([data-relay-ui]) .button.primary {
+  color: #f3f9fd;
+  background: var(--blue);
+  border-color: transparent;
+  font-weight: 500;
+}
+html:has([data-relay-ui]) .button.primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--blue) 90%, #000);
+}
+html:has([data-relay-ui]) .button.small {
+  min-height: 28px;
+  padding: 3px 7px;
+  font-size: 13px;
+}
+html:has([data-relay-ui]) .button.danger {
+  color: #c4554d;
+}
+html:has([data-relay-ui]) .button.ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--relay-muted);
+}
+html:has([data-relay-ui]) .button:disabled {
+  opacity: 0.4;
+}
+html:has([data-relay-ui]) .button svg {
+  stroke-width: 1.5;
+  flex: none;
+}
+html:has([data-relay-ui]) .icon-button {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  border-radius: 6px;
+  border: 0;
+  padding: 6px;
+  color: var(--relay-muted);
+  background: transparent;
+}
+html:has([data-relay-ui]) .icon-button:hover {
+  background: var(--relay-hover);
+  color: var(--relay-ink);
+}
+html:has([data-relay-ui]) .icon-button svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.5;
+}
+html:has([data-relay-ui]) :is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+html:has([data-relay-ui])
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid var(--relay-border);
+  border-radius: 6px;
+  background: var(--relay-surface);
+  color: var(--relay-ink);
+  font-size: 14px;
+  line-height: 20px;
+  box-shadow: none;
+}
+html:has([data-relay-ui]) :is(input, textarea)::placeholder {
+  color: #a19e99;
+}
+html:has([data-relay-ui]) :is(input[type="checkbox"], input[type="radio"]) {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--blue);
+}
+html:has([data-relay-ui]) input[type="range"] {
+  accent-color: var(--blue);
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+html:has([data-relay-ui]) textarea {
+  min-height: 90px;
+  line-height: 1.5;
+}
+html:has([data-relay-ui]) label {
+  font-weight: 400;
+  color: var(--relay-ink);
+}
+html:has([data-relay-ui]) .search-box {
+  min-height: 28px;
+  border: 1px solid var(--relay-border);
+  border-radius: 6px;
+  background: var(--relay-surface);
+  box-shadow: none;
+  padding: 0 8px;
+  color: var(--relay-muted);
+}
+html:has([data-relay-ui]) .search-box input {
+  border: 0;
+  min-height: 28px;
+  padding: 3px 0;
+  background: transparent;
+  box-shadow: none;
+}
+html:has([data-relay-ui]) :is(.toolbar, .view-toolbar, .row-actions) {
+  gap: 6px;
+}
+html:has([data-relay-ui]) .toolbar {
+  padding-block: 8px;
+}
+html:has([data-relay-ui]) .page-heading {
+  align-items: center;
+  margin-bottom: 24px;
+}
+html:has([data-relay-ui]) .page-heading h1 {
+  font-size: 32px;
+  line-height: 1.25;
+  font-weight: 650;
+  letter-spacing: -0.8px;
+}
+html:has([data-relay-ui]) .page-heading p {
+  color: var(--relay-muted);
+  font-size: 14px;
+  line-height: 21px;
+}
+html:has([data-relay-ui]) :is(.segmented, .segmented-control) {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  gap: 2px;
+  box-shadow: none;
+}
+html:has([data-relay-ui]) :is(.segmented, .segmented-control) > button {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 14px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--relay-muted);
+  background: transparent;
+}
+html:has([data-relay-ui])
+  :is(.segmented, .segmented-control)
+  > button:is(.active, [aria-pressed="true"]) {
+  color: var(--relay-ink);
+  background: var(--relay-hover);
+  box-shadow: none;
+}
+html:has([data-relay-ui]) .table-wrap {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--relay-surface);
+}
+html:has([data-relay-ui]) .data-table {
+  font-size: 14px;
+}
+html:has([data-relay-ui]) .data-table th {
+  height: 36px;
+  padding: 6px 8px;
+  background: transparent;
+  color: var(--relay-muted);
+  font-weight: 400;
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: 0;
+  border-color: var(--relay-border);
+}
+html:has([data-relay-ui]) .data-table td {
+  height: 37px;
+  padding: 7px 8px;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--relay-ink);
+  border-color: var(--relay-border);
+}
+html:has([data-relay-ui]) .data-table tbody tr:hover {
+  background: var(--relay-hover);
+}
+html:has([data-relay-ui]) .data-table td:not(:last-child),
+html:has([data-relay-ui]) .data-table th:not(:last-child) {
+  border-right: 1px solid color-mix(in srgb, var(--relay-border) 55%, transparent);
+}
+html:has([data-relay-ui]) .data-table .avatar {
+  width: 22px;
+  height: 22px;
+  font-size: 10px;
+  border-radius: 4px;
+}
+html:has([data-relay-ui]) .badge {
+  min-height: 20px;
+  padding: 1px 6px;
+  border: 0;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 400;
+  background: #e8e6e3;
+  color: #5f5e59;
+}
+html:has([data-relay-ui]) .badge.blue {
+  background: #e3f0fd;
+  color: #2f6faa;
+}
+html:has([data-relay-ui]) .badge.green {
+  background: #e3ede4;
+  color: #448361;
+}
+html:has([data-relay-ui]) .badge.red {
+  background: #fbe4e2;
+  color: #b4473e;
+}
+html:has([data-relay-ui]) .badge i {
+  width: 6px;
+  height: 6px;
+}
+html:has([data-relay-ui]) :is(.pill, .chip) {
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 18px;
+  padding: 1px 6px;
+  background: var(--relay-hover);
+  border-color: transparent;
+  color: var(--relay-muted);
+}
+html:has([data-relay-ui]) :is(.kanban-column, .board-column) {
+  border: 0;
+  border-radius: 6px;
+  background: var(--relay-surface-soft);
+}
+html:has([data-relay-ui]) .deal-card {
+  border: 1px solid var(--relay-border);
+  border-radius: 6px;
+  background: var(--relay-surface);
+  box-shadow: 0 1px 2px #00000005;
+}
+html:has([data-relay-ui]) :is(.dialog-content, .drawer) {
+  background: var(--relay-surface);
+  color: var(--relay-ink);
+  border: 0;
+  box-shadow: var(--relay-popover-shadow);
+  font-family: var(--font-ui);
+}
+html:has([data-relay-ui]) .dialog-content {
+  border-radius: 10px;
+  padding: 20px;
+}
+html:has([data-relay-ui]) :is(.dialog-heading, .drawer-heading) {
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+html:has([data-relay-ui]) :is(.dialog-heading h2, .drawer-heading h2) {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin: 0 0 5px;
+}
+html:has([data-relay-ui]) :is(.dialog-heading p, .drawer-heading p) {
+  color: var(--relay-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+html:has([data-relay-ui]) .dialog-footer {
+  gap: 6px;
+  border-color: var(--relay-border);
+  padding-top: 14px;
+}
+html:has([data-relay-ui]) .dialog-overlay {
+  background: #00000066;
+  backdrop-filter: none;
+}
+html:has([data-relay-ui]) :is([role="menu"], .view-settings-popover, .column-picker > div) {
+  padding: 4px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--relay-surface);
+  color: var(--relay-ink);
+  box-shadow: var(--relay-popover-shadow);
+  font-family: var(--font-ui);
+}
+html:has([data-relay-ui])
+  :is([role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--relay-ink);
+}
+html:has([data-relay-ui])
+  :is([role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"])[data-highlighted] {
+  background: var(--relay-hover);
+}
+html:has([data-relay-ui])
+  :is([role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"])[data-disabled] {
+  opacity: 0.4;
+}
+html:has([data-relay-ui]) [role="menu"] [role="separator"] {
+  margin: 4px 8px;
+  height: 1px;
+  background: var(--relay-border);
+}
+html:has([data-relay-ui]) :is(.detail-card, .feature-card, .settings-card) {
+  border-radius: 6px;
+  border-color: var(--relay-border);
+  background: var(--relay-surface);
+  box-shadow: none;
+}
+html:has([data-relay-ui]) details > summary {
+  font-size: 14px;
+  font-weight: 500;
+}
+html:has([data-relay-ui]) :is(.empty, .loading) {
+  color: var(--relay-muted);
+  font-size: 14px;
+}
+html:has([data-relay-ui]) .empty-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--relay-surface-soft);
+  color: var(--relay-muted);
+  border-radius: 10px;
+}
+html:has([data-relay-ui]) .alert {
+  font-size: 13px;
+  line-height: 20px;
+  border-radius: 6px;
+  padding: 10px 12px;
+  box-shadow: none;
+}
+html:has([data-relay-ui]) .recharts-wrapper {
+  font-family: var(--font-ui);
+}
+html:has([data-relay-ui]) .recharts-cartesian-axis-tick-value {
+  fill: var(--relay-muted);
+}
+html:has([data-relay-ui]) .recharts-tooltip-wrapper {
+  z-index: 20;
+}
+@media (max-width: 767px) {
+  html:has([data-relay-ui]) :is(.button, .button.small, .icon-button) {
+    min-height: 36px;
+  }
+  html:has([data-relay-ui]) .icon-button {
+    width: 36px;
+    min-width: 36px;
+  }
+  html:has([data-relay-ui])
+    :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+    min-height: 36px;
+    font-size: 16px;
+  }
+  html:has([data-relay-ui]) .page-heading h1 {
+    font-size: 26px;
+  }
+  html:has([data-relay-ui]) .dialog-content {
+    padding: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has([data-relay-ui]) .button {
+    transition: none;
+  }
+}
+html[data-relay-theme="dark"]:has([data-relay-ui]) .badge.blue {
+  background: #1f354a;
+  color: #9ac3ec;
+}
+html[data-relay-theme="dark"]:has([data-relay-ui]) .badge.green {
+  background: #263b2e;
+  color: #a3c5ae;
+}
+html[data-relay-theme="dark"]:has([data-relay-ui]) .badge.red {
+  background: #482b29;
+  color: #e5aaa3;
+}
+html:has([data-relay-ui]) input[type="range"] {
+  appearance: none;
+  width: 100%;
+}
+html:has([data-relay-ui]) input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--relay-border);
+}
+html:has([data-relay-ui]) input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  margin-top: -5px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--blue);
+}
+html:has([data-relay-ui]) input[type="range"]::-moz-range-track {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--relay-border);
+}
+html:has([data-relay-ui]) input[type="range"]::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--blue);
+}

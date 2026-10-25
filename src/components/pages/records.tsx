@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { VisualPicker } from "../ui/controls";
+import { Table2, LayoutGrid, Columns3 } from "lucide-react";
 import { RecordSegments } from "../records/segments";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -330,26 +332,17 @@ function RecordsPageContents({ slug }: { slug: string }) {
         <span className="pill">
           {q.data?.count ?? 0} {pageContent.plural}
         </span>
-        <div className="segmented">
-          <button className={mode === "table" ? "active" : ""} onClick={() => chooseMode("table")}>
-            Tableau
-          </button>
-          {slug === "deals" ? (
-            <button
-              className={mode === "kanban" ? "active" : ""}
-              onClick={() => chooseMode("kanban")}
-            >
-              Pipeline
-            </button>
-          ) : (
-            <button
-              className={mode === "cards" ? "active" : ""}
-              onClick={() => chooseMode("cards")}
-            >
-              Répertoire
-            </button>
-          )}
-        </div>
+        <VisualPicker
+          label="Présentation des fiches"
+          value={mode}
+          options={[
+            { value: "table", label: "Table", icon: Table2 },
+            slug === "deals"
+              ? { value: "kanban", label: "Kanban", icon: Columns3 }
+              : { value: "cards", label: "Galerie", icon: LayoutGrid },
+          ]}
+          onChange={chooseMode}
+        />
         <ExportRecords
           key={object.id}
           workspaceId={workspace.id}

@@ -87,3 +87,7 @@ The pure `AppSidebarView` accepts public props separately from the authenticated
 - Do keep public previews independent of authentication, data fetching and mutation interfaces.
 - Don't publish invented customer logos, testimonials, adoption statistics or commercial outcomes.
 - Don't substitute image mockups for the implemented CRM UI or enable private prefetch in public previews.
+
+## Workspace component language — 25 October 2026
+
+Authenticated CRM routes and the public component demo opt into a compact workspace theme through `data-relay-ui`. This theme uses system UI typography, warm neutral surfaces, 28 px desktop actions, quiet borders, compact menus and explicit view pickers. The blue workspace accent is #2783de; user-selected accents and dark mode remain supported. The landing's typography and brand composition remain separate. See [component reference and verification](docs/features/workspace-components.md).

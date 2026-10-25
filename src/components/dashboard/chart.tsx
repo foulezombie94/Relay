@@ -24,6 +24,7 @@ import {
 } from "recharts";
 import {
   formatDashboardValue,
+  metricLabels,
   type DashboardDatum,
   type ReportTile,
 } from "@/lib/domain/dashboards";
@@ -31,11 +32,11 @@ import styles from "./dashboard.module.css";
 import { chartTooltipValue } from "@/lib/domain/dashboard-widgets";
 
 export const widgetColors = {
-  blue: "#527ce8",
-  violet: "#9275d7",
-  teal: "#3eab96",
-  amber: "#d8a551",
-  rose: "#d77c92",
+  blue: "#2783de",
+  violet: "#9065b0",
+  teal: "#448361",
+  amber: "#cb8b2a",
+  rose: "#c4554d",
 };
 type Props = {
   tile: ReportTile;
@@ -134,17 +135,22 @@ export function DashboardChart({ tile, rows, currency, onDetails }: Props) {
     );
   const tooltip = (
     <Tooltip
+      cursor={{ fill: "var(--relay-hover)", stroke: "var(--relay-border)", strokeWidth: 1 }}
       contentStyle={{
         background: "var(--relay-surface)",
-        border: "1px solid var(--relay-border)",
-        borderRadius: 8,
+        border: "0",
+        boxShadow: "var(--relay-popover-shadow)",
+        borderRadius: 10,
         color: "var(--relay-ink)",
-        fontSize: 12,
+        fontSize: 13,
       }}
       formatter={(value, name, item) =>
         name === "Fiches"
-          ? String(value)
-          : formatDashboardValue(chartTooltipValue(rows, item.payload), tile.metric, currency)
+          ? [String(value), "Fiches"]
+          : [
+              formatDashboardValue(chartTooltipValue(rows, item.payload), tile.metric, currency),
+              metricLabels[tile.metric],
+            ]
       }
     />
   );
@@ -166,155 +172,173 @@ export function DashboardChart({ tile, rows, currency, onDetails }: Props) {
     </>
   );
   return (
-    <div className={styles.chart}>
-      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-        {tile.visual === "donut" || tile.visual === "pie" ? (
-          <PieChart>
-            {tooltip}
-            <Pie
+    <>
+      <div className={styles.chart}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+          {tile.visual === "donut" || tile.visual === "pie" ? (
+            <PieChart>
+              {tooltip}
+              <Pie
+                isAnimationActive={false}
+                data={data}
+                dataKey="number"
+                nameKey="label"
+                innerRadius={tile.visual === "donut" ? "55%" : 0}
+                outerRadius="80%"
+                paddingAngle={2}
+                onClick={(_, i) => data[i] && onDetails(data[i])}
+              >
+                {data.map((_, i) => (
+                  <Cell key={i} fill={Object.values(widgetColors)[i % 5]} />
+                ))}
+              </Pie>
+            </PieChart>
+          ) : tile.visual === "radar" ? (
+            <RadarChart data={data} outerRadius="70%">
+              <PolarGrid stroke="var(--relay-border)" />
+              <PolarAngleAxis dataKey="label" tick={{ fontSize: 10, fill: "var(--relay-muted)" }} />
+              <PolarRadiusAxis tick={{ fontSize: 9 }} />
+              {tooltip}
+              <Radar
+                isAnimationActive={false}
+                dataKey="number"
+                stroke={color}
+                fill={color}
+                fillOpacity={0.18}
+              />
+            </RadarChart>
+          ) : tile.visual === "treemap" ? (
+            <Treemap
               isAnimationActive={false}
-              data={data}
+              data={data.map((row) => ({ ...row, name: row.label }))}
               dataKey="number"
-              nameKey="label"
-              innerRadius={tile.visual === "donut" ? 58 : 0}
-              outerRadius={90}
-              paddingAngle={2}
-              onClick={(_, i) => data[i] && onDetails(data[i])}
+              nameKey="name"
+              aspectRatio={4 / 3}
+              fill={color}
+              stroke="var(--relay-surface)"
+              onClick={(node) => {
+                const row = data.find((r) => r.dimension === node.dimension);
+                if (row) onDetails(row);
+              }}
             >
-              {data.map((_, i) => (
-                <Cell key={i} fill={Object.values(widgetColors)[i % 5]} />
-              ))}
-            </Pie>
-          </PieChart>
-        ) : tile.visual === "radar" ? (
-          <RadarChart data={data} outerRadius="70%">
-            <PolarGrid stroke="var(--relay-border)" />
-            <PolarAngleAxis dataKey="label" tick={{ fontSize: 10, fill: "var(--relay-muted)" }} />
-            <PolarRadiusAxis tick={{ fontSize: 9 }} />
-            {tooltip}
-            <Radar
-              isAnimationActive={false}
-              dataKey="number"
-              stroke={color}
-              fill={color}
-              fillOpacity={0.18}
-            />
-          </RadarChart>
-        ) : tile.visual === "treemap" ? (
-          <Treemap
-            isAnimationActive={false}
-            data={data.map((row) => ({ ...row, name: row.label }))}
-            dataKey="number"
-            nameKey="name"
-            aspectRatio={4 / 3}
-            fill={color}
-            stroke="var(--relay-surface)"
-            onClick={(node) => {
-              const row = data.find((r) => r.dimension === node.dimension);
-              if (row) onDetails(row);
-            }}
-          >
-            {tooltip}
-          </Treemap>
-        ) : tile.visual === "combo" ? (
-          <ComposedChart data={data}>
-            <CartesianGrid stroke="var(--relay-border)" vertical={false} />
-            <XAxis dataKey="label" tick={{ fontSize: 10 }} tickLine={false} />
-            <YAxis yAxisId="value" tick={{ fontSize: 10 }} width={55} />
-            <YAxis
-              yAxisId="count"
-              orientation="right"
-              tick={{ fontSize: 10 }}
-              width={35}
-              allowDecimals={false}
-            />
-            {tooltip}
-            <Bar
-              isAnimationActive={false}
-              name="Valeur"
-              dataKey="number"
-              yAxisId="value"
-              fill={color}
-              fillOpacity={0.3}
-              radius={[4, 4, 0, 0]}
-            />
-            <Line
-              isAnimationActive={false}
-              name="Fiches"
-              dataKey="count"
-              yAxisId="count"
-              stroke={color}
-              dot={{ r: 3 }}
-              strokeWidth={2}
-            />
-          </ComposedChart>
-        ) : tile.visual === "area" ? (
-          <AreaChart data={data}>
-            {axes}
-            {tooltip}
-            <Area
-              isAnimationActive={false}
-              dataKey="number"
-              stroke={color}
-              fill={color}
-              fillOpacity={0.12}
-              strokeWidth={2}
-            />
-          </AreaChart>
-        ) : tile.visual === "line" ? (
-          <LineChart data={data}>
-            {axes}
-            {tooltip}
-            <Line
-              isAnimationActive={false}
-              dataKey="number"
-              stroke={color}
-              strokeWidth={2}
-              dot={{ r: 3 }}
-            />
-          </LineChart>
-        ) : (
-          <BarChart data={data} layout={tile.visual === "bars" ? "vertical" : "horizontal"}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={tile.visual === "bars"}
-              horizontal={tile.visual !== "bars"}
-              stroke="var(--relay-border)"
-            />
-            <XAxis
-              type={tile.visual === "bars" ? "number" : "category"}
-              dataKey={tile.visual === "bars" ? undefined : "label"}
-              tick={{ fontSize: 10 }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              type={tile.visual === "bars" ? "category" : "number"}
-              dataKey={tile.visual === "bars" ? "label" : undefined}
-              width={tile.visual === "bars" ? 105 : 55}
-              tick={{ fontSize: 10 }}
-              tickLine={false}
-              axisLine={false}
-            />
-            {tooltip}
-            <Bar
-              isAnimationActive={false}
-              dataKey="number"
-              fill={color}
-              radius={4}
-              maxBarSize={36}
-              onClick={(_, i) => data[i] && onDetails(data[i])}
-            />
-          </BarChart>
+              {tooltip}
+            </Treemap>
+          ) : tile.visual === "combo" ? (
+            <ComposedChart data={data}>
+              <CartesianGrid stroke="var(--relay-border)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10 }} tickLine={false} />
+              <YAxis yAxisId="value" tick={{ fontSize: 10 }} width={55} />
+              <YAxis
+                yAxisId="count"
+                orientation="right"
+                tick={{ fontSize: 10 }}
+                width={35}
+                allowDecimals={false}
+              />
+              {tooltip}
+              <Bar
+                isAnimationActive={false}
+                name="Valeur"
+                dataKey="number"
+                yAxisId="value"
+                fill={color}
+                fillOpacity={0.3}
+                radius={[4, 4, 0, 0]}
+              />
+              <Line
+                isAnimationActive={false}
+                name="Fiches"
+                dataKey="count"
+                yAxisId="count"
+                stroke={color}
+                dot={{ r: 3 }}
+                strokeWidth={2}
+              />
+            </ComposedChart>
+          ) : tile.visual === "area" ? (
+            <AreaChart data={data}>
+              {axes}
+              {tooltip}
+              <Area
+                isAnimationActive={false}
+                dataKey="number"
+                stroke={color}
+                fill={color}
+                fillOpacity={0.12}
+                strokeWidth={2}
+              />
+            </AreaChart>
+          ) : tile.visual === "line" ? (
+            <LineChart data={data}>
+              {axes}
+              {tooltip}
+              <Line
+                isAnimationActive={false}
+                dataKey="number"
+                stroke={color}
+                strokeWidth={2}
+                dot={{ r: 3 }}
+              />
+            </LineChart>
+          ) : (
+            <BarChart data={data} layout={tile.visual === "bars" ? "vertical" : "horizontal"}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={tile.visual === "bars"}
+                horizontal={tile.visual !== "bars"}
+                stroke="var(--relay-border)"
+              />
+              <XAxis
+                type={tile.visual === "bars" ? "number" : "category"}
+                dataKey={tile.visual === "bars" ? undefined : "label"}
+                tick={{ fontSize: 10 }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                type={tile.visual === "bars" ? "category" : "number"}
+                dataKey={tile.visual === "bars" ? "label" : undefined}
+                width={tile.visual === "bars" ? 105 : 55}
+                tick={{ fontSize: 10 }}
+                tickLine={false}
+                axisLine={false}
+              />
+              {tooltip}
+              <Bar
+                isAnimationActive={false}
+                dataKey="number"
+                fill={color}
+                radius={4}
+                maxBarSize={36}
+                onClick={(_, i) => data[i] && onDetails(data[i])}
+              />
+            </BarChart>
+          )}
+        </ResponsiveContainer>
+        {tile.visual === "combo" && (
+          <p className={styles.chartLegend}>
+            <i style={{ background: color, opacity: 0.3 }} />
+            Valeur · axe gauche <i style={{ background: color }} />
+            Fiches · axe droit
+          </p>
         )}
-      </ResponsiveContainer>
-      {tile.visual === "combo" && (
-        <p className={styles.chartLegend}>
-          <i style={{ background: color, opacity: 0.3 }} />
-          Valeur · axe gauche <i style={{ background: color }} />
-          Fiches · axe droit
-        </p>
+      </div>
+      {["donut", "pie"].includes(tile.visual) && (
+        <div className={styles.chartCategories} aria-label="Légende du graphique">
+          {data.map((row, index) => (
+            <button
+              type="button"
+              key={row.dimension ?? index}
+              onClick={() => onDetails(row)}
+              aria-label={row.label + " : " + label(row)}
+            >
+              <i style={{ background: Object.values(widgetColors)[index % 5] }} />
+              <span>{row.label}</span>
+              <strong>{label(row)}</strong>
+            </button>
+          ))}
+        </div>
       )}
-    </div>
+    </>
   );
 }

@@ -1565,3 +1565,191 @@
     height: 200px;
   }
 }
+/* Workspace component refinements shared with Notion's compact block controls. */
+.page {
+  --dash-border: var(--relay-border);
+  --dash-ink: var(--relay-ink);
+  --dash-muted: var(--relay-muted);
+}
+.heading h1 {
+  font-size: 32px;
+  line-height: 1.25;
+  letter-spacing: -0.8px;
+  font-weight: 650;
+}
+.heading p {
+  font-size: 14px;
+  line-height: 21px;
+}
+.pageIcon {
+  border: 0;
+  background: transparent;
+  color: var(--relay-muted);
+  border-radius: 6px;
+}
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+.viewTabs {
+  min-height: 36px;
+  gap: 8px;
+}
+.viewTabs > button {
+  padding: 6px 8px;
+  min-height: 28px;
+  border-bottom: 0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.viewTabs > button[aria-pressed="true"] {
+  background: var(--relay-hover);
+  font-weight: 500;
+}
+.toolbar select {
+  font-size: 14px;
+  min-height: 28px;
+  padding: 3px 8px;
+}
+.widget {
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 3%);
+}
+.widget h3 {
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 500;
+}
+.widgetTitle > svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.5;
+}
+.widgetDescription,
+.muted {
+  font-size: 13px;
+  line-height: 20px;
+}
+.widgetActions button {
+  width: 28px;
+  height: 28px;
+}
+.widgetMenu {
+  min-width: 220px;
+  padding: 4px;
+  border: 0;
+  border-radius: 10px;
+  box-shadow: var(--relay-popover-shadow);
+}
+.widgetMenu [role="menuitem"] {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 14px;
+  line-height: 20px;
+  border-radius: 6px;
+}
+.librarySearch {
+  min-height: 32px;
+  padding: 4px 8px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+}
+.librarySearch input {
+  font-size: 14px;
+}
+.libraryCategories button {
+  min-height: 30px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+.libraryCategories button[aria-pressed="true"] {
+  font-weight: 500;
+}
+.libraryCard {
+  border-radius: 8px;
+  box-shadow: none;
+}
+.libraryCard strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.libraryCard p {
+  font-size: 12px;
+  line-height: 18px;
+}
+.editorTabs button {
+  min-height: 32px;
+  font-size: 14px;
+  padding: 6px 0;
+}
+.editorHeading > span {
+  background: var(--relay-surface-soft);
+  border-radius: 6px;
+}
+.formGrid label {
+  font-size: 13px;
+}
+.entryButton strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.entryButton small,
+.recordFooter,
+.viewToolbar select,
+.viewSearch input {
+  font-size: 12px;
+}
+.gallery > div {
+  background: var(--relay-surface);
+  border-radius: 6px;
+}
+:global([data-relay-presentation]) .widget {
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+:global([data-relay-presentation]) .widget > header {
+  display: none;
+}
+:global([data-relay-presentation]) .chart {
+  height: clamp(260px, 48vh, 580px);
+}
+:global([data-relay-presentation]) .kpiValue {
+  font-size: clamp(48px, 8vw, 110px);
+}
+:global([data-relay-presentation]) .entryList {
+  max-height: 50vh;
+}
+.chartCategories {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 12px;
+  padding-top: 10px;
+}
+.chartCategories > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--relay-muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+.chartCategories > button:hover {
+  background: var(--relay-hover);
+}
+.chartCategories i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+.chartCategories strong {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--relay-ink);
+}

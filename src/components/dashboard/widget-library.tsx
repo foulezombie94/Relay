@@ -39,7 +39,7 @@ import {
 } from "@/lib/domain/dashboard-widgets";
 import styles from "./dashboard.module.css";
 
-const icons: Record<ReportTile["visual"], LucideIcon> = {
+export const widgetVisualIcons: Record<ReportTile["visual"], LucideIcon> = {
   kpi: Hash,
   bars: BarChart3,
   columns: ChartColumn,
@@ -67,7 +67,7 @@ const icons: Record<ReportTile["visual"], LucideIcon> = {
   links: Link2,
 };
 export function WidgetIcon({ visual, size = 16 }: { visual: ReportTile["visual"]; size?: number }) {
-  const Icon = icons[visual];
+  const Icon = widgetVisualIcons[visual];
   return <Icon size={size} aria-hidden="true" />;
 }
 export function WidgetIllustration({ visual }: { visual: ReportTile["visual"] }) {

@@ -47,9 +47,14 @@ export function Shell({
       ? objects.find((o) => o.slug === section.slice(7))?.name
       : "Liste") ??
     "Votre espace";
-  if (section === "settings") return <main className="settings-page-content">{children}</main>;
+  if (section === "settings")
+    return (
+      <main data-relay-ui className="settings-page-content">
+        {children}
+      </main>
+    );
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    <SidebarProvider defaultOpen={defaultOpen} data-relay-ui>
       <AppSidebar />
       <SidebarInset>
         {section !== "assistant" && (

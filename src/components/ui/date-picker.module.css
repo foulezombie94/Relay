@@ -344,3 +344,33 @@
     transition: none;
   }
 }
+/* Compact property and calendar controls. */
+.trigger {
+  min-height: 30px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  box-shadow: none;
+}
+.content {
+  padding: 12px;
+  width: 290px;
+  border: 0;
+  border-radius: 10px;
+  box-shadow: var(--relay-popover-shadow);
+  font-family: var(--font-ui), sans-serif;
+}
+.trigger > svg,
+.empty {
+  color: var(--relay-muted);
+}
+.trigger[data-state="open"] {
+  box-shadow: none;
+}
+.close {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--relay-hover);
+  color: var(--relay-muted);
+}

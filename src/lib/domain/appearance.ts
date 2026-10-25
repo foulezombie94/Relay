@@ -1,5 +1,5 @@
 export const accentColors = [
-  { id: "blue", label: "Bleu", value: "#365de3" },
+  { id: "blue", label: "Bleu", value: "#2783de" },
   { id: "cyan", label: "Cyan", value: "#08a9cc" },
   { id: "amber", label: "Ambre", value: "#d99208" },
   { id: "orange", label: "Orange", value: "#ed7625" },

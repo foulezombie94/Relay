@@ -121,6 +121,7 @@ export default function DemoPage() {
   }
   return (
     <div
+      data-relay-ui
       className={styles.root}
       onClickCapture={(event) => {
         const anchor = (event.target as HTMLElement).closest("a");
@@ -151,6 +152,9 @@ export default function DemoPage() {
             <span className="sb-breadcrumb-workspace">Équipe Rivage</span>
             <span className="sb-breadcrumb-slash">/</span>
             <span className="sb-breadcrumb-current">{title}</span>
+            <Link className={styles.login} href="/demo/components">
+              Composants
+            </Link>
             <Link className={styles.login} href="/login">
               Ouvrir mon espace
             </Link>

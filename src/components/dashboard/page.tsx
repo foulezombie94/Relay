@@ -22,6 +22,7 @@ import {
   Users,
   Check,
   Share2,
+  Presentation,
 } from "lucide-react";
 import { useWorkspace, useRows, useSave, request } from "../providers/data-provider";
 import { Modal, ErrorMessage, Loading, str } from "../ui";
@@ -45,6 +46,7 @@ import {
 } from "@/lib/domain/dashboards";
 import { tileFromPreset } from "@/lib/domain/dashboard-widgets";
 import { DashboardWidget } from "./widget";
+import { SlideViewer } from "../ui/slide-viewer";
 import { WidgetEditor } from "./editor";
 import { WidgetLibrary } from "./widget-library";
 import { WidgetMenu, WidgetResize } from "./widget-menu";
@@ -281,6 +283,14 @@ function DashboardWorkspace() {
           </div>
         </div>
         <div className={styles.actions}>
+          <button
+            className="button"
+            disabled={!canReadConfiguration || results.isError || !results.data?.data.tiles.length}
+            onClick={() => setFullscreen(0)}
+          >
+            <Presentation size={15} />
+            Présenter
+          </button>
           {canEdit && (
             <button
               className="button"
@@ -979,31 +989,37 @@ function DashboardWorkspace() {
           </button>
         </div>
       </Modal>
-      <Modal
+      <SlideViewer
         open={fullscreen !== null}
+        index={fullscreen ?? 0}
+        onIndexChange={setFullscreen}
         onClose={() => setFullscreen(null)}
-        title={fullscreen === null ? "Widget" : (config.config[fullscreen]?.title ?? "Widget")}
-        description="Consultez la vue et ses données en grand format."
-        wide
-        className={styles.fullscreenModal}
-      >
-        <ErrorMessage error={results.error} />
-        {canReadConfiguration &&
-          !results.isError &&
-          fullscreen !== null &&
-          results.data?.data.tiles[fullscreen] && (
-            <DashboardWidget
-              result={results.data.data.tiles[fullscreen]}
-              onDetails={(datum) => showDetails(fullscreen, datum)}
-              onEntry={(entry) => {
-                setFullscreen(null);
-                setEntryDetail({ entry, tile: config.config[fullscreen] });
-              }}
-              onEntryPage={entryPage(fullscreen)}
-              generation={results.data.data.generated_at}
-            />
-          )}
-      </Modal>
+        label={config.name}
+        slides={
+          canReadConfiguration && !results.isError && results.data
+            ? results.data.data.tiles.map((result, index) => ({
+                id: result.tile.id ?? String(index),
+                title: result.tile.title,
+                description: result.tile.description,
+                content: (
+                  <DashboardWidget
+                    result={result}
+                    onDetails={(datum) => {
+                      setFullscreen(null);
+                      showDetails(index, datum);
+                    }}
+                    onEntry={(entry) => {
+                      setFullscreen(null);
+                      setEntryDetail({ entry, tile: result.tile });
+                    }}
+                    onEntryPage={entryPage(index)}
+                    generation={results.data.data.generated_at}
+                  />
+                ),
+              }))
+            : []
+        }
+      />
       <Modal
         open={!!entryDetail}
         onClose={() => setEntryDetail(null)}

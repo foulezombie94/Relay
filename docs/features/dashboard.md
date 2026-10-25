@@ -49,3 +49,7 @@ La configuration partagée ne donne aucun droit supplémentaire sur les sources.
 - Contrôles de structure, tests du projet, lint, typecheck, Prettier, build et scan des bundles navigateur.
 
 La comparaison historique du 8 octobre est conservée dans [la recherche](../research/dashboard-competitive-analysis.md). La présente page décrit la livraison actuelle.
+
+## Présentation et composants — 25 octobre 2026
+
+Le bouton Présenter affiche les widgets autorisés dans un diaporama local, avec compteur, précédent/suivant, navigation clavier et fermeture par Échap. Le menu Agrandir ouvre le même lecteur sur le widget choisi. Les vues de détail quittent la présentation ; un refus de lecture ne conserve pas les données dans le lecteur. Le sélecteur de type utilise une grille compacte des 25 présentations existantes. La palette, les menus, les infobulles et les légendes sont harmonisés avec le reste de l’espace. Voir [les composants de l’espace](workspace-components.md) et `/demo/components`.

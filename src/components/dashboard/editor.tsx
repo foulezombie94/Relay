@@ -23,7 +23,8 @@ import {
 } from "@/lib/domain/dashboards";
 import { tileForVisual } from "@/lib/domain/dashboard-widgets";
 import { DashboardWidget } from "./widget";
-import { WidgetIcon } from "./widget-library";
+import { WidgetIcon, widgetVisualIcons } from "./widget-library";
+import { VisualPicker } from "../ui/controls";
 import styles from "./dashboard.module.css";
 
 const pathLabels: Record<(typeof dashboardLinkPaths)[number], string> = {
@@ -153,19 +154,20 @@ export function WidgetEditor({
           <div className={styles.formGrid}>
             <label>
               Type de widget
-              <select
+              <VisualPicker
+                label="Type de widget"
                 value={tile.visual}
-                onChange={(e) => {
-                  setTile(tileForVisual(tile, e.target.value as ReportTile["visual"]));
+                searchable
+                options={dashboardVisuals.map((visual) => ({
+                  value: visual,
+                  label: visualLabels[visual],
+                  icon: widgetVisualIcons[visual],
+                }))}
+                onChange={(visual) => {
+                  setTile(tileForVisual(tile, visual));
                   setPreview(undefined);
                 }}
-              >
-                {dashboardVisuals.map((v) => (
-                  <option key={v} value={v}>
-                    {visualLabels[v]}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
             <label>
               Largeur

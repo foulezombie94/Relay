@@ -13,6 +13,8 @@ Pour débuter : [README](../README.md), [contribution](../CONTRIBUTING.md), [arc
 
 ## Fonctionnalités
 
+- Interface : [composants de l’espace et référence Notion](features/workspace-components.md)
+
 - MCP : [serveur distant OAuth, Claude Code/Codex, permissions et validation](features/mcp.md)
 
 - Ask Relay : [agent et sécurité](features/ask-relay/ask-relay-agent.md), [identité](features/ask-relay/ask-relay-identity-intelligence.md), [interface](features/ask-relay/ask-relay-interface.md)
