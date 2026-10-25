@@ -9,7 +9,6 @@ import {
   Copy,
   ExternalLink,
   Presentation,
-  Table2,
   Columns3,
   LayoutGrid,
   List,
@@ -26,6 +25,8 @@ import {
 import { Modal, Drawer, SearchBox, Badge } from "../ui";
 import { DatePicker } from "./date-picker";
 import { Toggle, VisualPicker } from "./controls";
+import { ViewButtons } from "./view-buttons";
+import { MonthCalendar } from "./month-calendar";
 import { SlideViewer } from "./slide-viewer";
 import { DashboardChart } from "../dashboard/chart";
 import { defaultTile, type DashboardDatum } from "@/lib/domain/dashboards";
@@ -264,16 +265,15 @@ export function ComponentGallery() {
           <h2>Vues de vos onglets</h2>
           <p>Un sélecteur commun pour les tableaux, les galeries, les listes et les graphiques.</p>
           <div className={styles.databaseToolbar}>
-            <VisualPicker
+            <ViewButtons
               label="Présentation de la démonstration"
               value={layout}
               options={[
-                { value: "table", label: "Table", icon: Table2 },
+                { value: "table", label: "Liste", icon: List },
                 { value: "board", label: "Kanban", icon: Columns3 },
-                { value: "gallery", label: "Galerie", icon: LayoutGrid },
-                { value: "list", label: "Liste", icon: List },
-                { value: "chart", label: "Graphique", icon: BarChart3 },
                 { value: "calendar", label: "Calendrier", icon: CalendarDays },
+                { value: "gallery", label: "Galerie", icon: LayoutGrid },
+                { value: "chart", label: "Graphique", icon: BarChart3 },
               ]}
               onChange={setLayout}
             />
@@ -287,17 +287,19 @@ export function ComponentGallery() {
           {layout === "chart" ? (
             chartView(chart)
           ) : layout === "calendar" ? (
-            <div className={styles.surface}>
-              <DatePicker
-                defaultValue={date}
-                onValueChange={setDate}
-                label="Date de démonstration"
-                name="calendar-example"
-              />
-              <p className="caption">
-                Dans le CRM, les calendriers utilisent les dates autorisées des fiches.
-              </p>
-            </div>
+            <MonthCalendar
+              label="Calendrier de démonstration"
+              initialMonth={new Date(2026, 8, 1)}
+              note="Dates de clôture · Données fictives"
+              items={rows.map((row, index) => ({
+                id: row.name,
+                title: row.name,
+                status: row.stage,
+                detail: row.amount,
+                date: ["2026-09-22", "2026-09-24", "2026-09-30"][index],
+              }))}
+              onOpen={() => setDrawer(true)}
+            />
           ) : layout === "board" ? (
             <div className={styles.board}>
               {["Qualification", "Proposition", "Gagné"].map((stage) => (

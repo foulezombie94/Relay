@@ -20,7 +20,9 @@ Les cartes, galeries, panneaux latéraux, modales, champs, recherches, curseurs,
 
 ## Adaptation aux onglets existants
 
-`ui/workspace-ui.css` harmonise les primitives existantes dans le shell, y compris les menus rendus en portail. Les pages CRM utilisent le sélecteur Table/Galerie ou Table/Kanban sans modifier les paramètres, filtres, droits ou sauvegardes. Le configurateur de widgets utilise la même grille avec les types déjà pris en charge. La bibliothèque conserve ses catégories et ses modèles.
+`ui/workspace-ui.css` harmonise les primitives existantes dans le shell, y compris les menus rendus en portail. Les pages CRM affichent directement les boutons Liste/Galerie ou Liste/Kanban/Calendrier. `ViewButtons` reprend les boutons bordés de la capture fournie : hauteur 28 px, rayon 8 px, écart 8 px, icône 15 px et état actif neutre. L’inspection actuelle de Notion montre également des onglets arrondis de 32 px, padding 6 × 12 px et texte système 14 px ; la forme plus rectangulaire de la capture utilisateur a été conservée. Le configurateur de widgets utilise toujours la grille de présentation avec les types déjà pris en charge.
+
+Le calendrier des opportunités utilise uniquement `close_date` des résultats authentifiés et filtrés de la page courante (50 maximum, limite indiquée à l’écran). Il démarre le lundi, affiche les jours des mois voisins et ouvre la fiche sélectionnée. Les flèches changent le mois, le bouton central permet de choisir un mois et de revenir au mois courant. Les dates absentes ou invalides sont comptées sous la grille sans date inventée. Les résultats sont masqués en erreur. La sauvegarde utilise le type existant `table` et `config.layout = calendar`, sans migration ni modification des droits. Les entreprises et contacts conservent leurs modes Liste/Galerie.
 
 Les graphiques Relay gardent leurs calculs, filtres et devises séparées. Leur palette et leurs infobulles ont été harmonisées ; les anneaux et camemberts disposent d’une légende cliquable et s’adaptent à la taille du conteneur. Le survol ne dessine plus de fond clair opaque en thème sombre.
 

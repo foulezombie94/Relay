@@ -256,7 +256,7 @@ export function RecordViews({
               {
                 ...v,
                 ...(!updating ? { object_id: object.id } : {}),
-                type: mode === "cards" ? "table" : mode,
+                type: mode === "cards" || mode === "calendar" ? "table" : mode,
                 config: { ...config, layout: mode },
               },
               updating ? current : undefined,

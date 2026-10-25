@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
-import { VisualPicker } from "../ui/controls";
-import { Table2, LayoutGrid, Columns3 } from "lucide-react";
+import { ViewButtons } from "../ui/view-buttons";
+import { MonthCalendar } from "../ui/month-calendar";
+import { List, LayoutGrid, Columns3, CalendarDays } from "lucide-react";
 import { RecordSegments } from "../records/segments";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -16,8 +17,6 @@ import {
   Loading,
   ErrorMessage,
   Empty,
-  Avatar,
-  Badge,
   money,
   str,
   SearchBox,
@@ -95,7 +94,12 @@ function RecordsPageContents({ slug }: { slug: string }) {
   const search = view.search;
   const [mode, setMode] = useState(slug === "deals" ? "kanban" : "table");
   function chooseMode(value: string) {
-    const next = value === "kanban" && slug !== "deals" ? "cards" : value;
+    const next =
+      value === "kanban" && slug !== "deals"
+        ? "cards"
+        : value === "calendar" && slug !== "deals"
+          ? "table"
+          : value;
     setMode(next);
     setView((current) => ({
       ...current,
@@ -332,14 +336,17 @@ function RecordsPageContents({ slug }: { slug: string }) {
         <span className="pill">
           {q.data?.count ?? 0} {pageContent.plural}
         </span>
-        <VisualPicker
+        <ViewButtons
           label="Présentation des fiches"
           value={mode}
           options={[
-            { value: "table", label: "Table", icon: Table2 },
+            { value: "table", label: "Liste", icon: List },
             slug === "deals"
               ? { value: "kanban", label: "Kanban", icon: Columns3 }
               : { value: "cards", label: "Galerie", icon: LayoutGrid },
+            ...(slug === "deals"
+              ? [{ value: "calendar", label: "Calendrier", icon: CalendarDays }]
+              : []),
           ]}
           onChange={chooseMode}
         />
@@ -411,6 +418,22 @@ function RecordsPageContents({ slug }: { slug: string }) {
         )}
       {q.isPending ? (
         <Loading />
+      ) : mode === "calendar" ? (
+        <MonthCalendar
+          label="Calendrier des clôtures"
+          note="Dates de clôture · Résultats de cette page (50 maximum)"
+          items={(q.error ? [] : rows).map((record) => ({
+            id: record.id,
+            title: record.display_name,
+            date: record.close_date,
+            status: record.stage,
+            detail: money(record.amount, record.currency),
+          }))}
+          onOpen={(id) => {
+            const record = rows.find((row) => row.id === id);
+            if (record) setDetail(record);
+          }}
+        />
       ) : rows.length === 0 && mode !== "kanban" ? (
         <Empty
           title={`Aucune ${pageContent.single} pour le moment`}
@@ -478,6 +501,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
         <span>
           Page {page}
           {mode === "kanban" ? " · Pipeline limité aux 50 résultats de cette page" : ""}
+          {mode === "calendar" ? " · Calendrier limité aux 50 résultats de cette page" : ""}
         </span>
         <button
           className="button small"

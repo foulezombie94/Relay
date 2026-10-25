@@ -1,0 +1,40 @@
+.views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.views > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--relay-border, #e6e5e3);
+  border-radius: 8px;
+  background: var(--relay-surface, #fff);
+  color: var(--relay-muted, #7d7a75);
+  font:
+    500 13px/18px var(--font-ui, ui-sans-serif),
+    sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 100ms ease;
+}
+.views > button > svg {
+  flex: none;
+}
+.views > button:hover {
+  background: var(--relay-hover, #f3f2f1);
+  color: var(--relay-ink, #2c2c2b);
+}
+.views > button[aria-pressed="true"] {
+  color: var(--relay-ink, #2c2c2b);
+  background: var(--relay-hover, #f3f2f1);
+  box-shadow: inset 0 0 0 1px var(--relay-border, #e6e5e3);
+}
+.views > button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

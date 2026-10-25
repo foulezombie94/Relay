@@ -3,7 +3,7 @@ import { recordFilters } from "./record-filters";
 export const viewConfigSchema = z.object({
   filters: recordFilters.optional(),
   pipeline_id: z.union([z.uuid(), z.literal("")]).default(""),
-  layout: z.enum(["table", "cards", "kanban"]).optional(),
+  layout: z.enum(["table", "cards", "kanban", "calendar"]).optional(),
   search: z.string().max(300).default(""),
   stage: z.string().max(80).default(""),
   owner: z.union([z.uuid(), z.enum(["", "me", "unassigned"])]).default(""),
