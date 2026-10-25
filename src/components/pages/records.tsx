@@ -274,7 +274,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
   });
   const exportControl = (
     <ExportRecords
-      key={object.id}
+      key={"export:" + object.id}
       workspaceId={workspace.id}
       objectName={object.name}
       slug={slug}
@@ -287,7 +287,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
   );
   const viewControls = (
     <RecordViews
-      key={object.id}
+      key={"views:" + object.id}
       compact={slug === "people"}
       object={object}
       attributes={custom}
