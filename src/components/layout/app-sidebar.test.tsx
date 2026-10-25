@@ -63,6 +63,24 @@ it("opens the actual child route and lets the user fold it without navigating", 
     "/app/deals",
   );
 });
+it.each([
+  { platform: "MacIntel", label: "⌘ K", aria: "Meta+K", modifier: { metaKey: true } },
+  { platform: "Win32", label: "Ctrl+K", aria: "Control+K", modifier: { ctrlKey: true } },
+])("shows and handles the search shortcut on $platform", ({ platform, label, aria, modifier }) => {
+  vi.spyOn(window.navigator, "platform", "get").mockReturnValue(platform);
+  show();
+  const link = screen.getByRole("link", { name: "Rechercher" });
+  expect(within(link).getByText(label)).toBeDefined();
+  expect(link.getAttribute("aria-keyshortcuts")).toBe(aria);
+  const click = vi.spyOn(link, "click").mockImplementation(() => {});
+    fireEvent.keyDown(document.body, { key: "k", ...modifier });
+  expect(click).toHaveBeenCalledTimes(1);
+  const input = document.createElement("input");
+  document.body.append(input);
+  fireEvent.keyDown(input, { key: "k", ...modifier });
+  expect(click).toHaveBeenCalledTimes(1);
+  input.remove();
+});
 it("persists a folded group and keeps all other section controls usable", () => {
   const first = show();
   fireEvent.click(screen.getByRole("button", { name: "CRM" }));

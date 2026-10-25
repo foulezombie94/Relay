@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import type { Workspace, ObjectDefinition } from "@/lib/domain/types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import styles from "./app-sidebar.module.css";
 import { SidebarEntryRow, type SidebarEntry } from "./sidebar-entry";
 import { SidebarCustomizer } from "./sidebar-customizer";
@@ -55,6 +55,12 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "../ui/sidebar";
+function subscribePlatform() {
+  return () => {};
+}
+function platformIsMac() {
+  return /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+}
 const groups = [
   {
     id: "crm",
@@ -150,6 +156,8 @@ export function AppSidebarView({
 }) {
   const { setOpenMobile, isMobile } = useSidebar();
   const searchRef = useRef<HTMLAnchorElement>(null);
+  const isMac = useSyncExternalStore(subscribePlatform, platformIsMac, () => false);
+  const searchShortcutLabel = isMac ? "⌘ K" : "Ctrl+K";
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const preferenceKey = "relay_nav_groups:" + user.id;
   const [customizing, setCustomizing] = useState(false);
@@ -355,12 +363,14 @@ export function AppSidebarView({
           href="/app/search"
           className={styles.search}
           aria-label="Rechercher"
+          aria-keyshortcuts={persistPreferences ? (isMac ? "Meta+K" : "Control+K") : undefined}
+          title={persistPreferences ? `Rechercher (${searchShortcutLabel})` : "Rechercher"}
           aria-current={path === "/app/search" ? "page" : undefined}
           onClick={close}
         >
           <Search size={18} className={styles.searchIcon} />
           <span>Rechercher dans Relay</span>
-          {persistPreferences && <kbd>Ctrl+K</kbd>}
+          {persistPreferences && <kbd>{searchShortcutLabel}</kbd>}
         </Link>
         <nav className={styles.quickNav} aria-label="Accès rapide">
           {preferences.shortcuts
