@@ -1,0 +1,254 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--relay-border);
+  border-radius: 6px;
+  background: var(--relay-surface);
+  color: var(--relay-muted);
+  overflow: hidden;
+  vertical-align: middle;
+}
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 3px;
+}
+.logoButton {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.siteCard,
+.picker {
+  z-index: 155;
+  border: 1px solid var(--relay-border);
+  border-radius: 9px;
+  background: var(--relay-surface);
+  color: var(--relay-ink);
+  box-shadow: var(--relay-popover-shadow);
+}
+.siteCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 13px;
+  min-width: 230px;
+  max-width: 340px;
+  font-size: 13px;
+}
+.siteCard > strong {
+  font-weight: 550;
+}
+.siteCard a,
+.siteCard button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+.siteCard button {
+  justify-content: flex-start;
+  border: 0;
+  background: var(--relay-hover);
+  border-radius: 5px;
+  padding: 7px 9px;
+  font-size: 12px;
+}
+.relationCell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 32px;
+  padding: 2px 5px;
+  flex-wrap: wrap;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 5px;
+  background: var(--relay-surface-soft);
+  border: 1px solid var(--relay-border);
+  border-radius: 5px;
+  min-width: 0;
+  max-width: 175px;
+  font-size: 12px;
+}
+.chip a {
+  color: var(--relay-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chip a:hover {
+  text-decoration: underline;
+}
+.relationTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  color: var(--relay-muted);
+  padding: 4px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+.relationTrigger:hover {
+  background: var(--relay-hover);
+}
+.picker {
+  width: min(370px, calc(100vw - 28px));
+  padding: 6px;
+  font-size: 13px;
+}
+.picker > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 6px 8px;
+}
+.picker strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 7px;
+  margin: 0 0 7px;
+  border: 1px solid var(--relay-border);
+  border-radius: 6px;
+  color: var(--relay-muted);
+  height: 33px;
+}
+.search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  min-height: 0;
+  font-size: 12px;
+  color: var(--relay-ink);
+}
+.candidates {
+  max-height: 245px;
+  overflow-y: auto;
+}
+.candidates > button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  border: 0;
+  padding: 7px;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+.candidates > button:hover {
+  background: var(--relay-hover);
+}
+.candidates .candidateText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 3px;
+}
+.candidates small {
+  color: var(--relay-muted);
+  font-size: 11px;
+}
+.candidates > button:disabled {
+  opacity: 0.65;
+}
+.person {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--relay-hover);
+  font-size: 11px;
+}
+.linked {
+  padding: 7px;
+  border-bottom: 1px solid var(--relay-border);
+  margin-bottom: 5px;
+}
+.linked > small {
+  color: var(--relay-muted);
+  font-size: 11px;
+}
+.linked > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 6px 0;
+}
+.linked a {
+  color: var(--relay-ink);
+}
+.linked button {
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  padding: 4px;
+  background: transparent;
+  color: var(--relay-muted);
+}
+.linked button:hover {
+  background: var(--relay-hover);
+}
+.picker p {
+  font-size: 12px;
+  color: var(--relay-muted);
+  padding: 8px;
+  margin: 0;
+}
+.picker [role="alert"] {
+  color: #bb5757;
+}
+.picker footer {
+  border-top: 1px solid var(--relay-border);
+  padding: 9px 6px 3px;
+  color: var(--relay-muted);
+  font-size: 11px;
+  line-height: 16px;
+}
+.field {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  align-items: start;
+  gap: 10px;
+  padding: 12px 0;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--relay-border);
+  font-size: 13px;
+}
+.field > span {
+  padding-top: 8px;
+  color: var(--relay-muted);
+}

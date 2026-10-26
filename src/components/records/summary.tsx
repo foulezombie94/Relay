@@ -1,5 +1,6 @@
 "use client";
-import { Building2, Layers3, Mail, Globe, CalendarDays } from "lucide-react";
+import { Layers3, Mail, Globe, CalendarDays } from "lucide-react";
+import { CompanyLogo } from "./company-logo";
 import { Avatar, Badge, date, money } from "../ui/display";
 import { dealProbability, type Pipeline } from "@/lib/domain/pipelines";
 import { stages, type CrmRecord } from "@/lib/domain/types";
@@ -22,7 +23,7 @@ export function RecordSummary({
           {slug === "people" ? (
             <Avatar name={record.display_name} />
           ) : slug === "companies" ? (
-            <Building2 size={28} />
+            <CompanyLogo name={record.display_name} domain={record.domain} size={48} />
           ) : (
             <Layers3 size={26} />
           )}

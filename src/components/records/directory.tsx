@@ -3,6 +3,7 @@ import { Globe, Mail } from "lucide-react";
 import { Avatar, str } from "../ui/display";
 import type { CrmRecord, Row } from "@/lib/domain/types";
 import styles from "./records.module.css";
+import { CompanyLogo } from "./company-logo";
 
 export function RecordDirectory({
   rows,
@@ -19,19 +20,23 @@ export function RecordDirectory({
   return (
     <div className={styles.directory}>
       {rows.map((record) => (
-        <button
-          type="button"
+        <article
           key={record.id}
           className={`${styles.recordCard} ${slug === "people" ? styles.personCard : ""}`}
-          onClick={() => onOpen(record)}
         >
           <div className={styles.cardTop}>
-            <Avatar name={record.display_name} />
+            {slug === "companies" ? (
+              <CompanyLogo name={record.display_name} domain={record.domain} size={36} />
+            ) : (
+              <Avatar name={record.display_name} />
+            )}
             <span>
               {slug === "companies" ? "ENTREPRISE" : slug === "people" ? "CONTACT" : "FICHE"}
             </span>
           </div>
-          <strong>{record.display_name}</strong>
+          <button type="button" className={styles.cardOpen} onClick={() => onOpen(record)}>
+            <strong>{record.display_name}</strong>
+          </button>
           <div className={styles.cardDetails}>
             {record.domain && (
               <span>
@@ -52,9 +57,11 @@ export function RecordDirectory({
               {owners.get(record.owner_id || "") ||
                 (record.owner_id ? "Responsable assigné" : "Sans responsable")}
             </span>
-            <span>Ouvrir la fiche →</span>
+            <button type="button" className={styles.cardOpen} onClick={() => onOpen(record)}>
+              Ouvrir la fiche →
+            </button>
           </div>
-        </button>
+        </article>
       ))}
     </div>
   );

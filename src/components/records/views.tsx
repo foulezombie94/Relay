@@ -45,6 +45,9 @@ export function RecordViews({
     { key: "display_name", label: "Nom" },
     { key: "email", label: "Email" },
     { key: "domain", label: "Site" },
+    ...(["people", "companies"].includes(object.slug)
+      ? [{ key: "relations", label: object.slug === "people" ? "Entreprises" : "Contacts" }]
+      : []),
     ...(salesFields
       ? [
           { key: "amount", label: "Montant" },
@@ -73,6 +76,7 @@ export function RecordViews({
           "display_name",
           "email",
           "domain",
+          ...(["people", "companies"].includes(object.slug) ? ["relations"] : []),
           ...(salesFields ? ["amount", "stage", "close_date"] : []),
           ...attributes.map((a) => "attr_" + a.key),
         ]);

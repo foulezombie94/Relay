@@ -17,7 +17,9 @@ export const viewConfigSchema = z.object({
     .array(
       z
         .string()
-        .regex(/^(display_name|email|domain|amount|stage|close_date|attr_[a-z][a-z0-9_]{0,49})$/),
+        .regex(
+          /^(display_name|email|domain|relations|amount|stage|close_date|attr_[a-z][a-z0-9_]{0,49})$/,
+        ),
     )
     .min(1)
     .max(100)
@@ -45,8 +47,8 @@ export function normalizeView(value: unknown, deals = false) {
 export function defaultRecordView(slug: string): ViewConfig {
   const view = defaultView(slug === "deals");
   view.layout = slug === "deals" ? "kanban" : "table";
-  if (slug === "companies") view.columns = ["display_name", "domain", "email"];
-  if (slug === "people") view.columns = ["display_name", "email"];
+  if (slug === "companies") view.columns = ["display_name", "domain", "email", "relations"];
+  if (slug === "people") view.columns = ["display_name", "email", "relations"];
   if (slug === "deals") view.columns = ["display_name", "amount", "stage", "close_date"];
   return view;
 }

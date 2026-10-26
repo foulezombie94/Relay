@@ -7,6 +7,7 @@ import { Drawer, Editor, Empty, Badge, str, date, Loading, ErrorMessage, type Fi
 import { Pagination } from "../ui/pagination";
 import { RecordContextPanel, useRecordContext } from "../records/context";
 import { RecordSummary } from "../records/summary";
+import { RecordRelationsField } from "../records/relations";
 import type { CrmRecord, Row, Attribute } from "@/lib/domain/types";
 import { RecordOverview, RelatedRecordList } from "../records/overview";
 import { relatedRecords } from "@/lib/domain/record-profile";
@@ -116,6 +117,7 @@ export function RecordDetails({
           </div>
         </div>
         <ErrorMessage error={error ? new Error(error) : null} />
+        <RecordRelationsField record={record} slug={slug} />
         <nav className={styles.tabs} aria-label="Sections de la fiche">
           {Object.entries(tabs).map(([key, label]) => (
             <button

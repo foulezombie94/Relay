@@ -2,6 +2,8 @@
 import { Avatar, Badge, money, str } from "../ui/display";
 import type { Attribute, CrmRecord } from "@/lib/domain/types";
 import styles from "./records.module.css";
+import type { ReactNode } from "react";
+import { CompanyLogo } from "./company-logo";
 import {
   AtSign,
   CalendarDays,
@@ -25,12 +27,14 @@ export function RecordTable({
   custom = [],
   slug,
   onOpen,
+  renderRelations,
 }: {
   rows: CrmRecord[];
   columns: string[];
   custom?: Attribute[];
   slug: string;
   onOpen: (record: CrmRecord) => void;
+  renderRelations?: (record: CrmRecord) => ReactNode;
 }) {
   return (
     <div className="table-wrap record-table">
@@ -50,6 +54,7 @@ export function RecordTable({
                             display_name: "Nom",
                             email: "Email",
                             domain: "Site",
+                            relations: slug === "companies" ? "Contacts" : "Entreprises",
                             amount: "Montant",
                             stage: "Étape",
                             close_date: "Clôture",
@@ -83,9 +88,15 @@ export function RecordTable({
                 >
                   {key === "display_name" ? (
                     <span className={"name-cell " + (slug === "people" ? styles.personName : "")}>
-                      <Avatar name={r.display_name} />
+                      {slug === "companies" ? (
+                        <CompanyLogo name={r.display_name} domain={r.domain} />
+                      ) : (
+                        <Avatar name={r.display_name} />
+                      )}
                       <strong>{r.display_name}</strong>
                     </span>
+                  ) : key === "relations" ? (
+                    renderRelations?.(r)
                   ) : key === "stage" ? (
                     <Badge value={r.stage} />
                   ) : key === "amount" ? (

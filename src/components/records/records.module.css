@@ -111,6 +111,22 @@
   font-size: 9px;
   color: var(--relay-muted);
 }
+.cardOpen {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+}
+.cardOpen strong {
+  font-size: 15px;
+  font-weight: 550;
+}
+.cardFooter .cardOpen {
+  color: var(--blue);
+  white-space: nowrap;
+}
 .cardFooter > span:last-child {
   color: var(--blue);
   white-space: nowrap;

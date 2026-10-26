@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import {
   FileText,
@@ -204,6 +204,7 @@ export function ContactsTable({
   onAddProperty,
   onEditProperty,
   onSave,
+  renderRelations,
   readonly = false,
 }: {
   rows: CrmRecord[];
@@ -214,6 +215,7 @@ export function ContactsTable({
   onCreate: () => void;
   onAddProperty?: () => void;
   onEditProperty?: (column: ContactColumn) => void;
+  renderRelations?: (record: CrmRecord) => ReactNode;
   onSave: (record: CrmRecord, column: ContactColumn, value: unknown) => Promise<void>;
   readonly?: boolean;
 }) {
@@ -468,14 +470,18 @@ export function ContactsTable({
                 {visible.map((column) => (
                   <td key={column.key}>
                     <div className={styles.cell}>
-                      <ContactCell
-                        key={record.id + ":" + column.key + ":" + String(record.version)}
-                        record={record}
-                        column={column}
-                        readonly={readonly || !!record.merged_into}
-                        onSave={onSave}
-                        onOpen={onOpen}
-                      />
+                      {column.key === "relations" && renderRelations ? (
+                        renderRelations(record)
+                      ) : (
+                        <ContactCell
+                          key={record.id + ":" + column.key + ":" + String(record.version)}
+                          record={record}
+                          column={column}
+                          readonly={readonly || !!record.merged_into}
+                          onSave={onSave}
+                          onOpen={onOpen}
+                        />
+                      )}
                       {column.key === "display_name" && (
                         <button
                           type="button"

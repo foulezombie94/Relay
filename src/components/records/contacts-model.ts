@@ -6,11 +6,20 @@ export type ContactColumn = {
   options?: string[];
   attribute?: Attribute;
 };
-export function contactColumns(attributes: Attribute[]): ContactColumn[] {
+export function contactColumns(attributes: Attribute[], slug?: string): ContactColumn[] {
   return [
     { key: "display_name", label: "Nom", type: "text" },
     { key: "email", label: "E-mail", type: "email" },
     { key: "domain", label: "Site", type: "url" },
+    ...(["people", "companies"].includes(slug ?? "")
+      ? [
+          {
+            key: "relations",
+            label: slug === "companies" ? "Contacts" : "Entreprises",
+            type: "relation",
+          },
+        ]
+      : []),
     ...attributes
       .filter((a) => !a.archived)
       .map((a) => ({

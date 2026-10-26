@@ -38,6 +38,12 @@ Le graphisme des graphiques et du diaporama est une adaptation aux widgets Relay
 
 ## Vérification et aperçu
 
+Les contacts et entreprises proposent une colonne réciproque Entreprises/Contacts et un champ dans leurs fiches. Le sélecteur recherche 25 fiches de l’objet opposé, affiche les associations existantes, ouvre les fiches liées et permet de dissocier sans supprimer la fiche. Il réutilise `record_relations` et les mutations authentifiées existantes. La lecture groupée de 50 fiches maximum conserve les contrôles RLS et d’espace, masque les cibles inaccessibles et signale un aperçu dépassant 500 liens. Aucun changement SQL n’est nécessaire. Les vues enregistrées peuvent afficher ou masquer la nouvelle colonne.
+
+Les logos d’entreprise utilisent le favicon public du site, chargé directement par le navigateur sans référent ni récupération serveur d’une URL arbitraire. Le survol ou le focus du logo ouvre le site et une commande Copier le lien ; une icône remplace un favicon absent. Les noms de domaines et URL HTTP(S) sont reconnus, les adresses locales et les schémas non web sont ignorés. L’interaction reste utilisable dans les tableaux, galeries et en-têtes des fiches.
+
+Références : [relations Notion](https://www.notion.com/help/relations-and-rollups) et [attributs relationnels Attio](https://attio.com/help/reference/managing-your-data/attributes/relationship-attributes). Le lien réciproque contact–entreprise adapte ces comportements à la structure CRM existante ; il ne crée pas un nouveau moteur de propriétés relationnelles personnalisées ou de rollups.
+
 Les menus de la sidebar partagent une ouverture exclusive : un clic sur le « + », les trois points, une autre section ou le compte ferme le menu précédent et ouvre directement le nouveau. Les panneaux n’occultent pas les boutons voisins ; la restauration de focus de l’ancien panneau ne referme pas son remplaçant. Une sidebar réduite reste fermée au survol ; son bouton ou Ctrl+B / ⌘B permet de la rouvrir.
 
 La page Personnes utilise le répertoire de contacts inspecté dans la page Notion ouverte : titre 32 px / 38,4 px, graisse 700, onglet actif arrondi, commandes compactes à droite, en-tête de tableau 36 px et lignes 37 px, colonne Nom 280 px et autres propriétés 200 px avant répartition de l’espace. Les menus exposent les vues Tous/Mes/Sans responsable, Table/Galerie, filtres sur les champs réels, tris pris en charge, recherche, propriétés visibles, réordonnancement, import et export. Les commandes Automatisations et Assistant ouvrent les modules CRM existants.
