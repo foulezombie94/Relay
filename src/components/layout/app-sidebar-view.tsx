@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import styles from "./app-sidebar.module.css";
 import { SidebarEntryRow, type SidebarEntry } from "./sidebar-entry";
 import { SidebarCustomizer } from "./sidebar-customizer";
+import { SidebarMenu, SidebarMenuContent, SidebarMenuProvider } from "./sidebar-menu";
 import { readSidebarPreferences, type SidebarPreferences } from "./sidebar-preferences";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import {
@@ -335,485 +336,495 @@ export function AppSidebarView({
     setOpenMobile(false);
   }
   return (
-    <Sidebar collapsible="offcanvas" className={styles.sidebar}>
-      <SidebarHeader>
-        <div className={styles.toolbar}>
-          <SidebarTrigger />
-          <div className={styles.toolbarActions}>
-            <Link
-              prefetch={persistPreferences ? undefined : false}
-              href="/app/communications"
-              className={styles.iconButton}
-              aria-label="Messages"
-              title="Messages"
-              onClick={close}
-            >
-              <Inbox size={20} />
-            </Link>
-            <Link
-              prefetch={persistPreferences ? undefined : false}
-              href="/app/notes"
-              className={styles.iconButton}
-              aria-label="Notes"
-              title="Notes"
-              onClick={close}
-            >
-              <SquarePen size={20} />
-            </Link>
-          </div>
-        </div>
-        <Link
-          ref={searchRef}
-          prefetch={persistPreferences ? undefined : false}
-          href="/app/search"
-          className={styles.search}
-          aria-label="Rechercher"
-          aria-keyshortcuts={
-            persistPreferences || onSearch ? (isMac ? "Meta+K" : "Control+K") : undefined
-          }
-          aria-haspopup={onSearch ? "dialog" : undefined}
-          title={
-            persistPreferences || onSearch ? `Rechercher (${searchShortcutLabel})` : "Rechercher"
-          }
-          aria-current={path === "/app/search" ? "page" : undefined}
-          onClick={(event) => {
-            if (onSearch && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
-              event.preventDefault();
-              onSearch();
-            }
-            close();
-          }}
-        >
-          <Search size={18} className={styles.searchIcon} />
-          <span>Rechercher dans Relay</span>
-          {(persistPreferences || onSearch) && <kbd>{searchShortcutLabel}</kbd>}
-        </Link>
-        <nav className={styles.quickNav} aria-label="Accès rapide">
-          {quickEntries.slice(0, 2).map(({ id: slug, label, href, icon: Icon }) => (
-            <Link
-              key={slug}
-              prefetch={persistPreferences ? undefined : false}
-              href={href}
-              onClick={close}
-              aria-label={label}
-              title={label}
-              aria-current={path === href ? "page" : undefined}
-              className={styles.quickLink}
-              data-active={path === href}
-            >
-              <Icon size={20} />
-              <span>{label}</span>
-            </Link>
-          ))}
-          {quickEntries.length > 2 && (
-            <Dropdown.Root>
-              <Dropdown.Trigger
-                type="button"
-                className={styles.quickMore}
-                aria-label="Plus de raccourcis"
-                title="Plus de raccourcis"
-                data-active={quickEntries.slice(2).some((entry) => path === entry.href)}
+    <SidebarMenuProvider>
+      <Sidebar collapsible="offcanvas" className={styles.sidebar}>
+        <SidebarHeader>
+          <div className={styles.toolbar}>
+            <SidebarTrigger />
+            <div className={styles.toolbarActions}>
+              <Link
+                prefetch={persistPreferences ? undefined : false}
+                href="/app/communications"
+                className={styles.iconButton}
+                aria-label="Messages"
+                title="Messages"
+                onClick={close}
               >
-                <Ellipsis size={18} />
-              </Dropdown.Trigger>
-              <Dropdown.Portal>
-                <Dropdown.Content
-                  className="sb-dropdown"
-                  align="end"
-                  sideOffset={6}
-                  aria-label="Autres raccourcis"
-                >
-                  {quickEntries.slice(2).map(({ id, label, href, icon: Icon }) => (
-                    <Dropdown.Item key={id} asChild>
-                      <Link
-                        className="sb-dropdown-item"
-                        href={href}
-                        prefetch={persistPreferences ? undefined : false}
-                        onClick={close}
-                        aria-current={path === href ? "page" : undefined}
-                      >
-                        <Icon size={16} />
-                        {label}
-                      </Link>
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Content>
-              </Dropdown.Portal>
-            </Dropdown.Root>
-          )}
-        </nav>
-      </SidebarHeader>
-      <SidebarContent>
-        {customizing ? (
-          <SidebarCustomizer
-            sections={groups.map((group) => ({
-              id: group.id,
-              label: group.label,
-              icon: group.icon,
-              entries: entries
-                .filter(
-                  (entry) =>
-                    group.items.some(([slug]) => slug === entry.id) ||
-                    (group.id === "crm" && entry.id.startsWith("object-")),
-                )
-                .flatMap((entry) => [entry, ...(entry.children ?? [])]),
-            }))}
-            shortcuts={shortcutCatalog}
-            preferences={preferences}
-            onChange={savePreferences}
-          />
-        ) : (
-          <nav aria-label="Navigation principale">
-            {preferences.favorites.length > 0 && (
-              <SidebarGroup className={styles.group}>
-                <button
+                <Inbox size={20} />
+              </Link>
+              <Link
+                prefetch={persistPreferences ? undefined : false}
+                href="/app/notes"
+                className={styles.iconButton}
+                aria-label="Notes"
+                title="Notes"
+                onClick={close}
+              >
+                <SquarePen size={20} />
+              </Link>
+            </div>
+          </div>
+          <Link
+            ref={searchRef}
+            prefetch={persistPreferences ? undefined : false}
+            href="/app/search"
+            className={styles.search}
+            aria-label="Rechercher"
+            aria-keyshortcuts={
+              persistPreferences || onSearch ? (isMac ? "Meta+K" : "Control+K") : undefined
+            }
+            aria-haspopup={onSearch ? "dialog" : undefined}
+            title={
+              persistPreferences || onSearch ? `Rechercher (${searchShortcutLabel})` : "Rechercher"
+            }
+            aria-current={path === "/app/search" ? "page" : undefined}
+            onClick={(event) => {
+              if (
+                onSearch &&
+                !event.ctrlKey &&
+                !event.metaKey &&
+                !event.shiftKey &&
+                !event.altKey
+              ) {
+                event.preventDefault();
+                onSearch();
+              }
+              close();
+            }}
+          >
+            <Search size={18} className={styles.searchIcon} />
+            <span>Rechercher dans Relay</span>
+            {(persistPreferences || onSearch) && <kbd>{searchShortcutLabel}</kbd>}
+          </Link>
+          <nav className={styles.quickNav} aria-label="Accès rapide">
+            {quickEntries.slice(0, 2).map(({ id: slug, label, href, icon: Icon }) => (
+              <Link
+                key={slug}
+                prefetch={persistPreferences ? undefined : false}
+                href={href}
+                onClick={close}
+                aria-label={label}
+                title={label}
+                aria-current={path === href ? "page" : undefined}
+                className={styles.quickLink}
+                data-active={path === href}
+              >
+                <Icon size={20} />
+                <span>{label}</span>
+              </Link>
+            ))}
+            {quickEntries.length > 2 && (
+              <SidebarMenu>
+                <Dropdown.Trigger
                   type="button"
-                  className={"sb-menu-button " + styles.trigger}
-                  aria-expanded={expanded.favorites ?? true}
-                  aria-controls="relay-nav-favorites"
-                  onClick={() => setGroupOpen("favorites", !(expanded.favorites ?? true))}
+                  className={styles.quickMore}
+                  aria-label="Plus de raccourcis"
+                  title="Plus de raccourcis"
+                  data-active={quickEntries.slice(2).some((entry) => path === entry.href)}
                 >
-                  <span>Favoris</span>
-                  <ChevronRight
-                    className={styles.chevron}
-                    data-open={expanded.favorites ?? true}
-                    size={12}
-                  />
-                </button>
-                <ul
-                  className={styles.entryList}
-                  id="relay-nav-favorites"
-                  hidden={!(expanded.favorites ?? true)}
-                >
-                  {preferences.favorites
-                    .map((id) => allEntries.find((entry) => entry.id === id))
-                    .filter((entry): entry is SidebarEntry => !!entry)
-                    .map(renderEntry)}
-                </ul>
-              </SidebarGroup>
+                  <Ellipsis size={18} />
+                </Dropdown.Trigger>
+                <Dropdown.Portal>
+                  <SidebarMenuContent
+                    className="sb-dropdown"
+                    align="end"
+                    sideOffset={6}
+                    aria-label="Autres raccourcis"
+                  >
+                    {quickEntries.slice(2).map(({ id, label, href, icon: Icon }) => (
+                      <Dropdown.Item key={id} asChild>
+                        <Link
+                          className="sb-dropdown-item"
+                          href={href}
+                          prefetch={persistPreferences ? undefined : false}
+                          onClick={close}
+                          aria-current={path === href ? "page" : undefined}
+                        >
+                          <Icon size={16} />
+                          {label}
+                        </Link>
+                      </Dropdown.Item>
+                    ))}
+                  </SidebarMenuContent>
+                </Dropdown.Portal>
+              </SidebarMenu>
             )}
-            {preferences.order
-              .map((id) => groups.find((group) => group.id === id))
-              .filter((group) => !!group)
-              .map((group) => {
-                const active = currentGroup(path) === group.id;
-                const open = expanded[group.id] ?? active;
-                const hidden = preferences.hidden.includes(group.id);
-                if (hidden) return null;
-                const panelId = "relay-nav-" + group.id;
-                const groupEntries = entries
+          </nav>
+        </SidebarHeader>
+        <SidebarContent>
+          {customizing ? (
+            <SidebarCustomizer
+              sections={groups.map((group) => ({
+                id: group.id,
+                label: group.label,
+                icon: group.icon,
+                entries: entries
                   .filter(
                     (entry) =>
                       group.items.some(([slug]) => slug === entry.id) ||
                       (group.id === "crm" && entry.id.startsWith("object-")),
                   )
-                  .sort(
-                    (a, b) =>
-                      preferences.entryOrder.indexOf(a.id) - preferences.entryOrder.indexOf(b.id),
-                  );
-                return (
-                  <SidebarGroup key={group.id} className={styles.group} data-hidden={hidden}>
-                    <div className={styles.sectionHead}>
-                      <button
-                        type="button"
-                        className={"sb-menu-button " + styles.trigger}
-                        aria-label={group.label}
-                        aria-expanded={open}
-                        aria-controls={panelId}
-                        onClick={() => setGroupOpen(group.id, !open)}
-                      >
-                        <span>{group.label}</span>
-                        <ChevronRight
-                          aria-hidden="true"
-                          className={styles.chevron}
-                          data-open={open}
-                          size={12}
-                        />
-                      </button>
-                      <div className={styles.sectionActions}>
-                        <Link
-                          prefetch={persistPreferences ? undefined : false}
-                          href={groupEntries[0]?.href ?? "/app/dashboard"}
-                          onClick={close}
-                          aria-label={"Ouvrir " + group.label}
-                          title={"Ouvrir " + group.label}
-                          className={styles.smallAction}
+                  .flatMap((entry) => [entry, ...(entry.children ?? [])]),
+              }))}
+              shortcuts={shortcutCatalog}
+              preferences={preferences}
+              onChange={savePreferences}
+            />
+          ) : (
+            <nav aria-label="Navigation principale">
+              {preferences.favorites.length > 0 && (
+                <SidebarGroup className={styles.group}>
+                  <button
+                    type="button"
+                    className={"sb-menu-button " + styles.trigger}
+                    aria-expanded={expanded.favorites ?? true}
+                    aria-controls="relay-nav-favorites"
+                    onClick={() => setGroupOpen("favorites", !(expanded.favorites ?? true))}
+                  >
+                    <span>Favoris</span>
+                    <ChevronRight
+                      className={styles.chevron}
+                      data-open={expanded.favorites ?? true}
+                      size={12}
+                    />
+                  </button>
+                  <ul
+                    className={styles.entryList}
+                    id="relay-nav-favorites"
+                    hidden={!(expanded.favorites ?? true)}
+                  >
+                    {preferences.favorites
+                      .map((id) => allEntries.find((entry) => entry.id === id))
+                      .filter((entry): entry is SidebarEntry => !!entry)
+                      .map(renderEntry)}
+                  </ul>
+                </SidebarGroup>
+              )}
+              {preferences.order
+                .map((id) => groups.find((group) => group.id === id))
+                .filter((group) => !!group)
+                .map((group) => {
+                  const active = currentGroup(path) === group.id;
+                  const open = expanded[group.id] ?? active;
+                  const hidden = preferences.hidden.includes(group.id);
+                  if (hidden) return null;
+                  const panelId = "relay-nav-" + group.id;
+                  const groupEntries = entries
+                    .filter(
+                      (entry) =>
+                        group.items.some(([slug]) => slug === entry.id) ||
+                        (group.id === "crm" && entry.id.startsWith("object-")),
+                    )
+                    .sort(
+                      (a, b) =>
+                        preferences.entryOrder.indexOf(a.id) - preferences.entryOrder.indexOf(b.id),
+                    );
+                  return (
+                    <SidebarGroup key={group.id} className={styles.group} data-hidden={hidden}>
+                      <div className={styles.sectionHead}>
+                        <button
+                          type="button"
+                          className={"sb-menu-button " + styles.trigger}
+                          aria-label={group.label}
+                          aria-expanded={open}
+                          aria-controls={panelId}
+                          onClick={() => setGroupOpen(group.id, !open)}
                         >
-                          <ArrowUpRight size={14} />
-                        </Link>
-                        <Dropdown.Root>
-                          <Dropdown.Trigger
+                          <span>{group.label}</span>
+                          <ChevronRight
+                            aria-hidden="true"
+                            className={styles.chevron}
+                            data-open={open}
+                            size={12}
+                          />
+                        </button>
+                        <div className={styles.sectionActions}>
+                          <Link
+                            prefetch={persistPreferences ? undefined : false}
+                            href={groupEntries[0]?.href ?? "/app/dashboard"}
+                            onClick={close}
+                            aria-label={"Ouvrir " + group.label}
+                            title={"Ouvrir " + group.label}
                             className={styles.smallAction}
-                            aria-label={"Ajouter un raccourci : " + group.label}
-                            title="Ajouter un raccourci"
                           >
-                            <Plus size={14} />
-                          </Dropdown.Trigger>
-                          <Dropdown.Portal>
-                            <Dropdown.Content
-                              className={"sb-dropdown " + styles.actionMenu}
-                              side="right"
-                              align="start"
-                              sideOffset={6}
-                              collisionPadding={8}
+                            <ArrowUpRight size={14} />
+                          </Link>
+                          <SidebarMenu>
+                            <Dropdown.Trigger
+                              className={styles.smallAction}
+                              aria-label={"Ajouter un raccourci : " + group.label}
+                              title="Ajouter un raccourci"
                             >
-                              <Dropdown.Label className="sb-dropdown-label">
-                                Ajouter aux favoris
-                              </Dropdown.Label>
-                              {groupEntries.map((entry) => (
-                                <Dropdown.CheckboxItem
-                                  key={entry.id}
+                              <Plus size={14} />
+                            </Dropdown.Trigger>
+                            <Dropdown.Portal>
+                              <SidebarMenuContent
+                                className={"sb-dropdown " + styles.actionMenu}
+                                side="right"
+                                align="start"
+                                sideOffset={28}
+                                collisionPadding={8}
+                              >
+                                <Dropdown.Label className="sb-dropdown-label">
+                                  Ajouter aux favoris
+                                </Dropdown.Label>
+                                {groupEntries.map((entry) => (
+                                  <Dropdown.CheckboxItem
+                                    key={entry.id}
+                                    className="sb-dropdown-item"
+                                    checked={preferences.favorites.includes(entry.id)}
+                                    onCheckedChange={() => toggleFavorite(entry.id)}
+                                  >
+                                    <entry.icon size={16} />
+                                    <span>{entry.label}</span>
+                                    <Dropdown.ItemIndicator>
+                                      <Check size={14} />
+                                    </Dropdown.ItemIndicator>
+                                  </Dropdown.CheckboxItem>
+                                ))}
+                              </SidebarMenuContent>
+                            </Dropdown.Portal>
+                          </SidebarMenu>
+                          <SidebarMenu>
+                            <Dropdown.Trigger
+                              className={styles.smallAction}
+                              aria-label={"Menu de la section : " + group.label}
+                              title="Ouvrir le menu"
+                            >
+                              <Ellipsis size={14} />
+                            </Dropdown.Trigger>
+                            <Dropdown.Portal>
+                              <SidebarMenuContent
+                                className={"sb-dropdown " + styles.actionMenu}
+                                side="right"
+                                align="start"
+                                sideOffset={6}
+                                collisionPadding={8}
+                              >
+                                <Dropdown.Label className="sb-dropdown-label">
+                                  {group.label}
+                                </Dropdown.Label>
+                                <Dropdown.Item
                                   className="sb-dropdown-item"
-                                  checked={preferences.favorites.includes(entry.id)}
-                                  onCheckedChange={() => toggleFavorite(entry.id)}
+                                  onSelect={() => setGroupOpen(group.id, !open)}
                                 >
-                                  <entry.icon size={16} />
-                                  <span>{entry.label}</span>
-                                  <Dropdown.ItemIndicator>
-                                    <Check size={14} />
-                                  </Dropdown.ItemIndicator>
-                                </Dropdown.CheckboxItem>
-                              ))}
-                            </Dropdown.Content>
-                          </Dropdown.Portal>
-                        </Dropdown.Root>
-                        <Dropdown.Root>
-                          <Dropdown.Trigger
-                            className={styles.smallAction}
-                            aria-label={"Menu de la section : " + group.label}
-                            title="Ouvrir le menu"
-                          >
-                            <Ellipsis size={14} />
-                          </Dropdown.Trigger>
-                          <Dropdown.Portal>
-                            <Dropdown.Content
-                              className={"sb-dropdown " + styles.actionMenu}
-                              side="right"
-                              align="start"
-                              sideOffset={6}
-                              collisionPadding={8}
-                            >
-                              <Dropdown.Label className="sb-dropdown-label">
-                                {group.label}
-                              </Dropdown.Label>
-                              <Dropdown.Item
-                                className="sb-dropdown-item"
-                                onSelect={() => setGroupOpen(group.id, !open)}
-                              >
-                                <ChevronRight size={16} />
-                                {open ? "Replier la section" : "Déplier la section"}
-                              </Dropdown.Item>
-                              <Dropdown.Separator className="sb-separator" />
-                              <Dropdown.Item
-                                className="sb-dropdown-item"
-                                disabled={preferences.order.indexOf(group.id) === 0}
-                                onSelect={() => moveGroup(group.id, -1)}
-                              >
-                                <ArrowUp size={16} />
-                                Remonter
-                              </Dropdown.Item>
-                              <Dropdown.Item
-                                className="sb-dropdown-item"
-                                disabled={
-                                  preferences.order.indexOf(group.id) ===
-                                  preferences.order.length - 1
-                                }
-                                onSelect={() => moveGroup(group.id, 1)}
-                              >
-                                <ArrowDown size={16} />
-                                Descendre
-                              </Dropdown.Item>
-                              <Dropdown.Separator className="sb-separator" />
-                              <Dropdown.Item
-                                className="sb-dropdown-item"
-                                onSelect={() => setAllGroups(true)}
-                              >
-                                <ChevronsUpDown size={16} />
-                                Tout déplier
-                              </Dropdown.Item>
-                              <Dropdown.Item
-                                className="sb-dropdown-item"
-                                onSelect={() => setAllGroups(false)}
-                              >
-                                <ChevronsUpDown size={16} />
-                                Tout replier
-                              </Dropdown.Item>
-                              <Dropdown.Item
-                                className="sb-dropdown-item"
-                                onSelect={() => setCustomizing(true)}
-                              >
-                                <SlidersHorizontal size={16} />
-                                Personnaliser la barre latérale
-                              </Dropdown.Item>
-                            </Dropdown.Content>
-                          </Dropdown.Portal>
-                        </Dropdown.Root>
+                                  <ChevronRight size={16} />
+                                  {open ? "Replier la section" : "Déplier la section"}
+                                </Dropdown.Item>
+                                <Dropdown.Separator className="sb-separator" />
+                                <Dropdown.Item
+                                  className="sb-dropdown-item"
+                                  disabled={preferences.order.indexOf(group.id) === 0}
+                                  onSelect={() => moveGroup(group.id, -1)}
+                                >
+                                  <ArrowUp size={16} />
+                                  Remonter
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                  className="sb-dropdown-item"
+                                  disabled={
+                                    preferences.order.indexOf(group.id) ===
+                                    preferences.order.length - 1
+                                  }
+                                  onSelect={() => moveGroup(group.id, 1)}
+                                >
+                                  <ArrowDown size={16} />
+                                  Descendre
+                                </Dropdown.Item>
+                                <Dropdown.Separator className="sb-separator" />
+                                <Dropdown.Item
+                                  className="sb-dropdown-item"
+                                  onSelect={() => setAllGroups(true)}
+                                >
+                                  <ChevronsUpDown size={16} />
+                                  Tout déplier
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                  className="sb-dropdown-item"
+                                  onSelect={() => setAllGroups(false)}
+                                >
+                                  <ChevronsUpDown size={16} />
+                                  Tout replier
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                  className="sb-dropdown-item"
+                                  onSelect={() => setCustomizing(true)}
+                                >
+                                  <SlidersHorizontal size={16} />
+                                  Personnaliser la barre latérale
+                                </Dropdown.Item>
+                              </SidebarMenuContent>
+                            </Dropdown.Portal>
+                          </SidebarMenu>
+                        </div>
                       </div>
-                    </div>
-                    <SidebarGroupContent id={panelId} hidden={!open} className={styles.content}>
-                      <ul className={styles.entryList}>
-                        {groupEntries
-                          .filter((entry) => !preferences.hiddenEntries.includes(entry.id))
-                          .map(renderEntry)}
-                      </ul>
-                    </SidebarGroupContent>
-                  </SidebarGroup>
-                );
-              })}
-          </nav>
-        )}
-      </SidebarContent>
-      <SidebarFooter>
-        <button
-          type="button"
-          className={customizing ? styles.doneButton : styles.settingsLink}
-          aria-expanded={customizing}
-          onClick={() => setCustomizing(!customizing)}
-        >
-          {customizing ? <Check size={16} /> : <SlidersHorizontal size={18} />}
-          <span>{customizing ? "Terminé" : "Personnaliser la barre latérale"}</span>
-        </button>
-        {!customizing && (
-          <Link
-            prefetch={persistPreferences ? undefined : false}
-            href="/app/settings"
-            className={styles.settingsLink}
-            aria-label="Paramètres"
-            aria-current={path === "/app/settings" ? "page" : undefined}
-            onClick={close}
+                      <SidebarGroupContent id={panelId} hidden={!open} className={styles.content}>
+                        <ul className={styles.entryList}>
+                          {groupEntries
+                            .filter((entry) => !preferences.hiddenEntries.includes(entry.id))
+                            .map(renderEntry)}
+                        </ul>
+                      </SidebarGroupContent>
+                    </SidebarGroup>
+                  );
+                })}
+            </nav>
+          )}
+        </SidebarContent>
+        <SidebarFooter>
+          <button
+            type="button"
+            className={customizing ? styles.doneButton : styles.settingsLink}
+            aria-expanded={customizing}
+            onClick={() => setCustomizing(!customizing)}
           >
-            <Settings size={18} />
-            <span>Paramètres</span>
-          </Link>
-        )}
-        <div className={styles.bottomBar}>
-          <Dropdown.Root>
-            <Dropdown.Trigger
-              className={"sb-workspace-button " + styles.workspaceButton}
-              aria-label={"Changer d’espace : " + workspace.name}
+            {customizing ? <Check size={16} /> : <SlidersHorizontal size={18} />}
+            <span>{customizing ? "Terminé" : "Personnaliser la barre latérale"}</span>
+          </button>
+          {!customizing && (
+            <Link
+              prefetch={persistPreferences ? undefined : false}
+              href="/app/settings"
+              className={styles.settingsLink}
+              aria-label="Paramètres"
+              aria-current={path === "/app/settings" ? "page" : undefined}
+              onClick={close}
             >
-              <span className={styles.workspaceAvatar} aria-hidden="true">
-                {workspace.name.slice(0, 1).toUpperCase()}
-              </span>
-              <span className="sb-workspace-copy">
-                <strong>{workspace.name}</strong>
-              </span>
-              <ChevronDown size={14} className="sb-workspace-chevron" />
-            </Dropdown.Trigger>
-            <Dropdown.Portal>
-              <Dropdown.Content
-                className="sb-dropdown"
-                data-mobile={isMobile ? "true" : undefined}
-                side="top"
-                align="start"
-                sideOffset={8}
-                collisionPadding={12}
-                sticky="always"
+              <Settings size={18} />
+              <span>Paramètres</span>
+            </Link>
+          )}
+          <div className={styles.bottomBar}>
+            <SidebarMenu>
+              <Dropdown.Trigger
+                className={"sb-workspace-button " + styles.workspaceButton}
+                aria-label={"Changer d’espace : " + workspace.name}
               >
-                <Dropdown.Label className="sb-dropdown-label">
-                  Vos espaces de travail
-                </Dropdown.Label>
-                {workspaces.map((w) => (
-                  <Dropdown.Item
-                    key={w.id}
-                    className="sb-dropdown-item"
-                    onSelect={() => {
-                      switchWorkspace(w.id);
-                      close();
-                    }}
-                  >
-                    <span className="sb-workspace-avatar">{w.name.slice(0, 1).toUpperCase()}</span>
-                    <span>{w.name}</span>
-                    {w.id === workspace.id && <Check size={15} />}
+                <span className={styles.workspaceAvatar} aria-hidden="true">
+                  {workspace.name.slice(0, 1).toUpperCase()}
+                </span>
+                <span className="sb-workspace-copy">
+                  <strong>{workspace.name}</strong>
+                </span>
+                <ChevronDown size={14} className="sb-workspace-chevron" />
+              </Dropdown.Trigger>
+              <Dropdown.Portal>
+                <SidebarMenuContent
+                  className="sb-dropdown"
+                  data-mobile={isMobile ? "true" : undefined}
+                  side="top"
+                  align="start"
+                  sideOffset={8}
+                  collisionPadding={12}
+                  sticky="always"
+                >
+                  <Dropdown.Label className="sb-dropdown-label">
+                    Vos espaces de travail
+                  </Dropdown.Label>
+                  {workspaces.map((w) => (
+                    <Dropdown.Item
+                      key={w.id}
+                      className="sb-dropdown-item"
+                      onSelect={() => {
+                        switchWorkspace(w.id);
+                        close();
+                      }}
+                    >
+                      <span className="sb-workspace-avatar">
+                        {w.name.slice(0, 1).toUpperCase()}
+                      </span>
+                      <span>{w.name}</span>
+                      {w.id === workspace.id && <Check size={15} />}
+                    </Dropdown.Item>
+                  ))}
+                  <Dropdown.Separator className="sb-separator" />
+                  <Dropdown.Item asChild>
+                    <Link
+                      prefetch={persistPreferences ? undefined : false}
+                      className="sb-dropdown-item"
+                      href="/app/settings"
+                      onClick={close}
+                    >
+                      <Settings size={15} />
+                      Gérer l’espace
+                    </Link>
                   </Dropdown.Item>
-                ))}
-                <Dropdown.Separator className="sb-separator" />
-                <Dropdown.Item asChild>
-                  <Link
-                    prefetch={persistPreferences ? undefined : false}
-                    className="sb-dropdown-item"
-                    href="/app/settings"
-                    onClick={close}
-                  >
-                    <Settings size={15} />
-                    Gérer l’espace
-                  </Link>
-                </Dropdown.Item>
-              </Dropdown.Content>
-            </Dropdown.Portal>
-          </Dropdown.Root>
-          <Link
-            prefetch={persistPreferences ? undefined : false}
-            href="/app/integrations"
-            className={styles.iconButton}
-            aria-label="Intégrations"
-            title="Intégrations"
-            onClick={close}
-          >
-            <Plug size={18} />
-          </Link>
-          <Link
-            prefetch={persistPreferences ? undefined : false}
-            href="/doc"
-            className={styles.iconButton}
-            aria-label="Aide"
-            title="Aide"
-            onClick={close}
-          >
-            <CircleHelp size={18} />
-          </Link>
-          <Dropdown.Root>
-            <Dropdown.Trigger
+                </SidebarMenuContent>
+              </Dropdown.Portal>
+            </SidebarMenu>
+            <Link
+              prefetch={persistPreferences ? undefined : false}
+              href="/app/integrations"
               className={styles.iconButton}
-              aria-label="Ouvrir le menu de mon compte"
-              title={user.email ?? "Mon compte"}
+              aria-label="Intégrations"
+              title="Intégrations"
+              onClick={close}
             >
-              <LayoutGrid size={18} />
-            </Dropdown.Trigger>
-            <Dropdown.Portal>
-              <Dropdown.Content
-                className="sb-dropdown"
-                data-mobile={isMobile ? "true" : undefined}
-                side="top"
-                align={isMobile ? "start" : "end"}
-                sideOffset={isMobile ? 6 : 9}
-                collisionPadding={12}
-                sticky="always"
+              <Plug size={18} />
+            </Link>
+            <Link
+              prefetch={persistPreferences ? undefined : false}
+              href="/doc"
+              className={styles.iconButton}
+              aria-label="Aide"
+              title="Aide"
+              onClick={close}
+            >
+              <CircleHelp size={18} />
+            </Link>
+            <SidebarMenu>
+              <Dropdown.Trigger
+                className={styles.iconButton}
+                aria-label="Ouvrir le menu de mon compte"
+                title={user.email ?? "Mon compte"}
               >
-                <Dropdown.Label className="sb-dropdown-label">{user.email}</Dropdown.Label>
-                <Dropdown.Item asChild>
-                  <Link
-                    prefetch={persistPreferences ? undefined : false}
-                    className="sb-dropdown-item"
-                    href="/app/settings"
-                    onClick={close}
-                  >
-                    <Settings size={15} />
-                    Paramètres de mon espace
-                  </Link>
-                </Dropdown.Item>
-                <Dropdown.Item asChild>
-                  <Link
-                    prefetch={persistPreferences ? undefined : false}
-                    className="sb-dropdown-item"
-                    href="/portal"
-                    onClick={close}
-                  >
-                    <Globe size={15} />
-                    Mes portails clients
-                  </Link>
-                </Dropdown.Item>
-                <Dropdown.Separator className="sb-separator" />
-                <Dropdown.Item className="sb-dropdown-item sb-signout" onSelect={onSignOut}>
-                  <LogOut size={15} />
-                  Se déconnecter
-                </Dropdown.Item>
-              </Dropdown.Content>
-            </Dropdown.Portal>
-          </Dropdown.Root>
-        </div>
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
+                <LayoutGrid size={18} />
+              </Dropdown.Trigger>
+              <Dropdown.Portal>
+                <SidebarMenuContent
+                  className="sb-dropdown"
+                  data-mobile={isMobile ? "true" : undefined}
+                  side="top"
+                  align={isMobile ? "start" : "end"}
+                  sideOffset={isMobile ? 6 : 9}
+                  collisionPadding={12}
+                  sticky="always"
+                >
+                  <Dropdown.Label className="sb-dropdown-label">{user.email}</Dropdown.Label>
+                  <Dropdown.Item asChild>
+                    <Link
+                      prefetch={persistPreferences ? undefined : false}
+                      className="sb-dropdown-item"
+                      href="/app/settings"
+                      onClick={close}
+                    >
+                      <Settings size={15} />
+                      Paramètres de mon espace
+                    </Link>
+                  </Dropdown.Item>
+                  <Dropdown.Item asChild>
+                    <Link
+                      prefetch={persistPreferences ? undefined : false}
+                      className="sb-dropdown-item"
+                      href="/portal"
+                      onClick={close}
+                    >
+                      <Globe size={15} />
+                      Mes portails clients
+                    </Link>
+                  </Dropdown.Item>
+                  <Dropdown.Separator className="sb-separator" />
+                  <Dropdown.Item className="sb-dropdown-item sb-signout" onSelect={onSignOut}>
+                    <LogOut size={15} />
+                    Se déconnecter
+                  </Dropdown.Item>
+                </SidebarMenuContent>
+              </Dropdown.Portal>
+            </SidebarMenu>
+          </div>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+    </SidebarMenuProvider>
   );
 }

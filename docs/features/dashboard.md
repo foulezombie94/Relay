@@ -4,7 +4,9 @@ Livraison du 10 octobre 2026. Le dashboard reprend la composition par blocs de [
 
 ## Composition
 
-La vue d’ensemble présente quatre indicateurs, une évolution des ventes, un board d’opportunités, les tâches en retard, un agenda et une note. Les modèles Commercial et Activité restent disponibles. Une page peut aussi démarrer avec un bloc de notes puis être composée librement.
+La vue d’ensemble présente quatre grands widgets sur deux colonnes : pipeline commercial (montant, nombre de fiches et répartition par étape), galerie des dernières opportunités, tâches à suivre et chronologie des échanges. Les modèles Commercial et Activité et les configurations déjà enregistrées restent disponibles. Une page peut aussi démarrer avec un bloc de notes puis être composée librement.
+
+L’en-tête compact contient une recherche de widgets, insensible aux accents et à la casse. Cette recherche masque uniquement les blocs affichés ; elle ne change ni les filtres des sources ni la configuration enregistrée. Ajouter un widget et Personnaliser ouvrent l’édition existante, avec sauvegarde explicite. Les options de partage et de présentation sont regroupées ; les tableaux enregistrés et les exports restent accessibles dans « Tableaux enregistrés et options ». Les cartes suivent le thème clair ou sombre de l’espace. La galerie utilise des monogrammes, sans inventer d’images CRM. `/demo/dashboard` permet une vérification sur données fictives.
 
 La bibliothèque propose **25 présentations et 32 modèles**, avec recherche et catégories :
 
@@ -13,7 +15,9 @@ La bibliothèque propose **25 présentations et 32 modèles**, avec recherche et
 - Vues : tableau de valeurs, liste de fiches, board, calendrier, chronologie et galerie.
 - Contenu : note, titre de section et raccourcis internes.
 
-Un dashboard contient de 1 à 24 widgets. Le mode Modifier permet ajout, configuration, duplication, suppression, déplacement à la souris ou au clavier, quatre largeurs (quart, tiers, moitié, ligne entière) et trois hauteurs. Enregistrer persiste explicitement les changements ; Annuler conserve la configuration précédente. Les couvertures optionnelles se choisissent dans Nom et partage. Un menu par widget ouvre sa configuration ou une vue agrandie.
+Un dashboard contient de 1 à 24 widgets. Personnaliser ouvre le mode édition, identifié par un badge dans l’en-tête, un bandeau de modifications non enregistrées et des contours autour des widgets. Ce mode permet ajout, configuration, duplication, suppression, déplacement à la souris ou au clavier, quatre largeurs (quart, tiers, moitié, ligne entière) et trois hauteurs. Enregistrer persiste explicitement les changements ; Annuler conserve la configuration précédente. Les couvertures optionnelles se choisissent dans Nom et partage. Un menu par widget ouvre sa configuration ou une vue agrandie.
+
+Sur le dashboard, Ctrl+K sous Windows/Linux ou ⌘K sur Mac place le focus dans la recherche de widgets en haut. Le raccourci reste disponible pour la recherche générale sur les autres pages ; il ne vole pas le focus d’une fenêtre modale du dashboard.
 
 Les blocs de texte sont du texte simple, sans HTML, iframe ni script. Les destinations des raccourcis appartiennent à une liste fermée de pages CRM. Les illustrations de la bibliothèque sont identifiées comme telles ; les données du dashboard viennent des lectures CRM autorisées.
 

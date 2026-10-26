@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import { ChevronRight, Copy, Ellipsis, ExternalLink, Star, type LucideIcon } from "lucide-react";
 import styles from "./app-sidebar.module.css";
+import { SidebarMenu, SidebarMenuContent } from "./sidebar-menu";
 
 export type SidebarEntry = {
   id: string;
@@ -67,7 +68,7 @@ export function SidebarEntryRow({
             <ChevronRight size={12} data-open={open} />
           </button>
         )}
-        <Dropdown.Root onOpenChange={() => setCopyState("")}>
+        <SidebarMenu onOpenChange={() => setCopyState("")}>
           <Dropdown.Trigger
             className={styles.entryMore}
             aria-label={"Actions : " + entry.label}
@@ -76,7 +77,7 @@ export function SidebarEntryRow({
             <Ellipsis size={16} />
           </Dropdown.Trigger>
           <Dropdown.Portal>
-            <Dropdown.Content
+            <SidebarMenuContent
               className={"sb-dropdown " + styles.actionMenu}
               side="right"
               align="start"
@@ -122,9 +123,9 @@ export function SidebarEntryRow({
                   {copyState}
                 </span>
               )}
-            </Dropdown.Content>
+            </SidebarMenuContent>
           </Dropdown.Portal>
-        </Dropdown.Root>
+        </SidebarMenu>
       </div>
       {!!entry.children?.length && (
         <ul id={panelId} hidden={!open} className={styles.entryChildren}>

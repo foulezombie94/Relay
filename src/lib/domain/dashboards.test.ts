@@ -26,6 +26,18 @@ describe("customizable dashboards", () => {
     expect(d.settings.period).toBe("all");
     expect(d.visibility).toBe("private");
   });
+  it("composes the overview as four half-width widgets bound to the correct sources", () => {
+    const id = "00000000-0000-4000-8000-000000000001";
+    const overview = dashboardTemplate("management", id);
+    expect(overview.config.map((tile) => [tile.visual, tile.kind, tile.size])).toEqual([
+      ["table", "record", "medium"],
+      ["gallery", "record", "medium"],
+      ["list", "task", "medium"],
+      ["timeline", "email", "medium"],
+    ]);
+    expect(overview.config.slice(0, 2).every((tile) => tile.object_id === id)).toBe(true);
+    expect(overview.config.slice(2).every((tile) => tile.object_id === undefined)).toBe(true);
+  });
   it("rejects invalid source metrics and injected properties", () => {
     expect(reportTile.safeParse(defaultTile({ kind: "email", metric: "amount" })).success).toBe(
       false,

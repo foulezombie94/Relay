@@ -23,6 +23,7 @@ import {
   type SidebarPreferences,
 } from "./sidebar-preferences";
 import styles from "./sidebar-customizer.module.css";
+import { SidebarMenu, SidebarMenuContent } from "./sidebar-menu";
 
 type Section = { id: string; label: string; icon: LucideIcon; entries: SidebarEntry[] };
 type Kind = "section" | "shortcut" | "entry";
@@ -110,13 +111,13 @@ export function SidebarCustomizer({
         : shortcuts.filter((shortcut) => !preferences.shortcuts.includes(shortcut.id));
     const label = kind === "section" ? "Ajouter une section" : "Ajouter un onglet";
     return (
-      <Dropdown.Root onOpenChange={() => setQuery("")}>
+      <SidebarMenu onOpenChange={() => setQuery("")}>
         <Dropdown.Trigger className={styles.add}>
           <Plus size={16} />
           <span>{label}</span>
         </Dropdown.Trigger>
         <Dropdown.Portal>
-          <Dropdown.Content
+          <SidebarMenuContent
             className={"sb-dropdown " + styles.picker}
             side="right"
             align="start"
@@ -169,9 +170,9 @@ export function SidebarCustomizer({
               !source.some((item) =>
                 item.label.toLocaleLowerCase("fr").includes(query.toLocaleLowerCase("fr")),
               ) && <p className={styles.empty}>Aucun résultat.</p>}
-          </Dropdown.Content>
+          </SidebarMenuContent>
         </Dropdown.Portal>
-      </Dropdown.Root>
+      </SidebarMenu>
     );
   }
   const visibleSections = preferences.order.filter((id) => !preferences.hidden.includes(id));
@@ -245,7 +246,7 @@ export function SidebarCustomizer({
                     <span>{section.label}</span>
                     <ChevronRight size={12} data-open={open} />
                   </button>
-                  <Dropdown.Root>
+                  <SidebarMenu>
                     <Dropdown.Trigger
                       className={styles.more}
                       aria-label={"Options de personnalisation : " + section.label}
@@ -253,7 +254,7 @@ export function SidebarCustomizer({
                       <Ellipsis size={16} />
                     </Dropdown.Trigger>
                     <Dropdown.Portal>
-                      <Dropdown.Content
+                      <SidebarMenuContent
                         className="sb-dropdown"
                         side="right"
                         align="start"
@@ -302,9 +303,9 @@ export function SidebarCustomizer({
                           <Eye size={16} />
                           Afficher tous les onglets
                         </Dropdown.Item>
-                      </Dropdown.Content>
+                      </SidebarMenuContent>
                     </Dropdown.Portal>
-                  </Dropdown.Root>
+                  </SidebarMenu>
                   <button
                     type="button"
                     className={styles.remove}

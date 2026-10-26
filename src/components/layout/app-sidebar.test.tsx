@@ -2,7 +2,7 @@
 import React from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { SidebarProvider } from "../ui/sidebar";
+import { Sidebar, SidebarProvider, SidebarTrigger } from "../ui/sidebar";
 import { AppSidebarView } from "./app-sidebar-view";
 import { readSidebarPreferences } from "./sidebar-preferences";
 import type { Workspace } from "@/lib/domain/types";
@@ -63,6 +63,26 @@ it("opens the actual child route and lets the user fold it without navigating", 
   expect(screen.getByRole("link", { name: "Opportunités" }).getAttribute("href")).toBe(
     "/app/deals",
   );
+});
+it("keeps the collapsed sidebar closed on hover and opens it on click", () => {
+  render(
+    <SidebarProvider defaultOpen={false} interactive={false}>
+      <SidebarTrigger />
+      <Sidebar>
+        <span>Navigation</span>
+      </Sidebar>
+    </SidebarProvider>,
+  );
+  const trigger = screen.getByRole("button", { name: "Développer le menu" });
+  const sidebar = document.querySelector('[data-slot="sidebar"]')!;
+  fireEvent.mouseEnter(trigger);
+  fireEvent.mouseEnter(sidebar.querySelector(".sb-container")!);
+  expect(sidebar.getAttribute("data-peek")).toBeNull();
+  expect(sidebar.getAttribute("data-state")).toBe("collapsed");
+  expect(sidebar.querySelector(".sb-container")?.hasAttribute("inert")).toBe(true);
+  fireEvent.click(trigger);
+  expect(sidebar.getAttribute("data-state")).toBe("expanded");
+  expect(sidebar.querySelector(".sb-container")?.hasAttribute("inert")).toBe(false);
 });
 it("opens the search overlay from the sidebar click and Ctrl+K without navigating", () => {
   const onSearch = vi.fn();
@@ -125,6 +145,31 @@ it("persists a folded group and keeps all other section controls usable", () => 
   expect(screen.getByRole("button", { name: "Communication" }).getAttribute("aria-expanded")).toBe(
     "true",
   );
+});
+it("replaces the previous sidebar menu when opening plus, section actions or a tab menu", async () => {
+  show();
+  const addCommunication = screen.getByRole("button", {
+    name: "Ajouter un raccourci : Communication",
+  });
+  const sectionCommunication = screen.getByRole("button", {
+    name: "Menu de la section : Communication",
+  });
+  const addCrm = screen.getByRole("button", { name: "Ajouter un raccourci : CRM" });
+  const companyActions = screen.getByRole("button", { name: "Actions : Entreprises" });
+  fireEvent.keyDown(addCommunication, { key: "Enter" });
+  expect(await screen.findByRole("menuitemcheckbox", { name: "Messages" })).toBeDefined();
+  fireEvent.keyDown(sectionCommunication, { key: "Enter" });
+  expect(await screen.findByRole("menuitem", { name: "Tout déplier" })).toBeDefined();
+  expect(screen.queryByRole("menuitemcheckbox", { name: "Messages", hidden: true })).toBeNull();
+  expect(screen.getAllByRole("menu", { hidden: true })).toHaveLength(1);
+  fireEvent.keyDown(addCrm, { key: "Enter" });
+  expect(await screen.findByRole("menuitemcheckbox", { name: "Entreprises" })).toBeDefined();
+  expect(screen.queryByRole("menuitem", { name: "Tout déplier", hidden: true })).toBeNull();
+  fireEvent.keyDown(companyActions, { key: "Enter" });
+  expect(await screen.findByRole("menuitem", { name: "Copier le lien" })).toBeDefined();
+  expect(screen.getAllByRole("menu", { hidden: true })).toHaveLength(1);
+  fireEvent.keyDown(screen.getByRole("menu"), { key: "Escape" });
+  expect(screen.queryByRole("menu")).toBeNull();
 });
 it("adds and removes a favorite without changing or duplicating its target", async () => {
   show();

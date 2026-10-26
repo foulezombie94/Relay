@@ -15,8 +15,6 @@ type SidebarContextValue = {
   toggleSidebar: () => void;
   width: number;
   setWidth: (width: number) => void;
-  peek: boolean;
-  setPeek: React.Dispatch<React.SetStateAction<boolean>>;
 };
 const SidebarContext = React.createContext<SidebarContextValue | null>(null);
 export function useSidebar() {
@@ -42,7 +40,6 @@ export function SidebarProvider({
   const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
   const [openMobile, setOpenMobile] = React.useState(false);
   const [width, setWidthState] = React.useState(270);
-  const [peek, setPeek] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
   const open = controlledOpen ?? internalOpen;
   const setWidth = React.useCallback(
@@ -69,27 +66,6 @@ export function SidebarProvider({
       /* Browser preferences are optional. */
     }
   }, [interactive, setWidth]);
-  React.useEffect(() => {
-    if (open || !peek) return;
-    function dismiss(event: PointerEvent) {
-      if (
-        event.target instanceof Element &&
-        !event.target.closest(
-          '[data-slot="sidebar"],[data-slot="sidebar-trigger"],[data-radix-popper-content-wrapper]',
-        )
-      )
-        setPeek(false);
-    }
-    function escape(event: KeyboardEvent) {
-      if (event.key === "Escape") setPeek(false);
-    }
-    document.addEventListener("pointerdown", dismiss);
-    document.addEventListener("keydown", escape);
-    return () => {
-      document.removeEventListener("pointerdown", dismiss);
-      document.removeEventListener("keydown", escape);
-    };
-  }, [open, peek]);
   React.useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
     const update = () => {
@@ -144,8 +120,6 @@ export function SidebarProvider({
         toggleSidebar,
         width,
         setWidth,
-        peek,
-        setPeek,
       }}
     >
       <Tooltip.Provider delayDuration={120}>
@@ -182,7 +156,7 @@ export function Sidebar({
   variant?: "sidebar" | "floating" | "inset";
   collapsible?: "offcanvas" | "icon" | "none";
 }) {
-  const { isMobile, openMobile, setOpenMobile, state, peek, setPeek } = useSidebar();
+  const { isMobile, openMobile, setOpenMobile, state } = useSidebar();
   const floating = state === "collapsed" && collapsible === "offcanvas";
   const content = (
     <div data-sidebar="sidebar" className={"sb-panel " + className} dir={dir} {...props}>
@@ -222,26 +196,9 @@ export function Sidebar({
       data-collapsible={state === "collapsed" ? collapsible : ""}
       dir={dir}
       className={"sb-desktop " + styles.desktop}
-      data-peek={floating && peek ? "true" : undefined}
     >
       <div className="sb-spacer" />
-      {floating && (
-        <div className={styles.hoverEdge} onMouseEnter={() => setPeek(true)} aria-hidden="true" />
-      )}
-      <div
-        className={"sb-container " + styles.container}
-        inert={floating && !peek}
-        onMouseEnter={() => {
-          if (floating) setPeek(true);
-        }}
-        onMouseLeave={(event) => {
-          if (!floating) return;
-          const target = event.relatedTarget;
-          if (target instanceof Element && target.closest("[data-radix-popper-content-wrapper]"))
-            return;
-          setPeek(false);
-        }}
-      >
+      <div className={"sb-container " + styles.container} inert={floating}>
         {content}
       </div>
     </div>
@@ -255,7 +212,7 @@ export function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<"button">) {
-  const { toggleSidebar, isMobile, open, openMobile, setPeek } = useSidebar();
+  const { toggleSidebar, isMobile, open, openMobile } = useSidebar();
   return (
     <button
       type="button"
@@ -271,9 +228,6 @@ export function SidebarTrigger({
       }
       aria-expanded={isMobile ? openMobile : open}
       title="Afficher / réduire le menu (Ctrl+B)"
-      onMouseEnter={() => {
-        if (!open && !isMobile) setPeek(true);
-      }}
       className={"sb-trigger " + className}
       onClick={(e) => {
         onClick?.(e);

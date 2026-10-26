@@ -9,6 +9,9 @@ import {
   Circle,
   CheckCircle2,
   FileText,
+  Building2,
+  Mail,
+  Video,
 } from "lucide-react";
 import { calendarCells, entryDate } from "@/lib/domain/dashboard-widgets";
 import {
@@ -18,6 +21,7 @@ import {
   type ReportTile,
 } from "@/lib/domain/dashboards";
 import styles from "./dashboard.module.css";
+import boardStyles from "./board.module.css";
 
 export type EntryPageRequest = (options: {
   cursor: string | null;
@@ -290,9 +294,55 @@ export function RecordWidget({
           ))}
         </div>
       ) : (
-        <div className={tile.visual === "gallery" ? styles.gallery : styles.entryList}>
-          {rows.map((entry) => (
-            <div key={entry.id}>{open(entry)}</div>
+        <div className={tile.visual === "gallery" ? boardStyles.gallery : styles.entryList}>
+          {rows.map((entry, index) => (
+            <div key={entry.id}>
+              {tile.visual === "gallery" ? (
+                <button
+                  className={boardStyles.galleryCard}
+                  onClick={() => onOpen(entry)}
+                  title={"Ouvrir " + entry.title}
+                >
+                  <span
+                    className={boardStyles.galleryCover}
+                    data-tone={index % 6}
+                    aria-hidden="true"
+                  >
+                    {tile.kind === "record" ? (
+                      <>
+                        <Building2 size={18} />
+                        <b>
+                          {(entry.title || "Sans titre")
+                            .split(/\s+/)
+                            .slice(0, 2)
+                            .map((word) => word[0])
+                            .join("")
+                            .toLocaleUpperCase("fr")}
+                        </b>
+                      </>
+                    ) : tile.kind === "email" ? (
+                      <Mail size={36} />
+                    ) : tile.kind === "meeting" ? (
+                      <Video size={36} />
+                    ) : (
+                      <CheckCircle2 size={36} />
+                    )}
+                    <ArrowUpRight size={15} className={boardStyles.galleryOpen} />
+                  </span>
+                  <strong>{entry.title || "Sans titre"}</strong>
+                  <span className={boardStyles.galleryMeta}>
+                    {statusLabel(entry.status) ?? entry.stage ?? dateLabel(entry)}
+                  </span>
+                  <span className={boardStyles.galleryAmount}>
+                    {entry.currency && entry.amount !== null
+                      ? formatDashboardValue(entry.amount, "amount", entry.currency)
+                      : dateLabel(entry)}
+                  </span>
+                </button>
+              ) : (
+                open(entry)
+              )}
+            </div>
           ))}
         </div>
       )}

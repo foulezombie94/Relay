@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import * as Popover from "@radix-ui/react-popover";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,8 +19,7 @@ import {
   Printer,
   LayoutDashboard,
   Filter,
-  LockKeyhole,
-  Users,
+  MoreHorizontal,
   Check,
   Share2,
   Presentation,
@@ -46,11 +46,13 @@ import {
 } from "@/lib/domain/dashboards";
 import { tileFromPreset } from "@/lib/domain/dashboard-widgets";
 import { DashboardWidget } from "./widget";
+import { DashboardHeader, DashboardEditNotice, matchesWidgetSearch } from "./dashboard-header";
 import { SlideViewer } from "../ui/slide-viewer";
 import { WidgetEditor } from "./editor";
 import { WidgetLibrary } from "./widget-library";
 import { WidgetMenu, WidgetResize } from "./widget-menu";
 import styles from "./dashboard.module.css";
+import boardStyles from "./board.module.css";
 type Preference = { dashboard_id: string; favorite: boolean; home: boolean };
 type Detail = {
   data: {
@@ -94,6 +96,7 @@ function DashboardWorkspace() {
   const [library, setLibrary] = useState(false),
     [settingsOpen, setSettingsOpen] = useState(false),
     [deleteOpen, setDeleteOpen] = useState(false);
+  const [widgetSearch, setWidgetSearch] = useState("");
   const [widgetLibrary, setWidgetLibrary] = useState(false),
     [filtersOpen, setFiltersOpen] = useState(false),
     [fullscreen, setFullscreen] = useState<number | null>(null),
@@ -252,63 +255,75 @@ function DashboardWorkspace() {
     toast.success("Lien copié — l’accès reste soumis aux permissions de l’espace.");
   }
   return (
-    <main className={styles.page} data-relay-dashboard>
+    <main
+      className={`${styles.page} ${boardStyles.canvas}`}
+      data-relay-dashboard
+      data-editing={!!draft}
+    >
       {filters.cover && filters.cover !== "none" && (
         <div className={styles.cover} data-cover={filters.cover} aria-hidden="true" />
       )}
-      <div className={styles.heading}>
-        <div className={styles.pageTitle}>
-          <span className={styles.pageIcon}>
-            <LayoutDashboard size={27} />
-          </span>
-          <div>
-            <div className={styles.eyebrow}>
-              DASHBOARD{" "}
-              <span>
-                {config.visibility === "workspace" ? (
-                  <>
-                    <Users size={11} />
-                    Partagé avec l’espace
-                  </>
-                ) : (
-                  <>
-                    <LockKeyhole size={11} />
-                    Privé
-                  </>
-                )}
-              </span>
-            </div>
-            <h1>{config.name}</h1>
-            <p>{config.description}</p>
-          </div>
-        </div>
+      <DashboardHeader
+        editing={!!draft}
+        title={selectedId || draft ? config.name : "Tableau de bord"}
+        search={widgetSearch}
+        onSearch={setWidgetSearch}
+      >
         <div className={styles.actions}>
-          <button
-            className="button"
-            disabled={!canReadConfiguration || results.isError || !results.data?.data.tiles.length}
-            onClick={() => setFullscreen(0)}
-          >
-            <Presentation size={15} />
-            Présenter
-          </button>
           {canEdit && (
             <button
               className="button"
+              disabled={!canReadConfiguration || config.config.length >= 24}
               onClick={() => {
                 if (!draft) beginEdit();
-                setSettingsOpen(true);
+                setWidgetLibrary(true);
               }}
             >
-              <Share2 size={14} />
-              Partager
+              <Plus size={15} /> Ajouter un widget
             </button>
           )}
-          <button className="button" onClick={() => setLibrary(true)} disabled={!writable}>
-            <Plus size={15} /> Nouveau
-          </button>
+          <Popover.Root>
+            <Popover.Trigger className="icon-button" aria-label="Options du tableau de bord">
+              <MoreHorizontal size={18} />
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content className={boardStyles.boardOptions} align="end" sideOffset={8}>
+                <strong>Tableau de bord</strong>
+                <p>{config.description}</p>
+                <small>
+                  {config.visibility === "workspace" ? "Partagé avec l’espace" : "Privé"}
+                </small>
+                <button
+                  className="button"
+                  disabled={
+                    !canReadConfiguration || results.isError || !results.data?.data.tiles.length
+                  }
+                  onClick={() => setFullscreen(0)}
+                >
+                  <Presentation size={15} />
+                  Présenter
+                </button>
+                {canEdit && (
+                  <button
+                    className="button"
+                    onClick={() => {
+                      if (!draft) beginEdit();
+                      setSettingsOpen(true);
+                    }}
+                  >
+                    <Share2 size={14} />
+                    Partager
+                  </button>
+                )}
+                <button className="button" onClick={() => setLibrary(true)} disabled={!writable}>
+                  <Plus size={15} /> Nouveau tableau de bord
+                </button>
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
           {!draft && canEdit && (
             <button className="button" onClick={beginEdit}>
-              <Pencil size={15} /> Modifier
+              <Pencil size={15} /> Personnaliser
             </button>
           )}
           {draft && (
@@ -330,6 +345,7 @@ function DashboardWorkspace() {
                     const payload = dashboardSchema.parse({ ...draft, settings: filters });
                     const saved = await save("report_dashboards", payload, row);
                     switchTo(saved.id);
+                    toast.success("Tableau de bord enregistré.");
                   })
                 }
               >
@@ -338,7 +354,7 @@ function DashboardWorkspace() {
             </>
           )}
         </div>
-      </div>
+      </DashboardHeader>
       <div className={styles.viewTabs} role="group" aria-label="Vues du dashboard">
         {(
           [
@@ -368,136 +384,139 @@ function DashboardWorkspace() {
         <span className={styles.spacer} />
         <span className={styles.viewMode}>{draft ? "Modification" : "Affichage"}</span>
       </div>
-      <div className={styles.toolbar}>
-        <select
-          aria-label="Dashboard"
-          value={selectedId}
-          onChange={(e) => switchTo(e.target.value)}
-          disabled={!!draft}
-        >
-          <option value="">
-            Vue personnelle ·{" "}
-            {template === "sales"
-              ? "Commercial"
-              : template === "activity"
-                ? "Activité"
-                : "Vue d’ensemble"}
-          </option>
-          {sorted.map((d) => (
-            <option key={d.id} value={d.id}>
-              {preferences.data?.data.some((p) => p.dashboard_id === d.id && p.favorite)
-                ? "★ "
-                : ""}
-              {d.name}
-              {d.visibility === "workspace" ? " · partagé" : " · privé"}
+      <details className={boardStyles.boardTools}>
+        <summary>Tableaux enregistrés et options</summary>
+        <div className={styles.toolbar}>
+          <select
+            aria-label="Dashboard"
+            value={selectedId}
+            onChange={(e) => switchTo(e.target.value)}
+            disabled={!!draft}
+          >
+            <option value="">
+              Vue personnelle ·{" "}
+              {template === "sales"
+                ? "Commercial"
+                : template === "activity"
+                  ? "Activité"
+                  : "Vue d’ensemble"}
             </option>
-          ))}
-        </select>
-        {selectedId && !draft && (
-          <>
+            {sorted.map((d) => (
+              <option key={d.id} value={d.id}>
+                {preferences.data?.data.some((p) => p.dashboard_id === d.id && p.favorite)
+                  ? "★ "
+                  : ""}
+                {d.name}
+                {d.visibility === "workspace" ? " · partagé" : " · privé"}
+              </option>
+            ))}
+          </select>
+          {selectedId && !draft && (
+            <>
+              <button
+                title={pref?.favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+                aria-label={pref?.favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+                aria-pressed={!!pref?.favorite}
+                className="icon-button"
+                onClick={() => perform(() => preference("favorite", !pref?.favorite))}
+              >
+                <Star size={17} fill={pref?.favorite ? "#cf921c" : "none"} />
+              </button>
+              <button
+                title="Dashboard par défaut"
+                aria-label="Dashboard par défaut"
+                aria-pressed={!!pref?.home}
+                className="icon-button"
+                onClick={() => perform(() => preference("home", !pref?.home))}
+              >
+                <House size={17} fill={pref?.home ? "#dce5ff" : "none"} />
+              </button>
+            </>
+          )}
+          <span className={styles.spacer} />
+          {writable && !draft && (
             <button
-              title={pref?.favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-              aria-label={pref?.favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-              aria-pressed={!!pref?.favorite}
-              className="icon-button"
-              onClick={() => perform(() => preference("favorite", !pref?.favorite))}
+              className="button"
+              onClick={() => {
+                setSelected("");
+                setDraft({
+                  ...config,
+                  name: config.name + " · copie",
+                  visibility: "private",
+                  config: config.config.map((t) => ({ ...t, id: crypto.randomUUID() })),
+                });
+              }}
             >
-              <Star size={17} fill={pref?.favorite ? "#cf921c" : "none"} />
+              <Copy size={14} /> Dupliquer
             </button>
+          )}
+          {draft && (
+            <button className="button" onClick={() => setSettingsOpen(true)}>
+              Nom et partage
+            </button>
+          )}
+          {selectedId && canEdit && !draft && (
             <button
-              title="Dashboard par défaut"
-              aria-label="Dashboard par défaut"
-              aria-pressed={!!pref?.home}
+              aria-label="Supprimer le dashboard"
               className="icon-button"
-              onClick={() => perform(() => preference("home", !pref?.home))}
+              onClick={() => setDeleteOpen(true)}
             >
-              <House size={17} fill={pref?.home ? "#dce5ff" : "none"} />
+              <Trash2 size={16} />
             </button>
-          </>
-        )}
-        <span className={styles.spacer} />
-        {writable && !draft && (
+          )}
           <button
             className="button"
-            onClick={() => {
-              setSelected("");
-              setDraft({
-                ...config,
-                name: config.name + " · copie",
-                visibility: "private",
-                config: config.config.map((t) => ({ ...t, id: crypto.randomUUID() })),
-              });
-            }}
+            disabled={results.isFetching}
+            onClick={() => void results.refetch()}
           >
-            <Copy size={14} /> Dupliquer
+            <RefreshCw size={14} /> Actualiser
           </button>
-        )}
-        {draft && (
-          <button className="button" onClick={() => setSettingsOpen(true)}>
-            Nom et partage
-          </button>
-        )}
-        {selectedId && canEdit && !draft && (
           <button
-            aria-label="Supprimer le dashboard"
-            className="icon-button"
-            onClick={() => setDeleteOpen(true)}
+            className="button"
+            disabled={exportBusy || !canReadConfiguration}
+            onClick={() =>
+              perform(async () => {
+                setExportBusy(true);
+                try {
+                  const fresh = await request<{ data: DashboardResult }>(endpoint, "POST", {
+                    dashboard: config,
+                    settings: filters,
+                  });
+                  if (fresh.data.tiles.some((t) => t.error))
+                    throw new Error("Corrigez les indicateurs en erreur avant l’export.");
+                  const url = URL.createObjectURL(
+                    new Blob([dashboardCsv(fresh.data)], { type: "text/csv;charset=utf-8" }),
+                  );
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "zyliad-dashboard.csv";
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } finally {
+                  setExportBusy(false);
+                }
+              })
+            }
           >
-            <Trash2 size={16} />
+            <Download size={14} /> CSV
           </button>
-        )}
-        <button
-          className="button"
-          disabled={results.isFetching}
-          onClick={() => void results.refetch()}
-        >
-          <RefreshCw size={14} /> Actualiser
-        </button>
-        <button
-          className="button"
-          disabled={exportBusy || !canReadConfiguration}
-          onClick={() =>
-            perform(async () => {
-              setExportBusy(true);
-              try {
-                const fresh = await request<{ data: DashboardResult }>(endpoint, "POST", {
-                  dashboard: config,
-                  settings: filters,
-                });
-                if (fresh.data.tiles.some((t) => t.error))
-                  throw new Error("Corrigez les indicateurs en erreur avant l’export.");
-                const url = URL.createObjectURL(
-                  new Blob([dashboardCsv(fresh.data)], { type: "text/csv;charset=utf-8" }),
-                );
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "zyliad-dashboard.csv";
-                a.click();
-                URL.revokeObjectURL(url);
-              } finally {
-                setExportBusy(false);
-              }
-            })
-          }
-        >
-          <Download size={14} /> CSV
-        </button>
-        <button
-          className="icon-button"
-          aria-label="Imprimer le dashboard"
-          disabled={results.isFetching}
-          onClick={() =>
-            perform(async () => {
-              const fresh = await results.refetch();
-              if (fresh.error || fresh.data?.data.tiles.some((t) => t.error))
-                throw new Error("Actualisation nécessaire avant impression.");
-              window.print();
-            })
-          }
-        >
-          <Printer size={16} />
-        </button>
-      </div>
+          <button
+            className="icon-button"
+            aria-label="Imprimer le dashboard"
+            disabled={results.isFetching}
+            onClick={() =>
+              perform(async () => {
+                const fresh = await results.refetch();
+                if (fresh.error || fresh.data?.data.tiles.some((t) => t.error))
+                  throw new Error("Actualisation nécessaire avant impression.");
+                window.print();
+              })
+            }
+          >
+            <Printer size={16} />
+          </button>
+        </div>
+      </details>
       <div className={styles.filterSummary}>
         <button
           className="button small"
@@ -659,11 +678,7 @@ function DashboardWorkspace() {
       )}
       {!ready && <Loading />}
       {draft && (
-        <div className={styles.editNotice}>
-          <span>
-            <GripVertical size={14} />
-            Déplacez les blocs, ajustez leur taille et enregistrez votre dashboard.
-          </span>
+        <DashboardEditNotice>
           <button
             className="button"
             disabled={draft.config.length >= 24}
@@ -671,14 +686,15 @@ function DashboardWorkspace() {
           >
             <Plus size={15} /> Bibliothèque de widgets
           </button>
-        </div>
+        </DashboardEditNotice>
       )}
       {canReadConfiguration && !results.isError && results.data && (
-        <div className={styles.grid}>
+        <div className={`${styles.grid} ${boardStyles.grid}`}>
           {results.data.data.tiles.map((result, i) => (
             <section
               key={result.tile.id ?? i}
               className={styles.slot}
+              hidden={!matchesWidgetSearch(result.tile.title, widgetSearch)}
               data-size={result.tile.size}
               onDragOver={(e) => {
                 if (draft) e.preventDefault();
@@ -760,38 +776,52 @@ function DashboardWorkspace() {
                 onEntry={(entry) => setEntryDetail({ entry, tile: result.tile })}
                 onEntryPage={entryPage(i)}
                 actions={
-                  <WidgetMenu
-                    editing={!!draft}
-                    canEdit={canEdit}
-                    canDuplicate={config.config.length < 24}
-                    canRemove={config.config.length > 1}
-                    first={i === 0}
-                    last={i === config.config.length - 1}
-                    onEdit={() => editTile(i)}
-                    onExpand={() => setFullscreen(i)}
-                    onDuplicate={() =>
-                      draft &&
-                      setDraft({
-                        ...draft,
-                        config: [
-                          ...draft.config.slice(0, i + 1),
-                          {
-                            ...draft.config[i],
-                            id: crypto.randomUUID(),
-                            title: draft.config[i].title.slice(0, 92) + " · copie",
-                          },
-                          ...draft.config.slice(i + 1),
-                        ],
-                      })
-                    }
-                    onRemove={() =>
-                      draft &&
-                      setDraft({ ...draft, config: draft.config.filter((_, index) => index !== i) })
-                    }
-                    onMove={(amount) =>
-                      draft && setDraft({ ...draft, config: moveTile(draft.config, i, i + amount) })
-                    }
-                  />
+                  <>
+                    <button
+                      className="icon-button"
+                      aria-label={"Actualiser " + result.tile.title}
+                      disabled={results.isFetching}
+                      onClick={() => void results.refetch()}
+                    >
+                      <RefreshCw size={14} />
+                    </button>
+                    <WidgetMenu
+                      editing={!!draft}
+                      canEdit={canEdit}
+                      canDuplicate={config.config.length < 24}
+                      canRemove={config.config.length > 1}
+                      first={i === 0}
+                      last={i === config.config.length - 1}
+                      onEdit={() => editTile(i)}
+                      onExpand={() => setFullscreen(i)}
+                      onDuplicate={() =>
+                        draft &&
+                        setDraft({
+                          ...draft,
+                          config: [
+                            ...draft.config.slice(0, i + 1),
+                            {
+                              ...draft.config[i],
+                              id: crypto.randomUUID(),
+                              title: draft.config[i].title.slice(0, 92) + " · copie",
+                            },
+                            ...draft.config.slice(i + 1),
+                          ],
+                        })
+                      }
+                      onRemove={() =>
+                        draft &&
+                        setDraft({
+                          ...draft,
+                          config: draft.config.filter((_, index) => index !== i),
+                        })
+                      }
+                      onMove={(amount) =>
+                        draft &&
+                        setDraft({ ...draft, config: moveTile(draft.config, i, i + amount) })
+                      }
+                    />
+                  </>
                 }
               />
               {draft && (
@@ -799,6 +829,13 @@ function DashboardWorkspace() {
               )}
             </section>
           ))}
+          {results.data.data.tiles.every(
+            (result) => !matchesWidgetSearch(result.tile.title, widgetSearch),
+          ) && (
+            <p className={boardStyles.searchEmpty}>
+              Aucun widget ne correspond à « {widgetSearch} ».
+            </p>
+          )}
         </div>
       )}
       {widgetLibrary && draft && (

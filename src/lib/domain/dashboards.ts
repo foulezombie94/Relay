@@ -596,36 +596,40 @@ export function dashboardTemplate(
       : template === "activity"
         ? activity
         : [
-            sales[0],
-            sales[2],
-            activity[1],
-            activity[2],
-            sales[5],
             record({
-              title: "Board des opportunités",
-              visual: "board",
+              title: "Pipeline commercial",
+              metric: "amount",
+              visual: "table",
               group_by: "stage",
               size: "medium",
+              height: "tall",
+              lifecycle: "open",
+            }),
+            record({
+              title: "Dernières opportunités",
+              visual: "gallery",
+              size: "medium",
+              height: "tall",
               lifecycle: "open",
             }),
             defaultTile({
-              title: "À faire en priorité",
+              title: "Tâches à suivre",
               kind: "task",
               visual: "list",
-              overdue: true,
               date_field: "due",
-              size: "third",
+              size: "medium",
+              height: "compact",
               color: "rose",
             }),
             defaultTile({
-              title: "Agenda des réunions",
-              kind: "meeting",
-              visual: "calendar",
+              title: "Derniers échanges",
+              kind: "email",
+              visual: "timeline",
               date_field: "occurred",
-              size: "third",
+              size: "medium",
+              height: "compact",
               color: "violet",
             }),
-            defaultTile({ title: "Notes de l’équipe", visual: "text", size: "third", content: "" }),
           ];
   return {
     name:

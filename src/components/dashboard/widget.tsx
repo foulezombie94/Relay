@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, type ReactNode, type CSSProperties } from "react";
-import { ArrowDownRight, ArrowUpRight, ArrowRight, Database } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, ArrowRight, Database, GripVertical } from "lucide-react";
 import {
   dashboardDelta,
   formatDashboardValue,
@@ -13,9 +13,9 @@ import {
   type DashboardEntry,
 } from "@/lib/domain/dashboards";
 import { DashboardChart, widgetColors } from "./chart";
-import { WidgetIcon } from "./widget-library";
 import { RecordWidget, type EntryPageRequest } from "./record-widget";
 import styles from "./dashboard.module.css";
+import boardStyles from "./board.module.css";
 
 export function DashboardWidget({
   result,
@@ -56,7 +56,7 @@ export function DashboardWidget({
     >
       <header>
         <div className={styles.widgetTitle}>
-          <WidgetIcon visual={tile.visual} />
+          <GripVertical size={15} aria-hidden="true" />
           <h3>{tile.title}</h3>
         </div>
         <div className={styles.widgetActions}>{actions}</div>
@@ -107,6 +107,27 @@ export function DashboardWidget({
                 </button>
               ))}
               <small>Devises séparées</small>
+            </div>
+          )}
+          {tile.visual === "table" && (
+            <div className={boardStyles.tableOverview}>
+              <div>
+                <strong>
+                  {formatDashboardValue(total?.value ?? null, tile.metric, total?.currency)}
+                </strong>
+                <span>{tile.metric === "amount" ? "Montant total" : "Total"}</span>
+                {delta !== null && (
+                  <small data-positive={delta >= 0}>
+                    {delta >= 0 ? "+" : ""}
+                    {delta.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}% vs période
+                    précédente
+                  </small>
+                )}
+              </div>
+              <div>
+                <strong>{total?.count ?? "—"}</strong>
+                <span>{kindLabels[tile.kind]}</span>
+              </div>
             </div>
           )}
           {["kpi", "goal", "gauge"].includes(tile.visual) ? (
@@ -196,7 +217,11 @@ export function DashboardWidget({
           ) : null}
           {!["kpi", "goal", "gauge"].includes(tile.visual) && (
             <details open={tile.visual === "table"} className={styles.values}>
-              <summary>Valeurs calculées et fiches sources</summary>
+              <summary>
+                {tile.visual === "table"
+                  ? "Répartition et sources"
+                  : "Valeurs calculées et fiches sources"}
+              </summary>
               <div className={styles.tableScroll}>
                 <table>
                   <thead>
@@ -209,7 +234,12 @@ export function DashboardWidget({
                   <tbody>
                     {rows.map((row, i) => (
                       <tr key={i}>
-                        <td>{row.label}</td>
+                        <td>
+                          <span className={boardStyles.groupLabel}>
+                            <i aria-hidden="true" />
+                            {row.label}
+                          </span>
+                        </td>
                         <td>{formatDashboardValue(row.value, tile.metric, row.currency)}</td>
                         <td>
                           <button className={styles.sourceButton} onClick={() => onDetails(row)}>
