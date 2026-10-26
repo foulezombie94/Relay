@@ -577,3 +577,84 @@
     opacity: 1;
   }
 }
+
+@media (max-width: 760px) {
+  .page,
+  .tableScroll {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .heading {
+    overflow-wrap: anywhere;
+  }
+  .toolbar {
+    align-items: stretch;
+  }
+  .commands {
+    flex-basis: 100%;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+  .viewTab,
+  .newButton,
+  .newButton > button,
+  .viewControls > button {
+    min-height: 44px;
+    height: 44px;
+  }
+  .viewTab {
+    max-width: 100%;
+  }
+  .viewTab > svg:last-child {
+    opacity: 1;
+  }
+  .icon {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+  .newButton {
+    margin-left: 0;
+  }
+  .newButton > button:last-child {
+    min-width: 44px;
+  }
+  .search {
+    order: -1;
+    flex: 1 0 100%;
+    max-width: 100%;
+    height: 44px;
+  }
+  :global(html:has([data-relay-ui])) .toolbar label.search input[type="search"] {
+    width: 100%;
+    height: 42px;
+    font-size: 16px;
+  }
+  .search > button {
+    flex-shrink: 0;
+    width: 44px;
+    height: 42px;
+  }
+  .menu select,
+  .menu input,
+  .cellEditor input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .filterRow {
+    grid-template-columns: minmax(0, 1fr);
+    padding-right: 44px;
+  }
+  .filterRow > button {
+    width: 40px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 760px) {
+  .table .cell {
+    height: auto;
+    min-height: 48px;
+  }
+}

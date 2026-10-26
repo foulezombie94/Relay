@@ -245,3 +245,44 @@
     display: none;
   }
 }
+
+@media (max-width: 767px) {
+  .dialog,
+  .dialog[data-preview="false"] {
+    top: 12px;
+    width: calc(100vw - 24px);
+    height: calc(100dvh - 24px);
+    max-height: calc(100dvh - 24px);
+    border-radius: 12px;
+  }
+  .content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .preview {
+    display: none;
+  }
+  .top {
+    padding: 8px;
+    gap: 4px;
+  }
+  .top > button:first-of-type {
+    display: none;
+  }
+  .icon {
+    width: 44px;
+    height: 44px;
+  }
+  .result > span {
+    flex: 1;
+  }
+  .result small {
+    overflow-wrap: anywhere;
+  }
+  .footer {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    height: auto;
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+}

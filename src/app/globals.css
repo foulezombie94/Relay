@@ -3326,3 +3326,23 @@ html[data-relay-density="compact"] .sb-menu-button {
   padding-top: 6px;
   padding-bottom: 6px;
 }
+
+@media (max-width: 767px) {
+  .sb-dropdown[data-mobile="true"] {
+    width: min(320px, calc(100vw - 24px));
+    min-width: min(240px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    max-height: min(
+      calc(100dvh - 24px),
+      var(--radix-dropdown-menu-content-available-height, 100dvh)
+    );
+  }
+  .sb-dropdown[data-mobile="true"] .sb-dropdown-item {
+    min-height: 44px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .sb-dropdown[data-mobile="true"] .sb-dropdown-item > svg {
+    flex-shrink: 0;
+  }
+}
