@@ -314,3 +314,19 @@
     margin-right: 16px;
   }
 }
+
+@media (max-width: 760px) {
+  .relationCell {
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+  .relationCell .chip {
+    flex-shrink: 1;
+  }
+  .relationTrigger {
+    flex-shrink: 0;
+  }
+  .field .relationCell {
+    flex-wrap: wrap;
+  }
+}

@@ -651,3 +651,10 @@
     height: 44px;
   }
 }
+
+@media (max-width: 760px) {
+  .table .cell {
+    height: auto;
+    min-height: 48px;
+  }
+}
