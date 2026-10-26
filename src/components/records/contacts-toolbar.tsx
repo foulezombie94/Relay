@@ -34,6 +34,8 @@ export function ContactsToolbar({
   onImport,
   exportControl,
   viewControl,
+  createControl,
+  customizeControl,
 }: {
   config: ViewConfig;
   onChange: (config: ViewConfig) => void;
@@ -46,6 +48,8 @@ export function ContactsToolbar({
   onImport: () => void;
   exportControl: ReactNode;
   viewControl: ReactNode;
+  createControl?: ReactNode;
+  customizeControl?: ReactNode;
 }) {
   const [searching, setSearching] = useState(false);
   const search = useRef<HTMLInputElement>(null);
@@ -333,29 +337,40 @@ export function ContactsToolbar({
           <Search size={16} />
         </button>
         {viewControl}
+        {customizeControl}
         {exportControl}
-        <div className={styles.newButton}>
-          <button type="button" disabled={readonly} onClick={onCreate}>
-            Nouveau
-          </button>
-          <Dropdown.Root>
-            <Dropdown.Trigger type="button" aria-label="Options d’ajout de contacts">
-              <ChevronDown size={13} />
-            </Dropdown.Trigger>
-            <Dropdown.Portal>
-              <Dropdown.Content className="sb-dropdown" align="end" sideOffset={6}>
-                <Dropdown.Item className="sb-dropdown-item" disabled={readonly} onSelect={onCreate}>
-                  <Plus size={15} />
-                  Nouveau contact
-                </Dropdown.Item>
-                <Dropdown.Item className="sb-dropdown-item" disabled={readonly} onSelect={onImport}>
-                  <Upload size={15} />
-                  Importer des contacts
-                </Dropdown.Item>
-              </Dropdown.Content>
-            </Dropdown.Portal>
-          </Dropdown.Root>
-        </div>
+        {createControl ?? (
+          <div className={styles.newButton}>
+            <button type="button" disabled={readonly} onClick={onCreate}>
+              Nouveau
+            </button>
+            <Dropdown.Root>
+              <Dropdown.Trigger type="button" aria-label="Options d’ajout de contacts">
+                <ChevronDown size={13} />
+              </Dropdown.Trigger>
+              <Dropdown.Portal>
+                <Dropdown.Content className="sb-dropdown" align="end" sideOffset={6}>
+                  <Dropdown.Item
+                    className="sb-dropdown-item"
+                    disabled={readonly}
+                    onSelect={onCreate}
+                  >
+                    <Plus size={15} />
+                    Nouveau contact
+                  </Dropdown.Item>
+                  <Dropdown.Item
+                    className="sb-dropdown-item"
+                    disabled={readonly}
+                    onSelect={onImport}
+                  >
+                    <Upload size={15} />
+                    Importer des contacts
+                  </Dropdown.Item>
+                </Dropdown.Content>
+              </Dropdown.Portal>
+            </Dropdown.Root>
+          </div>
+        )}
       </div>
     </div>
   );

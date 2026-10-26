@@ -4,7 +4,7 @@ import { ViewButtons } from "../ui/view-buttons";
 import { MonthCalendar } from "../ui/month-calendar";
 import { List, LayoutGrid, Columns3, CalendarDays } from "lucide-react";
 import { RecordSegments } from "../records/segments";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { RecordViews } from "../records/views";
@@ -39,6 +39,10 @@ import type { CrmRecord, Attribute } from "@/lib/domain/types";
 import { stages } from "@/lib/domain/types";
 import { Building2, Users, Layers3 } from "lucide-react";
 import styles from "../records/records.module.css";
+import { ObjectStudio, StudioTrigger } from "../records/studio/object-studio";
+import { TemplateMenu } from "../records/studio/template-menu";
+import { useStudio, useStudioActions } from "../records/studio/use-studio";
+import type { StudioConfig, StudioKind } from "@/lib/domain/record-studio";
 export function RecordsPage({ slug }: { slug: string }) {
   const { workspace } = useWorkspace();
   const url = useSearchParams();
@@ -52,6 +56,14 @@ export function RecordsPage({ slug }: { slug: string }) {
 function RecordsPageContents({ slug }: { slug: string }) {
   const { objects, workspace } = useWorkspace();
   const object = objects.find((o) => o.slug === slug);
+  const studio = useStudio(["people", "companies"].includes(slug) ? object?.id : undefined);
+  const studioActions = useStudioActions();
+  const [studioKind, setStudioKind] = useState<StudioKind | null>(null);
+  const [template, setTemplate] = useState<Extract<StudioConfig, { kind: "template" }> | null>(
+    null,
+  );
+  const [templateBusy, setTemplateBusy] = useState(false);
+  const templateAttempt = useRef("");
   const router = useRouter();
   const url = useSearchParams();
   const linkedId = url.get("record");
@@ -286,6 +298,27 @@ function RecordsPageContents({ slug }: { slug: string }) {
       compact={slug === "people"}
     />
   );
+  const manageStudio = ["owner", "admin"].includes(workspace.role);
+  const createControl = ["people", "companies"].includes(slug) ? (
+    <TemplateMenu
+      readonly={workspace.role === "viewer"}
+      templates={(studio.data?.data ?? []).filter(
+        (c) => c.kind === "template" && c.object_id === object.id,
+      )}
+      onCreate={() => {
+        setTemplate(null);
+        setNewStage("Nouveau");
+        setEdit(true);
+      }}
+      onTemplate={(selected) => {
+        setTemplate(selected);
+        templateAttempt.current = crypto.randomUUID();
+        setEdit(true);
+      }}
+      canManage={manageStudio}
+      onManage={() => setStudioKind("template")}
+    />
+  ) : null;
   const viewControls = (
     <RecordViews
       key={"views:" + object.id}
@@ -315,14 +348,16 @@ function RecordsPageContents({ slug }: { slug: string }) {
               title={object.name}
               description={pageContent.description}
               action={
-                <AddButton
-                  label={pageContent.action}
-                  disabled={workspace.role === "viewer"}
-                  onClick={() => {
-                    setNewStage("Nouveau");
-                    setEdit(true);
-                  }}
-                />
+                createControl ?? (
+                  <AddButton
+                    label={pageContent.action}
+                    disabled={workspace.role === "viewer"}
+                    onClick={() => {
+                      setNewStage("Nouveau");
+                      setEdit(true);
+                    }}
+                  />
+                )
               }
             />
           </div>
@@ -340,6 +375,10 @@ function RecordsPageContents({ slug }: { slug: string }) {
             onImport={() => setImporting(true)}
             exportControl={exportControl}
             viewControl={viewControls}
+            createControl={createControl}
+            customizeControl={
+              manageStudio ? <StudioTrigger onClick={() => setStudioKind("layout")} /> : undefined
+            }
           />
         )}
         {slug !== "people" && (
@@ -416,6 +455,9 @@ function RecordsPageContents({ slug }: { slug: string }) {
                 onChange={chooseMode}
               />
               {exportControl}
+              {slug === "companies" && manageStudio && (
+                <StudioTrigger onClick={() => setStudioKind("layout")} />
+              )}
               <button
                 className="button small"
                 disabled={workspace.role === "viewer"}
@@ -685,11 +727,20 @@ function RecordsPageContents({ slug }: { slug: string }) {
         )}
         {edit && (
           <Editor
-            key={edit === true ? "new" : edit.id}
-            draftKey={`records:${object.id}:${edit === true ? "new" : edit.id}`}
+            key={edit === true ? (template?.id ?? "new") : edit.id}
+            draftKey={`records:${object.id}:${edit === true ? (template?.id ?? "new") : edit.id}`}
             open
-            onClose={() => setEdit(null)}
-            title={edit === true ? pageContent.action : "Modifier · " + edit.display_name}
+            onClose={() => {
+              setEdit(null);
+              setTemplate(null);
+            }}
+            title={
+              edit === true
+                ? template
+                  ? "Créer depuis · " + template.name
+                  : pageContent.action
+                : "Modifier · " + edit.display_name
+            }
             fields={fields}
             initial={
               edit === true
@@ -698,6 +749,17 @@ function RecordsPageContents({ slug }: { slug: string }) {
                     stage: newStage,
                     pipeline_id: view.pipeline_id || pipelines.data?.data[0]?.id,
                     use_stage_probability: true,
+                    ...(template
+                      ? {
+                          ...template.config.values,
+                          display_name: template.config.values.display_name || template.name,
+                          ...Object.fromEntries(
+                            Object.entries(template.config.values.attributes ?? {}).map(
+                              ([key, value]) => ["attr_" + key, value],
+                            ),
+                          ),
+                        }
+                      : {}),
                   }
                 : {
                     ...edit,
@@ -707,7 +769,14 @@ function RecordsPageContents({ slug }: { slug: string }) {
                     ),
                   }
             }
-            busy={busy || attrs.isPending || members.isPending || !!attrs.error || !!members.error}
+            busy={
+              busy ||
+              templateBusy ||
+              attrs.isPending ||
+              members.isPending ||
+              !!attrs.error ||
+              !!members.error
+            }
             onSave={async (values) => {
               if (slug === "deals") {
                 values.probability = values.use_stage_probability ? null : values.probability;
@@ -721,6 +790,25 @@ function RecordsPageContents({ slug }: { slug: string }) {
                   attributes[a.key] = values["attr_" + a.key];
                 else attributes[a.key] = null;
                 delete values["attr_" + a.key];
+              }
+              if (template && edit === true) {
+                setTemplateBusy(true);
+                try {
+                  await studioActions.create(
+                    template.id,
+                    {
+                      ...values,
+                      email: values.email ?? "",
+                      domain: values.domain ?? "",
+                      owner_id: values.owner_id || null,
+                      attributes,
+                    },
+                    templateAttempt.current,
+                  );
+                } finally {
+                  setTemplateBusy(false);
+                }
+                return;
               }
               await save(
                 "records",
@@ -782,6 +870,13 @@ function RecordsPageContents({ slug }: { slug: string }) {
               setEdit(detail);
               setDetail(null);
             }}
+          />
+        )}
+        {studioKind && (
+          <ObjectStudio
+            object={object}
+            initialKind={studioKind}
+            onClose={() => setStudioKind(null)}
           />
         )}
       </div>

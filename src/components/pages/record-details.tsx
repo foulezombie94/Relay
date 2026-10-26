@@ -13,6 +13,7 @@ import { RecordOverview, RelatedRecordList } from "../records/overview";
 import { relatedRecords } from "@/lib/domain/record-profile";
 import type { Pipeline } from "@/lib/domain/pipelines";
 import styles from "../records/record-details.module.css";
+import { StudioRecordProfile } from "../records/studio/record-profile";
 const names: Record<string, string> = {
   timeline: "Contexte",
   relations: "Relations",
@@ -23,6 +24,28 @@ const names: Record<string, string> = {
   documents: "Documents",
 };
 export function RecordDetails({
+  record,
+  onClose,
+  onEdit,
+}: {
+  record: CrmRecord;
+  onClose: () => void;
+  onEdit: () => void;
+}) {
+  const { objects } = useWorkspace();
+  const slug = objects.find((o) => o.id === record.object_id)?.slug;
+  return slug === "people" || slug === "companies" ? (
+    <StudioRecordProfile
+      record={record}
+      onClose={onClose}
+      onEdit={onEdit}
+      renderSection={(tab) => <DetailResource key={record.id + tab} record={record} tab={tab} />}
+    />
+  ) : (
+    <LegacyRecordDetails record={record} onClose={onClose} onEdit={onEdit} />
+  );
+}
+function LegacyRecordDetails({
   record,
   onClose,
   onEdit,

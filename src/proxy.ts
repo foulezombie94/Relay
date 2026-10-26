@@ -9,6 +9,8 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname === "/api/health" ||
     request.nextUrl.pathname === "/api/jobs/run" ||
     request.nextUrl.pathname === "/api/mcp" ||
+    request.nextUrl.pathname.startsWith("/forms/") ||
+    request.nextUrl.pathname.startsWith("/api/forms/") ||
     /^\/mcp\/zyliad-mcp-1\.(0|1)\.0\.tgz$/.test(request.nextUrl.pathname) ||
     (request.nextUrl.pathname.startsWith("/api/mcp/oauth/") &&
       !request.nextUrl.pathname.endsWith("/consent")) ||

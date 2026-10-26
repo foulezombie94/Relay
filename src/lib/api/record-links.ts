@@ -24,6 +24,7 @@ export async function readRecordLinks(
     .from("record_relations")
     .select("id,source_id,target_id,label")
     .eq("workspace_id", workspace)
+    .is("definition_id", null)
     .or(`source_id.in.(${list}),target_id.in.(${list})`)
     .order("id")
     .limit(501);

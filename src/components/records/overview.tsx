@@ -29,6 +29,7 @@ type Props = {
   onTab: (tab: string) => void;
   onEdit: () => void;
   readonly: boolean;
+  hideProperties?: boolean;
 };
 function Section({
   title,
@@ -116,6 +117,7 @@ export function RecordOverview({
   onTab,
   onEdit,
   readonly,
+  hideProperties = false,
 }: Props) {
   const contacts = relatedRecords(context.related, objects, "people"),
     companies = relatedRecords(context.related, objects, "companies"),
@@ -381,7 +383,7 @@ export function RecordOverview({
         </div>
         <aside className={styles.sideColumn}>
           {nextAction}
-          {properties}
+          {!hideProperties && properties}
         </aside>
       </div>
     );
@@ -402,7 +404,7 @@ export function RecordOverview({
           {delivery}
         </div>
         <aside className={styles.sideColumn}>
-          {properties}
+          {!hideProperties && properties}
           <Section title="Documents commerciaux" icon={<FileText size={16} />}>
             <p className={styles.bodyCopy}>Devis, propositions et documents liés à cette vente.</p>
             <button className="button small" type="button" onClick={() => onTab("documents")}>
@@ -415,7 +417,7 @@ export function RecordOverview({
   return (
     <div className={styles.personLayout}>
       <aside className={styles.sideColumn}>
-        {properties}
+        {!hideProperties && properties}
         <Section title="Entreprise et relations" icon={<Building2 size={16} />} action={manage}>
           <RelatedRecordList
             records={companies}
