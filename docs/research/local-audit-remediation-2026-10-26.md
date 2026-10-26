@@ -22,6 +22,8 @@ Base : `dc66b86f8d125f49be62dbf8525c4e479ac5d04c`. Ce suivi traite les constats 
 
 ## Limites de validation
 
-Le bootstrap PostgreSQL standard échoue sur `pg_jsonschema`, requis par les deux dernières migrations Record Studio. Les suites SQL ci-dessus couvrent donc les migrations antérieures, pas la nouvelle fonctionnalité Record Studio. Les extensions réelles et la chaîne CI doivent être vérifiées sur une image PostgreSQL Supabase appropriée. Aucun substitut permissif de validation JSON n’a été installé pour faire passer les contrôles.
+Le premier bootstrap PostgreSQL standard était bloqué par l’absence de `pg_jsonschema`. Les deux tentatives de chargement de l’image complète dans cet environnement local ont ensuite rencontré une limite de disque Docker. Aucun substitut permissif de validation JSON n’a été installé pour faire passer les contrôles.
+
+La CI a été corrigée pour utiliser l’image Supabase PostgreSQL 17.6.1.136 épinglée par digest et une base vide dédiée. Le job [agent-database du commit e0f7a12](https://github.com/foulezombie94/Relay/actions/runs/40405544630/job/121862239226) est réussi : toutes les migrations, y compris les deux migrations Record Studio, et les suites SQL intégrations/agent/MCP/permissions/concurrence ont été exécutées. Cela valide le rejeu du schéma et les scénarios SQL existants ; ce n’est pas une validation exhaustive de chaque parcours Record Studio.
 
 Les sessions sont couvertes par les tests existants du SDK SSR contre une fixture Auth HTTP, pas par un parcours complet avec un véritable service Supabase Auth et deux comptes clients. Aucun compte réel, aucune donnée utilisateur, aucun e-mail fournisseur et aucune charge de production n’ont été employés. Le TLS/CDN et les en-têtes du domaine final nécessitent un contrôle après déploiement. Aucune nouvelle migration applicative n’est nécessaire pour ces corrections.
