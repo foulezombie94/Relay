@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
+import { useSidebar } from "../ui/sidebar";
 
 const SidebarMenuContext = createContext<{
   active: string | null;
@@ -62,9 +63,15 @@ export function SidebarMenuContent({
 }: ComponentProps<typeof Dropdown.Content>) {
   const menus = useContext(SidebarMenuContext);
   const id = useContext(SidebarMenuIdContext);
+  const { isMobile } = useSidebar();
   return (
     <Dropdown.Content
       {...props}
+      data-mobile={isMobile ? "true" : undefined}
+      side={isMobile && props.side !== "top" ? "bottom" : props.side}
+      align={isMobile ? "end" : props.align}
+      sideOffset={isMobile ? 6 : props.sideOffset}
+      collisionPadding={isMobile ? 12 : props.collisionPadding}
       onCloseAutoFocus={(event) => {
         // Restoring focus to the old trigger would dismiss the newly opened menu.
         const active = menus?.current();
