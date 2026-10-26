@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -7,7 +8,9 @@ export const metadata: Metadata = {
   description: "Le CRM qui relie vos clients, vos échanges et vos engagements.",
   icons: { icon: "/icon.svg" },
 };
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // A fresh request nonce must also reach public pages and forms.
+  await connection();
   return (
     <html lang="fr">
       <body>

@@ -207,6 +207,10 @@
   outline-offset: 5px;
 }
 .secondary {
+  display: block;
+  max-width: 100%;
+  margin-top: 8px;
+  white-space: normal;
   border: 0;
   padding: 6px 0;
   background: none;

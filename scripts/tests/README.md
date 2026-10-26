@@ -21,3 +21,11 @@ Tous les runners utilisent `RELAY_TEST_DATABASE_URL` et refusent une destination
 `npm run test:performance:db` inclut aussi `crm-save-reliability.sql` : insert/update confirmés, UUID de reprise unique, version périmée, refus du lecteur et isolation entre workspaces. Initialiser une base locale jetable avec `migrate-local.mts` avant ce contrôle ; ne jamais utiliser le MCP de production pour les fixtures.
 
 Ne pas tester la charge sur la production. Les évaluations IA peuvent consommer des tokens. Protocole, résultats et limites : [docs/performance](../../docs/performance/README.md).
+
+Les migrations Record Studio exigent la vraie extension `pg_jsonschema`.
+La CI utilise désormais l’image Supabase PostgreSQL 17.6.1.136 épinglée par digest,
+avec sa base initiale `postgres`. `create-local-database.mts` vérifie l’extension
+puis crée une nouvelle base `relay_test*` pour le bootstrap du dépôt. Il refuse
+une cible distante et ne détruit ni ne réutilise une base existante. Exécuter
+ce script avant `migrate-local.mts` sur cette installation ; PostgreSQL standard
+sans l’extension ne suffit plus à rejouer tout l’historique.

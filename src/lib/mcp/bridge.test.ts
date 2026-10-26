@@ -78,10 +78,13 @@ it("ships the reviewed bridge sources in the public npm archive", async () => {
   ]) {
     const packed = execFileSync(
       "tar",
-      ["-xOzf", "public/mcp/zyliad-mcp-1.1.0.tgz", "package/" + file],
+      ["-xOzf", "public/mcp/zyliad-mcp-1.1.1.tgz", "package/" + file],
       { encoding: "utf8" },
     );
-    expect(packed).toBe(readFileSync("packages/zyliad-mcp/" + file, "utf8"));
+    // Git may check text out as CRLF on Windows; retain every other byte check.
+    expect(packed.replace(/\r\n/g, "\n")).toBe(
+      readFileSync("packages/zyliad-mcp/" + file, "utf8").replace(/\r\n/g, "\n"),
+    );
   }
   const pkg = JSON.parse(readFileSync("packages/zyliad-mcp/package.json", "utf8"));
   expect(pkg.dependencies["@modelcontextprotocol/client"]).toBe("2.3.1");

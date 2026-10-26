@@ -15,6 +15,8 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm audit --omit=dev --audit-level=high --prefix packages/zyliad-mcp
       - run: npm run check:secrets
       - run: npm run format:check
       - run: npm run check:structure
@@ -40,10 +42,10 @@ jobs:
     timeout-minutes: 10
     services:
       postgres:
-        image: public.ecr.aws/docker/library/postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+        image: supabase/postgres:17.6.1.136@sha256:5a4314708484bec672de2c09653a5c01fb1c84a998564ac231b0325e2238ed5b
         env:
           POSTGRES_PASSWORD: fixture-password
-          POSTGRES_DB: relay_test_ci
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
         options: >-
@@ -60,6 +62,7 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+      - run: node --import tsx scripts/tests/create-local-database.mts
       - run: node --import tsx scripts/tests/migrate-local.mts
       - run: npm run test:integrations:db
       - run: npm run test:agent:db

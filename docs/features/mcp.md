@@ -20,8 +20,8 @@ La landing utilise `APP_URL` canonique, jamais le domaine de preview ou l’alia
 Les modes npx/npm sont maintenant des **installateurs de la connexion native**, pas des ponts stdio à lancer à chaque session :
 
 ```sh
-npx --yes "https://VOTRE-DOMAINE/mcp/zyliad-mcp-1.1.0.tgz" install --client claude "https://VOTRE-DOMAINE/api/mcp"
-npx --yes "https://VOTRE-DOMAINE/mcp/zyliad-mcp-1.1.0.tgz" install --client codex "https://VOTRE-DOMAINE/api/mcp"
+npx --yes "https://VOTRE-DOMAINE/mcp/zyliad-mcp-1.1.1.tgz" install --client claude "https://VOTRE-DOMAINE/api/mcp"
+npx --yes "https://VOTRE-DOMAINE/mcp/zyliad-mcp-1.1.1.tgz" install --client codex "https://VOTRE-DOMAINE/api/mcp"
 ```
 
 Node 20+ et le CLI du client sont requis. L’installateur réutilise une configuration HTTP identique sans relancer OAuth ; il remplace uniquement notre ancien pont au même endpoint et refuse un autre serveur/issuer. Le client conserve les credentials dans son propre stockage ; Zyliad n’ajoute aucun fichier de secrets local. `cross-spawn` 7.0.6 gère les shims des CLI Windows et les arguments, sans construire une commande shell à partir de l’URL. L’archive est réellement livrée dans `public/mcp`, générée par `npm run pack:mcp`. La version 1.0.0 est conservée pour les installations existantes ; le correctif exige une migration locale **une seule fois**, car le serveur ne peut pas réécrire la configuration de Claude Code/Codex sur le poste de l’utilisateur.
@@ -118,3 +118,7 @@ Voir aussi [la comparaison datée et les décisions de portée](../research/mcp-
 Validation du correctif : les tests MCP passent, ainsi que l’isolation de la landing et la validation du domaine canonique. Typecheck, lint et archive livrée sont vérifiés. Les tests couvrent l’installation native, le remplacement du pont, la réutilisation sans second login, les commandes HTTP au scope utilisateur, le domaine canonique, la nouvelle archive exacte, le refresh avec audience omise, le refus d’une audience étrangère et l’absence de tokens bruts dans les RPC. Les protections existantes de rotation/rejeu et de tenant restent exercées par les suites SQL. Les sessions personnelles Claude Code/Codex ne sont pas accessibles depuis cet environnement ; ne pas confondre ces régressions reproductibles avec une vérification du trousseau de l’utilisateur ou de sa session réelle.
 
 Audit du consentement et des permissions MCP : [résultats et limites du 12 octobre 2026](../research/mcp-security-audit-2026-10-12.md). Le consentement exige maintenant un contexte dérivé de la demande affichée ; une ancienne page ne peut plus autoriser le nouveau flow d’un autre onglet.
+
+## Correctif de dépendance du 26 octobre 2026
+
+L’installateur et le pont optionnel 1.1.1 utilisent Zod 4.6.7. Les archives déjà publiées 1.0.0/1.1.0 restent immuables pour les configurations existantes ; elles conservent leurs dépendances historiques. Utiliser la connexion HTTP native ou relancer la commande d’installation 1.1.1 ci-dessus pour remplacer l’ancien pont. La version du protocole et les autorisations serveur ne changent pas.

@@ -2,13 +2,17 @@
 import React from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RecordsPage } from "./records";
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ replace: vi.fn() }),
 }));
-vi.mock("@tanstack/react-query", () => ({ useQuery: () => ({ error: null }) }));
+vi.mock("@tanstack/react-query", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@tanstack/react-query")>()),
+  useQuery: () => ({ error: null }),
+}));
 vi.mock("../providers/data-provider", () => ({
   useWorkspace: () => ({
     workspace: { id: "workspace", role: "owner", currency: "EUR" },
@@ -28,9 +32,15 @@ afterEach(() => {
 
 it("keeps one settings control after contact view updates and opens its popover", () => {
   const errors = vi.spyOn(console, "error").mockImplementation(() => {});
-  const page = render(<RecordsPage slug="people" />);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const view = () => (
+    <QueryClientProvider client={client}>
+      <RecordsPage slug="people" />
+    </QueryClientProvider>
+  );
+  const page = render(view());
   for (let i = 0; i < 8; i++) {
-    page.rerender(<RecordsPage slug="people" />);
+    page.rerender(view());
     expect(
       screen.getAllByRole("button", { name: "Paramètres de la vue des contacts" }),
     ).toHaveLength(1);

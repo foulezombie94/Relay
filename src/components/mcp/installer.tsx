@@ -29,7 +29,7 @@ export function installationCommands(
 ) {
   const canonical = mcpInstallationOrigin(origin);
   const url = canonical + "/api/mcp",
-    archive = canonical + "/mcp/zyliad-mcp-1.1.0.tgz";
+    archive = canonical + "/mcp/zyliad-mcp-1.1.1.tgz";
   if (mode === "remote")
     return client === "claude"
       ? `claude mcp add --scope user --transport http zyliad "${url}"`

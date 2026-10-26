@@ -196,3 +196,46 @@ describe("Supabase session proxy", () => {
     expect(response.headers.get("cache-control")).toBe("private, no-store");
   });
 });
+
+describe("CSP script boundary", () => {
+  it.each(["/", "/forms/fixture", "/demo/dashboard", "/api/health"])(
+    "adds a fresh nonce even on early-return route %s and replaces client policy",
+    async (path) => {
+      const req = request(path);
+      req.headers.set("Content-Security-Policy", "script-src 'unsafe-inline'");
+      const first = await proxy(req);
+      const second = await proxy(request(path));
+      const policy = first.headers.get("content-security-policy")!;
+      expect(policy).toContain("'strict-dynamic'");
+      expect(policy).toContain("https://fixture.supabase.co");
+      expect(policy).not.toMatch(/unsafe-inline.*strict-dynamic|unsafe-eval/);
+      expect(policy.split(";").find((part) => part.trim().startsWith("script-src"))).not.toContain(
+        "unsafe-inline",
+      );
+      expect(policy).toContain("frame-ancestors 'none'");
+      expect(policy).not.toBe(second.headers.get("content-security-policy"));
+      expect(first.headers.get("x-middleware-request-content-security-policy")).toBe(policy);
+      expect(first.headers.get("cache-control")).toBe("private, no-store");
+    },
+  );
+  it("retains the same rendering policy after two session-cookie rotations", async () => {
+    mocks.getClaims.mockImplementation(async () => {
+      adapter().setAll([{ name: "sb-fixture-auth-token", value: "fresh", options: { path: "/" } }]);
+      adapter().setAll([
+        { name: "sb-fixture-auth-token.1", value: "tail", options: { path: "/" } },
+      ]);
+      return { data: null, error: null };
+    });
+    const response = await proxy(request());
+    expect(response.headers.get("content-security-policy")).toBe(
+      response.headers.get("x-middleware-request-content-security-policy"),
+    );
+    expect(response.headers.get("x-middleware-request-cookie")).toContain("fresh");
+  });
+  it("retains CSP on an authenticated login redirect", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "user-a" } }, error: null });
+    const response = await proxy(request("/login"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("content-security-policy")).toContain("'strict-dynamic'");
+  });
+});
