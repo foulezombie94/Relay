@@ -27,3 +27,9 @@ Les données restent celles du contexte autorisé. Les compteurs reflètent le c
 Les tests ciblés vérifient l’absence de données inventées, la priorité d’un engagement en retard sur une tâche terminée, la navigation vers la bonne ressource et le filtrage des emails. Les captures de conception utilisent uniquement des fixtures fictives dans un navigateur local ; elles ne représentent pas des clients réels.
 
 Validation exécutée : 779 tests réussis, TypeScript et build de production avec configuration locale isolée réussis, structure vérifiée et lint sans erreur (11 avertissements préexistants). Six parcours navigateur passent sans exception JavaScript : affichage rempli, filtre email, navigation tâche, ouverture/fermeture du choix de liste au clavier, mobile sans débordement horizontal et état vide. Captures examinées en 1600, 1440 et 390 pixels, ainsi qu’en thème sombre.
+
+## Panneau latéral entreprise
+
+La fiche entreprise comporte désormais un panneau de coordonnées inspiré du regroupement montré dans la capture Capsule fournie : logo, nom, étiquettes, réseaux sociaux, téléphone, email, site, adresse et effectif. Il utilise uniquement les valeurs présentes dans la fiche ; les attributs personnalisés doivent être actifs et inclus dans les groupes de propriétés configurés. Les coordonnées absentes ne sont pas inventées. Les propriétés complètes restent accessibles dans un volet dépliable.
+
+Les réseaux sociaux n’acceptent que des URL HTTP(S) des domaines attendus. Les liens externes isolent le nouvel onglet ; téléphone et email sont validés avant de devenir cliquables. Le mode lecture seule retire les commandes de modification. Aucune migration, aucun enrichissement automatique et aucun envoi ne sont ajoutés.
