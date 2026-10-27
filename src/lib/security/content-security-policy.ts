@@ -22,8 +22,12 @@ export function contentSecurityPolicy(options: PolicyOptions) {
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${options.nonce}' 'strict-dynamic'${options.development ? " 'unsafe-eval'" : ""}`,
-    // React, Radix and charts position elements with inline style attributes.
+    // React, Radix and charts position elements with inline style attributes;
+    // Radix's scroll-lock styles are injected at runtime as well.
     "style-src 'self' 'unsafe-inline'",
+    // CompanyLogo loads /favicon.ico directly from user-entered company sites.
+    // A fixed host list would break that feature; never add a server-side image
+    // proxy just to narrow this policy without protecting it against SSRF.
     "img-src 'self' https: data: blob:",
     "font-src 'self'",
     `connect-src ${[...connections].join(" ")}`,

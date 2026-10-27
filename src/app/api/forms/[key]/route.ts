@@ -9,11 +9,14 @@ import { validateAttributes } from "@/lib/domain/attributes";
 import type { Attribute } from "@/lib/domain/types";
 type Params = { params: Promise<{ key: string }> };
 async function configuration(key: string) {
+  const parsedKey = z.uuid().safeParse(key);
+  if (!parsedKey.success)
+    throw new ApiError("Ce lien de formulaire est invalide ou n’est plus disponible.", 404);
   const admin = adminDb();
   const row = await admin
     .from("record_configs")
     .select("id,workspace_id,object_id,name,config,created_by")
-    .eq("share_key", z.uuid().parse(key))
+    .eq("share_key", parsedKey.data)
     .eq("kind", "form")
     .contains("config", { published: true })
     .maybeSingle();

@@ -29,6 +29,8 @@ Ces fiches expliquent une fonctionnalité à leur date de rédaction. Pour les o
 
 ## Décisions et recherches
 
+- Qualité : [suite de l’audit public de production du 27 octobre 2026](research/production-audit-remediation-2026-10-27.md)
+
 - Produit : [décisions](product/product-decisions.md), [couverture historique](product/feature-coverage.md)
 - Recherches : [comparaison CRM](research/competitive-analysis.md), [écarts](research/competitive-gap-analysis.md), [audit historique](research/crm-completeness-audit.md), [dashboards](research/dashboard-competitive-analysis.md), [workflows](research/workflow-competitive-analysis.md), [équipes](research/team-management-analysis.md), [landing](research/landing-page-benchmark.md)
 

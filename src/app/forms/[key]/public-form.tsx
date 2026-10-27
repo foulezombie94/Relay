@@ -9,7 +9,7 @@ import styles from "@/components/records/studio/studio.module.css";
 const responseSchema = z.object({ name: z.string(), config: formSpec });
 export function PublicForm({ shareKey }: { shareKey: string }) {
   const [data, setData] = useState<z.infer<typeof responseSchema> | null>(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<{ message: string; retryable: boolean } | null>(null);
   const [reload, setReload] = useState(0);
   const attempt = useRef<string | null>(null);
   useEffect(() => {
@@ -21,7 +21,17 @@ export function PublicForm({ shareKey }: { shareKey: string }) {
         if (active) setData(parsed.data);
       })
       .catch((e) => {
-        if (active) setError(e instanceof Error ? e.message : "Formulaire indisponible.");
+        if (!active) return;
+        const unavailable =
+          e instanceof RequestError && [400, 401, 403, 404, 410].includes(e.status);
+        setError({
+          message: unavailable
+            ? "Ce lien de formulaire est invalide ou n’est plus disponible."
+            : e instanceof Error
+              ? e.message
+              : "Formulaire indisponible. Réessayez plus tard.",
+          retryable: !unavailable,
+        });
       });
     return () => {
       active = false;
@@ -33,16 +43,18 @@ export function PublicForm({ shareKey }: { shareKey: string }) {
         {error ? (
           <>
             <h1>Formulaire indisponible</h1>
-            <ErrorMessage error={new Error(error)} />
-            <button
-              className="button"
-              onClick={() => {
-                setError("");
-                setReload((value) => value + 1);
-              }}
-            >
-              Réessayer
-            </button>
+            <ErrorMessage error={new Error(error.message)} />
+            {error.retryable && (
+              <button
+                className="button"
+                onClick={() => {
+                  setError(null);
+                  setReload((value) => value + 1);
+                }}
+              >
+                Réessayer
+              </button>
+            )}
           </>
         ) : data ? (
           <FormView
