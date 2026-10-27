@@ -15,6 +15,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import { recordHref, workspaceHref } from "@/lib/domain/workspace-navigation";
 import { defaultLayout, type StudioConfig } from "@/lib/domain/record-studio";
 import type { CrmRecord, Attribute, Simulation, ObjectDefinition } from "@/lib/domain/types";
 import { request, useRows, useWorkspace, useSave } from "../../providers/data-provider";
@@ -111,10 +112,7 @@ export function StudioRecordProfile({
         className={styles.recordModal}
       >
         <div className={styles.recordActions}>
-          <Link
-            className="button small"
-            href={`/app/${object.standard ? object.slug : "object-" + object.slug}?record=${record.id}`}
-          >
+          <Link className="button small" href={recordHref(record.workspace_id, object, record.id)}>
             <ArrowUpRight size={14} /> Lien vers cette fiche
           </Link>
           <span className={styles.grow} />
@@ -383,7 +381,11 @@ function TypedRelations({
                     row && (
                       <span className={styles.relationChip} key={row.id}>
                         <Link
-                          href={`/app/${object?.standard ? object.slug : "object-" + object?.slug}?record=${row.id}`}
+                          href={
+                            object
+                              ? recordHref(record.workspace_id, object, row.id)
+                              : workspaceHref("/app/search", record.workspace_id)
+                          }
                         >
                           <FileText size={13} />
                           {row.display_name}

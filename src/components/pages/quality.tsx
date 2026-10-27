@@ -1,4 +1,5 @@
 "use client";
+import { recordHref } from "@/lib/domain/workspace-navigation";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -257,15 +258,7 @@ export function QualityPage() {
               </div>
               <div className="row-actions">
                 {o && (
-                  <a
-                    className="button small"
-                    href={
-                      "/app/" +
-                      (o.standard ? o.slug : "object-" + o.slug) +
-                      "?record=" +
-                      str(r.target_id)
-                    }
-                  >
+                  <a className="button small" href={recordHref(workspace.id, o, str(r.target_id))}>
                     Ouvrir
                   </a>
                 )}

@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Workspace, ObjectDefinition, Row } from "@/lib/domain/types";
 import { toast } from "sonner";
-import { redirect } from "next/navigation";
+import { redirect, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AppearanceProvider } from "./appearance-provider";
 import { browserDb } from "@/lib/supabase/client";
 import { observeSession } from "@/lib/supabase/session";
@@ -11,6 +11,7 @@ import { request, RequestError, confirmedRow, confirmedRows } from "@/lib/api/re
 import { creationAttempt } from "@/lib/api/save-attempt";
 import { isResource, resources } from "@/lib/domain/resource-schemas";
 import { EditorDraftScope, clearEditorStorage } from "../ui/editor-draft";
+import { workspaceHref, workspaceSwitchHref } from "@/lib/domain/workspace-navigation";
 export { request, RequestError } from "@/lib/api/request";
 const Context = createContext<{
   workspace: Workspace;
@@ -128,11 +129,15 @@ export function AppProvider({ children, userId }: { children: ReactNode; userId:
 }
 function Gate({ children }: { children: ReactNode }) {
   const cache = useQueryClient();
-  const [selected, setSelected] = useState(() =>
-    typeof window === "undefined"
-      ? ""
-      : (new URLSearchParams(window.location.search).get("workspace") ?? ""),
-  );
+  const pathname = usePathname();
+  const router = useRouter();
+  const search = useSearchParams();
+  const requested = search.get("workspace");
+  const [selection, setSelection] = useState({ requested, remembered: requested ?? "" });
+  // An explicit URL wins, including Back/Forward. Links without a workspace
+  // inherit the current tab's last selection and are qualified below.
+  if (selection.requested !== requested)
+    setSelection({ requested, remembered: requested ?? selection.remembered });
   const q = useQuery({
     queryKey: ["workspaces"],
     queryFn: async () => {
@@ -147,7 +152,29 @@ function Gate({ children }: { children: ReactNode }) {
       return result;
     },
   });
-  const workspace = q.data?.data.find((w) => w.id === selected) ?? q.data?.data[0];
+  const selected = requested ?? selection.remembered;
+  const workspace =
+    requested !== null || selected ? q.data?.data.find((w) => w.id === selected) : q.data?.data[0];
+  useEffect(() => {
+    if (!workspace) return;
+    if (requested === null)
+      window.history.replaceState(
+        null,
+        "",
+        workspaceHref(pathname + window.location.search + window.location.hash, workspace.id),
+      );
+  }, [workspace, requested, pathname]);
+  function switchWorkspace(id: string) {
+    if (!q.data?.data.some((w) => w.id === id)) return;
+    const href = workspaceSwitchHref(pathname, window.location.hash, id);
+    if (new URL(href, window.location.origin).pathname !== pathname) {
+      router.push(href);
+      return;
+    }
+    window.history.pushState(null, "", href);
+    setSelection({ requested: id, remembered: id });
+    cache.removeQueries({ queryKey: ["rows"] });
+  }
   const objects = useQuery({
     queryKey: ["rows", workspace?.id, "objects"],
     enabled: !!workspace,
@@ -174,7 +201,20 @@ function Gate({ children }: { children: ReactNode }) {
         )}
       </div>
     );
-  if (!workspace) redirect("/onboarding");
+  if (!q.data?.data.length) redirect("/onboarding");
+  if (!workspace)
+    return (
+      <main className="page-loader">
+        <h1>Espace inaccessible</h1>
+        <p role="alert">Ce lien désigne un espace auquel vous n’avez pas accès.</p>
+        <p>Choisissez un de vos espaces pour continuer.</p>
+        {q.data.data.map((w) => (
+          <button className="button" key={w.id} onClick={() => switchWorkspace(w.id)}>
+            {w.name}
+          </button>
+        ))}
+      </main>
+    );
   return (
     <Context.Provider
       value={{
@@ -182,13 +222,11 @@ function Gate({ children }: { children: ReactNode }) {
         objects: objects.data?.data ?? [],
         user: q.data!.user,
         workspaces: q.data!.data,
-        switchWorkspace(id) {
-          setSelected(id);
-          cache.removeQueries({ queryKey: ["rows"] });
-        },
+        switchWorkspace,
       }}
     >
       <EditorDraftScope.Provider
+        key={workspace.id}
         value={`${process.env.NEXT_PUBLIC_RELAY_ENVIRONMENT}:${process.env.NEXT_PUBLIC_SUPABASE_URL}:${q.data!.user.id}:${workspace.id}`}
       >
         <AppearanceProvider key={q.data!.user.id} user={q.data!.user.id}>

@@ -6,6 +6,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { Search, Plus, Check, X, Link2 } from "lucide-react";
 import { request, useSave, useWorkspace } from "../providers/data-provider";
 import { CompanyLogo } from "./company-logo";
+import { workspaceHref } from "@/lib/domain/workspace-navigation";
 import { linksForRecord, type RecordLinks, type LinkedRecord } from "@/lib/domain/record-links";
 import type { CrmRecord } from "@/lib/domain/types";
 import styles from "./relations.module.css";
@@ -106,7 +107,7 @@ export function RecordRelationsCell({ record }: { record: CrmRecord }) {
   const readonly = workspace.role === "viewer" || !!record.merged_into || record.archived;
   const disabled =
     readonly || state.busy || state.loading || !!state.error || !!state.data?.partial;
-  const path = (id: string) => `/app/${state.target}?record=${id}`;
+  const path = (id: string) => workspaceHref(`/app/${state.target}?record=${id}`, workspace.id);
   return (
     <div className={styles.relationCell} onClick={(event) => event.stopPropagation()}>
       {linked.slice(0, 2).map(({ record: other, link }) => (

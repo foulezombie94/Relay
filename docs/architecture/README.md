@@ -78,6 +78,8 @@ Les composants `.test.ts(x)` restent auprès du code. Les CSS Modules sont regro
 
 `src/proxy.ts` et `src/lib/supabase/session.ts` gèrent la session à l'entrée ; `src/app/app/layout.tsx` et les routes publiques contrôlent l'orientation de l'utilisateur. `src/lib/supabase/server.ts` fournit le client lié aux cookies ; `client.ts` le client navigateur ; `admin.ts` est strictement serveur. Le [guide de session](session-management.md) décrit refresh et conservation des cookies.
 
+Le contexte d’espace de l’interface figure dans le paramètre `workspace` de l’URL. `Gate` le rapproche de la liste des memberships authentifiés ; un espace explicite inaccessible ne provoque pas de fallback vers un autre espace. Les liens profonds conservent cet identifiant, et un changement d’espace retire les anciens sélecteurs de fiche et remonte les composants concernés. Ce paramètre ne donne aucun droit ; les API revérifient toujours la session et le membership. Voir [la correction des parcours multi-espaces](../research/workspace-navigation-fixes-2026-10-27.md).
+
 `src/lib/api/context.ts` vérifie l'utilisateur et son membership actuel, puis la capacité d'écriture. Les lectures avec ce client restent soumises à RLS. Ne pas remplacer cette chaîne par une clé privilégiée pour une opération utilisateur.
 
 ### Lecture et écriture d'une fiche

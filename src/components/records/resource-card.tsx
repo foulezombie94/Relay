@@ -2,6 +2,7 @@
 import { Pencil, Trash2, Check, FileText } from "lucide-react";
 import { Badge, date, str } from "../ui/display";
 import type { CrmRecord, Row } from "@/lib/domain/types";
+import { workspaceHref } from "@/lib/domain/workspace-navigation";
 export function ResourceCard({
   row,
   resource,
@@ -130,7 +131,7 @@ export function ResourceCard({
       )}
       {resource === "lists" && (
         <div className="card-actions">
-          <a className="button small" href={"/app/list-" + row.id}>
+          <a className="button small" href={workspaceHref("/app/list-" + row.id, row.workspace_id)}>
             <FileText size={13} />
             Ouvrir la liste
           </a>

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { recordHref, workspaceHref } from "@/lib/domain/workspace-navigation";
 import type { ReactNode } from "react";
 import {
   ArrowUpRight,
@@ -75,10 +76,9 @@ export function RelatedRecordList({
             <Link
               prefetch={false}
               href={
-                "/app/" +
-                (object?.standard ? object.slug : "object-" + object?.slug) +
-                "?record=" +
-                r.id
+                object
+                  ? recordHref(r.workspace_id, object, r.id)
+                  : workspaceHref("/app/search", r.workspace_id)
               }
             >
               <Avatar name={r.display_name} />

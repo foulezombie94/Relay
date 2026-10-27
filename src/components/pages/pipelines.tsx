@@ -1,4 +1,5 @@
 "use client";
+import { workspaceHref } from "@/lib/domain/workspace-navigation";
 import { useState } from "react";
 import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import {
@@ -65,7 +66,10 @@ export function PipelinesPage() {
                 ))}
               </ol>
               <div className="row-actions">
-                <a className="button small" href={"/app/deals?pipeline=" + p.id}>
+                <a
+                  className="button small"
+                  href={workspaceHref("/app/deals?pipeline=" + p.id, workspace.id)}
+                >
                   Voir les opportunités
                 </a>
                 <button className="button small" disabled={!admin} onClick={() => setEdit(p)}>

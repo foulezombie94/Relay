@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { recordHref } from "@/lib/domain/workspace-navigation";
 import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import { PageHeader, Editor, AddButton, Empty, str, Loading, ErrorMessage } from "../ui";
 import { Pagination } from "../ui/pagination";
@@ -35,14 +36,7 @@ export function ListPage({ id }: { id: string }) {
                 <div className="card-head">
                   <strong>
                     {record && object ? (
-                      <a
-                        href={
-                          "/app/" +
-                          (object.standard ? object.slug : "object-" + object.slug) +
-                          "?record=" +
-                          record.id
-                        }
-                      >
+                      <a href={recordHref(workspace.id, object, record.id)}>
                         {str(record.display_name)}
                       </a>
                     ) : (
