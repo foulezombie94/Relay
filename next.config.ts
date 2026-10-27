@@ -34,6 +34,11 @@ function config(phase: string): NextConfig {
               value: "strict-origin-when-cross-origin",
             },
             { key: "X-Frame-Options", value: "DENY" },
+            {
+              key: "Permissions-Policy",
+              value:
+                "camera=(), microphone=(), geolocation=(), payment=(), usb=(), display-capture=()",
+            },
           ],
         },
       ];

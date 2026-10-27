@@ -62,3 +62,31 @@ it("allows retrying a failed load without exposing network details", async () =>
   fireEvent.click(screen.getByRole("button", { name: "Réessayer" }));
   expect(await screen.findByLabelText(/Nom/)).toBeDefined();
 });
+it.each([400, 401, 403, 404, 410])(
+  "shows an unavailable-link message without retrying a permanent load failure (%s)",
+  async (status) => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(
+        Response.json({ error: ": Invalid UUID; private validation details" }, { status }),
+      );
+    vi.stubGlobal("fetch", fetch);
+    render(<PublicForm shareKey="invalid-link" />);
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "Ce lien de formulaire est invalide ou n’est plus disponible.",
+    );
+    expect(screen.getByRole("alert").textContent).not.toMatch(/UUID|private/);
+    expect(screen.queryByRole("button", { name: "Réessayer" })).toBeNull();
+    expect(fetch).toHaveBeenCalledTimes(1);
+  },
+);
+it.each([429, 503])("keeps retry available for a temporary failure (%s)", async (status) => {
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(Response.json({ error: "Réessayez plus tard." }, { status }))
+    .mockResolvedValueOnce(Response.json(form));
+  vi.stubGlobal("fetch", fetch);
+  render(<PublicForm shareKey="fixture" />);
+  fireEvent.click(await screen.findByRole("button", { name: "Réessayer" }));
+  expect(await screen.findByLabelText(/Nom/)).toBeDefined();
+});
