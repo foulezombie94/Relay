@@ -1,0 +1,177 @@
+.panel {
+  padding: 22px 20px;
+  color: var(--relay-ink);
+  border-bottom: 1px solid var(--relay-border);
+  background: var(--relay-surface);
+}
+.identity {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.identity > button {
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  color: var(--relay-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+}
+.identity > button:hover:not(:disabled) {
+  background: var(--relay-hover);
+}
+.identity > button:disabled {
+  display: none;
+}
+.panel h2 {
+  margin: 0 0 14px;
+  font-size: 16px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 17px;
+}
+.tags span {
+  display: inline-block;
+  max-width: 100%;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  line-height: 1.4;
+  background: var(--relay-hover);
+  color: var(--relay-ink);
+  overflow-wrap: anywhere;
+}
+.tags span:first-child {
+  background: var(--relay-accent-soft);
+  color: var(--blue);
+}
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 20px;
+}
+.socials a {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--relay-ink);
+  color: var(--relay-surface);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 5px;
+  text-decoration: none;
+}
+.socials a[data-network="LinkedIn"] {
+  background: #0866a0;
+  color: white;
+}
+.socials a[data-network="YouTube"] {
+  background: #d71920;
+  color: white;
+}
+.socials a[data-network="Instagram"] {
+  background: #983a85;
+  color: white;
+}
+.socials a[data-network="Facebook"] {
+  background: #185ac1;
+  color: white;
+}
+.coordinates {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.coordinate {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.coordinate > svg {
+  color: var(--relay-muted);
+  flex: none;
+  margin-top: 2px;
+}
+.coordinate > div {
+  min-width: 0;
+}
+.coordinate a {
+  color: var(--blue);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-decoration: none;
+}
+.coordinate a:hover {
+  text-decoration: underline;
+}
+.coordinate a > svg {
+  flex: none;
+}
+.coordinate small {
+  display: block;
+  margin-top: 1px;
+  color: var(--relay-muted);
+  font-size: 10px;
+}
+.address {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.employee {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 18px;
+  margin-top: 19px;
+  border-top: 1px solid var(--relay-border);
+  font-size: 11px;
+  color: var(--relay-muted);
+}
+.employee strong {
+  margin-left: auto;
+  color: var(--relay-ink);
+  font-weight: 500;
+}
+.edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--relay-muted);
+  border: 0;
+  padding: 0;
+  margin-top: 20px;
+  background: transparent;
+}
+.edit:hover {
+  color: var(--blue);
+}
+.empty {
+  font-size: 12px;
+  color: var(--relay-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+.panel :is(button, a):focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}

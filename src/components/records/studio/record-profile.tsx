@@ -32,6 +32,7 @@ import type { CrmRecord, Attribute, Simulation, ObjectDefinition } from "@/lib/d
 import { request, useRows, useWorkspace, useSave } from "../../providers/data-provider";
 import { Modal, Loading, ErrorMessage, money, str, date } from "../../ui";
 import { RecordLists } from "../record-lists";
+import { CompanyContactSidebar } from "../company-contact-sidebar";
 import { CompanyLogo } from "../company-logo";
 import { RecordPicker } from "../picker";
 import { RecordRelationsField } from "../relations";
@@ -102,6 +103,7 @@ export function StudioRecordProfile({
     ["overview", "contacts", "deals"].includes(current),
   );
   const fields = studioFields(attrs.data?.data ?? []);
+  const DetailsContainer = object.slug === "companies" ? "details" : "div";
   const owner = members.data?.data.find((m) => m.user_id === record.owner_id);
   function property(key: string) {
     const field = fields.find((f) => f.key === key);
@@ -253,8 +255,18 @@ export function StudioRecordProfile({
           />
           <div className={styles.profileColumns} data-details={spec.details && details}>
             <aside className={styles.identityPanel}>
+              {object.slug === "companies" && spec.details && details && (
+                <CompanyContactSidebar
+                  record={record}
+                  attributes={attrs.data?.data ?? []}
+                  visibleFields={spec.groups.flatMap((g) => g.fields)}
+                  readonly={readonly}
+                  onEdit={onEdit}
+                />
+              )}
               {spec.details && details && (
-                <div className={styles.detailsPanel}>
+                <DetailsContainer className={styles.detailsPanel}>
+                  {object.slug === "companies" && <summary>Toutes les propriétés</summary>}
                   {spec.groups.map((group) => (
                     <section key={group.id}>
                       <h3>{group.title}</h3>
@@ -262,7 +274,7 @@ export function StudioRecordProfile({
                     </section>
                   ))}
                   <small>Créée le {date(record.created_at)}</small>
-                </div>
+                </DetailsContainer>
               )}
               <RecordRelationsField record={record} slug={object.slug} />
               <TypedRelations data={q.data} record={record} objects={objects} readonly={readonly} />
