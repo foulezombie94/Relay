@@ -60,6 +60,7 @@ export function StudioRecordProfile({
   const [customizing, setCustomizing] = useState(false);
   const [tab, setTab] = useState("");
   const [listPicker, setListPicker] = useState(false);
+  const [propertiesOpen, setPropertiesOpen] = useState(false);
   const [details, setDetails] = useState(true);
   const [error, setError] = useState("");
   const q = useStudio(record.object_id, record.id);
@@ -126,7 +127,9 @@ export function StudioRecordProfile({
         title={"CRM / " + object.name}
         description="Propriétés, relations et suivi de cette fiche."
         wide
-        className={styles.recordModal}
+        className={
+          styles.recordModal + (object.slug === "companies" ? " " + styles.companyModal : "")
+        }
       >
         <div className={styles.recordActions}>
           <Link className="button small" href={recordHref(record.workspace_id, object, record.id)}>
@@ -253,19 +256,34 @@ export function StudioRecordProfile({
           <ErrorMessage
             error={q.error || attrs.error || members.error || (error ? new Error(error) : null)}
           />
-          <div className={styles.profileColumns} data-details={spec.details && details}>
+          <div
+            className={styles.profileColumns}
+            data-details={spec.details && details}
+            data-company={object.slug === "companies"}
+          >
             <aside className={styles.identityPanel}>
               {object.slug === "companies" && spec.details && details && (
                 <CompanyContactSidebar
                   record={record}
                   attributes={attrs.data?.data ?? []}
                   visibleFields={spec.groups.flatMap((g) => g.fields)}
+                  onDocuments={() => setTab("documents")}
+                  onProperties={() => setPropertiesOpen(true)}
                   readonly={readonly}
                   onEdit={onEdit}
                 />
               )}
               {spec.details && details && (
-                <DetailsContainer className={styles.detailsPanel}>
+                <DetailsContainer
+                  className={styles.detailsPanel}
+                  {...(object.slug === "companies"
+                    ? {
+                        open: propertiesOpen,
+                        onToggle: (e: React.SyntheticEvent<HTMLElement>) =>
+                          setPropertiesOpen((e.currentTarget as HTMLDetailsElement).open),
+                      }
+                    : {})}
+                >
                   {object.slug === "companies" && <summary>Toutes les propriétés</summary>}
                   {spec.groups.map((group) => (
                     <section key={group.id}>
