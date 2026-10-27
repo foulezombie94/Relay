@@ -847,77 +847,107 @@
     padding: 40px 20px 24px;
   }
 }
-/* Company record composition, referenced from Attio's Record pages / Overview. */
+/* Record workspace: identity first, relationship journal, contextual details. */
 .recordModal {
-  width: min(1560px, 98vw) !important;
+  width: min(1500px, 96vw) !important;
   height: 94dvh;
   max-height: 94dvh !important;
   overflow: hidden !important;
   display: flex;
   flex-direction: column;
-  border-radius: 9px !important;
+  border-radius: 16px !important;
 }
 .recordModal :global(.dialog-heading) {
   flex: none;
-  padding: 12px 18px;
+  padding: 9px 22px;
+  background: var(--relay-surface-soft);
 }
 .recordActions {
   flex: none;
-  padding: 5px 14px;
+  padding: 7px 24px;
   border-bottom: 1px solid var(--relay-border);
-  min-height: 39px;
-}
-.recordPage {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-.recordPage > :global(.alert) {
-  margin: 8px 16px;
-}
-.profileColumns,
-.profileColumns[data-details="true"] {
-  height: 100%;
-  grid-template-columns: minmax(300px, 32%) minmax(0, 1fr);
-  border-top: 0;
-}
-.identityPanel {
-  min-width: 0;
-  overflow-y: auto;
-  border-right: 1px solid var(--relay-border);
-  background: var(--relay-surface);
 }
 .recordHeader {
-  position: relative;
-  padding: 20px 16px 10px;
   display: flex;
-  align-items: center;
-  gap: 11px;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--relay-border);
+  background: var(--relay-surface);
+  flex: none;
 }
 .pageIcon {
   margin: 0;
+  padding: 7px;
+  border: 1px solid var(--relay-border);
+  border-radius: 17px;
+  display: inline-flex;
   flex: none;
+  background: var(--relay-surface);
+}
+.recordIdentity {
+  flex: 1;
+  min-width: 180px;
+}
+.recordEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--relay-muted);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+}
+.recordEyebrow > span {
+  opacity: 0.4;
 }
 .recordHeader h1 {
-  font-size: 19px;
-  font-weight: 650;
-  letter-spacing: -0.025em;
-  line-height: 1.3;
   margin: 0;
-  flex: 1;
-  min-width: 0;
+  font-size: clamp(21px, 2.2vw, 29px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.25;
+}
+.recordMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 9px;
+}
+.recordMeta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--relay-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.recordMeta .stagePill {
+  border-radius: 5px;
+  padding: 3px 7px;
+  color: var(--blue);
+  background: var(--relay-accent-soft);
+  font-size: 10px;
 }
 .headerEdit {
   border: 0;
   background: transparent;
-  padding: 4px;
   color: var(--relay-muted);
+  padding: 5px;
+  border-radius: 5px;
+}
+.headerEdit:hover:not(:disabled) {
+  background: var(--relay-hover);
 }
 .pinned {
   width: 100%;
-  gap: 8px;
-  padding-top: 8px;
+  order: 3;
+  gap: 12px;
+}
+.pinned:empty {
+  display: none;
 }
 .pinned > div {
   min-width: 0;
@@ -927,36 +957,63 @@
   display: none;
 }
 .pinned .property > button {
-  font-size: 11px;
   color: var(--blue);
-  padding: 2px;
+  font-size: 11px;
 }
 .quickActions {
   display: flex;
-  align-items: center;
   gap: 6px;
-  padding: 0 12px 13px;
-  border-bottom: 1px solid var(--relay-border);
+  align-items: center;
 }
 .quickActions > button {
-  height: 30px;
-  border: 1px solid var(--relay-border);
-  border-radius: 7px;
-  background: var(--relay-surface);
-  color: var(--relay-ink);
-  box-shadow: 0 1px 3px #00000005;
-}
-.listAction {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
+  height: 32px;
+  border: 1px solid var(--relay-border);
+  border-radius: 7px;
+  color: var(--relay-ink);
+  background: var(--relay-surface);
+}
+.quickActions > button:hover:not(:disabled) {
+  background: var(--relay-hover);
+}
+.listAction {
+  padding: 0 12px;
+  font-size: 11px;
+}
+.recordPage {
   flex: 1;
-  padding: 0 10px;
-  font-size: 12px;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--relay-surface);
+}
+.recordPage > :global(.alert) {
+  margin: 8px 20px;
+}
+.profileColumns,
+.profileColumns[data-details="true"] {
+  flex: 1;
+  min-height: 0;
+  border: 0;
+  grid-template-columns: minmax(0, 1fr) 290px;
+}
+.identityPanel {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  overflow-y: auto;
+  background: var(--relay-surface-soft);
+  border-left: 1px solid var(--relay-border);
+  padding: 10px 0;
 }
 .recordMain {
-  padding: 0 24px 35px;
+  grid-column: 1;
+  grid-row: 1;
+  padding: 0 32px 32px;
   overflow-y: auto;
   min-width: 0;
 }
@@ -964,66 +1021,76 @@
   position: sticky;
   z-index: 2;
   top: 0;
-  margin: 0 -24px;
-  padding: 0 16px;
-  gap: 9px;
-  min-height: 43px;
+  margin: 0 -32px;
+  padding: 10px 32px 0;
+  gap: 18px;
+  min-height: 48px;
   background: var(--relay-surface);
 }
 .recordTabs > button {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  padding: 10px 5px;
+  gap: 6px;
+  font-size: 11px;
+  padding: 10px 0 14px;
 }
 .recordTabs > button[data-active="true"] {
-  border-bottom-color: var(--relay-ink);
+  color: var(--blue);
+  border-bottom-color: var(--blue);
 }
 .recordTabs small {
-  border: 1px solid var(--relay-border);
-  background: var(--relay-hover);
   border-radius: 4px;
-  padding: 0 3px;
+  background: var(--relay-hover);
+  color: var(--relay-muted);
+  padding: 1px 4px;
   font-size: 10px;
-  font-weight: 400;
 }
 .sectionContent {
-  padding-top: 30px;
+  padding-top: 26px;
 }
 .detailsPanel {
   border: 0;
-  border-bottom: 1px solid var(--relay-border);
   background: transparent;
-  padding: 17px 15px;
+  padding: 20px;
+  border-bottom: 1px solid var(--relay-border);
 }
 .detailsPanel > section {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 .detailsPanel h3 {
   color: var(--relay-ink);
-  margin-bottom: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 13px;
 }
 .property {
-  grid-template-columns: 112px minmax(0, 1fr);
-  gap: 7px;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 5px;
   padding: 6px 0;
 }
 .property > span {
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+}
+.property > span > svg {
+  flex: none;
+  opacity: 0.65;
+}
+.property > button {
+  font-size: 11px;
 }
 .identityPanel > :global(.relations-field),
 .identityPanel > .relations {
-  padding: 14px;
+  padding: 18px 20px;
   border-bottom: 1px solid var(--relay-border);
 }
 .identityPanel .relationProperty {
-  grid-template-columns: 100px minmax(0, 1fr);
+  grid-template-columns: 90px minmax(0, 1fr);
 }
 .membershipPanel {
-  padding: 14px;
-  border-bottom: 1px solid var(--relay-border);
+  padding: 20px;
 }
 .membershipPanel > header,
 .membershipPanel header > span {
@@ -1034,44 +1101,50 @@
 .membershipPanel > header {
   justify-content: space-between;
   color: var(--relay-muted);
-  font-size: 12px;
-  margin-bottom: 10px;
-}
-.membershipPanel small {
-  opacity: 0.7;
+  font-size: 11px;
+  margin-bottom: 12px;
 }
 .membershipPanel > p {
   color: var(--relay-muted);
   font-size: 11px;
+  line-height: 1.5;
 }
 .membershipCard {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px;
-  border: 1px solid var(--relay-border);
-  border-radius: 9px;
+  padding: 10px;
   margin-top: 8px;
+  border: 1px solid var(--relay-border);
+  border-radius: 7px;
+  background: var(--relay-surface);
 }
 .membershipCard strong {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
 }
 @media (max-width: 1000px) {
   .profileColumns,
   .profileColumns[data-details="true"] {
-    grid-template-columns: 275px minmax(0, 1fr);
-  }
-  .property {
-    grid-template-columns: 94px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 255px;
   }
   .recordMain {
-    padding-left: 18px;
-    padding-right: 18px;
+    padding: 0 22px 24px;
   }
   .recordTabs {
-    margin-left: -18px;
-    margin-right: -18px;
+    margin: 0 -22px;
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+  .recordHeader {
+    padding: 20px 24px;
+  }
+  .detailsPanel,
+  .membershipPanel {
+    padding: 18px 15px;
+  }
+  .property {
+    grid-template-columns: 80px minmax(0, 1fr);
   }
 }
 @media (max-width: 760px) {
@@ -1080,58 +1153,71 @@
     height: 100dvh;
     max-height: 100dvh !important;
     border-radius: 0 !important;
+    overflow-y: auto !important;
+  }
+  .recordHeader {
+    padding: 20px;
+    gap: 12px;
+  }
+  .recordIdentity {
+    min-width: 150px;
+  }
+  .pageIcon {
+    padding: 5px;
+    border-radius: 13px;
+  }
+  .quickActions {
+    width: 100%;
   }
   .recordPage {
-    overflow-y: auto;
+    flex: none;
+    overflow: visible;
   }
   .profileColumns,
   .profileColumns[data-details="true"] {
-    display: block;
-    height: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
   }
   .identityPanel {
-    border-right: 0;
-    border-bottom: 1px solid var(--relay-border);
+    order: 2;
+    border-left: 0;
+    border-top: 1px solid var(--relay-border);
     overflow: visible;
   }
   .recordMain {
     overflow: visible;
-    padding: 0 16px 25px;
+    padding: 0 20px 25px;
   }
   .recordTabs {
-    margin: 0 -16px;
-  }
-  .recordHeader {
-    padding: 18px 16px 10px;
+    margin: 0 -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    position: static;
   }
   .property {
     grid-template-columns: 120px minmax(0, 1fr);
   }
 }
-
-.identityPanel .property > span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.identityPanel .property > span > svg {
-  flex: none;
-  opacity: 0.65;
-}
-.identityPanel .pinned .property > span {
-  display: none;
-}
-
-.recordPage {
-  display: flex;
-  flex-direction: column;
-}
-.profileColumns {
-  flex: 1;
-  min-height: 0;
-}
 @media (max-width: 760px) {
-  .profileColumns {
-    flex: none;
+  .recordActions {
+    padding: 8px 16px;
+    gap: 4px;
   }
+  .recordActions > .grow {
+    display: none;
+  }
+  .recordActions > button {
+    font-size: 11px;
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+}
+.recordModal .recordActions :global(.button) {
+  background: var(--relay-surface);
+  color: var(--relay-ink);
+  border-color: var(--relay-border);
+}
+.recordModal .recordActions :global(.button):hover {
+  background: var(--relay-hover);
 }

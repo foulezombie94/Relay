@@ -121,7 +121,7 @@ export function StudioRecordProfile({
       <Modal
         open
         onClose={onClose}
-        title={object.name + " / " + record.display_name}
+        title={"CRM / " + object.name}
         description="Propriétés, relations et suivi de cette fiche."
         wide
         className={styles.recordModal}
@@ -162,76 +162,97 @@ export function StudioRecordProfile({
             <Archive size={15} />
           </button>
         </div>
+        <header className={styles.recordHeader}>
+          <span className={styles.pageIcon}>
+            {object.slug === "companies" ? (
+              <CompanyLogo name={record.display_name} domain={record.domain} size={52} />
+            ) : (
+              <FileText size={36} strokeWidth={1.3} />
+            )}
+          </span>
+          <div className={styles.recordIdentity}>
+            <span className={styles.recordEyebrow}>
+              {object.name} <span> / </span> Fiche de suivi
+            </span>
+            <h1>{record.display_name}</h1>
+            <div className={styles.recordMeta}>
+              {record.domain && (
+                <span>
+                  <Globe size={13} />
+                  {record.domain}
+                </span>
+              )}
+              <span className={styles.stagePill}>
+                {record.archived ? "Archivée" : record.stage}
+              </span>
+              {owner?.display_name ? (
+                <span>
+                  <Users size={13} />
+                  {str(owner.display_name)}
+                </span>
+              ) : null}
+            </div>
+          </div>
+          <button
+            className={styles.headerEdit}
+            type="button"
+            onClick={onEdit}
+            disabled={readonly}
+            aria-label="Modifier le nom et les propriétés"
+          >
+            <Pencil size={15} />
+          </button>
+          <div className={styles.pinned}>
+            {spec.pinned.map((key) => (
+              <div key={key}>
+                <Pin size={11} />
+                {property(key)}
+              </div>
+            ))}
+          </div>
+          <WorkflowButtons configs={configs} record={record} readonly={readonly} />
+          <Rollups data={q.data} />
+          <div className={styles.quickActions}>
+            <button
+              className={styles.listAction}
+              onClick={() => setListPicker(true)}
+              disabled={readonly}
+            >
+              <ListPlus size={15} />
+              Ajouter à une liste
+            </button>
+            <button
+              className="icon-button"
+              title="Notes"
+              aria-label="Ouvrir les notes"
+              onClick={() => setTab("notes")}
+            >
+              <FileText size={15} />
+            </button>
+            <button
+              className="icon-button"
+              title="Tâches"
+              aria-label="Ouvrir les tâches"
+              onClick={() => setTab("tasks")}
+            >
+              <CheckSquare size={15} />
+            </button>
+            <button
+              className="icon-button"
+              title="Relations"
+              aria-label="Ouvrir les relations"
+              onClick={() => setTab("relations")}
+            >
+              <Link2 size={15} />
+            </button>
+          </div>
+        </header>
         <div className={styles.recordPage}>
           <ErrorMessage
             error={q.error || attrs.error || members.error || (error ? new Error(error) : null)}
           />
           <div className={styles.profileColumns} data-details={spec.details && details}>
             <aside className={styles.identityPanel}>
-              <header className={styles.recordHeader}>
-                <span className={styles.pageIcon}>
-                  {object.slug === "companies" ? (
-                    <CompanyLogo name={record.display_name} domain={record.domain} size={44} />
-                  ) : (
-                    <FileText size={36} strokeWidth={1.3} />
-                  )}
-                </span>
-                <h1>{record.display_name}</h1>
-                <button
-                  className={styles.headerEdit}
-                  type="button"
-                  onClick={onEdit}
-                  disabled={readonly}
-                  aria-label="Modifier le nom et les propriétés"
-                >
-                  <Pencil size={15} />
-                </button>
-                <div className={styles.pinned}>
-                  {spec.pinned.map((key) => (
-                    <div key={key}>
-                      <Pin size={11} />
-                      {property(key)}
-                    </div>
-                  ))}
-                </div>
-                <WorkflowButtons configs={configs} record={record} readonly={readonly} />
-                <Rollups data={q.data} />
-              </header>
-
-              <div className={styles.quickActions}>
-                <button
-                  className={styles.listAction}
-                  onClick={() => setListPicker(true)}
-                  disabled={readonly}
-                >
-                  <ListPlus size={15} />
-                  Ajouter à une liste
-                </button>
-                <button
-                  className="icon-button"
-                  title="Notes"
-                  aria-label="Ouvrir les notes"
-                  onClick={() => setTab("notes")}
-                >
-                  <FileText size={15} />
-                </button>
-                <button
-                  className="icon-button"
-                  title="Tâches"
-                  aria-label="Ouvrir les tâches"
-                  onClick={() => setTab("tasks")}
-                >
-                  <CheckSquare size={15} />
-                </button>
-                <button
-                  className="icon-button"
-                  title="Relations"
-                  aria-label="Ouvrir les relations"
-                  onClick={() => setTab("relations")}
-                >
-                  <Link2 size={15} />
-                </button>
-              </div>
               {spec.details && details && (
                 <div className={styles.detailsPanel}>
                   {spec.groups.map((group) => (
