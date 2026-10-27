@@ -1,15 +1,17 @@
+/* Normalized from Capsule's published 1260px contact-page illustration. */
 .panel {
-  padding: 22px 20px;
+  padding: 20px 20px 24px;
   color: var(--relay-ink);
   border-bottom: 1px solid var(--relay-border);
   background: var(--relay-surface);
+  --contact-link: #5346ff;
 }
 .identity {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 .identity > button {
   display: grid;
@@ -19,59 +21,58 @@
   background: transparent;
   border: 0;
   border-radius: 5px;
+  opacity: 0;
 }
-.identity > button:hover:not(:disabled) {
+.panel:hover .identity > button,
+.identity > button:focus-visible {
+  opacity: 1;
+}
+.identity > button:hover {
   background: var(--relay-hover);
 }
-.identity > button:disabled {
-  display: none;
-}
 .panel h2 {
-  margin: 0 0 14px;
-  font-size: 16px;
-  line-height: 1.4;
-  letter-spacing: -0.02em;
+  margin: 0 0 24px;
+  font-size: 15px;
+  line-height: 21px;
+  letter-spacing: -0.01em;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 17px;
+  gap: 4px;
+  margin-bottom: 20px;
 }
 .tags span {
   display: inline-block;
   max-width: 100%;
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  line-height: 1.4;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 15px;
   background: var(--relay-hover);
   color: var(--relay-ink);
   overflow-wrap: anywhere;
 }
-.tags span:first-child {
-  background: var(--relay-accent-soft);
-  color: var(--blue);
-}
 .socials {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  margin-bottom: 20px;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 24px;
 }
 .socials a {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--relay-ink);
   color: var(--relay-surface);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  border-radius: 5px;
+  border-radius: 4px;
   text-decoration: none;
 }
 .socials a[data-network="LinkedIn"] {
@@ -79,7 +80,7 @@
   color: white;
 }
 .socials a[data-network="YouTube"] {
-  background: #d71920;
+  background: #e21a22;
   color: white;
 }
 .socials a[data-network="Instagram"] {
@@ -90,29 +91,40 @@
   background: #185ac1;
   color: white;
 }
+.moreSocials {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--relay-muted);
+}
+.moreSocials span {
+  background: #f04449;
+  color: white;
+  font-size: 9px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
 .coordinates {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 4px;
 }
 .coordinate {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
   min-width: 0;
-  font-size: 12px;
-  line-height: 1.55;
-}
-.coordinate > svg {
-  color: var(--relay-muted);
-  flex: none;
-  margin-top: 2px;
+  font-size: 13px;
+  line-height: 18px;
 }
 .coordinate > div {
   min-width: 0;
 }
 .coordinate a {
-  color: var(--blue);
+  color: var(--contact-link);
   display: inline-flex;
   align-items: baseline;
   gap: 4px;
@@ -123,31 +135,45 @@
 .coordinate a:hover {
   text-decoration: underline;
 }
-.coordinate a > svg {
-  flex: none;
-}
 .coordinate small {
   display: block;
-  margin-top: 1px;
   color: var(--relay-muted);
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 14px;
 }
 .address {
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
+.addressActions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 4px;
+}
+.addressActions a,
+.addressActions button {
+  color: var(--relay-muted);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 18px;
+}
+.addressActions :is(a, button):hover {
+  color: var(--contact-link);
+}
 .employee {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-top: 18px;
-  margin-top: 19px;
-  border-top: 1px solid var(--relay-border);
+  gap: 12px;
+  margin-top: 24px;
   font-size: 11px;
   color: var(--relay-muted);
 }
 .employee strong {
-  margin-left: auto;
   color: var(--relay-ink);
   font-weight: 500;
 }
@@ -163,7 +189,7 @@
   background: transparent;
 }
 .edit:hover {
-  color: var(--blue);
+  color: var(--contact-link);
 }
 .empty {
   font-size: 12px;
@@ -174,4 +200,12 @@
 .panel :is(button, a):focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 3px;
+}
+:global(html[data-relay-theme="dark"]) .panel {
+  --contact-link: #a59cff;
+}
+@media (hover: none) {
+  .identity > button {
+    opacity: 1;
+  }
 }

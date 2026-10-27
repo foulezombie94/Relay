@@ -98,3 +98,38 @@ it("does not turn unsafe or mismatched social URLs into links", () => {
   );
   expect(screen.queryByRole("link")).toBeNull();
 });
+it("opens documents/properties and expands only the additional social links", () => {
+  const onDocuments = vi.fn(),
+    onProperties = vi.fn();
+  const extra: Attribute[] = ["youtube", "instagram", "facebook"].map((key) => ({
+    ...attributes[0],
+    id: key,
+    key,
+  }));
+  render(
+    <CompanyContactSidebar
+      record={{
+        ...record,
+        attributes: {
+          ...record.attributes,
+          youtube: "https://youtube.com/@example",
+          instagram: "https://instagram.com/example",
+          facebook: "https://facebook.com/example",
+        },
+      }}
+      attributes={[...attributes, ...extra]}
+      visibleFields={[...visibleFields, ...extra.map((a) => "attr_" + a.key)]}
+      readonly={false}
+      onEdit={vi.fn()}
+      onDocuments={onDocuments}
+      onProperties={onProperties}
+    />,
+  );
+  expect(screen.queryByRole("link", { name: "Instagram" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Afficher les autres liens sociaux" }));
+  expect(screen.getByRole("link", { name: "Instagram" })).toBeDefined();
+  fireEvent.click(screen.getByRole("button", { name: "Ouvrir les documents de l’entreprise" }));
+  fireEvent.click(screen.getByRole("button", { name: "Afficher toutes les propriétés" }));
+  expect(onDocuments).toHaveBeenCalledOnce();
+  expect(onProperties).toHaveBeenCalledOnce();
+});
