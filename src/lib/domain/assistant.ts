@@ -57,6 +57,7 @@ export type AssistantMessage = {
   answer?: string;
   created_at?: string;
   request_id?: string;
+  approval_mode?: import("./assistant-approval").AssistantApprovalMode;
   record_id?: string | null;
   state?: "pending" | "complete" | "stopped" | "error";
   source_ids?: string[];

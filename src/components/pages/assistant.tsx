@@ -32,6 +32,7 @@ import { RelayPulse } from "../assistant/pulse";
 import { SidebarTrigger } from "../ui/sidebar";
 import { readAssistantStream } from "../assistant/stream";
 import { type AssistantConversation, type AssistantMessage } from "@/lib/domain/assistant";
+import { assistantApprovalMode, type AssistantApprovalMode } from "@/lib/domain/assistant-approval";
 import styles from "../assistant/assistant.module.css";
 
 type AssistantStatus = {
@@ -60,6 +61,7 @@ function AssistantSession() {
     [loading, setLoading] = useState(false),
     [error, setError] = useState("");
   const [deepen, setDeepen] = useState(false);
+  const [approvalMode, setApprovalMode] = useState<AssistantApprovalMode>("review");
   const [pulseOpen, setPulseOpen] = useState(false);
   const [search, setSearch] = useState(""),
     [historyOpen, setHistoryOpen] = useState(false);
@@ -121,6 +123,10 @@ function AssistantSession() {
         setConversation(id);
         setTitle(result.data.title);
         setMessages(result.data.messages);
+        const previousMode = assistantApprovalMode.safeParse(
+          result.data.messages.findLast((m) => m.role === "user")?.approval_mode,
+        );
+        setApprovalMode(previousMode.success ? previousMode.data : "review");
         setMessage("");
         const record = result.data.messages.findLast((m) => m.role === "user")?.record_id;
         const source = result.data.messages
@@ -173,6 +179,7 @@ function AssistantSession() {
       content: text.trim(),
       request_id: requestKey ?? crypto.randomUUID(),
       record_id: scope?.id,
+      approval_mode: approvalMode,
     };
     const placeholder: AssistantMessage = {
       id: crypto.randomUUID(),
@@ -192,6 +199,7 @@ function AssistantSession() {
         body: JSON.stringify({
           action: "ask",
           deepen,
+          approval_mode: approvalMode,
           message: text.trim(),
           request_id: user.request_id,
           ...(conversation ? { conversation_id: conversation } : {}),
@@ -567,6 +575,8 @@ function AssistantSession() {
           model={status.data?.model || ""}
           deepen={deepen}
           setDeepen={setDeepen}
+          approvalMode={approvalMode}
+          setApprovalMode={setApprovalMode}
           placement={messages.length || loading ? "bottom" : "top"}
           onSend={() => void ask()}
           onStop={() => active.current?.abort()}

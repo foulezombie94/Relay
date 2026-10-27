@@ -63,6 +63,109 @@ function context(question: string, count = 1, member = true) {
   };
 }
 afterEach(() => vi.unstubAllEnvs());
+describe("composer approval preferences", () => {
+  it.each(["ask", "review", "auto"] as const)(
+    "applies %s before sending an otherwise eligible email",
+    async (mode) => {
+      vi.stubEnv("FEATURE_AGENT_DIRECT_SEND", "true");
+      const { c: base, rpc } = context(
+        "Envoie un email à thomas@example.test pour prendre de ses nouvelles.",
+      );
+      const c = { ...base, approvalMode: mode };
+      c.sources.clear();
+      const result = await executeTool(c, "send_email", { draft_id: id }, "call");
+      expect(rpc.mock.calls.some(([name]) => name === "agent_apply")).toBe(mode === "auto");
+      expect(result).toMatchObject(
+        mode === "auto" ? { status: "queued" } : { confirmation_required: true },
+      );
+    },
+  );
+
+  it.each(["ask", "review", "auto"] as const)(
+    "respects %s when creating a simple explicitly requested task",
+    async (mode) => {
+      const { c: base, rpc } = context("Crée une tâche : Vérifier le devis");
+      const c = { ...base, approvalMode: mode };
+      c.sources.clear();
+      const task = {
+        ...c.actions.get(id)!,
+        kind: "create_task",
+        status: "pending",
+        input: { title: "Vérifier le devis" },
+      };
+      rpc.mockImplementation(async (name, args) => ({
+        data: name === "agent_review_action" ? { ...task, security: args.review } : task,
+      }));
+      await executeTool(c, "create_task", { title: "Vérifier le devis" }, "task");
+      expect(rpc.mock.calls.some(([name]) => name === "agent_apply")).toBe(mode !== "ask");
+      const review = rpc.mock.calls.find(([name]) => name === "agent_review_action")?.[1].review;
+      expect(review).toMatchObject({ automatic: mode !== "ask" });
+    },
+  );
+
+  it("requests clarification for ambiguous recipients even in autonomy", async () => {
+    vi.stubEnv("FEATURE_AGENT_DIRECT_SEND", "true");
+    const { c: base, rpc } = context("Envoie un email à Thomas.", 2);
+    const c = { ...base, approvalMode: "auto" as const };
+    c.sources.clear();
+    expect(await executeTool(c, "send_email", { draft_id: id }, "call")).toMatchObject({
+      clarification_required: true,
+    });
+    expect(rpc.mock.calls.some(([name]) => name === "agent_apply")).toBe(false);
+  });
+
+  it.each(["ask", "review", "auto"] as const)(
+    "executes a fully specified task with a description only under the %s policy",
+    async (mode) => {
+      const { c: base, rpc } = context(
+        "Crée une tâche pour relancer le client avec le contexte du devis.",
+      );
+      const c = { ...base, approvalMode: mode };
+      c.sources.clear();
+      const input = { title: "Relancer le client", description: "Faire le point sur le devis." };
+      const task = { ...c.actions.get(id)!, kind: "create_task", status: "pending", input };
+      rpc.mockImplementation(async (name, args) => ({
+        data: name === "agent_review_action" ? { ...task, security: args.review } : task,
+      }));
+      await executeTool(c, "create_task", input, "task");
+      const application = rpc.mock.calls.find(([name]) => name === "agent_apply");
+      expect(Boolean(application)).toBe(mode === "auto");
+      if (application)
+        expect(application[1]).toEqual({
+          w: c.workspace,
+          action_id: id,
+          expected_digest: task.confirmation_digest,
+        });
+    },
+  );
+
+  it("honours a draft-only request even when autonomy is active", async () => {
+    const { c: base, rpc } = context("Prépare un brouillon pour Thomas.");
+    const c = { ...base, approvalMode: "auto" as const };
+    c.sources.clear();
+    expect(await executeTool(c, "send_email", { draft_id: id }, "call")).toMatchObject({
+      status: "draft",
+    });
+    expect(rpc.mock.calls.some(([name]) => name === "agent_apply")).toBe(false);
+  });
+
+  it("uses the autonomy delegation for a requested send without enabling legacy direct-send", async () => {
+    vi.stubEnv("FEATURE_AGENT_DIRECT_SEND", "false");
+    const { c: base, rpc } = context(
+      "Envoie un email à thomas@example.test pour prendre de ses nouvelles.",
+    );
+    const c = { ...base, approvalMode: "auto" as const };
+    c.sources.clear();
+    expect(await executeTool(c, "send_email", { draft_id: id }, "call")).toMatchObject({
+      status: "queued",
+    });
+    expect(rpc.mock.calls.find(([name]) => name === "agent_apply")?.[1]).toEqual({
+      w: c.workspace,
+      action_id: id,
+      expected_digest: "a".repeat(64),
+    });
+  });
+});
 describe("trusted conversational email authorization", () => {
   it("never exposes an export or accepts bulk recipients as tool parameters", async () => {
     const { c, rpc } = context("Résume les emails.");

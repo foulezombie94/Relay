@@ -4,6 +4,7 @@ import { randomUUID, randomBytes } from "node:crypto";
 import { runAgent } from "@/lib/agent/runner";
 import { configuredAgentModel } from "@/lib/agent/identity";
 import { agentApiKey } from "@/lib/agent/provider";
+import { assistantApprovalMode } from "@/lib/domain/assistant-approval";
 import { rpc } from "@/lib/agent/tools";
 import * as Sentry from "@sentry/nextjs";
 import { context, checkOrigin, ApiError, databaseError, fail } from "@/lib/api/context";
@@ -27,6 +28,7 @@ const requestSchema = z.discriminatedUnion("action", [
     meeting_id: z.uuid().optional(),
     conversation_id: z.uuid().optional(),
     deepen: z.boolean().optional(),
+    approval_mode: assistantApprovalMode.default("review"),
     request_id: z.uuid().optional(),
   }),
   z.object({
@@ -191,6 +193,7 @@ export async function POST(req: NextRequest, { params }: P) {
       request_id: input.request_id ?? randomUUID(),
       created_at: new Date().toISOString(),
       record_id: input.record_id ?? null,
+      approval_mode: input.approval_mode,
     };
     const assistantMessage: AssistantMessage = {
       id: randomUUID(),
@@ -328,6 +331,7 @@ export async function POST(req: NextRequest, { params }: P) {
               run: admitted.id,
               runSecret,
               question: input.message,
+              approvalMode: input.approval_mode,
               analysisMeetingId: input.meeting_id,
               untrustedContext: oldMessages.length > 0,
               requestKey: userMessage.request_id!,

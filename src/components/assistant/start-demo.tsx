@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "../ui/sidebar";
 import { AssistantWelcome, AssistantQuickActions } from "./start";
 import { AssistantComposerView, type RecordContext } from "./composer-view";
 import type { Workspace } from "@/lib/domain/types";
+import type { AssistantApprovalMode } from "@/lib/domain/assistant-approval";
 import styles from "./assistant.module.css";
 const workspace: Workspace = {
   id: "demo",
@@ -24,6 +25,7 @@ const records = [
 ];
 export function AssistantStartDemo() {
   const router = useRouter();
+  const [approvalMode, setApprovalMode] = useState<AssistantApprovalMode>("review");
   const [message, setMessage] = useState(""),
     [context, setContext] = useState<RecordContext>(null),
     [deepen, setDeepen] = useState(false),
@@ -92,6 +94,8 @@ export function AssistantStartDemo() {
               model="Aperçu local"
               deepen={deepen}
               setDeepen={setDeepen}
+              approvalMode={approvalMode}
+              setApprovalMode={setApprovalMode}
               placement={sent ? "bottom" : "top"}
               onSend={() => {
                 if (message.trim()) {

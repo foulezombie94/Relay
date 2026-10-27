@@ -15,8 +15,12 @@ import {
   type ActionKind,
 } from "./contracts";
 import type { SourceContent } from "@/lib/api/assistant-context";
-import { actionSecurity, explicitBulkRequest } from "./security";
+import { actionSecurity, explicitBulkRequest, sourceNotices } from "./security";
 import type { ActionSecurity } from "./security";
+import {
+  approvalAllowsAutomatic,
+  type AssistantApprovalMode,
+} from "@/lib/domain/assistant-approval";
 
 export type ToolContext = {
   client: SupabaseClient;
@@ -27,6 +31,7 @@ export type ToolContext = {
   runSecret?: string;
   readonly question: string;
   readonly analysisMeetingId?: string;
+  readonly approvalMode?: AssistantApprovalMode;
   untrustedContext?: boolean;
   requestKey?: string;
   actionSequence?: Map<string, number>;
@@ -139,6 +144,18 @@ async function reviewForAction(
   values: Record<string, unknown>,
 ): Promise<ActionSecurity> {
   const policy = actionSecurity(c.question, kind, values, c.sources.values(), c.untrustedContext);
+  if (!approvalAllowsAutomatic(c.approvalMode, kind)) {
+    return {
+      ...policy,
+      automatic: false,
+      reasons: [
+        ...policy.reasons,
+        c.approvalMode === "ask"
+          ? "Vous avez choisi de valider chaque action avant son exécution."
+          : "Votre mode de validation demande un aperçu avant toute action externe.",
+      ],
+    };
+  }
   if (kind !== "draft_email") return policy;
   const draft = actionSchemas.draft_email.parse(values);
   const requested = explicitEmailRecipient(c.question);
@@ -314,6 +331,29 @@ export async function propose(c: ToolContext, kind: ActionKind, input: unknown, 
   c.actions.set(a.id, a);
   return a;
 }
+async function applyAutonomousAction(c: ToolContext, action: AgentAction) {
+  // The chosen mode is validated by the API, never read from model/tool output.
+  // Reuse the authenticated confirmation path and its exact digest, expiration,
+  // ownership, rights, source visibility, quotas and idempotent outbox checks.
+  if (
+    c.approvalMode !== "auto" ||
+    !c.runSecret ||
+    action.run_id !== c.run ||
+    !c.actions.has(action.id)
+  )
+    throw new ApiError("Cette action ne relève pas de la délégation courante.", 403);
+  await guard(c, true);
+  if (sourceNotices(c.sources.values()).length)
+    throw new ApiError("Une instruction suspecte dans une source a interrompu cette action.", 403);
+  const executed = (await rpc(c.client, "agent_apply", {
+    w: c.workspace,
+    action_id: action.id,
+    expected_digest: action.confirmation_digest,
+  })) as AgentAction;
+  c.actions.set(action.id, executed);
+  return executed;
+}
+
 export async function executeTool(c: ToolContext, name: string, raw: unknown, callKey: string) {
   if (!Object.hasOwn(toolSchemas, name)) throw new ApiError("Outil inconnu.", 400);
   await guard(c);
@@ -441,11 +481,33 @@ export async function executeTool(c: ToolContext, name: string, raw: unknown, ca
       c.sources.values(),
       c.untrustedContext,
     );
-    if (!policy.automatic || !a.security?.automatic)
-      return { ...a, confirmation_required: true, reason: policy.reasons.join(" ") };
-    // Deterministic direct authorization is intentionally narrow. Names, bulk,
-    // sensitive text and old conversational consent always use the concrete preview.
-    if (process.env.FEATURE_AGENT_DIRECT_SEND !== "true")
+    const autonomous = c.approvalMode === "auto";
+    if (
+      autonomous &&
+      /ne.{0,35}pas|n[’'](?:envoie|envoy)|do not|don[’']t|sans.{0,30}envoy|brouillon|draft|prépare|prepare/iu.test(
+        c.question,
+      )
+    )
+      return {
+        ...a,
+        reason:
+          "Votre demande prépare un brouillon ou limite l’envoi. Aucun message n’a été envoyé.",
+      };
+    if (
+      !autonomous &&
+      (!approvalAllowsAutomatic(c.approvalMode, "draft_email") ||
+        !policy.automatic ||
+        !a.security?.automatic)
+    )
+      return {
+        ...a,
+        confirmation_required: true,
+        reason: !approvalAllowsAutomatic(c.approvalMode, "draft_email")
+          ? "Votre mode de validation demande un aperçu confirmé avant cet envoi."
+          : policy.reasons.join(" "),
+      };
+    // Outside the explicit autonomy delegation, retain the narrow direct-send gate.
+    if (!autonomous && process.env.FEATURE_AGENT_DIRECT_SEND !== "true")
       return {
         ...a,
         confirmation_required: true,
@@ -465,9 +527,9 @@ export async function executeTool(c: ToolContext, name: string, raw: unknown, ca
     const candidates = await lookup.limit(2);
     databaseError(candidates.error);
     if (
-      (!requestedName && requested !== draft.to) ||
+      (!autonomous && !requestedName && requested !== draft.to) ||
       candidates.data?.[0]?.email?.toLowerCase() !== draft.to ||
-      sensitiveEmail(draft.subject, draft.body) ||
+      (!autonomous && sensitiveEmail(draft.subject, draft.body)) ||
       [...c.sources.values()].some(
         (s) => s.private && (!draft.record_id || s.record_id !== draft.record_id),
       ) ||
@@ -476,12 +538,14 @@ export async function executeTool(c: ToolContext, name: string, raw: unknown, ca
     ) {
       return {
         ...a,
-        confirmation_required: true,
-        reason:
-          "Vérifiez le destinataire, le compte, l’objet et le contenu, puis confirmez l’envoi dans l’aperçu.",
+        ...(autonomous ? { clarification_required: true } : { confirmation_required: true }),
+        reason: autonomous
+          ? "Précisez le destinataire ou les données à partager : la cible est ambiguë ou le contenu privé dépasse la fiche concernée."
+          : "Vérifiez le destinataire, le compte, l’objet et le contenu, puis confirmez l’envoi dans l’aperçu.",
       };
     }
     if (
+      !autonomous &&
       /rendez-vous|rendez vous|appointment|réunion|meeting|demain|tomorrow|\d{1,2}\s*h\b/i.test(
         c.question,
       )
@@ -493,6 +557,7 @@ export async function executeTool(c: ToolContext, name: string, raw: unknown, ca
           "Vérifiez la date, le fuseau et le rendez-vous dans l’aperçu avant l’envoi de ce rappel.",
       };
     }
+    if (autonomous) return applyAutonomousAction(c, a);
     const executed = (await rpc(c.client, "agent_apply", {
       w: c.workspace,
       action_id: a.id,
@@ -522,7 +587,14 @@ export async function executeTool(c: ToolContext, name: string, raw: unknown, ca
       `${c.requestKey ?? c.run}:${name}:${singularAutomatic ? "explicit" : sequence}`,
     );
     if (
+      c.approvalMode === "auto" &&
       name !== "draft_email" &&
+      ["pending", "draft"].includes(a.status)
+    )
+      return applyAutonomousAction(c, a);
+    if (
+      name !== "draft_email" &&
+      approvalAllowsAutomatic(c.approvalMode, name) &&
       a.security?.automatic &&
       ["pending", "draft"].includes(a.status)
     ) {

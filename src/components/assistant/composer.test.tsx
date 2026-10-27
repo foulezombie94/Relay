@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React, { useState, type ComponentProps } from "react";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import { AssistantComposerView } from "./composer-view";
 import { AssistantQuickActions } from "./start";
 
@@ -21,6 +21,8 @@ function props(overrides: Partial<ComponentProps<typeof AssistantComposerView>> 
     model: "test",
     deepen: false,
     setDeepen: vi.fn(),
+    approvalMode: "review" as const,
+    setApprovalMode: vi.fn(),
     placement: "top" as const,
     onSend: vi.fn(),
     onStop: vi.fn(),
@@ -81,5 +83,66 @@ it("keeps the record picker open when handing off from the context menu", async 
   const record = await screen.findByRole("button", { name: /Studio Rivage/ });
   fireEvent.click(record);
   expect(p.setContext).toHaveBeenCalledExactlyOnceWith({ id: "record", label: "Studio Rivage" });
+  expect(p.onSend).not.toHaveBeenCalled();
+});
+
+it("offers three approval modes, updates the toolbar and never sends on selection", async () => {
+  const p = props();
+  function Composer() {
+    const [mode, setMode] =
+      useState<ComponentProps<typeof AssistantComposerView>["approvalMode"]>("review");
+    return <AssistantComposerView {...p} approvalMode={mode} setApprovalMode={setMode} />;
+  }
+  render(<Composer />);
+  fireEvent.keyDown(
+    screen.getByRole("button", { name: "Choisir les autorisations : Vérifier pour moi" }),
+    { key: "ArrowDown" },
+  );
+  expect(await screen.findAllByRole("menuitemradio")).toHaveLength(3);
+  expect(
+    screen.getByRole("menuitemradio", { name: /Vérifier pour moi/ }).getAttribute("aria-checked"),
+  ).toBe("true");
+  fireEvent.click(screen.getByRole("menuitemradio", { name: /Toujours me consulter/ }));
+  expect(
+    await screen.findByRole("button", {
+      name: "Choisir les autorisations : Toujours me consulter",
+    }),
+  ).toBeTruthy();
+  expect(screen.queryByRole("menu")).toBeNull();
+  expect(p.onSend).not.toHaveBeenCalled();
+});
+
+it("disables the approval selector during an active response", () => {
+  render(<AssistantComposerView {...props({ busy: true })} />);
+  expect(
+    (screen.getByRole("button", { name: /Choisir les autorisations/ }) as HTMLButtonElement)
+      .disabled,
+  ).toBe(true);
+});
+
+it("requires an explicit confirmation for autonomy and preserves the mode on cancel", async () => {
+  const p = props();
+  render(<AssistantComposerView {...p} />);
+  async function requestAutonomy() {
+    fireEvent.keyDown(screen.getByRole("button", { name: /Choisir les autorisations/ }), {
+      key: "ArrowDown",
+    });
+    fireEvent.click(await screen.findByRole("menuitemradio", { name: /Avancer en autonomie/ }));
+    return screen.findByRole("alertdialog");
+  }
+  const warning = await requestAutonomy();
+  expect(within(warning).getAllByRole("button")).toHaveLength(2);
+  expect(p.setApprovalMode).not.toHaveBeenCalled();
+  fireEvent.click(within(warning).getByRole("button", { name: "Annuler" }));
+  expect(screen.queryByRole("alertdialog")).toBeNull();
+  expect(p.setApprovalMode).not.toHaveBeenCalled();
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: /Choisir les autorisations/ }),
+    ),
+  );
+  const reopened = await requestAutonomy();
+  fireEvent.click(within(reopened).getByRole("button", { name: "Confirmer" }));
+  expect(p.setApprovalMode).toHaveBeenCalledExactlyOnceWith("auto");
   expect(p.onSend).not.toHaveBeenCalled();
 });

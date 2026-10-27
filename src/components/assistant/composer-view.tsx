@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as Dialog from "@radix-ui/react-dialog";
 import Link from "next/link";
 import {
   ArrowUp,
@@ -10,7 +12,6 @@ import {
   Check,
   X,
   Layers3,
-  ShieldCheck,
   Building2,
   Users,
   Mail,
@@ -18,12 +19,40 @@ import {
   NotebookPen,
   ChevronDown,
   SlidersHorizontal,
+  TriangleAlert,
 } from "lucide-react";
 import { assistantPrompts } from "@/lib/domain/assistant";
+import {
+  assistantApprovalOptions,
+  assistantApprovalMode,
+  type AssistantApprovalMode,
+} from "@/lib/domain/assistant-approval";
 import type { CrmRecord } from "@/lib/domain/types";
 import styles from "./assistant.module.css";
 
 export type RecordContext = { id: string; label: string } | null;
+export type AssistantComposerViewProps = {
+  message: string;
+  setMessage: (value: string) => void;
+  context: RecordContext;
+  setContext: (value: RecordContext) => void;
+  busy: boolean;
+  configured: boolean;
+  model: string;
+  deepen: boolean;
+  setDeepen: (value: boolean) => void;
+  approvalMode: AssistantApprovalMode;
+  setApprovalMode: (value: AssistantApprovalMode) => void;
+  placement: "top" | "bottom";
+  onSend: () => void;
+  onStop: () => void;
+  contextOpen: boolean;
+  setContextOpen: (open: boolean) => void;
+  recordSearch: string;
+  setRecordSearch: (query: string) => void;
+  records: { loading: boolean; error?: string; data: Pick<CrmRecord, "id" | "display_name">[] };
+  prefetchPrivate?: boolean;
+};
 export function AssistantComposerView({
   message,
   setMessage,
@@ -34,6 +63,8 @@ export function AssistantComposerView({
   model,
   deepen,
   setDeepen,
+  approvalMode,
+  setApprovalMode,
   placement,
   onSend,
   onStop,
@@ -43,31 +74,15 @@ export function AssistantComposerView({
   setRecordSearch: setSearch,
   records,
   prefetchPrivate = true,
-}: {
-  message: string;
-  setMessage: (value: string) => void;
-  context: RecordContext;
-  setContext: (value: RecordContext) => void;
-  busy: boolean;
-  configured: boolean;
-  model: string;
-  deepen: boolean;
-  setDeepen: (value: boolean) => void;
-  placement: "top" | "bottom";
-  onSend: () => void;
-  onStop: () => void;
-  contextOpen: boolean;
-  setContextOpen: (open: boolean) => void;
-  recordSearch: string;
-  setRecordSearch: (query: string) => void;
-  records: { loading: boolean; error?: string; data: Pick<CrmRecord, "id" | "display_name">[] };
-  prefetchPrivate?: boolean;
-}) {
+}: AssistantComposerViewProps) {
   const [adding, setAdding] = useState(false),
     [approval, setApproval] = useState(false),
     [sourcesVisible, setSourcesVisible] = useState(true);
   const [prompts, setPrompts] = useState(false);
   const [options, setOptions] = useState(false);
+  const [autonomyWarning, setAutonomyWarning] = useState(false);
+  const approvalTrigger = useRef<HTMLButtonElement>(null);
+  const cancelAutonomy = useRef<HTMLButtonElement>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     const el = textarea.current;
@@ -142,7 +157,9 @@ export function AssistantComposerView({
             }
           }}
           placeholder={
-            context ? `Posez une question sur ${context.label}…` : "Demandez à votre assistant CRM…"
+            context
+              ? `Faisons le point sur ${context.label}…`
+              : "Une question, un client, une prochaine étape…"
           }
           rows={2}
         />
@@ -254,30 +271,75 @@ export function AssistantComposerView({
               </Popover.Content>
             </Popover.Portal>
           </Popover.Root>
-          <Popover.Root open={approval} onOpenChange={setApproval}>
-            <Popover.Trigger
+          <DropdownMenu.Root
+            modal={false}
+            open={approval}
+            onOpenChange={(next) => {
+              if (next) {
+                setAdding(false);
+                setOptions(false);
+                setPrompts(false);
+                setOpen(false);
+              }
+              setApproval(next);
+            }}
+          >
+            <DropdownMenu.Trigger
+              ref={approvalTrigger}
               type="button"
               className={styles.approvalMode}
-              aria-label="Mode de confirmation des actions"
+              disabled={busy}
+              aria-label={`Choisir les autorisations : ${assistantApprovalOptions.find((option) => option.value === approvalMode)?.label}`}
             >
-              <ShieldCheck size={13} />
-              <span>Avec confirmation</span>
-            </Popover.Trigger>
-            <Popover.Portal>
-              <Popover.Content className={styles.composerMenu} align="start" sideOffset={8}>
-                <strong>Vous gardez la main</strong>
-                <div className={styles.approvalCurrent}>
-                  <ShieldCheck size={16} />
-                  <span>Rechercher et proposer</span>
-                  <Check size={14} />
-                </div>
-                <p>
-                  L’assistant recherche dans les sources autorisées. Les actions qui modifient votre
-                  CRM doivent être confirmées avant exécution.
-                </p>
-              </Popover.Content>
-            </Popover.Portal>
-          </Popover.Root>
+              <span>
+                {assistantApprovalOptions.find((option) => option.value === approvalMode)?.label}
+              </span>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                className={styles.approvalMenu}
+                align="start"
+                side={placement === "top" ? "bottom" : "top"}
+                sideOffset={4}
+                collisionPadding={12}
+                aria-label="Autorisations de l’assistant"
+                onCloseAutoFocus={(event) => {
+                  if (autonomyWarning) event.preventDefault();
+                }}
+              >
+                <DropdownMenu.Label className={styles.approvalHeading}>
+                  Quand souhaitez-vous valider les actions de Zyliad&nbsp;?
+                </DropdownMenu.Label>
+                <DropdownMenu.RadioGroup
+                  value={approvalMode}
+                  onValueChange={(value) => {
+                    const mode = assistantApprovalMode.safeParse(value);
+                    if (!mode.success) return;
+                    if (mode.data === "auto" && approvalMode !== "auto") {
+                      setAutonomyWarning(true);
+                    } else {
+                      setApprovalMode(mode.data);
+                    }
+                  }}
+                >
+                  {assistantApprovalOptions.map((option) => (
+                    <DropdownMenu.RadioItem
+                      className={styles.approvalItem}
+                      key={option.value}
+                      value={option.value}
+                      textValue={option.label}
+                    >
+                      <span className={styles.approvalTitle}>{option.label}</span>
+                      <span className={styles.approvalDescription}>{option.description}</span>
+                      <DropdownMenu.ItemIndicator className={styles.approvalCheck}>
+                        <Check size={15} strokeWidth={1.7} />
+                      </DropdownMenu.ItemIndicator>
+                    </DropdownMenu.RadioItem>
+                  ))}
+                </DropdownMenu.RadioGroup>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
           <Popover.Root open={options} onOpenChange={setOptions}>
             <Popover.Trigger asChild>
               <button
@@ -355,6 +417,55 @@ export function AssistantComposerView({
           )}
         </div>
       </form>
+      <Dialog.Root open={autonomyWarning} onOpenChange={setAutonomyWarning}>
+        <Dialog.Portal>
+          <Dialog.Overlay className={styles.approvalWarningOverlay} />
+          <Dialog.Content
+            role="alertdialog"
+            className={styles.approvalWarning}
+            onOpenAutoFocus={(event) => {
+              event.preventDefault();
+              cancelAutonomy.current?.focus();
+            }}
+            onCloseAutoFocus={(event) => {
+              event.preventDefault();
+              approvalTrigger.current?.focus();
+            }}
+            onPointerDownOutside={(event) => event.preventDefault()}
+          >
+            <Dialog.Title className={styles.approvalWarningTitle}>
+              Activer le mode « Avancer en autonomie »&nbsp;?
+            </Dialog.Title>
+            <Dialog.Description className={styles.approvalWarningDescription}>
+              Zyliad pourra effectuer les actions demandées dans votre espace et vos applications
+              connectées sans demander d’approbation, y compris modifier vos fiches ou envoyer des
+              messages. Vérifiez vos demandes avant de les envoyer. Vos droits d’accès et les
+              limites des applications continuent de s’appliquer. Vous pourrez changer de mode
+              depuis la barre de message à tout moment.
+            </Dialog.Description>
+            <div className={styles.approvalWarningActions}>
+              <Dialog.Close asChild>
+                <button type="button" ref={cancelAutonomy} className={styles.approvalCancel}>
+                  Annuler
+                </button>
+              </Dialog.Close>
+              <button
+                type="button"
+                className={styles.approvalConfirm}
+                disabled={busy}
+                onClick={() => {
+                  if (busy) return;
+                  setApprovalMode("auto");
+                  setAutonomyWarning(false);
+                }}
+              >
+                <TriangleAlert size={16} />
+                Confirmer
+              </button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
       {placement === "top" && sourcesVisible && (
         <div className={styles.sourceStrip}>
           <span>Vos fiches, notes et échanges réunis</span>
