@@ -29,6 +29,8 @@ Ces fiches expliquent une fonctionnalité à leur date de rédaction. Pour les o
 
 ## Décisions et recherches
 
+- Fiches CRM : [référence Attio — Company Overview](research/attio-record-page-reference.md)
+
 - Qualité : [suite de l’audit public de production du 27 octobre 2026](research/production-audit-remediation-2026-10-27.md)
 - Navigation : [correction des espaces et liens directs du 27 octobre 2026](research/workspace-navigation-fixes-2026-10-27.md)
 

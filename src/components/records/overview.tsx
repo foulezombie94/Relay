@@ -14,11 +14,12 @@ import {
   FileText,
 } from "lucide-react";
 import { Avatar, Badge, date, money, str } from "../ui/display";
-import { relatedRecords, nextRecordAction, linkedDealTotals } from "@/lib/domain/record-profile";
+import { relatedRecords, nextRecordAction } from "@/lib/domain/record-profile";
 import { dealProbability, type Pipeline } from "@/lib/domain/pipelines";
 import type { Attribute, CrmRecord, ObjectDefinition } from "@/lib/domain/types";
 import type { RecordContext } from "./context";
 import styles from "./record-details.module.css";
+import { CompanyOverview } from "./company-overview";
 type Props = {
   record: CrmRecord;
   slug: string;
@@ -123,7 +124,6 @@ export function RecordOverview({
     companies = relatedRecords(context.related, objects, "companies"),
     deals = relatedRecords(context.related, objects, "deals");
   const next = nextRecordAction(context.timeline);
-  const totals = linkedDealTotals(deals);
   const recent = context.timeline
     .filter((r) => ["activities", "meetings"].includes(r.resource))
     .slice(0, 4);
@@ -332,61 +332,7 @@ export function RecordOverview({
     </Section>
   );
   if (slug === "companies")
-    return (
-      <div className={styles.companyLayout}>
-        <div className={styles.companyMain}>
-          <Section
-            title="Portefeuille commercial lié"
-            icon={<Layers3 size={16} />}
-            action={
-              <button type="button" className={styles.subtleButton} onClick={() => onTab("deals")}>
-                Opportunités <ArrowRight size={13} />
-              </button>
-            }
-          >
-            {Object.keys(totals).length > 0 && (
-              <div className={styles.accountTotals}>
-                {Object.entries(totals).map(([currency, total]) => (
-                  <div key={currency}>
-                    <div>
-                      <span>Pipeline ouvert · {currency}</span>
-                      <strong>{money(total.open, currency)}</strong>
-                    </div>
-                    <div>
-                      <span>Ventes gagnées · {currency}</span>
-                      <strong>{money(total.won, currency)}</strong>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <RelatedRecordList
-              records={deals.slice(0, 4)}
-              objects={objects}
-              onRelations={() => onTab("relations")}
-              empty="Reliez les opportunités de ce compte pour suivre sa valeur commerciale."
-            />
-          </Section>
-          <Section
-            title={"Contacts du compte · " + contacts.length}
-            icon={<Users size={16} />}
-            action={manage}
-          >
-            <RelatedRecordList
-              records={contacts.slice(0, 4)}
-              objects={objects}
-              onRelations={() => onTab("relations")}
-              empty="Ajoutez les interlocuteurs de cette entreprise à ses relations."
-            />
-          </Section>
-          {delivery}
-        </div>
-        <aside className={styles.sideColumn}>
-          {nextAction}
-          {!hideProperties && properties}
-        </aside>
-      </div>
-    );
+    return <CompanyOverview record={record} context={context} objects={objects} onTab={onTab} />;
   if (slug === "deals")
     return (
       <div className={styles.dealLayout}>

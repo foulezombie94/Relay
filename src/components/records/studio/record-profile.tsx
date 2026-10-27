@@ -13,6 +13,17 @@ import {
   PanelRight,
   Archive,
   Pencil,
+  ListPlus,
+  LayoutGrid,
+  Activity,
+  CheckSquare,
+  Folder,
+  Users,
+  Layers3,
+  MessageSquare,
+  Globe,
+  Mail,
+  CalendarDays,
 } from "lucide-react";
 import { toast } from "sonner";
 import { recordHref, workspaceHref } from "@/lib/domain/workspace-navigation";
@@ -20,6 +31,7 @@ import { defaultLayout, type StudioConfig } from "@/lib/domain/record-studio";
 import type { CrmRecord, Attribute, Simulation, ObjectDefinition } from "@/lib/domain/types";
 import { request, useRows, useWorkspace, useSave } from "../../providers/data-provider";
 import { Modal, Loading, ErrorMessage, money, str, date } from "../../ui";
+import { RecordLists } from "../record-lists";
 import { CompanyLogo } from "../company-logo";
 import { RecordPicker } from "../picker";
 import { RecordRelationsField } from "../relations";
@@ -46,13 +58,14 @@ export function StudioRecordProfile({
   const object = objects.find((o) => o.id === record.object_id)!;
   const [customizing, setCustomizing] = useState(false);
   const [tab, setTab] = useState("");
+  const [listPicker, setListPicker] = useState(false);
   const [details, setDetails] = useState(true);
   const [error, setError] = useState("");
   const q = useStudio(record.object_id, record.id);
   const attrs = useRows<Attribute>("attributes", { object_id: record.object_id, size: 100 });
   const members = useRows("memberships", { size: 100 });
   const save = useSave();
-  const readonly = workspace.role === "viewer" || !!record.merged_into;
+  const readonly = workspace.role === "viewer" || !!record.merged_into || record.archived;
   const canManage = ["owner", "admin"].includes(workspace.role);
   const configs = q.data?.data ?? [];
   const layout = configs.find((c) => c.kind === "layout" && c.object_id === object.id);
@@ -61,13 +74,15 @@ export function StudioRecordProfile({
       ? layout.config
       : {
           ...defaultLayout,
+          pinned: object.slug === "companies" ? [] : defaultLayout.pinned,
           groups: [
             {
               id: "properties",
-              title: "Propriétés",
+              title: object.slug === "companies" ? "Détails de l’entreprise" : "Propriétés",
               fields: [
-                "email",
                 "domain",
+                "display_name",
+                "email",
                 "owner_id",
                 ...(attrs.data?.data ?? []).filter((a) => !a.archived).map((a) => "attr_" + a.key),
               ],
@@ -106,7 +121,7 @@ export function StudioRecordProfile({
       <Modal
         open
         onClose={onClose}
-        title={object.name}
+        title={object.name + " / " + record.display_name}
         description="Propriétés, relations et suivi de cette fiche."
         wide
         className={styles.recordModal}
@@ -148,30 +163,96 @@ export function StudioRecordProfile({
           </button>
         </div>
         <div className={styles.recordPage}>
-          <header className={styles.recordHeader}>
-            <span className={styles.pageIcon}>
-              {object.slug === "companies" ? (
-                <CompanyLogo name={record.display_name} domain={record.domain} size={44} />
-              ) : (
-                <FileText size={36} strokeWidth={1.3} />
-              )}
-            </span>
-            <h1>{record.display_name}</h1>
-            <div className={styles.pinned}>
-              {spec.pinned.map((key) => (
-                <div key={key}>
-                  <Pin size={11} />
-                  {property(key)}
-                </div>
-              ))}
-            </div>
-            <WorkflowButtons configs={configs} record={record} readonly={readonly} />
-            <Rollups data={q.data} />
-          </header>
           <ErrorMessage
             error={q.error || attrs.error || members.error || (error ? new Error(error) : null)}
           />
           <div className={styles.profileColumns} data-details={spec.details && details}>
+            <aside className={styles.identityPanel}>
+              <header className={styles.recordHeader}>
+                <span className={styles.pageIcon}>
+                  {object.slug === "companies" ? (
+                    <CompanyLogo name={record.display_name} domain={record.domain} size={44} />
+                  ) : (
+                    <FileText size={36} strokeWidth={1.3} />
+                  )}
+                </span>
+                <h1>{record.display_name}</h1>
+                <button
+                  className={styles.headerEdit}
+                  type="button"
+                  onClick={onEdit}
+                  disabled={readonly}
+                  aria-label="Modifier le nom et les propriétés"
+                >
+                  <Pencil size={15} />
+                </button>
+                <div className={styles.pinned}>
+                  {spec.pinned.map((key) => (
+                    <div key={key}>
+                      <Pin size={11} />
+                      {property(key)}
+                    </div>
+                  ))}
+                </div>
+                <WorkflowButtons configs={configs} record={record} readonly={readonly} />
+                <Rollups data={q.data} />
+              </header>
+
+              <div className={styles.quickActions}>
+                <button
+                  className={styles.listAction}
+                  onClick={() => setListPicker(true)}
+                  disabled={readonly}
+                >
+                  <ListPlus size={15} />
+                  Ajouter à une liste
+                </button>
+                <button
+                  className="icon-button"
+                  title="Notes"
+                  aria-label="Ouvrir les notes"
+                  onClick={() => setTab("notes")}
+                >
+                  <FileText size={15} />
+                </button>
+                <button
+                  className="icon-button"
+                  title="Tâches"
+                  aria-label="Ouvrir les tâches"
+                  onClick={() => setTab("tasks")}
+                >
+                  <CheckSquare size={15} />
+                </button>
+                <button
+                  className="icon-button"
+                  title="Relations"
+                  aria-label="Ouvrir les relations"
+                  onClick={() => setTab("relations")}
+                >
+                  <Link2 size={15} />
+                </button>
+              </div>
+              {spec.details && details && (
+                <div className={styles.detailsPanel}>
+                  {spec.groups.map((group) => (
+                    <section key={group.id}>
+                      <h3>{group.title}</h3>
+                      {group.fields.map(property)}
+                    </section>
+                  ))}
+                  <small>Créée le {date(record.created_at)}</small>
+                </div>
+              )}
+              <RecordRelationsField record={record} slug={object.slug} />
+              <TypedRelations data={q.data} record={record} objects={objects} readonly={readonly} />
+              <RecordLists
+                recordId={record.id}
+                readonly={readonly}
+                open={listPicker}
+                onOpen={() => setListPicker(true)}
+                onClose={() => setListPicker(false)}
+              />
+            </aside>
             <main className={styles.recordMain}>
               {(!spec.details || !details) && (
                 <div className={styles.inlineProperties}>
@@ -183,17 +264,34 @@ export function StudioRecordProfile({
                   ))}
                 </div>
               )}
-              <RecordRelationsField record={record} slug={object.slug} />
-              <TypedRelations data={q.data} record={record} objects={objects} readonly={readonly} />
               <nav className={styles.recordTabs} aria-label="Sections de la fiche">
                 {spec.sections.map((section) => (
                   <button
                     type="button"
                     key={section}
                     data-active={current === section}
+                    aria-current={current === section ? "page" : undefined}
                     onClick={() => setTab(section)}
                   >
+                    {(() => {
+                      const icons = {
+                        overview: LayoutGrid,
+                        timeline: Activity,
+                        activities: MessageSquare,
+                        notes: FileText,
+                        tasks: CheckSquare,
+                        documents: Folder,
+                        contacts: Users,
+                        deals: Layers3,
+                        relations: Link2,
+                      };
+                      const Icon = icons[section as keyof typeof icons] || CheckSquare;
+                      return <Icon size={14} />;
+                    })()}
                     {sectionNames[section]}
+                    {context.data?.counts[section] ? (
+                      <small>{context.data.counts[section]}</small>
+                    ) : null}
                   </button>
                 ))}
               </nav>
@@ -245,17 +343,6 @@ export function StudioRecordProfile({
                 )}
               </section>
             </main>
-            {spec.details && details && (
-              <aside className={styles.detailsPanel}>
-                {spec.groups.map((group) => (
-                  <section key={group.id}>
-                    <h3>{group.title}</h3>
-                    {group.fields.map(property)}
-                  </section>
-                ))}
-                <small>Créée le {date(record.created_at)}</small>
-              </aside>
-            )}
           </div>
         </div>
       </Modal>
@@ -291,9 +378,22 @@ function Property({
             : raw == null
               ? ""
               : String(raw);
+  const Icon =
+    field.key === "domain"
+      ? Globe
+      : field.key === "email"
+        ? Mail
+        : field.key === "owner_id"
+          ? Users
+          : field.type === "date"
+            ? CalendarDays
+            : FileText;
   return (
     <div className={styles.property}>
-      <span>{field.label}</span>
+      <span>
+        <Icon size={13} />
+        {field.label}
+      </span>
       <button
         type="button"
         disabled={readonly}
