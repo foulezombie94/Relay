@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { recordHref, workspaceHref } from "@/lib/domain/workspace-navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useWorkspace, request } from "../providers/data-provider";
 import { PageHeader, SearchBox, Empty, Loading, ErrorMessage, date } from "../ui";
@@ -44,9 +45,7 @@ export function SearchPage() {
   });
   function recordLink(id: string, objectId: string) {
     const object = objects.find((o) => o.id === objectId);
-    return object
-      ? "/app/" + (object.standard ? object.slug : "object-" + object.slug) + "?record=" + id
-      : null;
+    return object ? recordHref(workspace.id, object, id) : null;
   }
   return (
     <>
@@ -122,7 +121,10 @@ export function SearchPage() {
                               </Link>
                             )}
                             {group.resource !== "records" && (
-                              <Link className="button small" href={"/app/" + group.resource}>
+                              <Link
+                                className="button small"
+                                href={workspaceHref("/app/" + group.resource, workspace.id)}
+                              >
                                 Ouvrir {labels[group.resource].toLowerCase()}
                               </Link>
                             )}

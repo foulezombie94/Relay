@@ -1,4 +1,5 @@
 "use client";
+import { workspaceHref } from "@/lib/domain/workspace-navigation";
 import { useState } from "react";
 import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import { PageHeader, AddButton, Editor, Loading, Empty, ErrorMessage, str } from "../ui";
@@ -54,7 +55,10 @@ export function EmailTemplatesPage() {
               </div>
               <strong>{str(t.subject)}</strong>
               <p className="preserve-lines">{str(t.body)}</p>
-              <a className="button small" href={"/app/communications?template=" + t.id}>
+              <a
+                className="button small"
+                href={workspaceHref("/app/communications?template=" + t.id, workspace.id)}
+              >
                 Utiliser ce modèle
               </a>
             </article>

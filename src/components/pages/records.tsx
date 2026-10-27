@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { recordHref, workspaceHref } from "@/lib/domain/workspace-navigation";
 import { ViewButtons } from "../ui/view-buttons";
 import { MonthCalendar } from "../ui/month-calendar";
 import { List, LayoutGrid, Columns3, CalendarDays } from "lucide-react";
@@ -110,6 +111,36 @@ function RecordsPageContents({ slug }: { slug: string }) {
   };
   const PageIcon = pageContent.icon;
   const search = view.search;
+  const filtered = !!(
+    search.trim() ||
+    view.stage ||
+    view.owner ||
+    view.minimum ||
+    view.pipeline_id ||
+    view.filters?.length
+  );
+  function clearFilters() {
+    setView((current) => ({
+      ...current,
+      search: "",
+      stage: "",
+      owner: "",
+      minimum: "",
+      pipeline_id: "",
+      filters: [],
+    }));
+    setPage(1);
+    const query = new URLSearchParams(url.toString());
+    query.delete("pipeline");
+    window.history.replaceState(
+      null,
+      "",
+      workspaceHref(
+        "/app/" + (object?.standard ? slug : "object-" + slug) + "?" + query + window.location.hash,
+        workspace.id,
+      ),
+    );
+  }
   const [mode, setMode] = useState(slug === "deals" ? "kanban" : "table");
   function chooseMode(value: string) {
     const next =
@@ -155,15 +186,9 @@ function RecordsPageContents({ slug }: { slug: string }) {
   useEffect(() => {
     const r = linked.data?.data[0];
     if (r && r.object_id === object?.id) {
-      if (r.merged_into)
-        router.replace(
-          "/app/" +
-            (object.standard ? object.slug : "object-" + object.slug) +
-            "?record=" +
-            r.merged_into,
-        );
+      if (r.merged_into) router.replace(recordHref(workspace.id, object, r.merged_into));
     }
-  }, [linked.data, object, router]);
+  }, [linked.data, object, router, workspace.id]);
   const [importing, setImporting] = useState(() => url.get("import") === "1");
   const [lost, setLost] = useState<CrmRecord | null>(null);
   const [error, setError] = useState("");
@@ -546,23 +571,35 @@ function RecordsPageContents({ slug }: { slug: string }) {
           />
         ) : rows.length === 0 && mode !== "kanban" ? (
           <Empty
-            title={`Aucune ${pageContent.single} pour le moment`}
+            title={
+              filtered
+                ? "Aucun résultat pour ces filtres"
+                : `Aucune ${pageContent.single} pour le moment`
+            }
             description={
-              slug === "companies"
-                ? "Ajoutez une entreprise pour centraliser le suivi de ce compte."
-                : slug === "people"
-                  ? "Ajoutez un contact pour retrouver vos échanges et ses coordonnées."
-                  : "Ajoutez votre première opportunité pour suivre sa progression."
+              filtered
+                ? "Modifiez votre recherche ou retirez les filtres pour retrouver vos fiches."
+                : slug === "companies"
+                  ? "Ajoutez une entreprise pour centraliser le suivi de ce compte."
+                  : slug === "people"
+                    ? "Ajoutez un contact pour retrouver vos échanges et ses coordonnées."
+                    : "Ajoutez votre première opportunité pour suivre sa progression."
             }
             action={
-              <AddButton
-                label={pageContent.action}
-                disabled={workspace.role === "viewer"}
-                onClick={() => {
-                  setNewStage("Nouveau");
-                  setEdit(true);
-                }}
-              />
+              filtered ? (
+                <button className="button" onClick={clearFilters}>
+                  Effacer les filtres
+                </button>
+              ) : (
+                <AddButton
+                  label={pageContent.action}
+                  disabled={workspace.role === "viewer"}
+                  onClick={() => {
+                    setNewStage("Nouveau");
+                    setEdit(true);
+                  }}
+                />
+              )
             }
           />
         ) : mode === "cards" ? (

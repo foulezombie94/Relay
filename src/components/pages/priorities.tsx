@@ -1,4 +1,5 @@
 "use client";
+import { workspaceHref } from "@/lib/domain/workspace-navigation";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -86,7 +87,7 @@ export function PrioritiesPage() {
               <ul className="signal-list">
                 {p.signals.map((s) => (
                   <li key={s.code}>
-                    <a href={"/app/" + s.resource}>{s.label}</a>
+                    <a href={workspaceHref("/app/" + s.resource, workspace.id)}>{s.label}</a>
                     <small>+{s.weight}</small>
                   </li>
                 ))}

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { recordHref, workspaceHref } from "@/lib/domain/workspace-navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { request, useSave, useWorkspace } from "../providers/data-provider";
@@ -64,7 +65,7 @@ export function RecordContextPanel({
   });
   function go(r: CrmRecord) {
     const o = objects.find((o) => o.id === r.object_id);
-    if (o) router.push("/app/" + (o.standard ? o.slug : "object-" + o.slug) + "?record=" + r.id);
+    if (o) router.push(recordHref(workspace.id, o, r.id));
   }
   if (q.isPending) return <Loading />;
   if (q.error) return <ErrorMessage error={q.error} />;
@@ -75,14 +76,15 @@ export function RecordContextPanel({
         <div className="alert info">
           Cette fiche a été fusionnée.{" "}
           <a
-            href={
+            href={workspaceHref(
               "/app/" +
-              (objects.find((o) => o.id === record.object_id)?.standard
-                ? objects.find((o) => o.id === record.object_id)?.slug
-                : "object-" + objects.find((o) => o.id === record.object_id)?.slug) +
-              "?record=" +
-              data.record.merged_into
-            }
+                (objects.find((o) => o.id === record.object_id)?.standard
+                  ? objects.find((o) => o.id === record.object_id)?.slug
+                  : "object-" + objects.find((o) => o.id === record.object_id)?.slug) +
+                "?record=" +
+                data.record.merged_into,
+              workspace.id,
+            )}
           >
             Ouvrir la fiche conservée
           </a>
@@ -139,7 +141,7 @@ export function RecordContextPanel({
                   </a>
                 )}
                 {r.resource !== "documents" && (
-                  <a className="text-link" href={"/app/" + r.resource}>
+                  <a className="text-link" href={workspaceHref("/app/" + r.resource, workspace.id)}>
                     Voir et gérer les {labels[r.resource]?.toLowerCase()}s
                   </a>
                 )}

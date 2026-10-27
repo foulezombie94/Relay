@@ -1,4 +1,5 @@
 "use client";
+import { workspaceHref } from "@/lib/domain/workspace-navigation";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Clock3, ExternalLink, RefreshCw, X } from "lucide-react";
@@ -280,7 +281,10 @@ export function WorkflowHistory({
                 <State value={run.status} />
                 <Link
                   className="button small"
-                  href={`/app/${workspaceRecordPage(run.record_object_id)}?focus=${run.record_id}`}
+                  href={workspaceHref(
+                    `/app/${workspaceRecordPage(run.record_object_id)}?focus=${run.record_id}`,
+                    workspace.id,
+                  )}
                 >
                   <ExternalLink size={13} />
                   Ouvrir la fiche

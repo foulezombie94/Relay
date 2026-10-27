@@ -2,6 +2,7 @@
 import { useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import Link from "next/link";
+import { recordHref } from "@/lib/domain/workspace-navigation";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -1087,14 +1088,7 @@ function DashboardWorkspace() {
                 return object ? (
                   <Link
                     className="button primary"
-                    href={
-                      "/app/" +
-                      (["people", "companies", "deals"].includes(object.slug)
-                        ? object.slug
-                        : "object-" + object.slug) +
-                      "?record=" +
-                      entryDetail.entry.id
-                    }
+                    href={recordHref(workspace.id, object, entryDetail.entry.id)}
                   >
                     Ouvrir la fiche CRM
                   </Link>

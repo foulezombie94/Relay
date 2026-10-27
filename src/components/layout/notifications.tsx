@@ -1,4 +1,5 @@
 "use client";
+import { workspaceHref } from "@/lib/domain/workspace-navigation";
 import { useState } from "react";
 import { Bell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -83,7 +84,7 @@ export function Notifications({ embedded = false }: { embedded?: boolean } = {})
             <div className="card-actions">
               <Link
                 className="button small"
-                href={"/app/" + n.entity + "?focus=" + n.entity_id}
+                href={workspaceHref("/app/" + n.entity + "?focus=" + n.entity_id, workspace.id)}
                 onClick={() => {
                   void mark(n.id);
                   setOpen(false);
