@@ -46,3 +46,5 @@ Les recherches et audits historiques donnent le contexte d'une décision ; ils n
 - [Scripts SQL initiaux](../supabase/legacy/README.md)
 
 Les règles produit et design restent dans [PRODUCT.md](../PRODUCT.md) et [DESIGN.md](../DESIGN.md). Les configurations Next.js, Vercel, Railway et outils restent à la racine.
+
+- [Identité des fiches CRM et références de conception](research/record-identity-2026-10-27.md)
