@@ -90,7 +90,7 @@ const groups = [
     id: "intelligence",
     label: "Intelligence",
     icon: Sparkles,
-    items: [["quality", "Qualité des données", TriangleAlert]],
+    items: [["quality", "Qualité des données", TriangleAlert], ["skills", "Skills", Sparkles]],
   },
   {
     id: "realisation",

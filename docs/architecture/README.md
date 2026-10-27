@@ -104,6 +104,8 @@ Les 37 outils métier restent disponibles avec découverte progressive. Le messa
 
 L'exécution différée passe par la route `assistant/actions/`, les fonctions SQL et `src/lib/jobs/handlers/agent.ts`. L'interface montre le statut de l'action renvoyé par le serveur. Elle ne déduit pas « envoyé » du texte du modèle. Voir [l'agent et sa sécurité](../features/ask-relay/ask-relay-agent.md).
 
+Les [contrats de skills](../features/ask-relay/skills.md) ajoutent un catalogue d’effets exhaustif et un périmètre d’outils optionnel au moteur. La sélection automatique conserve le mode de validation de la conversation. Les modèles métier sont définis et validés ; leur bibliothèque, leur persistance et leur raccordement au chat ne sont pas encore livrés.
+
 ### MCP distant avec OAuth
 
 `src/lib/mcp/` et `/api/mcp` servent le protocole avec le SDK v2. Le consentement authentifié sélectionne un workspace et des scopes. Les tokens sont hashés en privé ; le backend réduit ses privilèges à un rôle soumis aux RLS métier. Les écritures restent des propositions exactes, confirmées dans Paramètres → Développeurs. Le pont npm optionnel est dans `packages/zyliad-mcp`, son archive distribuée par le site dans `public/mcp`. Voir [contrats, sécurité, déploiement et tests](../features/mcp.md).

@@ -17,6 +17,7 @@ import { PrioritiesPage } from "@/components/pages/priorities";
 import { PlaybooksPage } from "@/components/pages/playbooks";
 import { QualityPage } from "@/components/pages/quality";
 import { PortalsPage } from "@/components/portal/management";
+import { SkillsPage } from "@/components/skills/page";
 import { notFound } from "next/navigation";
 export default async function Page({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
@@ -50,6 +51,8 @@ export default async function Page({ params }: { params: Promise<{ section: stri
       return <WorkflowsPage />;
     case "assistant":
       return <AssistantPage />;
+    case "skills":
+      return <SkillsPage />;
     case "reports":
       return <ReportsPage />;
     case "settings":

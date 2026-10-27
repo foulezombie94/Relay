@@ -5,8 +5,32 @@ import {
   explicitEmailRecipient,
   explicitContactName,
   sensitiveEmail,
+  toolEffects,
+  toolRegistry,
+  toolEffectFlags,
 } from "./contracts";
 describe("agent tool boundaries", () => {
+  it("classifies every registered tool explicitly, including external writes", () => {
+    expect(Object.keys(toolEffects).sort()).toEqual(Object.keys(toolSchemas).sort());
+    expect(Object.keys(toolRegistry).sort()).toEqual(Object.keys(toolSchemas).sort());
+    expect(toolEffectFlags("search_records")).toEqual({
+      read: true,
+      write: false,
+      external: false,
+    });
+    expect(toolEffectFlags("create_task")).toEqual({ read: false, write: true, external: false });
+    expect(toolEffectFlags("draft_email")).toEqual({ read: false, write: true, external: false });
+    for (const tool of [
+      "send_email",
+      "create_calendar_event",
+      "update_calendar_event",
+      "cancel_calendar_event",
+    ] as const) {
+      expect(toolEffectFlags(tool)).toEqual({ read: false, write: true, external: true });
+      expect(toolRegistry[tool].effect).toBe("external");
+    }
+    expect(() => toolEffectFlags("constructor" as never)).toThrow();
+  });
   it("rejects workspace IDs, arbitrary SQL and unknown mutation fields", () => {
     expect(toolSchemas.search_records.safeParse({ workspace_id: "other" }).success).toBe(false);
     expect(toolSchemas.search_notes.safeParse({ sql: "select *" }).success).toBe(false);

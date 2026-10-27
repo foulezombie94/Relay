@@ -244,6 +244,71 @@ export const toolSchemas = {
   get_action_status: z.object({ id: z.uuid() }).strict(),
 } as const;
 export type ToolName = keyof typeof toolSchemas;
+export type ToolEffect = "read" | "write" | "external";
+// Exhaustive classification: adding a tool without reviewing its effect is a
+// TypeScript error. No effect is inferred from a name, prefix or default.
+export const toolEffects = {
+  search_records: "read",
+  search_emails: "read",
+  search_calendar: "read",
+  search_meetings: "read",
+  search_notes: "read",
+  search_tasks: "read",
+  search_commitments: "read",
+  search_documents: "read",
+  search_conflicts: "read",
+  search_lists: "read",
+  search_pipelines: "read",
+  search_workflows: "read",
+  get_record: "read",
+  get_source: "read",
+  get_email_thread: "read",
+  get_accounts: "read",
+  get_crm_schema: "read",
+  aggregate_crm_data: "read",
+  create_record: "write",
+  update_record: "write",
+  create_task: "write",
+  update_task: "write",
+  create_note: "write",
+  update_note: "write",
+  draft_email: "write",
+  create_calendar_event: "external",
+  update_calendar_event: "external",
+  cancel_calendar_event: "external",
+  propose_commitment: "write",
+  propose_conflict: "write",
+  update_commitment: "write",
+  create_workflow_draft: "write",
+  update_workflow_draft: "write",
+  add_to_list: "write",
+  remove_from_list: "write",
+  send_email: "external",
+  get_action_status: "read",
+} as const satisfies Record<ToolName, ToolEffect>;
+export const toolIntegrations = {
+  search_records: null, search_emails: null, search_calendar: null, search_meetings: null,
+  search_notes: null, search_tasks: null, search_commitments: null, search_documents: null,
+  search_conflicts: null, search_lists: null, search_pipelines: null, search_workflows: null,
+  get_record: null, get_source: null, get_email_thread: null, get_accounts: null,
+  get_crm_schema: null, aggregate_crm_data: null, create_record: null, update_record: null,
+  create_task: null, update_task: null, create_note: null, update_note: null,
+  draft_email: "email", send_email: "email", create_calendar_event: "calendar",
+  update_calendar_event: "calendar", cancel_calendar_event: "calendar",
+  propose_commitment: null, propose_conflict: null, update_commitment: null,
+  create_workflow_draft: null, update_workflow_draft: null, add_to_list: null,
+  remove_from_list: null, get_action_status: null,
+} as const satisfies Record<ToolName, "email" | "calendar" | null>;
+
+export function toolEffectFlags(tool: ToolName) {
+  if (!Object.hasOwn(toolEffects, tool)) throw new RangeError("Unknown tool effect");
+  const effect = toolEffects[tool];
+  return {
+    read: effect === "read",
+    write: effect === "write" || effect === "external",
+    external: effect === "external",
+  };
+}
 export type AgentAction = {
   id: string;
   kind: ActionKind;
@@ -437,18 +502,9 @@ export function toolLabel(name: string) {
 
 export function readRequestKey(name: string, raw: unknown): string | null {
   if (
-    !(
-      name.startsWith("search_") ||
-      [
-        "get_source",
-        "get_record",
-        "get_email_thread",
-        "get_accounts",
-        "get_crm_schema",
-        "aggregate_crm_data",
-      ].includes(name)
-    ) ||
-    !Object.hasOwn(toolSchemas, name)
+    !Object.hasOwn(toolSchemas, name) ||
+    !toolEffectFlags(name as ToolName).read ||
+    name === "get_action_status"
   )
     return null;
   const parsed = toolSchemas[name as ToolName].safeParse(raw);
@@ -475,17 +531,36 @@ function documentedParameters(schema: {
   return schema;
 }
 
+export const toolRegistry = Object.fromEntries(
+  Object.entries(toolSchemas).map(([name, schema]) => [
+    name,
+    {
+      schema,
+      description: toolDescriptions[name as ToolName],
+      effect: toolEffects[name as ToolName],
+      integration: toolIntegrations[name as ToolName],
+    },
+  ]),
+) as {
+  readonly [Name in ToolName]: {
+    readonly schema: (typeof toolSchemas)[Name];
+    readonly description: string;
+    readonly effect: (typeof toolEffects)[Name];
+    readonly integration: (typeof toolIntegrations)[Name];
+  };
+};
+
 export function toolsForModel(names?: readonly ToolName[]) {
-  return Object.entries(toolSchemas)
+  return Object.entries(toolRegistry)
     .filter(([name]) => !names || names.includes(name as ToolName))
-    .map(([name, schema]) => ({
+    .map(([name, tool]) => ({
       type: "function",
       function: {
         name,
-        description: toolDescriptions[name as ToolName],
+        description: tool.description,
         parameters: documentedParameters(
           JSON.parse(
-            JSON.stringify(z.toJSONSchema(schema, { io: "input" }), (key, value) =>
+            JSON.stringify(z.toJSONSchema(tool.schema, { io: "input" }), (key, value) =>
               key === "$schema" ||
               (key === "pattern" && typeof value === "string" && value.length > 100)
                 ? undefined

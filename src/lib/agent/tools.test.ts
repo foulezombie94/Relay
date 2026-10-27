@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 vi.mock("server-only", () => ({}));
-import { executeTool, type ToolContext } from "./tools";
+import { executeTool, propose, type ToolContext } from "./tools";
 const id = "85187231-cb96-4f91-949a-b1b4a0e32cc0";
-function context(question: string, count = 1, member = true) {
+function context(question: string, count = 1, member = true, role: "member" | "viewer" = "member") {
   const action = {
     id,
     kind: "draft_email" as const,
@@ -32,7 +32,7 @@ function context(question: string, count = 1, member = true) {
     select: vi.fn(() => chain),
     eq: vi.fn(() => chain),
     ilike: vi.fn(() => chain),
-    maybeSingle: vi.fn(async () => ({ data: member ? { role: "member" } : null })),
+    maybeSingle: vi.fn(async () => ({ data: member ? { role } : null })),
     limit: vi.fn(async () => ({ data: [{ id, email: "thomas@example.test" }], count })),
   };
   return {
@@ -64,6 +64,33 @@ function context(question: string, count = 1, member = true) {
 }
 afterEach(() => vi.unstubAllEnvs());
 describe("composer approval preferences", () => {
+  it.each([
+    "create_task",
+    "send_email",
+    "create_calendar_event",
+    "update_calendar_event",
+    "cancel_calendar_event",
+  ])("uses registry effects to refuse %s for a viewer before any action", async (name) => {
+    const { c, rpc } = context("Effectue cette action", 1, true, "viewer");
+    await expect(
+      executeTool({ ...c, approvalMode: "auto" }, name, {}, "denied"),
+    ).rejects.toMatchObject({ status: 403 });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+  it("rejects direct tool calls and output proposals outside the skill scope before accessing data", async () => {
+    const { c, rpc } = context("Crée une tâche : Vérifier le devis");
+    const scoped = { ...c, allowedTools: [] };
+    await expect(executeTool(scoped, "search_records", {}, "read")).rejects.toMatchObject({
+      status: 403,
+    });
+    await expect(
+      executeTool(scoped, "create_task", { title: "Vérifier le devis" }, "task"),
+    ).rejects.toMatchObject({ status: 403 });
+    await expect(
+      propose(scoped, "create_task", { title: "Vérifier le devis" }, "proposal"),
+    ).rejects.toMatchObject({ status: 403 });
+    expect(rpc).not.toHaveBeenCalled();
+  });
   it.each(["ask", "review", "auto"] as const)(
     "applies %s before sending an otherwise eligible email",
     async (mode) => {

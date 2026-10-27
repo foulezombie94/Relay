@@ -97,6 +97,7 @@ export async function visibleHistory(
         accepted: {},
         actions: [],
         security_notices: [],
+        skill_result: undefined,
       };
     }
     return { ...m, sources: visible.filter((s) => used.includes(s.id)) };

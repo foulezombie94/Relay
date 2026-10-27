@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -52,6 +52,7 @@ export type AssistantComposerViewProps = {
   setRecordSearch: (query: string) => void;
   records: { loading: boolean; error?: string; data: Pick<CrmRecord, "id" | "display_name">[] };
   prefetchPrivate?: boolean;
+  skillsControl?: ReactNode;
 };
 export function AssistantComposerView({
   message,
@@ -74,6 +75,7 @@ export function AssistantComposerView({
   setRecordSearch: setSearch,
   records,
   prefetchPrivate = true,
+  skillsControl,
 }: AssistantComposerViewProps) {
   const [adding, setAdding] = useState(false),
     [approval, setApproval] = useState(false),
@@ -164,6 +166,7 @@ export function AssistantComposerView({
           rows={2}
         />
         <div className={styles.composerToolbar}>
+          {skillsControl}
           <Popover.Root open={open} onOpenChange={setOpen}>
             <Popover.Anchor asChild>
               <span className={styles.contextAnchor} aria-hidden="true" />

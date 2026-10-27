@@ -10,6 +10,7 @@ import {
   explicitEmailRecipient,
   explicitContactName,
   sensitiveEmail,
+  toolEffectFlags,
   type ToolName,
   type AgentAction,
   type ActionKind,
@@ -32,6 +33,10 @@ export type ToolContext = {
   readonly question: string;
   readonly analysisMeetingId?: string;
   readonly approvalMode?: AssistantApprovalMode;
+  // Server-derived intersection of user rights, skill grants and integrations.
+  // Undefined is the ordinary assistant; [] is intentionally no business tools.
+  readonly allowedTools?: readonly ToolName[];
+  readonly skillRun?: { id: string; skillId: string };
   untrustedContext?: boolean;
   requestKey?: string;
   actionSequence?: Map<string, number>;
@@ -106,6 +111,11 @@ export async function guard(c: ToolContext, write = false) {
   databaseError(r.error);
   if (!r.data || (write && r.data.role === "viewer"))
     throw new ApiError("Vos droits ne permettent plus cette opération.", 403);
+  if (c.skillRun) {
+    const state = await c.client.rpc("agent_skill_studio", { w: c.workspace, operation: "run_status", payload: { id: c.skillRun.skillId, run_id: c.skillRun.id } });
+    databaseError(state.error);
+    if (state.data?.status !== "running") throw new ApiError("L’exécution de cette méthode est arrêtée.", 409);
+  }
 }
 function remember(
   c: ToolContext,
@@ -189,6 +199,8 @@ async function reviewForAction(
   return policy;
 }
 export async function propose(c: ToolContext, kind: ActionKind, input: unknown, key: string) {
+  if (c.allowedTools && !c.allowedTools.includes(kind))
+    throw new ApiError("Cette action n’est pas autorisée pour cette méthode.", 403);
   if (c.analysisMeetingId)
     throw new ApiError("Les actions sont désactivées dans une analyse de réunion.", 403);
   await guard(c, true);
@@ -356,24 +368,17 @@ async function applyAutonomousAction(c: ToolContext, action: AgentAction) {
 
 export async function executeTool(c: ToolContext, name: string, raw: unknown, callKey: string) {
   if (!Object.hasOwn(toolSchemas, name)) throw new ApiError("Outil inconnu.", 400);
-  await guard(c);
+  if (c.allowedTools && !c.allowedTools.includes(name as ToolName))
+    throw new ApiError("Cet outil n’est pas autorisé pour cette méthode.", 403);
+  const effects = toolEffectFlags(name as ToolName);
+  await guard(c, effects.write);
   const input = toolSchemas[name as ToolName].parse(raw) as Record<string, unknown>;
   if (
     c.analysisMeetingId &&
     (name !== "get_source" || input.kind !== "meeting" || input.id !== c.analysisMeetingId)
   )
     throw new ApiError("Cette analyse peut uniquement lire la réunion sélectionnée.", 403);
-  if (
-    name in searchKinds ||
-    name === "aggregate_crm_data" ||
-    name === "get_crm_schema" ||
-    name === "get_source" ||
-    name === "get_record" ||
-    name === "get_email_thread" ||
-    name === "get_action_status" ||
-    name === "get_accounts"
-  )
-    c.untrustedContext = true;
+  if (effects.read) c.untrustedContext = true;
   if (name in searchKinds)
     return remember(
       c,

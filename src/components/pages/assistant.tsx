@@ -27,6 +27,7 @@ import { useWorkspace, request } from "../providers/data-provider";
 import { Modal } from "../ui";
 import { AssistantComposer, type RecordContext } from "../assistant/composer";
 import { ChatMessage } from "../assistant/message";
+import { ChatSkillPicker, type ChatSkillSelection } from "../skills/chat-picker";
 import { AssistantWelcome, AssistantQuickActions } from "../assistant/start";
 import { RelayPulse } from "../assistant/pulse";
 import { SidebarTrigger } from "../ui/sidebar";
@@ -57,6 +58,7 @@ function AssistantSession() {
   const [title, setTitle] = useState("Nouvelle discussion"),
     [message, setMessage] = useState("");
   const [context, setContext] = useState<RecordContext>(null);
+  const [selectedSkill, setSelectedSkill] = useState<{ selection: ChatSkillSelection; label: string } | null>(null);
   const [busy, setBusy] = useState(false),
     [loading, setLoading] = useState(false),
     [error, setError] = useState("");
@@ -110,6 +112,7 @@ function AssistantSession() {
     setTitle("Nouvelle discussion");
     setMessage("");
     setError("");
+    setSelectedSkill(null);
   }
   const openChat = useCallback(
     async (id: string) => {
@@ -123,6 +126,7 @@ function AssistantSession() {
         setConversation(id);
         setTitle(result.data.title);
         setMessages(result.data.messages);
+        setSelectedSkill(null);
         const previousMode = assistantApprovalMode.safeParse(
           result.data.messages.findLast((m) => m.role === "user")?.approval_mode,
         );
@@ -166,7 +170,7 @@ function AssistantSession() {
     openedFromUrl.current = conversationFromUrl;
     void openChat(conversationFromUrl);
   }, [conversationFromUrl, openChat, busy]);
-  async function ask(text = message, scope = context, requestKey?: string) {
+  async function ask(text = message, scope = context, requestKey?: string, selected = selectedSkill) {
     if (active.current || !text.trim() || !status.data?.configured || loading) return;
     const abort = new AbortController();
     active.current = abort;
@@ -180,6 +184,7 @@ function AssistantSession() {
       request_id: requestKey ?? crypto.randomUUID(),
       record_id: scope?.id,
       approval_mode: approvalMode,
+      ...(selected ? { skill: "builder" in selected.selection ? { builtin: "creer-skill", revision: 1 } : { id: selected.selection.id, version_id: selected.selection.version_id, name: selected.label } } : {}),
     };
     const placeholder: AssistantMessage = {
       id: crypto.randomUUID(),
@@ -204,6 +209,7 @@ function AssistantSession() {
           request_id: user.request_id,
           ...(conversation ? { conversation_id: conversation } : {}),
           ...(scope ? { record_id: scope.id } : {}),
+          ...(selected ? { skill: "builder" in selected.selection ? { builder: true, inputs: { objectif: text.trim() } } : selected.selection } : {}),
         }),
         signal: abort.signal,
       });
@@ -369,6 +375,7 @@ function AssistantSession() {
             )}
           </div>
           <div className={styles.headerActions}>
+            <Link className={styles.iconButton} href={`/app/skills?workspace=${workspace.id}`} aria-label="Bibliothèque de skills" title="Bibliothèque de skills"><Sparkles size={15}/></Link>
             {started ? (
               <>
                 <button
@@ -580,6 +587,7 @@ function AssistantSession() {
           placement={messages.length || loading ? "bottom" : "top"}
           onSend={() => void ask()}
           onStop={() => active.current?.abort()}
+          skillsControl={<ChatSkillPicker busy={busy} selectedLabel={selectedSkill?.label} onSelect={(selection,label)=>setSelectedSkill({selection,label})} onClear={()=>setSelectedSkill(null)}/>}
         />
         {!messages.length && !loading && (
           <AssistantQuickActions

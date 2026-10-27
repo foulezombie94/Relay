@@ -22,6 +22,8 @@ vi.mock("@/lib/api/context", () => ({
 }));
 import { runAgent } from "./runner";
 import { ApiError } from "@/lib/api/context";
+import { skillTemplate } from "@/lib/domain/skill-templates";
+import { SkillValidationError } from "@/lib/domain/agent-skills";
 const id = "85187231-cb96-4f91-949a-b1b4a0e32cc0";
 function setup(question: string, priorQuestions: string[] = []) {
   const chain = {
@@ -101,6 +103,117 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 describe("secure adaptive agent orchestration", () => {
+  it("validates a generated skill manifest before returning a creator result, with no CRM tools", async () => {
+    const { c, options } = setup("Conçois une méthode de préparation de rendez-vous.");
+    const manifest = skillTemplate("brief-client")!;
+    const reply = answer("Brouillon prêt à revoir.");
+    reply.choices[0].message.content = JSON.stringify({
+      answer: "Brouillon prêt à revoir.",
+      skill_result: { status: "draft", manifest },
+    });
+    const requests = provider([reply]);
+    const result = await runAgent(
+      { ...c, allowedTools: [], approvalMode: "ask" },
+      {
+        ...options,
+        skill: {
+          manifest: skillTemplate("creer-skill")!,
+          inputs: { objectif: "Préparer un rendez-vous à partir de sources vérifiées" },
+        },
+      },
+    );
+    expect(result.skill_result).toEqual({ status: "draft", manifest });
+    expect(requests[0]).not.toHaveProperty("tools");
+    expect(JSON.stringify(requests[0].messages)).toContain("skill_result");
+    expect(mock.executeTool).not.toHaveBeenCalled();
+    expect(mock.propose).not.toHaveBeenCalled();
+  });
+  it.each([undefined, "Simple prose", { status: "draft", manifest: {} }])(
+    "never returns an invalid creator result (%#)",
+    async (skill_result) => {
+      const { c, options } = setup("Conçois une méthode réutilisable.");
+      const reply = answer("Voici la méthode.");
+      reply.choices[0].message.content = JSON.stringify({
+        answer: "Voici la méthode.",
+        skill_result,
+      });
+      provider([reply]);
+      await expect(
+        runAgent(
+          { ...c, allowedTools: [], approvalMode: "review" },
+          {
+            ...options,
+            skill: {
+              manifest: skillTemplate("creer-skill")!,
+              inputs: { objectif: "Préparer un rendez-vous" },
+            },
+          },
+        ),
+      ).rejects.toBeInstanceOf(SkillValidationError);
+      expect(mock.rpc.mock.calls.at(-1)?.[2].payload.status).toBe("error");
+      expect(mock.executeTool).not.toHaveBeenCalled();
+    },
+  );
+  it("rejects a whitespace-only objective before a provider or business call", async () => {
+    const { c, options } = setup("Conçois une méthode.");
+    provider([]);
+    await expect(
+      runAgent(
+        { ...c, allowedTools: [], approvalMode: "review" },
+        {
+          ...options,
+          skill: { manifest: skillTemplate("creer-skill")!, inputs: { objectif: " \n\t " } },
+        },
+      ),
+    ).rejects.toBeInstanceOf(SkillValidationError);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(mock.rpc).not.toHaveBeenCalled();
+  });
+  it.each(["clarify", "reject"] as const)(
+    "supports a structured %s instead of fabricating a manifest",
+    async (status) => {
+      const { c, options } = setup("Conçois une méthode réutilisable.");
+      const skill_result =
+        status === "clarify"
+          ? { status, questions: ["Quel résultat souhaites-tu ?"] }
+          : { status, reason: "Cette demande contourne les autorisations." };
+      const reply = answer("Précisons les limites de cette méthode.");
+      reply.choices[0].message.content = JSON.stringify({
+        answer: "Précisons les limites de cette méthode.",
+        skill_result,
+      });
+      provider([reply]);
+      const result = await runAgent(
+        { ...c, allowedTools: [], approvalMode: "review" },
+        {
+          ...options,
+          skill: {
+            manifest: skillTemplate("creer-skill")!,
+            inputs: { objectif: "Concevoir une méthode à préciser" },
+          },
+        },
+      );
+      expect(result.skill_result).toEqual(skill_result);
+    },
+  );
+  it("keeps a tool-free method tool-free in both the provider request and executor", async () => {
+    const { c, options } = setup("Structure uniquement le contenu fourni.");
+    const requests = provider([answer("Voici la structure du contenu fourni.")]);
+    await runAgent({ ...c, allowedTools: [] }, { ...options, toolLimit: 0 });
+    expect(requests[0]).not.toHaveProperty("tools");
+    expect(requests[0]).not.toHaveProperty("tool_choice");
+    expect(JSON.stringify(requests[0].messages)).toContain("Aucun outil métier");
+    expect(mock.executeTool).not.toHaveBeenCalled();
+    expect(mock.propose).not.toHaveBeenCalled();
+  });
+  it("rejects a model attempt to leave the method scope without executing it", async () => {
+    const { c, options } = setup("Lire uniquement la fiche choisie.");
+    provider([call("search_emails")]);
+    await expect(runAgent({ ...c, allowedTools: ["get_record"] }, options)).rejects.toMatchObject({
+      status: 403,
+    });
+    expect(mock.executeTool).not.toHaveBeenCalled();
+  });
   it("answers pure identity without a provider call or business tool and records zero spend", async () => {
     const { c, options } = setup("Tu utilises quel modèle exactement ?");
     provider([]);

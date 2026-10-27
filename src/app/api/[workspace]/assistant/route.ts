@@ -5,6 +5,7 @@ import { runAgent } from "@/lib/agent/runner";
 import { configuredAgentModel } from "@/lib/agent/identity";
 import { agentApiKey } from "@/lib/agent/provider";
 import { assistantApprovalMode } from "@/lib/domain/assistant-approval";
+import { skillError, skillEngine, loadSelectedSkill, skillSelectionSchema } from "@/lib/api/agent-skills";
 import { rpc } from "@/lib/agent/tools";
 import * as Sentry from "@sentry/nextjs";
 import { context, checkOrigin, ApiError, databaseError, fail } from "@/lib/api/context";
@@ -30,6 +31,7 @@ const requestSchema = z.discriminatedUnion("action", [
     deepen: z.boolean().optional(),
     approval_mode: assistantApprovalMode.default("review"),
     request_id: z.uuid().optional(),
+    skill: skillSelectionSchema.optional(),
   }),
   z.object({
     action: z.literal("accept"),
@@ -141,14 +143,15 @@ export async function POST(req: NextRequest, { params }: P) {
   try {
     checkOrigin(req);
     const { workspace } = await params;
-    const input = requestSchema.parse(JSON.parse(await workflowBody(req, 10000)));
-    const { client, user } = await context(workspace, input.action === "accept");
+    const input = requestSchema.parse(JSON.parse(await workflowBody(req, 70000)));
+    const { client, user, role } = await context(workspace, input.action === "accept");
     if (input.action === "accept")
       throw new ApiError(
         "Actualisez l’analyse pour confirmer cette proposition dans une carte d’action sécurisée.",
         410,
       );
     if (input.meeting_id) {
+      if (input.skill) throw new ApiError("Une méthode ne peut pas être combinée à une analyse de réunion dédiée.");
       if (input.conversation_id || input.record_id)
         throw new ApiError("Une analyse de réunion démarre dans une conversation dédiée.");
       const { data: meeting, error: meetingError } = await client
@@ -167,6 +170,9 @@ export async function POST(req: NextRequest, { params }: P) {
         503,
       );
     const started = Date.now();
+    const selectedSkill = input.skill
+      ? await loadSelectedSkill(client, workspace, user.id, role, input.skill, input.approval_mode)
+      : undefined;
     const previous = input.conversation_id
       ? await ownedConversation(client, workspace, user.id, input.conversation_id)
       : null;
@@ -194,6 +200,7 @@ export async function POST(req: NextRequest, { params }: P) {
       created_at: new Date().toISOString(),
       record_id: input.record_id ?? null,
       approval_mode: input.approval_mode,
+      ...(selectedSkill ? { skill: selectedSkill.reference } : {}),
     };
     const assistantMessage: AssistantMessage = {
       id: randomUUID(),
@@ -241,6 +248,7 @@ export async function POST(req: NextRequest, { params }: P) {
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         let runHandle: { id: string; secret: string } | undefined;
+        let skillRun: { id: string; skill_id: string } | null = null;
         let connected = true;
         const emit = (event: AssistantEvent) => {
           if (!connected) return;
@@ -297,11 +305,11 @@ export async function POST(req: NextRequest, { params }: P) {
         try {
           signal.throwIfAborted();
           const limits = {
-            toolLimit: input.deepen ? 15 : 5,
+            toolLimit: selectedSkill ? Math.max(1, selectedSkill.manifest.budget.tool_calls) : input.deepen ? 15 : 5,
             reservedTokens: input.deepen ? 1000000 : 300000,
             outputTokens: Math.min(
               3000,
-              Math.max(500, Number(process.env.AGENT_OUTPUT_TOKENS) || 1600),
+              Math.max(500, Number(process.env.AGENT_OUTPUT_TOKENS) || selectedSkill?.manifest.budget.output_tokens || 1600),
             ),
           };
           const runSecret = randomBytes(32).toString("hex");
@@ -322,6 +330,19 @@ export async function POST(req: NextRequest, { params }: P) {
             run_secret: runSecret,
             original_request: input.message,
           });
+          if (selectedSkill && "id" in selectedSkill.reference) {
+            skillRun = await skillEngine(workspace, user.id, "begin", {
+              id: selectedSkill.reference.id,
+              version_id: selectedSkill.reference.version_id,
+              engine_run_id: admitted.id,
+              secret: runSecret,
+              request_id: userMessage.request_id,
+              conversation_id: conversation.id,
+              inputs: selectedSkill.inputs,
+              selection: "explicit",
+            });
+          }
+          if (selectedSkill) step("skill", `Méthode chargée · ${selectedSkill.manifest.name}`, "done", "Version et autorisations vérifiées pour cette demande.");
           const data = await runAgent(
             {
               client,
@@ -338,6 +359,8 @@ export async function POST(req: NextRequest, { params }: P) {
               actionSequence: new Map(),
               sources: new Map(),
               actions: new Map(),
+              allowedTools: selectedSkill?.allowed_tools,
+              ...(skillRun ? { skillRun: { id: skillRun.id, skillId: skillRun.skill_id } } : {}),
             },
             {
               ...limits,
@@ -351,6 +374,7 @@ export async function POST(req: NextRequest, { params }: P) {
                 .map((m) => m.content || ""),
               step,
               emit,
+              skill: selectedSkill ? { manifest: selectedSkill.manifest, inputs: selectedSkill.inputs } : undefined,
             },
           );
           step("save", "Enregistrement de la conversation", "running");
@@ -360,6 +384,8 @@ export async function POST(req: NextRequest, { params }: P) {
             state: "complete",
             model: selectedModel,
             elapsed_ms: Date.now() - started,
+            ...(selectedSkill ? { skill: selectedSkill.reference } : {}),
+            ...(skillRun ? { skill_run_id: skillRun.id } : {}),
           };
           const saveStep: AssistantStep = {
             id: "save",
@@ -368,18 +394,24 @@ export async function POST(req: NextRequest, { params }: P) {
             elapsed_ms: Date.now() - started,
           };
           final.steps = [...steps.filter((s) => s.id !== "save"), saveStep];
+          if (selectedSkill && skillRun && runHandle) {
+            const dataRecord = data as typeof data & { partial?: boolean; actions?: Array<{ status?: string }> };
+            const terminal = dataRecord.partial ? "partial" : dataRecord.actions?.some((action) => ["pending", "draft", "confirmation_required"].includes(action.status ?? "")) ? "waiting_approval" : "completed";
+            await skillEngine(workspace, user.id, "finish", { engine_run_id: runHandle.id, secret: runHandle.secret, run_id: skillRun.id, status: terminal });
+          }
           await persist(final);
           step("save", "Conversation enregistrée", "done");
           emit({ type: "text", text: final.answer || "" });
           emit({ type: "complete", message: final });
         } catch (error) {
+          const normalizedError = skillError(error);
           const stopped = req.signal.aborted || abort.signal.aborted;
           const message = stopped
             ? "Réponse arrêtée. Vous pouvez relancer la question."
-            : error instanceof ApiError
-              ? error.message
+            : normalizedError instanceof ApiError
+              ? normalizedError.message
               : "La réponse a été interrompue. Réessayez.";
-          const details = error as { code?: string; retryAfter?: number; status?: number };
+          const details = normalizedError as { code?: string; retryAfter?: number; status?: number };
           const retry = details.retryAfter
             ? ` Réessayez dans ${details.retryAfter} seconde(s).`
             : "";
@@ -404,6 +436,14 @@ export async function POST(req: NextRequest, { params }: P) {
             });
           } catch {
             /* A newer conversation or deletion must not be overwritten. */
+          }
+          if (selectedSkill && skillRun && runHandle) {
+            await skillEngine(workspace, user.id, "finish", {
+              engine_run_id: runHandle.id,
+              secret: runHandle.secret,
+              run_id: skillRun.id,
+              status: stopped ? "cancelled" : "failed",
+            }).catch(() => {});
           }
           emit({
             type: "error",
@@ -440,6 +480,6 @@ export async function POST(req: NextRequest, { params }: P) {
       },
     });
   } catch (e) {
-    return fail(e);
+    return fail(skillError(e));
   }
 }

@@ -2,6 +2,28 @@ import { describe, it, expect } from "vitest";
 import { progressiveTools } from "./discovery";
 import { toolSchemas } from "./contracts";
 describe("progressive tool catalogue", () => {
+  it("provides no implicit base tools or discovery to a method with no tools", () => {
+    const t = progressiveTools([]);
+    expect(t.definitions()).toEqual([]);
+    expect(t.allows("search_records")).toBe(false);
+    expect(t.allows("discover_tools")).toBe(false);
+    expect(() => t.discover({ names: ["get_record"] })).toThrow();
+    expect(t.definitions()).toEqual([]);
+  });
+  it("cannot discover tools outside the server-derived intersection, even in a mixed request", () => {
+    const t = progressiveTools(["get_record", "search_meetings"]);
+    expect(t.definitions().map((tool) => tool.function.name)).toEqual([
+      "get_record",
+      "discover_tools",
+    ]);
+    expect(() => t.discover({ names: ["search_meetings", "send_email"] })).toThrow();
+    expect(t.allows("search_meetings")).toBe(false);
+    t.discover({ names: ["search_meetings"] });
+    expect(t.allows("search_meetings")).toBe(true);
+    expect(t.allows("search_records")).toBe(false);
+    expect(t.allows("send_email")).toBe(false);
+    expect(JSON.stringify(t.definitions())).not.toContain("send_email");
+  });
   it("keeps every business tool reachable with a bounded transport catalogue", () => {
     const t = progressiveTools();
     expect(t.definitions()).toHaveLength(8);

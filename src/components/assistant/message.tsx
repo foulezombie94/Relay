@@ -16,11 +16,15 @@ import {
   ArrowUpRight,
   TriangleAlert,
   Pencil,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { AssistantMessage, AssistantSource, AssistantStep } from "@/lib/domain/assistant";
 import { useWorkspace } from "../providers/data-provider";
 import styles from "./assistant.module.css";
+import { parseSkillCreatorResult, type SkillCreatorResult } from "@/lib/domain/agent-skills";
+import { request } from "../providers/data-provider";
+import { useRouter } from "next/navigation";
 
 function sourceHref(
   source: AssistantSource,
@@ -87,6 +91,25 @@ function Answer({ text }: { text: string }) {
       })}
     </div>
   );
+}
+function SkillCreatorCard({ value, workspace }: { value: unknown; workspace: string }) {
+  const router = useRouter();
+  const [saving, setSaving] = useState(false);
+  let result: SkillCreatorResult;
+  try { result = parseSkillCreatorResult(value); } catch { return <div className={styles.skillCreatorCard}>Le brouillon retourné n’est pas conforme au format de méthode.</div>; }
+  if (result.status === "clarify") return <section className={styles.skillCreatorCard}><strong>Quelques précisions pour construire la méthode</strong><ul>{result.questions.map((question,index)=><li key={index}>{question}</li>)}</ul></section>;
+  if (result.status === "reject") return <section className={styles.skillCreatorCard}><strong>Méthode non proposée</strong><p>{result.reason}</p></section>;
+  const manifest = result.manifest;
+  async function saveDraft() {
+    setSaving(true);
+    try {
+      const id = crypto.randomUUID();
+      await request(`/api/${workspace}/skills`, "POST", { action: "create", id, visibility: "private", manifest });
+      router.push(`/app/skills?workspace=${workspace}&id=${id}`);
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Création du brouillon impossible"); }
+    finally { setSaving(false); }
+  }
+  return <section className={styles.skillCreatorCard}><div><Sparkles size={15}/><strong>{manifest.name}</strong></div><p>{manifest.description}</p><small>{manifest.steps.length} étapes · {manifest.tools.length} outil(s) · {manifest.tests.length} cas d’évaluation</small><button type="button" disabled={saving} onClick={()=>void saveDraft()}>{saving?"Enregistrement…":"Ouvrir le brouillon dans l’éditeur"}</button><small>Le brouillon reste privé et non publié jusqu’à votre décision.</small></section>;
 }
 export function AgentActivity({
   steps,
@@ -169,6 +192,7 @@ export function ChatMessage({
     return (
       <article className={styles.userMessage}>
         <span className={styles.userLabel}>Vous</span>
+        {message.skill && <span className={styles.skillMessageTag}><Sparkles size={11}/>{message.skill.name || (message.skill.builtin ? "Création de skill" : "Méthode")}{message.skill.number ? ` · v${message.skill.number}` : ""}</span>}
         <div>{message.content}</div>
         <button
           type="button"
@@ -192,6 +216,7 @@ export function ChatMessage({
       ) : !active ? (
         <p className={styles.muted}>Cette réponse n’a pas été terminée. Relancez la question.</p>
       ) : null}
+      {!active && message.skill_result && <SkillCreatorCard value={message.skill_result} workspace={workspace.id}/>}
       {!!message.sources?.length && !active && (
         <div className={styles.sources}>
           <span>Sources</span>

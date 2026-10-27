@@ -21,25 +21,60 @@ const discover = {
     parameters: z.toJSONSchema(discoveryInput, { io: "input" }),
   },
 };
-export const discoveryInstructions =
-  "Les outils sont chargés progressivement. Appelle discover_tools pour obtenir les outils nécessaires avant de les utiliser. Le catalogue complet reste disponible : " +
-  names.join(", ") +
-  ". Demande au plus six outils par découverte ; les découvertes successives se cumulent sans retirer les outils déjà chargés. Ne charge que les outils utiles à l’objectif. La découverte ne remplace jamais les contrôles d’accès ou confirmations.";
+export function discoveryInstructionsFor(allowedTools: readonly ToolName[] = names) {
+  if (!allowedTools.length)
+    return "Aucun outil métier n’est autorisé pour cette méthode. Travaille uniquement sur les informations fournies dans la demande, sans lecture CRM ni effet métier.";
+  return (
+    "Les outils sont chargés progressivement. Appelle discover_tools pour obtenir les outils nécessaires avant de les utiliser. Le catalogue autorisé est : " +
+    allowedTools.join(", ") +
+    ". Demande au plus six outils par découverte ; les découvertes successives se cumulent sans retirer les outils déjà chargés. Ne charge que les outils utiles à l’objectif. La découverte ne remplace jamais les contrôles d’accès ou confirmations."
+  );
+}
+export const discoveryInstructions = discoveryInstructionsFor();
 
-export function progressiveTools() {
+export function progressiveTools(allowedTools?: readonly ToolName[]) {
+  const allowed = new Set(allowedTools ?? names);
+  if ([...allowed].some((name) => !Object.hasOwn(toolSchemas, name)))
+    throw new Error("Unknown tool in allowed catalogue");
+  const initial = base.filter((name) => allowed.has(name));
+  const discovery = allowed.size
+    ? {
+        ...discover,
+        function: {
+          ...discover.function,
+          parameters: z.toJSONSchema(
+            z
+              .object({
+                names: z
+                  .array(z.enum([...allowed] as [ToolName, ...ToolName[]]))
+                  .min(1)
+                  .max(6),
+              })
+              .strict(),
+            { io: "input" },
+          ),
+        },
+      }
+    : undefined;
   let extra: ToolName[] = [];
   return {
-    definitions: () => [...toolsForModel([...base, ...extra]), discover],
+    definitions: () => [
+      ...toolsForModel([...initial, ...extra]),
+      ...(discovery ? [discovery] : []),
+    ],
     allows: (name: string) =>
-      name === "discover_tools" ||
-      base.includes(name as ToolName) ||
+      (name === "discover_tools" && !!discovery) ||
+      initial.includes(name as ToolName) ||
       extra.includes(name as ToolName),
     discover: (raw: unknown) => {
-      const requested = discoveryInput.parse(raw).names.filter((name) => !base.includes(name));
+      const parsed = discoveryInput.parse(raw).names;
+      if (parsed.some((name) => !allowed.has(name)))
+        throw new Error("Tool outside allowed catalogue");
+      const requested = parsed.filter((name) => !initial.includes(name));
       const next = [...new Set([...extra, ...requested])];
       const changed = next.length !== extra.length;
       extra = next;
-      return { available_tools: [...base, ...extra], changed, data_access: false };
+      return { available_tools: [...initial, ...extra], changed, data_access: false };
     },
   };
 }
