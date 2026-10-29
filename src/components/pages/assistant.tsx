@@ -58,7 +58,10 @@ function AssistantSession() {
   const [title, setTitle] = useState("Nouvelle discussion"),
     [message, setMessage] = useState("");
   const [context, setContext] = useState<RecordContext>(null);
-  const [selectedSkill, setSelectedSkill] = useState<{ selection: ChatSkillSelection; label: string } | null>(null);
+  const [selectedSkill, setSelectedSkill] = useState<{
+    selection: ChatSkillSelection;
+    label: string;
+  } | null>(null);
   const [busy, setBusy] = useState(false),
     [loading, setLoading] = useState(false),
     [error, setError] = useState("");
@@ -170,7 +173,12 @@ function AssistantSession() {
     openedFromUrl.current = conversationFromUrl;
     void openChat(conversationFromUrl);
   }, [conversationFromUrl, openChat, busy]);
-  async function ask(text = message, scope = context, requestKey?: string, selected = selectedSkill) {
+  async function ask(
+    text = message,
+    scope = context,
+    requestKey?: string,
+    selected = selectedSkill,
+  ) {
     if (active.current || !text.trim() || !status.data?.configured || loading) return;
     const abort = new AbortController();
     active.current = abort;
@@ -184,7 +192,18 @@ function AssistantSession() {
       request_id: requestKey ?? crypto.randomUUID(),
       record_id: scope?.id,
       approval_mode: approvalMode,
-      ...(selected ? { skill: "builder" in selected.selection ? { builtin: "creer-skill", revision: 1 } : { id: selected.selection.id, version_id: selected.selection.version_id, name: selected.label } } : {}),
+      ...(selected
+        ? {
+            skill:
+              "builder" in selected.selection
+                ? { builtin: "creer-skill", revision: 1 }
+                : {
+                    id: selected.selection.id,
+                    version_id: selected.selection.version_id,
+                    name: selected.label,
+                  },
+          }
+        : {}),
     };
     const placeholder: AssistantMessage = {
       id: crypto.randomUUID(),
@@ -209,7 +228,14 @@ function AssistantSession() {
           request_id: user.request_id,
           ...(conversation ? { conversation_id: conversation } : {}),
           ...(scope ? { record_id: scope.id } : {}),
-          ...(selected ? { skill: "builder" in selected.selection ? { builder: true, inputs: { objectif: text.trim() } } : selected.selection } : {}),
+          ...(selected
+            ? {
+                skill:
+                  "builder" in selected.selection
+                    ? { builder: true, inputs: { objectif: text.trim() } }
+                    : selected.selection,
+              }
+            : {}),
         }),
         signal: abort.signal,
       });
@@ -375,7 +401,14 @@ function AssistantSession() {
             )}
           </div>
           <div className={styles.headerActions}>
-            <Link className={styles.iconButton} href={`/app/skills?workspace=${workspace.id}`} aria-label="Bibliothèque de skills" title="Bibliothèque de skills"><Sparkles size={15}/></Link>
+            <Link
+              className={styles.iconButton}
+              href={`/app/skills?workspace=${workspace.id}`}
+              aria-label="Bibliothèque de skills"
+              title="Bibliothèque de skills"
+            >
+              <Sparkles size={15} />
+            </Link>
             {started ? (
               <>
                 <button
@@ -576,7 +609,10 @@ function AssistantSession() {
           message={message}
           setMessage={setMessage}
           context={context}
-          setContext={setContext}
+          setContext={(next) => {
+            if (next?.id !== context?.id) setSelectedSkill(null);
+            setContext(next);
+          }}
           busy={busy}
           configured={!!status.data?.configured}
           model={status.data?.model || ""}
@@ -587,7 +623,21 @@ function AssistantSession() {
           placement={messages.length || loading ? "bottom" : "top"}
           onSend={() => void ask()}
           onStop={() => active.current?.abort()}
-          skillsControl={<ChatSkillPicker busy={busy} selectedLabel={selectedSkill?.label} onSelect={(selection,label)=>setSelectedSkill({selection,label})} onClear={()=>setSelectedSkill(null)}/>}
+          externalSlashMenu
+          skillsControl={
+            <ChatSkillPicker
+              initialId={url.get("skill")}
+              context={context}
+              mode={approvalMode}
+              slashQuery={message.startsWith("/") ? message.slice(1) : null}
+              onSlashHandled={() => setMessage((value) => (value.startsWith("/") ? "" : value))}
+              onContext={setContext}
+              busy={busy}
+              selectedLabel={selectedSkill?.label}
+              onSelect={(selection, label) => setSelectedSkill({ selection, label })}
+              onClear={() => setSelectedSkill(null)}
+            />
+          }
         />
         {!messages.length && !loading && (
           <AssistantQuickActions

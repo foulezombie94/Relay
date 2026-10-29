@@ -43,6 +43,7 @@ import { ObjectStudio, StudioTrigger } from "./object-studio";
 import { useStudio, useStudioActions, type StudioData } from "./use-studio";
 import { studioFields, fieldValue, sectionNames, type StudioField } from "./fields";
 import styles from "./studio.module.css";
+import { RecordSkillLauncher } from "../../skills/record-launcher";
 
 export function StudioRecordProfile({
   record,
@@ -218,6 +219,7 @@ export function StudioRecordProfile({
           <WorkflowButtons configs={configs} record={record} readonly={readonly} />
           <Rollups data={q.data} />
           <div className={styles.quickActions}>
+            <RecordSkillLauncher recordId={record.id} />
             <button
               className={styles.listAction}
               onClick={() => setListPicker(true)}

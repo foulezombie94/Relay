@@ -2168,3 +2168,4 @@
   font-size: 14px;
   margin: 28px 0;
 }
+.skillPopover[data-preparing=true]{width:min(540px,calc(100vw - 24px));max-height:min(700px,calc(100dvh - 90px));overflow:auto}.skillOption[data-selected=true]{background:var(--relay-hover)}.skillSearchLabel{display:flex;align-items:center;gap:6px}

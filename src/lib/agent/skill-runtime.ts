@@ -10,8 +10,15 @@ import {
 } from "@/lib/domain/agent-skills";
 import { assistantApprovalMode } from "@/lib/domain/assistant-approval";
 import type { ToolContext } from "./tools";
+import type { SkillBindings } from "@/lib/domain/skill-context";
+import type { SourceContent } from "@/lib/api/assistant-context";
 
-export type AgentSkill = { manifest: SkillManifest; inputs: unknown };
+export type AgentSkill = {
+  manifest: SkillManifest;
+  inputs: unknown;
+  bindings?: SkillBindings;
+  bindingSources?: Pick<SourceContent, "id" | "type" | "label">[];
+};
 
 export function prepareAgentSkill(
   context: ToolContext,
@@ -55,6 +62,10 @@ export function prepareAgentSkill(
     outputTokens: budget.output_tokens,
     signal: AbortSignal.any([server.signal, AbortSignal.timeout(budget.duration_seconds * 1000)]),
     instruction: instruction + structured,
+    // CRM values never get substituted into the privileged instructions. They
+    // travel separately as untrusted data with no authority to grant actions.
+    bindings: skill.bindings,
+    bindingSources: skill.bindingSources,
   };
 }
 

@@ -5,7 +5,12 @@ import { runAgent } from "@/lib/agent/runner";
 import { configuredAgentModel } from "@/lib/agent/identity";
 import { agentApiKey } from "@/lib/agent/provider";
 import { assistantApprovalMode } from "@/lib/domain/assistant-approval";
-import { skillError, skillEngine, loadSelectedSkill, skillSelectionSchema } from "@/lib/api/agent-skills";
+import {
+  skillError,
+  skillEngine,
+  loadSelectedSkill,
+  skillSelectionSchema,
+} from "@/lib/api/agent-skills";
 import { rpc } from "@/lib/agent/tools";
 import * as Sentry from "@sentry/nextjs";
 import { context, checkOrigin, ApiError, databaseError, fail } from "@/lib/api/context";
@@ -151,7 +156,10 @@ export async function POST(req: NextRequest, { params }: P) {
         410,
       );
     if (input.meeting_id) {
-      if (input.skill) throw new ApiError("Une méthode ne peut pas être combinée à une analyse de réunion dédiée.");
+      if (input.skill)
+        throw new ApiError(
+          "Une méthode ne peut pas être combinée à une analyse de réunion dédiée.",
+        );
       if (input.conversation_id || input.record_id)
         throw new ApiError("Une analyse de réunion démarre dans une conversation dédiée.");
       const { data: meeting, error: meetingError } = await client
@@ -171,7 +179,15 @@ export async function POST(req: NextRequest, { params }: P) {
       );
     const started = Date.now();
     const selectedSkill = input.skill
-      ? await loadSelectedSkill(client, workspace, user.id, role, input.skill, input.approval_mode)
+      ? await loadSelectedSkill(
+          client,
+          workspace,
+          user.id,
+          role,
+          input.skill,
+          input.approval_mode,
+          input.record_id,
+        )
       : undefined;
     const previous = input.conversation_id
       ? await ownedConversation(client, workspace, user.id, input.conversation_id)
@@ -305,11 +321,20 @@ export async function POST(req: NextRequest, { params }: P) {
         try {
           signal.throwIfAborted();
           const limits = {
-            toolLimit: selectedSkill ? Math.max(1, selectedSkill.manifest.budget.tool_calls) : input.deepen ? 15 : 5,
+            toolLimit: selectedSkill
+              ? Math.max(1, selectedSkill.manifest.budget.tool_calls)
+              : input.deepen
+                ? 15
+                : 5,
             reservedTokens: input.deepen ? 1000000 : 300000,
             outputTokens: Math.min(
               3000,
-              Math.max(500, Number(process.env.AGENT_OUTPUT_TOKENS) || selectedSkill?.manifest.budget.output_tokens || 1600),
+              Math.max(
+                500,
+                Number(process.env.AGENT_OUTPUT_TOKENS) ||
+                  selectedSkill?.manifest.budget.output_tokens ||
+                  1600,
+              ),
             ),
           };
           const runSecret = randomBytes(32).toString("hex");
@@ -342,7 +367,13 @@ export async function POST(req: NextRequest, { params }: P) {
               selection: "explicit",
             });
           }
-          if (selectedSkill) step("skill", `Méthode chargée · ${selectedSkill.manifest.name}`, "done", "Version et autorisations vérifiées pour cette demande.");
+          if (selectedSkill)
+            step(
+              "skill",
+              `Méthode chargée · ${selectedSkill.manifest.name}`,
+              "done",
+              "Version et autorisations vérifiées pour cette demande.",
+            );
           const data = await runAgent(
             {
               client,
@@ -354,10 +385,13 @@ export async function POST(req: NextRequest, { params }: P) {
               question: input.message,
               approvalMode: input.approval_mode,
               analysisMeetingId: input.meeting_id,
-              untrustedContext: oldMessages.length > 0,
+              untrustedContext:
+                oldMessages.length > 0 || !!selectedSkill?.contextData.sources.length,
               requestKey: userMessage.request_id!,
               actionSequence: new Map(),
-              sources: new Map(),
+              sources: new Map(
+                selectedSkill?.contextData.sources.map((source) => [source.id, source] as const),
+              ),
               actions: new Map(),
               allowedTools: selectedSkill?.allowed_tools,
               ...(skillRun ? { skillRun: { id: skillRun.id, skillId: skillRun.skill_id } } : {}),
@@ -374,7 +408,16 @@ export async function POST(req: NextRequest, { params }: P) {
                 .map((m) => m.content || ""),
               step,
               emit,
-              skill: selectedSkill ? { manifest: selectedSkill.manifest, inputs: selectedSkill.inputs } : undefined,
+              skill: selectedSkill
+                ? {
+                    manifest: selectedSkill.manifest,
+                    inputs: selectedSkill.inputs,
+                    bindings: selectedSkill.contextData.bindings,
+                    bindingSources: selectedSkill.contextData.sources.map(
+                      ({ id, type, label }) => ({ id, type, label }),
+                    ),
+                  }
+                : undefined,
             },
           );
           step("save", "Enregistrement de la conversation", "running");
@@ -395,9 +438,23 @@ export async function POST(req: NextRequest, { params }: P) {
           };
           final.steps = [...steps.filter((s) => s.id !== "save"), saveStep];
           if (selectedSkill && skillRun && runHandle) {
-            const dataRecord = data as typeof data & { partial?: boolean; actions?: Array<{ status?: string }> };
-            const terminal = dataRecord.partial ? "partial" : dataRecord.actions?.some((action) => ["pending", "draft", "confirmation_required"].includes(action.status ?? "")) ? "waiting_approval" : "completed";
-            await skillEngine(workspace, user.id, "finish", { engine_run_id: runHandle.id, secret: runHandle.secret, run_id: skillRun.id, status: terminal });
+            const dataRecord = data as typeof data & {
+              partial?: boolean;
+              actions?: Array<{ status?: string }>;
+            };
+            const terminal = dataRecord.partial
+              ? "partial"
+              : dataRecord.actions?.some((action) =>
+                    ["pending", "draft", "confirmation_required"].includes(action.status ?? ""),
+                  )
+                ? "waiting_approval"
+                : "completed";
+            await skillEngine(workspace, user.id, "finish", {
+              engine_run_id: runHandle.id,
+              secret: runHandle.secret,
+              run_id: skillRun.id,
+              status: terminal,
+            });
           }
           await persist(final);
           step("save", "Conversation enregistrée", "done");
@@ -411,7 +468,11 @@ export async function POST(req: NextRequest, { params }: P) {
             : normalizedError instanceof ApiError
               ? normalizedError.message
               : "La réponse a été interrompue. Réessayez.";
-          const details = normalizedError as { code?: string; retryAfter?: number; status?: number };
+          const details = normalizedError as {
+            code?: string;
+            retryAfter?: number;
+            status?: number;
+          };
           const retry = details.retryAfter
             ? ` Réessayez dans ${details.retryAfter} seconde(s).`
             : "";

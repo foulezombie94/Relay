@@ -3,6 +3,7 @@ import { context, checkOrigin, ApiError, databaseError, fail } from "@/lib/api/c
 import { z } from "zod";
 import { boundedFormData } from "@/lib/api/bounded-form";
 import { extractDocument } from "@/lib/agent/documents";
+import { skillDetail } from "@/lib/api/agent-skills";
 type P = { params: Promise<{ workspace: string }> };
 export async function POST(req: NextRequest, { params }: P) {
   try {
@@ -11,16 +12,26 @@ export async function POST(req: NextRequest, { params }: P) {
     const { client, user } = await context(workspace, true);
     const form = await boundedFormData(req, 22 * 1024 * 1024);
     const file = form.get("file");
-    const record_id = z.uuid().parse(form.get("record_id"));
+    const record_id = form.get("record_id") ? z.uuid().parse(form.get("record_id")) : null;
+    const skill_id = form.get("skill_id") ? z.uuid().parse(form.get("skill_id")) : null;
+    if (!record_id && !skill_id)
+      throw new ApiError("Choisissez une fiche ou une méthode pour ce document.");
+    if (skill_id) {
+      const detail = await skillDetail(client, workspace, skill_id);
+      if (!detail.skill.can_edit) throw new ApiError("Cette méthode n’est pas modifiable.", 403);
+    }
     if (!(file instanceof File) || file.size > 20 * 1024 * 1024 || file.size === 0)
       throw new ApiError("Fichier vide ou supérieur à 20 Mo.");
-    const { data: record } = await client
-      .from("records")
-      .select("id")
-      .eq("workspace_id", workspace)
-      .eq("id", record_id)
-      .single();
-    if (!record) throw new ApiError("Fiche inaccessible.", 404);
+    if (record_id) {
+      const { data: record, error: recordError } = await client
+        .from("records")
+        .select("id")
+        .eq("workspace_id", workspace)
+        .eq("id", record_id)
+        .single();
+      databaseError(recordError);
+      if (!record) throw new ApiError("Fiche inaccessible.", 404);
+    }
     const ext = file.name.split(".").pop()?.toLowerCase();
     const mimes: Record<string, string> = {
       pdf: "application/pdf",
@@ -65,6 +76,24 @@ export async function GET(req: NextRequest, { params }: P) {
   try {
     const { workspace } = await params;
     const { client } = await context(workspace);
+    if (!req.nextUrl.searchParams.has("id")) {
+      const term = z
+        .string()
+        .max(200)
+        .parse(req.nextUrl.searchParams.get("q") ?? "");
+      const documents = await client
+        .from("documents")
+        .select("id,name,mime,size,extraction_status,record_id")
+        .eq("workspace_id", workspace)
+        .ilike("name", "%" + term.replace(/[\\%_]/g, "\\$&") + "%")
+        .order("created_at", { ascending: false })
+        .limit(25);
+      databaseError(documents.error);
+      return NextResponse.json(
+        { data: documents.data ?? [] },
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
     const id = z.uuid().parse(req.nextUrl.searchParams.get("id"));
     const { data: doc } = await client
       .from("documents")

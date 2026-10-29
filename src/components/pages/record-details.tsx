@@ -14,6 +14,7 @@ import { relatedRecords } from "@/lib/domain/record-profile";
 import type { Pipeline } from "@/lib/domain/pipelines";
 import styles from "../records/record-details.module.css";
 import { StudioRecordProfile } from "../records/studio/record-profile";
+import { RecordSkillLauncher } from "../skills/record-launcher";
 const names: Record<string, string> = {
   timeline: "Contexte",
   relations: "Relations",
@@ -117,6 +118,7 @@ function LegacyRecordDetails({
                 : "Les informations utiles pour faire avancer cette vente."}
           </span>
           <div>
+            <RecordSkillLauncher recordId={record.id} />
             <button className="button small" disabled={readonly} onClick={onEdit}>
               <Pencil size={14} />
               Modifier

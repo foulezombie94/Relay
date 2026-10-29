@@ -53,6 +53,7 @@ export type AssistantComposerViewProps = {
   records: { loading: boolean; error?: string; data: Pick<CrmRecord, "id" | "display_name">[] };
   prefetchPrivate?: boolean;
   skillsControl?: ReactNode;
+  externalSlashMenu?: boolean;
 };
 export function AssistantComposerView({
   message,
@@ -76,6 +77,7 @@ export function AssistantComposerView({
   records,
   prefetchPrivate = true,
   skillsControl,
+  externalSlashMenu = false,
 }: AssistantComposerViewProps) {
   const [adding, setAdding] = useState(false),
     [approval, setApproval] = useState(false),
@@ -100,7 +102,7 @@ export function AssistantComposerView({
   }
   return (
     <div className={styles.composerArea} data-placement={placement}>
-      {(prompts || message.startsWith("/")) && (
+      {(prompts || (message.startsWith("/") && !externalSlashMenu)) && (
         <div className={styles.promptMenu}>
           <div>
             <strong>Raccourcis de l’assistant</strong>
@@ -128,7 +130,13 @@ export function AssistantComposerView({
         className={styles.composer}
         onSubmit={(e) => {
           e.preventDefault();
-          if (!busy && configured && message.trim()) onSend();
+          if (
+            !busy &&
+            configured &&
+            message.trim() &&
+            !(externalSlashMenu && message.startsWith("/"))
+          )
+            onSend();
         }}
       >
         {context && (
@@ -151,8 +159,15 @@ export function AssistantComposerView({
           value={message}
           maxLength={4000}
           disabled={busy}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            if (externalSlashMenu && e.target.value.startsWith("/")) setPrompts(false);
+          }}
           onKeyDown={(e) => {
+            if (externalSlashMenu && message.startsWith("/") && e.key === "Enter") {
+              e.preventDefault();
+              return;
+            }
             if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
               e.preventDefault();
               if (message.trim() && configured && !busy) onSend();
