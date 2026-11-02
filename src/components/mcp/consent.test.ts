@@ -19,11 +19,13 @@ it.each(["Autoriser la connexion", "Refuser"])(
       React.createElement(McpConsent, {
         consentContext: context,
         clientName: "Client affiché",
+        destination: { host: "client.example.test", local: false },
         requestedScopes: ["records:read"],
         workspaces: [{ id: workspace, name: "Workspace affiché", role: "owner" }],
       }),
     );
     expect(screen.getByText(/n’est pas vérifié/)).toBeDefined();
+    expect(screen.getByText("client.example.test")).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: label }));
     await waitFor(() => expect(call).toHaveBeenCalledTimes(1));
     expect(JSON.parse(call.mock.calls[0][1].body)).toEqual({

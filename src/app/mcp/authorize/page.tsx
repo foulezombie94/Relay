@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/supabase/server";
 import { assertAuthAvailable } from "@/lib/supabase/session";
 import { flowCookie } from "@/lib/mcp/config";
-import { oauthDb, hash } from "@/lib/mcp/database";
+import { oauthDb, hash, flowDestination } from "@/lib/mcp/database";
 import { McpConsent } from "@/components/mcp/consent";
 import styles from "@/components/mcp/mcp.module.css";
 export const dynamic = "force-dynamic";
@@ -28,8 +28,10 @@ export default async function ConsentPage() {
   assertAuthAvailable(error);
   if (!user || error) redirect("/login?next=/mcp/authorize");
   let info: { client_name: string; scopes: string[] };
+  let destination: Awaited<ReturnType<typeof flowDestination>>;
   try {
     info = await oauthDb("flow", { flow_hash: hash(flow) });
+    destination = await flowDestination(hash(flow));
   } catch {
     return (
       <main className={styles.consent}>
@@ -61,6 +63,7 @@ export default async function ConsentPage() {
     <McpConsent
       consentContext={consentContext(flow)}
       clientName={info.client_name}
+      destination={destination}
       requestedScopes={info.scopes}
       workspaces={workspaces}
     />

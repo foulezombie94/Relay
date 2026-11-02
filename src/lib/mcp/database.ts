@@ -15,6 +15,18 @@ export async function oauthDb(operation: string, payload: Record<string, unknown
     );
   return data;
 }
+/** Where a pending flow sends its authorization code, as shown on consent.
+ * Client names are self-declared, so the destination host is the only
+ * trustworthy signal a user can check before granting access.
+ */
+export async function flowDestination(flowHash: string) {
+  const { data, error } = await adminDb().rpc("mcp_flow_destination", { flow_hash: flowHash });
+  if (error) throw new ApiError("Service MCP temporairement indisponible.", 503);
+  if (typeof data !== "string") throw new ApiError("Autorisation MCP refusée ou expirée.", 400);
+  const url = new URL(data);
+  const local = ["127.0.0.1", "[::1]", "localhost"].includes(url.hostname);
+  return { host: url.host, local };
+}
 export function bearer(request: Request) {
   const value = request.headers.get("authorization") ?? "";
   if (!/^Bearer zmc_a_[A-Za-z0-9_-]{43}$/.test(value))

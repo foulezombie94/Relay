@@ -64,3 +64,68 @@ describe("public form link validation", () => {
     expect(query.contains).toHaveBeenCalledWith("config", { published: true });
   });
 });
+
+describe("public form source admission", () => {
+  function published(rpc: ReturnType<typeof vi.fn>) {
+    const config = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      contains: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          id,
+          workspace_id: id,
+          object_id: id,
+          name: "Contact",
+          config: {
+            published: true,
+            questions: [
+              { id, property: "display_name", label: "Nom", type: "text", required: true },
+            ],
+          },
+          created_by: id,
+        },
+        error: null,
+      }),
+    };
+    const member = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { role: "admin" }, error: null }),
+    };
+    const from = vi.fn((table: string) => (table === "memberships" ? member : config));
+    mocks.adminDb.mockReturnValue({ from, rpc });
+  }
+
+  it("refuses an over-budget source before writing any record", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: false, error: null });
+    published(rpc);
+    const response = await POST(
+      request(id, "POST", { attempt: id, answers: { [id]: "Ada" } }),
+      params(id),
+    );
+    expect(response.status).toBe(429);
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledWith("record_form_admit", {
+      source_key: expect.stringMatching(/^[a-f0-9]{64}$/),
+    });
+  });
+
+  it("fails closed in production without a trusted platform address", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("SUPABASE_SECRET_KEY", "synthetic-server-key");
+    try {
+      const rpc = vi.fn();
+      published(rpc);
+      const response = await POST(
+        request(id, "POST", { attempt: id, answers: { [id]: "Ada" } }),
+        params(id),
+      );
+      expect(response.status).toBe(503);
+      expect(rpc).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+});

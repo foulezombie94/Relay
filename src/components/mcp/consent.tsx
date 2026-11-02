@@ -1,17 +1,19 @@
 "use client";
 import { useState } from "react";
-import { ShieldCheck, LockKeyhole, ArrowRight } from "lucide-react";
+import { ShieldCheck, LockKeyhole, ArrowRight, TriangleAlert } from "lucide-react";
 import { scopeLabels } from "@/lib/mcp/contracts";
 import styles from "./mcp.module.css";
 type Workspace = { id: string; name: string; role: string };
 export function McpConsent({
   consentContext,
   clientName,
+  destination,
   requestedScopes,
   workspaces,
 }: {
   consentContext: string;
   clientName: string;
+  destination: { host: string; local: boolean };
   requestedScopes: string[];
   workspaces: Workspace[];
 }) {
@@ -59,6 +61,22 @@ export function McpConsent({
         l’application à l’origine de cette demande, puis choisissez les données que vous souhaitez
         lui partager.
       </p>
+      <div className={styles.notice} role="note">
+        <TriangleAlert size={20} />
+        <span>
+          {destination.local ? (
+            <>
+              L’accès sera remis à une application installée sur cet ordinateur (
+              <strong>{destination.host}</strong>).
+            </>
+          ) : (
+            <>
+              L’accès sera envoyé au site <strong>{destination.host}</strong>. Refusez si vous ne
+              reconnaissez pas ce domaine ou si vous n’avez pas lancé cette connexion vous-même.
+            </>
+          )}
+        </span>
+      </div>
       <label className={styles.field}>
         Espace de travail
         <select value={workspace} onChange={(e) => setWorkspace(e.target.value)} disabled={busy}>

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { adminDb } from "@/lib/supabase/admin";
 import { ApiError, databaseError, fail } from "@/lib/api/context";
 import { boundedJsonBody } from "@/lib/api/workflow-body";
+import { requestSourceKey } from "@/lib/security/request-source";
 import { formSpec, visibleFormQuestions } from "@/lib/domain/record-studio";
 import { resources } from "@/lib/domain/resource-schemas";
 import { validateAttributes } from "@/lib/domain/attributes";
@@ -60,6 +61,14 @@ export async function POST(req: NextRequest, { params }: Params) {
       .parse(await boundedJsonBody(req, 40000));
     if (input.website) return json({ ok: true });
     const { admin, row, spec } = await configuration((await params).key);
+    // Per-source admission before any write: the per-form quotas alone let a
+    // single sender exhaust a form's daily budget and flood the CRM.
+    const source = requestSourceKey(req);
+    if (!source) throw new ApiError("Formulaire temporairement indisponible.", 503);
+    const admitted = await admin.rpc("record_form_admit", { source_key: source });
+    databaseError(admitted.error);
+    if (admitted.data !== true)
+      throw new ApiError("Trop de réponses. Réessayez dans quelques minutes.", 429);
     const values: Record<string, unknown> = {},
       attributes: Record<string, unknown> = {};
     for (const question of visibleFormQuestions(spec, input.answers)) {

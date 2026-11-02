@@ -71,6 +71,10 @@
   "overrides": {
     "exceljs": {
       "uuid": "11.1.1"
+    },
+    "@sentry/bundler-plugins": {
+      "glob": "14.0.3",
+      "minimatch": "11.0.4"
     }
   },
   "devDependencies": {
