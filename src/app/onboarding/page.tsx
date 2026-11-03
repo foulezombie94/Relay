@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/supabase/server";
 import { assertAuthAvailable } from "@/lib/supabase/session";
+import { secondFactorPending } from "@/lib/supabase/mfa";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 export const metadata: Metadata = {
   title: "Votre espace · Zyliad",
@@ -15,6 +16,10 @@ export default async function OnboardingPage() {
   } = await client.auth.getUser();
   assertAuthAvailable(error);
   if (error || !user) redirect("/login?next=/onboarding");
+  if (await secondFactorPending(client, user)) redirect("/login?step=mfa&next=/onboarding");
+  // Workspaces hidden until 2FA is enabled are not a reason to create a new one.
+  const { data: blocked } = await client.rpc("mfa_blocked_workspaces");
+  if (Array.isArray(blocked) && blocked.length) redirect("/app");
   return (
     <OnboardingFlow
       user={{

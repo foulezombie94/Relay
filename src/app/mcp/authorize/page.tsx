@@ -2,6 +2,7 @@ import { consentContext } from "@/lib/mcp/consent-context";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { secondFactorPending } from "@/lib/supabase/mfa";
 import { db } from "@/lib/supabase/server";
 import { assertAuthAvailable } from "@/lib/supabase/session";
 import { flowCookie } from "@/lib/mcp/config";
@@ -27,6 +28,7 @@ export default async function ConsentPage() {
   } = await client.auth.getUser();
   assertAuthAvailable(error);
   if (!user || error) redirect("/login?next=/mcp/authorize");
+  if (await secondFactorPending(client, user)) redirect("/login?step=mfa&next=/mcp/authorize");
   let info: { client_name: string; scopes: string[] };
   try {
     info = await oauthDb("flow", { flow_hash: hash(flow) });

@@ -3,6 +3,7 @@ export class RequestError extends Error {
     message: string,
     public status: number,
     public requestId?: string,
+    public code?: string,
   ) {
     super(message);
     this.name = "RequestError";
@@ -54,10 +55,21 @@ export async function request<T = Record<string, unknown>>(
           : typeof payload.error === "string"
             ? payload.error
             : "Action impossible. Réessayez.";
+      // The session needs its second factor: send the browser to the 2FA step once.
+      if (
+        response.status === 401 &&
+        payload.code === "mfa_required" &&
+        typeof window !== "undefined" &&
+        window.location.pathname !== "/login"
+      )
+        // Outside React (shared fetch helper): a full navigation also resets client caches.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.href = "/login?step=mfa";
       throw new RequestError(
         message,
         response.status,
         typeof payload.requestId === "string" ? payload.requestId : undefined,
+        typeof payload.code === "string" ? payload.code : undefined,
       );
     }
     if (data === null || typeof data !== "object")

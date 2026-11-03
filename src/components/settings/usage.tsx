@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowUpRight,
-  CreditCard,
   Cpu,
   Sparkles,
   Users,
@@ -300,19 +299,6 @@ export function SettingsUsage({ billing = false }: { billing?: boolean }) {
               <a href="#organisation">
                 Informations de l’espace <ArrowUpRight size={13} />
               </a>
-            </article>
-            <article className={styles.paymentEmpty}>
-              <span>
-                <CreditCard size={23} />
-              </span>
-              <h3>Facturation non connectée</h3>
-              <p>
-                Aucun abonnement ni moyen de paiement n’est relié à Zyliad. Les factures et
-                changements d’offre seront disponibles après connexion d’un service de paiement.
-              </p>
-              <Link href="/doc">
-                Consulter l’aide <ArrowUpRight size={13} />
-              </Link>
             </article>
           </div>
         </section>

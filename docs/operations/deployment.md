@@ -77,6 +77,13 @@ Le conteneur utilise l’utilisateur non privilégié `node` et ne contient aucu
 
 `FEATURE_BACKGROUND_JOBS=false` désactive la prise de jobs par le worker. Le web conserve alors le chemin synchrone pour petits imports/workflows et synchro manuelle ; les synchros automatiques et inscriptions de séquence sont désactivées. Les traitements déjà lancés peuvent terminer.
 
+## Stripe, webhooks sortants et enrichissement
+
+- Stripe : définir `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO` et `STRIPE_PRICE_BUSINESS` sur Vercel (et la clé et les prix sur Railway pour le réalignement des sièges). Créer l’endpoint `https://<domaine>/api/billing/webhook` avec les événements `checkout.session.completed` et `customer.subscription.*`, puis activer le portail client. Utiliser des clés de test hors production.
+- Webhooks sortants : `INTEGRATION_ENCRYPTION_KEY` doit être identique sur le web (chiffrement des secrets) et le worker (signature).
+- Enrichissement : le worker doit joindre les sites publics des entreprises et `recherche-entreprises.api.gouv.fr`. `FEATURE_ENRICHMENT=false` ou `ENRICHMENT_FR_REGISTRY=false` le désactivent.
+- 2FA : MFA TOTP doit rester activée dans Supabase Auth.
+
 ## Sentry et Better Stack
 
 Configurer `SENTRY_DSN` sur web + worker et `NEXT_PUBLIC_SENTRY_DSN` sur le web. Le DSN public ne donne pas de droit de lecture. Les hooks capturent les erreurs de rendu/requête et les jobs échoués. `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` permettent d’envoyer les source maps au build. Aucun replay n’est activé.

@@ -1,3 +1,4 @@
+import { secondFactorPending } from "@/lib/supabase/mfa";
 import { db } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { PortalClient } from "@/components/portal/client";
@@ -7,5 +8,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     data: { user },
   } = await client.auth.getUser();
   if (!user) redirect("/login");
+  if (await secondFactorPending(client, user)) redirect("/login?step=mfa");
   return <PortalClient id={(await params).id} userId={user.id} />;
 }

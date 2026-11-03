@@ -1,3 +1,4 @@
+import { pipelineStages, type Pipeline } from "@/lib/domain/pipelines";
 import { NextRequest, NextResponse } from "next/server";
 import { confirmedImport } from "@/lib/domain/import-result";
 import { createHash } from "node:crypto";
@@ -46,15 +47,21 @@ export async function POST(
       .parse(form.get("pipeline_id") || undefined);
     if (pipeline && object.slug !== "deals")
       throw new ApiError("Pipeline réservé aux opportunités.");
-    if (pipeline) {
-      const { data: p, error: pe } = await client
+    let allowedStages: string[] | undefined;
+    if (object.slug === "deals") {
+      // Rows land in the chosen pipeline, or the first one: its stages are the only valid targets.
+      let target = client
         .from("pipelines")
-        .select("id")
+        .select("id,stages")
         .eq("workspace_id", workspace)
-        .eq("id", pipeline)
-        .maybeSingle();
+        .order("created_at")
+        .order("id")
+        .limit(1);
+      if (pipeline) target = target.eq("id", pipeline);
+      const { data: p, error: pe } = await target.maybeSingle();
       databaseError(pe);
-      if (!p) throw new ApiError("Pipeline inaccessible.");
+      if (pipeline && !p) throw new ApiError("Pipeline inaccessible.");
+      if (p) allowedStages = pipelineStages(p as Pick<Pipeline, "stages">);
     }
     const numberFormat = z.enum(["comma", "dot"]).parse(form.get("number_format") || "comma");
     const duplicatePolicy = z
@@ -137,10 +144,7 @@ export async function POST(
         ),
       });
     const stageMap = z
-      .record(
-        z.string().max(200),
-        z.enum(["Nouveau", "Qualification", "Proposition", "Négociation", "Gagné", "Perdu"]),
-      )
+      .record(z.string().max(200), z.string().trim().min(1).max(80))
       .parse(JSON.parse(String(form.get("stage_map") || "{}")));
     let prepared;
     try {
@@ -155,6 +159,7 @@ export async function POST(
           sourceKey: source + ":" + migrationKey,
           stageMap,
           deal: object.slug === "deals",
+          allowedStages,
         },
       );
     } catch (e) {

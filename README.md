@@ -34,11 +34,11 @@ Les routes et le point d'entrée du worker suivent les conventions des hébergeu
 
 ## Fonctions présentes
 
-Espaces de travail et rôles ; personnes, entreprises, opportunités et objets personnalisés ; relations, vues, listes et pipelines ; tâches, notes, documents, réunions, engagements et contradictions ; imports/exports et doublons ; dashboards et rapports ; automatisations, séquences, portail client et supervision des jobs.
+Espaces de travail et rôles, double authentification (exigible par espace) ; personnes, entreprises, opportunités et objets personnalisés ; relations, vues, listes, filtres ET/OU imbriqués et pipelines aux étapes libres ; historique des valeurs par champ et corbeille ; enrichissement automatique et création des contacts depuis la synchronisation ; tâches, notes, documents, réunions, engagements et contradictions ; imports/exports et doublons ; dashboards et rapports ; automatisations, séquences avec suivi d’ouverture et de clic, portail client et supervision des jobs ; API REST publique (`/api/v1`, OpenAPI), clés API et webhooks signés ; facturation Stripe par siège. Voir [les fondamentaux CRM](docs/features/p0-essentials.md).
 
 Ask Relay dispose de recherches et agrégations CRM, sources vérifiées, confirmations exactes et outbox privée. OpenAI ou le branchement temporaire Groq est choisi par `AI_PROVIDER` ; voir [les variables web](deploy/web.env.example) et [worker](deploy/worker.env.example). Les variables Vercel ne configurent pas Railway automatiquement.
 
-Gmail, Outlook, calendriers Google/Microsoft, Meet, Teams, Zoom et Zapier nécessitent les autorisations des fournisseurs. Les connecteurs de réunions importent les transcriptions disponibles ; ils ne constituent pas un bot d'enregistrement. Aucun paiement Stripe n'est intégré. Voir [les intégrations](docs/operations/integrations.md) et [les limites actuelles](docs/architecture/repository-audit.md).
+Gmail, Outlook, calendriers Google/Microsoft, Meet, Teams, Zoom et Zapier nécessitent les autorisations des fournisseurs. Les connecteurs de réunions importent les transcriptions disponibles ; ils ne constituent pas un bot d'enregistrement. Voir [les intégrations](docs/operations/integrations.md) et [les limites actuelles](docs/architecture/repository-audit.md).
 
 ## Validation
 

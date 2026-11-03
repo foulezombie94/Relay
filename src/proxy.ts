@@ -25,6 +25,10 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname === "/api/health" ||
     request.nextUrl.pathname === "/api/jobs/run" ||
     request.nextUrl.pathname === "/api/mcp" ||
+    // Public REST API: API keys only, never session cookies.
+    request.nextUrl.pathname.startsWith("/api/v1/") ||
+    request.nextUrl.pathname.startsWith("/api/t/") ||
+    request.nextUrl.pathname === "/api/billing/webhook" ||
     request.nextUrl.pathname.startsWith("/forms/") ||
     request.nextUrl.pathname.startsWith("/api/forms/") ||
     /^\/mcp\/zyliad-mcp-1\.(?:0\.0|1\.[01])\.tgz$/.test(request.nextUrl.pathname) ||
@@ -71,7 +75,13 @@ export async function proxy(request: NextRequest) {
     },
   });
   const mode = request.nextUrl.searchParams.get("mode");
-  if (isHome || (request.nextUrl.pathname === "/login" && mode !== "signup" && mode !== "reset")) {
+  // The 2FA step of /login runs with an aal1 session: never bounce it back to the app.
+  const secondFactorStep =
+    request.nextUrl.pathname === "/login" && request.nextUrl.searchParams.get("step") === "mfa";
+  if (
+    !secondFactorStep &&
+    (isHome || (request.nextUrl.pathname === "/login" && mode !== "signup" && mode !== "reset"))
+  ) {
     // A cookie or locally valid JWT alone is not enough to restore a session.
     const {
       data: { user },

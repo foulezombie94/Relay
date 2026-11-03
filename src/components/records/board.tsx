@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { CalendarDays, GripVertical, Plus } from "lucide-react";
 import { Badge, money, str } from "../ui/display";
-import { stages, type CrmRecord, type Row } from "@/lib/domain/types";
+import { stages as defaultStages, type CrmRecord, type Row } from "@/lib/domain/types";
 import styles from "./records.module.css";
 
 export function RecordBoard({
@@ -14,6 +14,8 @@ export function RecordBoard({
   onCreate,
   onMove,
   stageLabels,
+  stages = defaultStages,
+  recordStages,
 }: {
   rows: CrmRecord[];
   members: Row[];
@@ -23,6 +25,10 @@ export function RecordBoard({
   onCreate: (stage: string) => void;
   onMove: (record: CrmRecord, stage: string) => Promise<void>;
   stageLabels?: Record<string, string>;
+  /** Column order: the pipeline's open stages followed by Gagné and Perdu. */
+  stages?: string[];
+  /** Stages a given deal may move to (its own pipeline), when columns mix pipelines. */
+  recordStages?: (record: CrmRecord) => string[];
 }) {
   const [dragging, setDragging] = useState<string | null>(null);
   const [dropStage, setDropStage] = useState<string | null>(null);
@@ -136,7 +142,7 @@ export function RecordBoard({
                     onClick={(event) => event.stopPropagation()}
                     onChange={(event) => void onMove(record, event.target.value).catch(() => {})}
                   >
-                    {stages.map((value) => (
+                    {(recordStages?.(record) ?? stages).map((value) => (
                       <option key={value} value={value}>
                         {stageLabels?.[value] || value}
                       </option>

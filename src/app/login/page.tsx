@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { authEmail, authFailureMessage, loginDestination } from "@/lib/supabase/session";
 import { SignupFlow } from "@/components/onboarding/signup-flow";
 import { AuthFrame } from "@/components/onboarding/auth-frame";
+import { SecondFactorStep } from "@/components/onboarding/second-factor";
 import styles from "@/components/onboarding/onboarding.module.css";
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -27,6 +28,7 @@ function LoginForm() {
       ? "Ce lien a expiré. Reconnectez-vous ou demandez un nouveau lien."
       : "",
   );
+  const [secondFactor, setSecondFactor] = useState(searchParams.get("step") === "mfa");
   const inFlight = useRef(false);
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -59,6 +61,11 @@ function LoginForm() {
         });
         if (error) throw error;
         if (!data.session?.user?.id) throw new Error("Session unconfirmed");
+        const { data: level } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (level?.nextLevel === "aal2" && level.currentLevel !== "aal2") {
+          setSecondFactor(true);
+          return;
+        }
         // Start with fresh server state after the SDK has persisted the cookies.
         window.location.replace(destination);
       }
@@ -70,6 +77,7 @@ function LoginForm() {
     }
   }
   if (mode === "signup") return <SignupFlow />;
+  if (secondFactor) return <SecondFactorStep destination={destination} />;
   return (
     <AuthFrame>
       <span className="tiny-icon">

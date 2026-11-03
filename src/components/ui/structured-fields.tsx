@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { DatePicker } from "./date-picker";
 import { useRows, useWorkspace } from "../providers/data-provider";
-import { stages } from "@/lib/domain/types";
+import { boardStages, stageLabel, type Pipeline } from "@/lib/domain/pipelines";
 import type { WorkflowDefinition } from "@/lib/domain/types";
 type Entry = Record<string, unknown>;
 export function SourceFields({ name, initial }: { name: string; initial?: unknown }) {
@@ -192,6 +192,9 @@ export function RepeatFields({
 export function WorkflowFields({ name, initial }: { name: string; initial?: unknown }) {
   const { objects } = useWorkspace();
   const members = useRows("memberships", { size: 100 });
+  const pipelines = useRows<Pipeline>("pipelines", { size: 100 });
+  const pipelineRows = pipelines.data?.data ?? [];
+  const workflowStages = boardStages(null, [], pipelineRows);
   const [value, setValue] = useState<WorkflowDefinition>(
     (initial ?? {
       object_id: objects[0]?.id,
@@ -381,9 +384,12 @@ export function WorkflowFields({ name, initial }: { name: string; initial?: unkn
                     onChange={(e) => changeAction(index, { value: e.target.value })}
                   >
                     <option value="">Choisir une étape</option>
-                    {stages.map((stage) => (
+                    {workflowStages.map((stage) => (
                       <option key={stage} value={stage}>
-                        {stage}
+                        {stageLabel(
+                          pipelineRows.find((p) => p.stages?.includes(stage) || p.labels?.[stage]),
+                          stage,
+                        )}
                       </option>
                     ))}
                   </select>

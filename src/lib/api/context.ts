@@ -7,6 +7,7 @@ import { after } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { logEvent } from "@/lib/observability/logger";
 import { assertAuthAvailable, AuthUnavailableError } from "@/lib/supabase/session";
+import { secondFactorPending } from "@/lib/supabase/mfa";
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -24,6 +25,8 @@ export async function context(workspaceId: string, write = false) {
   } = await client.auth.getUser();
   assertAuthAvailable(error);
   if (error || !user) throw new ApiError("Connectez-vous pour continuer.", 401);
+  if (await secondFactorPending(client, user))
+    throw new ApiError("Confirmez votre code de double authentification.", 401, "mfa_required");
   const { data: membership, error: membershipError } = await client
     .from("memberships")
     .select("role")
@@ -31,7 +34,17 @@ export async function context(workspaceId: string, write = false) {
     .eq("user_id", user.id)
     .single();
   if (membershipError?.code !== "PGRST116") databaseError(membershipError);
-  if (!membership) throw new ApiError("Cet espace est inaccessible.", 403);
+  if (!membership) {
+    // A workspace requiring 2FA is hidden by RLS from aal1 sessions: say why.
+    const { data: blocked } = await client.rpc("mfa_blocked_workspaces");
+    if (Array.isArray(blocked) && blocked.some((item) => item?.id === workspaceId))
+      throw new ApiError(
+        "Cet espace exige la double authentification. Activez-la dans Paramètres › Sécurité.",
+        403,
+        "mfa_required",
+      );
+    throw new ApiError("Cet espace est inaccessible.", 403);
+  }
   if (write && membership.role === "viewer")
     throw new ApiError("Vous avez un accès en lecture seule.", 403);
   return { client, user, role: membership.role as Role, workspaceId };
@@ -98,7 +111,12 @@ export function fail(error: unknown) {
     );
   }
   if (error instanceof ApiError)
-    return NextResponse.json({ error: error.message }, { status: error.status });
+    return NextResponse.json(
+      error.code === "mfa_required"
+        ? { error: error.message, code: error.code }
+        : { error: error.message },
+      { status: error.status },
+    );
   return NextResponse.json(
     { error: "Impossible de terminer cette action. Réessayez ou contactez votre administrateur." },
     { status: 500 },
@@ -120,8 +138,14 @@ export function databaseError(error: { message: string; code?: string } | null) 
           : error.code?.startsWith("22") || error.code?.startsWith("23")
             ? 400
             : 500;
+    // Validation triggers raise user-facing messages with errcode 22023 and a
+    // "Relay: " prefix; every other database text stays private.
+    const userMessage =
+      error.code === "22023" && error.message.startsWith("Relay: ")
+        ? error.message.slice(7, 307)
+        : null;
     throw new ApiError(
-      error.code === "23503"
+      (userMessage ?? error.code === "23503")
         ? "Une relation est invalide ou encore utilisée."
         : error.code === "23505"
           ? "Cet élément existe déjà."

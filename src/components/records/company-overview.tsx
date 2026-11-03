@@ -16,6 +16,7 @@ import { relatedRecords, nextRecordAction } from "@/lib/domain/record-profile";
 import type { RecordContext } from "./context";
 import { Avatar, date, money, str } from "../ui/display";
 import styles from "./company-overview.module.css";
+import { EnrichmentPanel } from "./enrichment-panel";
 
 const eventTypes: Record<string, { label: string; icon: typeof FileText }> = {
   notes: { label: "Note", icon: FileText },
@@ -31,11 +32,13 @@ export function CompanyOverview({
   context,
   objects,
   onTab,
+  readonly = false,
 }: {
   record: CrmRecord;
   context: RecordContext;
   objects: ObjectDefinition[];
   onTab: (tab: string) => void;
+  readonly?: boolean;
 }) {
   const [now] = useState(() => Date.now());
   const [filter, setFilter] = useState("all");
@@ -105,6 +108,7 @@ export function CompanyOverview({
           </div>
         </div>
       </section>
+      <EnrichmentPanel record={record} slug="companies" readonly={readonly} />
       <div className={styles.metrics} aria-label="Repères de la relation">
         {[
           { label: "Contacts liés", value: contacts.length, icon: Users, tab: "contacts" },

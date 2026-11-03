@@ -10,9 +10,8 @@ export const zapierRecord = z
     display_name: z.string().trim().min(1).max(200),
     email: z.email().max(320).optional(),
     domain: z.string().max(500).optional(),
-    stage: z
-      .enum(["Nouveau", "Qualifié", "Proposition", "Négociation", "Gagné", "Perdu"])
-      .optional(),
+    // Pipeline stages are configurable; the database validates the stage per pipeline.
+    stage: z.string().trim().min(1).max(80).optional(),
     amount: z.number().nonnegative().max(999999999999999).optional(),
     currency: z
       .string()

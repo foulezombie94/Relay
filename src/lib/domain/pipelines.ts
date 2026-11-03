@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { stages, type Row } from "./types";
+import { type Row } from "./types";
 export const defaultProbabilities: Record<string, number> = {
   Nouveau: 10,
   Qualification: 25,
@@ -8,26 +8,70 @@ export const defaultProbabilities: Record<string, number> = {
   Gagné: 100,
   Perdu: 0,
 };
+export const terminalStages = ["Gagné", "Perdu"] as const;
+export const defaultOpenStages = ["Nouveau", "Qualification", "Proposition", "Négociation"];
+export const isTerminalStage = (stage: string) => stage === "Gagné" || stage === "Perdu";
+const stageName = z
+  .string()
+  .trim()
+  .min(1, "Nommez chaque étape.")
+  .max(80, "Un nom d’étape compte au plus 80 caractères.")
+  .refine((value) => !isTerminalStage(value), "Gagné et Perdu sont des étapes réservées.");
 export const pipelineSchema = z.object({
   name: z.string().trim().min(1).max(120),
-  probabilities: z.object({
-    Nouveau: z.number().min(0).max(100),
-    Qualification: z.number().min(0).max(100),
-    Proposition: z.number().min(0).max(100),
-    Négociation: z.number().min(0).max(100),
-    Gagné: z.literal(100),
-    Perdu: z.literal(0),
-  }),
-  labels: z
-    .record(z.enum(stages as [string, ...string[]]), z.string().trim().min(1).max(80))
-    .default({}),
+  stages: z.array(stageName).min(1).max(20).optional(),
+  probabilities: z.record(z.string(), z.number().min(0).max(100)),
+  labels: z.record(z.string(), z.string().trim().min(1).max(80)).optional(),
+});
+/** Full pipeline validation, mirrored by relay_private.validate_pipeline(). */
+export const pipelineInputSchema = pipelineSchema.superRefine((value, ctx) => {
+  const stages = value.stages ?? defaultOpenStages;
+  const keys = new Set(stages.map((stage) => stage.toLocaleLowerCase("fr")));
+  if (keys.size !== stages.length)
+    ctx.addIssue({ code: "custom", message: "Deux étapes portent le même nom." });
+  const allowed = new Set([...stages, ...terminalStages]);
+  for (const stage of allowed)
+    if (value.probabilities[stage] === undefined)
+      ctx.addIssue({ code: "custom", message: `Probabilité manquante pour « ${stage} ».` });
+  for (const key of Object.keys(value.probabilities))
+    if (!allowed.has(key)) ctx.addIssue({ code: "custom", message: "Probabilité sans étape." });
+  for (const key of Object.keys(value.labels ?? {}))
+    if (!allowed.has(key)) ctx.addIssue({ code: "custom", message: "Libellé sans étape." });
+  if (value.probabilities["Gagné"] !== 100 || value.probabilities["Perdu"] !== 0)
+    ctx.addIssue({ code: "custom", message: "Gagné reste à 100 % et Perdu à 0 %." });
 });
 export type Pipeline = Row & {
   name: string;
+  stages?: string[];
   probabilities: Record<string, number>;
   labels: Record<string, string>;
   version: number;
 };
+/** Ordered open stages followed by the two reserved terminal stages. */
+export function pipelineStages(pipeline?: Pick<Pipeline, "stages"> | null) {
+  const open = pipeline?.stages?.length ? pipeline.stages : defaultOpenStages;
+  return [...open, ...terminalStages];
+}
+export function openStages(pipeline?: Pick<Pipeline, "stages"> | null) {
+  return pipelineStages(pipeline).filter((stage) => !isTerminalStage(stage));
+}
+export function stageLabel(pipeline: Pick<Pipeline, "labels"> | null | undefined, stage: string) {
+  return pipeline?.labels?.[stage] || stage;
+}
+/** Board columns: the pipeline order, plus stages found on rows from other pipelines. */
+export function boardStages(
+  pipeline: Pick<Pipeline, "stages"> | null | undefined,
+  rows: { stage: string }[],
+  pipelines: Pick<Pipeline, "stages">[] = [],
+) {
+  const base = pipeline ? openStages(pipeline) : [...openStages(pipelines[0])];
+  if (!pipeline)
+    for (const other of pipelines.slice(1))
+      for (const stage of openStages(other)) if (!base.includes(stage)) base.push(stage);
+  for (const row of rows)
+    if (row.stage && !isTerminalStage(row.stage) && !base.includes(row.stage)) base.push(row.stage);
+  return [...base, ...terminalStages];
+}
 export type ForecastDeal = {
   stage: string;
   amount: string | number;

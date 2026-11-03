@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { secondFactorPending } from "@/lib/supabase/mfa";
 import { z } from "zod";
 import { db } from "@/lib/supabase/server";
 import { ApiError, checkOrigin, fail } from "@/lib/api/context";
@@ -28,6 +29,8 @@ async function session() {
     error,
   } = await client.auth.getUser();
   if (error || !user) throw new ApiError("Connectez-vous avec l’adresse invitée.", 401);
+  if (await secondFactorPending(client, user))
+    throw new ApiError("Confirmez votre code de double authentification.", 401, "mfa_required");
   return client;
 }
 function rpcError(error: { code?: string } | null) {

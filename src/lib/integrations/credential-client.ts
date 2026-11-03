@@ -1,4 +1,5 @@
 import "server-only";
+import { secondFactorPending } from "@/lib/supabase/mfa";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ApiError } from "@/lib/api/context";
 import { assertAuthAvailable } from "@/lib/supabase/session";
@@ -25,6 +26,8 @@ export async function credentialClient(client: SupabaseClient): Promise<Supabase
   } = await client.auth.getUser();
   assertAuthAvailable(error);
   if (error || !user) throw new ApiError("Connexion requise.", 401);
+  if (await secondFactorPending(client, user))
+    throw new ApiError("Confirmez votre code de double authentification.", 401, "mfa_required");
   return {
     rpc: (operation: string, args: Record<string, unknown>) => {
       if (!operations.has(operation)) throw new Error("Opération de credentials invalide.");

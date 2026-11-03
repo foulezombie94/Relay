@@ -1,4 +1,5 @@
 import "server-only";
+import { secondFactorPending } from "@/lib/supabase/mfa";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -44,6 +45,8 @@ export async function portalSession() {
   } = await client.auth.getUser();
   assertAuthAvailable(error);
   if (!user || error) throw new ApiError("Connectez-vous avec l’adresse invitée.", 401);
+  if (await secondFactorPending(client, user))
+    throw new ApiError("Confirmez votre code de double authentification.", 401, "mfa_required");
   const claim = await client.rpc("claim_invitations");
   databaseError(claim.error);
   return { client, user };

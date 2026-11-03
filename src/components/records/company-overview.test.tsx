@@ -2,6 +2,8 @@
 import React from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { cleanup, render, screen, fireEvent } from "@testing-library/react";
+// The enrichment panel has its own data source and tests.
+vi.mock("./enrichment-panel", () => ({ EnrichmentPanel: () => null }));
 import { CompanyOverview } from "./company-overview";
 import type { CrmRecord } from "@/lib/domain/types";
 const record: CrmRecord = {

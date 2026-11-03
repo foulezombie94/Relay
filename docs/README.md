@@ -14,6 +14,7 @@ Pour débuter : [README](../README.md), [contribution](../CONTRIBUTING.md), [arc
 ## Fonctionnalités
 
 - Interface : [composants de l’espace et référence Notion](features/workspace-components.md)
+- Fondamentaux CRM : [étapes libres, filtres ET/OU, enrichissement, capture des contacts, suivi des emails, API publique et webhooks, historique, corbeille, Stripe et 2FA](features/p0-essentials.md)
 
 - MCP : [serveur distant OAuth, Claude Code/Codex, permissions et validation](features/mcp.md)
 

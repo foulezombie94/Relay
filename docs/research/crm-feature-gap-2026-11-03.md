@@ -20,6 +20,8 @@ Document de recherche daté. Il compare Relay à Attio, HubSpot, Pipedrive, folk
 | Captation           | Formulaires publics (`/forms/[key]`)                                                                                 |
 | Équipe              | Quatre rôles, invitations, visibilité lecteur, délégation admin, révocation portail                                  |
 
+> Mise à jour du 3 novembre 2026 : les dix fonctionnalités P0 ci-dessous sont livrées. Voir [les fondamentaux CRM](../features/p0-essentials.md) pour leur périmètre et leurs limites ; les priorités P1 et P2 restent à traiter.
+
 ## Ce qui manque, par priorité
 
 Légende de la colonne « Référence » : **A** Attio, **H** HubSpot, **P** Pipedrive, **F** folk, **T** Twenty, **C** Close, **S** Salesforce.

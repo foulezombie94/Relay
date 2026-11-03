@@ -12,6 +12,7 @@ import { creationAttempt } from "@/lib/api/save-attempt";
 import { isResource, resources } from "@/lib/domain/resource-schemas";
 import { EditorDraftScope, clearEditorStorage } from "../ui/editor-draft";
 import { workspaceHref, workspaceSwitchHref } from "@/lib/domain/workspace-navigation";
+import { SecondFactorRequired } from "../settings/second-factor-required";
 export { request, RequestError } from "@/lib/api/request";
 const Context = createContext<{
   workspace: Workspace;
@@ -141,9 +142,11 @@ function Gate({ children }: { children: ReactNode }) {
   const q = useQuery({
     queryKey: ["workspaces"],
     queryFn: async () => {
-      const result = await request<{ data: Workspace[]; user: { id: string; email?: string } }>(
-        "/api/workspaces",
-      );
+      const result = await request<{
+        data: Workspace[];
+        mfa_blocked?: { id: string; name: string }[];
+        user: { id: string; email?: string };
+      }>("/api/workspaces");
       if (!Array.isArray(result.data) || !result.user?.id)
         throw new RequestError(
           "Le chargement de votre espace n’a pas été confirmé. Réessayez.",
@@ -201,6 +204,10 @@ function Gate({ children }: { children: ReactNode }) {
         )}
       </div>
     );
+  const blocked = q.data?.mfa_blocked ?? [];
+  // Workspaces requiring 2FA are hidden by RLS until the account has a second factor.
+  if (blocked.length && (!q.data?.data.length || blocked.some((w) => w.id === requested)))
+    return <SecondFactorRequired workspaces={blocked} />;
   if (!q.data?.data.length) redirect("/onboarding");
   if (!workspace)
     return (

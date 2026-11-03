@@ -2,8 +2,8 @@
 import { Layers3, Mail, Globe, CalendarDays } from "lucide-react";
 import { CompanyLogo } from "./company-logo";
 import { Avatar, Badge, date, money } from "../ui/display";
-import { dealProbability, type Pipeline } from "@/lib/domain/pipelines";
-import { stages, type CrmRecord } from "@/lib/domain/types";
+import { dealProbability, openStages, stageLabel, type Pipeline } from "@/lib/domain/pipelines";
+import type { CrmRecord } from "@/lib/domain/types";
 import styles from "./record-details.module.css";
 export function RecordSummary({
   record,
@@ -81,23 +81,20 @@ export function RecordSummary({
             </div>
           </div>
           <ol className={styles.stageTrack} aria-label="Étapes du pipeline">
-            {stages
-              .filter((stage) => !["Gagné", "Perdu"].includes(stage))
-              .map((stage, index) => (
-                <li
-                  key={stage}
-                  data-current={record.stage === stage}
-                  data-passed={
-                    record.stage === "Gagné" ||
-                    (index < stages.indexOf(record.stage as (typeof stages)[number]) &&
-                      record.stage !== "Perdu")
-                  }
-                  aria-current={record.stage === stage ? "step" : undefined}
-                >
-                  <span />
-                  {pipeline?.labels[stage] || stage}
-                </li>
-              ))}
+            {openStages(pipeline).map((stage, index, open) => (
+              <li
+                key={stage}
+                data-current={record.stage === stage}
+                data-passed={
+                  record.stage === "Gagné" ||
+                  (index < open.indexOf(record.stage) && record.stage !== "Perdu")
+                }
+                aria-current={record.stage === stage ? "step" : undefined}
+              >
+                <span />
+                {stageLabel(pipeline, stage)}
+              </li>
+            ))}
           </ol>
           {record.stage === "Perdu" && (
             <p className={styles.lossReason}>

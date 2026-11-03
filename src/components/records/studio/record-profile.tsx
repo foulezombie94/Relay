@@ -11,7 +11,7 @@ import {
   MousePointer2,
   Pin,
   PanelRight,
-  Archive,
+  Trash2,
   Pencil,
   ListPlus,
   LayoutGrid,
@@ -24,6 +24,7 @@ import {
   Globe,
   Mail,
   CalendarDays,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import { recordHref, workspaceHref } from "@/lib/domain/workspace-navigation";
@@ -37,6 +38,7 @@ import { CompanyLogo } from "../company-logo";
 import { RecordPicker } from "../picker";
 import { RecordRelationsField } from "../relations";
 import { RecordContextPanel, useRecordContext } from "../context";
+import { FieldHistory } from "../field-history";
 import { RecordOverview, RelatedRecordList } from "../overview";
 import { relatedRecords } from "@/lib/domain/record-profile";
 import { ObjectStudio, StudioTrigger } from "./object-studio";
@@ -96,9 +98,11 @@ export function StudioRecordProfile({
             ...(object.slug === "companies" ? ["contacts" as const, "deals" as const] : []),
           ],
         };
-  const current = spec.sections.includes(tab as (typeof spec.sections)[number])
-    ? tab
-    : spec.sections[0];
+  // "changes" (field history) is always available, outside the configurable layout.
+  const current =
+    tab === "changes" || spec.sections.includes(tab as (typeof spec.sections)[number])
+      ? tab
+      : spec.sections[0];
   const context = useRecordContext(
     record.id,
     "summary",
@@ -153,19 +157,23 @@ export function StudioRecordProfile({
           <button
             type="button"
             className="icon-button"
-            aria-label="Archiver la fiche"
+            aria-label="Mettre la fiche à la corbeille"
             disabled={readonly || save.busy}
             onClick={async () => {
-              if (window.confirm("Archiver cette fiche ?"))
+              if (
+                window.confirm(
+                  "Mettre cette fiche à la corbeille ? Elle reste restaurable pendant 30 jours.",
+                )
+              )
                 try {
                   await save.remove("records", record.id);
                   onClose();
                 } catch (e) {
-                  setError(e instanceof Error ? e.message : "Archivage impossible");
+                  setError(e instanceof Error ? e.message : "Suppression impossible");
                 }
             }}
           >
-            <Archive size={15} />
+            <Trash2 size={15} />
           </button>
         </div>
         <header className={styles.recordHeader}>
@@ -347,9 +355,20 @@ export function StudioRecordProfile({
                     ) : null}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  data-active={current === "changes"}
+                  aria-current={current === "changes" ? "page" : undefined}
+                  onClick={() => setTab("changes")}
+                >
+                  <History size={14} />
+                  Modifications
+                </button>
               </nav>
               <section className={styles.sectionContent}>
-                {["overview", "contacts", "deals"].includes(current) ? (
+                {current === "changes" ? (
+                  <FieldHistory record={record} />
+                ) : ["overview", "contacts", "deals"].includes(current) ? (
                   context.isPending ? (
                     <Loading />
                   ) : context.error ? (

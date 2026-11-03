@@ -12,6 +12,11 @@ export type Workspace = Row & {
   currency: string;
   locale: string;
   role: Role;
+  require_mfa?: boolean;
+  track_email_opens?: boolean;
+  track_email_clicks?: boolean;
+  capture_excluded_domains?: string[];
+  auto_enrich?: boolean;
 };
 export type ObjectDefinition = Row & {
   name: string;

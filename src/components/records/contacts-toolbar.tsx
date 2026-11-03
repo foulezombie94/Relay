@@ -33,6 +33,7 @@ export function ContactsToolbar({
   onCreate,
   onImport,
   exportControl,
+  filterControl,
   viewControl,
   createControl,
   customizeControl,
@@ -47,6 +48,8 @@ export function ContactsToolbar({
   onCreate: () => void;
   onImport: () => void;
   exportControl: ReactNode;
+  /** Nested AND/OR filter editor, shown next to the quick filters. */
+  filterControl?: ReactNode;
   viewControl: ReactNode;
   createControl?: ReactNode;
   customizeControl?: ReactNode;
@@ -132,6 +135,7 @@ export function ContactsToolbar({
             </button>
           </label>
         )}
+        {filterControl}
         <Popover.Root>
           <Popover.Trigger
             className={styles.icon}
