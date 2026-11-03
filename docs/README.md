@@ -35,7 +35,7 @@ Ces fiches expliquent une fonctionnalité à leur date de rédaction. Pour les o
 - Navigation : [correction des espaces et liens directs du 27 octobre 2026](research/workspace-navigation-fixes-2026-10-27.md)
 
 - Produit : [décisions](product/product-decisions.md), [couverture historique](product/feature-coverage.md)
-- Recherches : [comparaison CRM](research/competitive-analysis.md), [écarts](research/competitive-gap-analysis.md), [audit historique](research/crm-completeness-audit.md), [dashboards](research/dashboard-competitive-analysis.md), [workflows](research/workflow-competitive-analysis.md), [équipes](research/team-management-analysis.md), [landing](research/landing-page-benchmark.md)
+- Recherches : [comparaison CRM](research/competitive-analysis.md), [fonctionnalités à mettre en place (3 novembre 2026)](research/crm-feature-gap-2026-11-03.md), [écarts](research/competitive-gap-analysis.md), [audit historique](research/crm-completeness-audit.md), [dashboards](research/dashboard-competitive-analysis.md), [workflows](research/workflow-competitive-analysis.md), [équipes](research/team-management-analysis.md), [landing](research/landing-page-benchmark.md)
 
 Les recherches et audits historiques donnent le contexte d'une décision ; ils ne constituent pas un inventaire actuel des fonctions livrées. Les affirmations sur l'absence de worker ou de mesures de charge se lisent à leur date.
 
