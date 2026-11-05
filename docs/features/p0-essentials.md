@@ -7,7 +7,7 @@ Ces fonctionnalités comblent les écarts « P0 » de l’[analyse du 3 novembre
 - **Interface** : `/app/pipelines`. Un pipeline compte de 1 à 20 étapes en cours, librement nommées, réordonnables par glisser-déposer, chacune avec sa probabilité. Gagné (100 %) et Perdu (0 %) restent les deux étapes finales réservées ; elles peuvent être renommées. Le Kanban, les filtres, l’éditeur de fiche, l’import, les workflows et les dashboards suivent les étapes du pipeline concerné.
 - **Données** : `pipelines.stages` (liste ordonnée des clés d’étapes en cours). La clé est le premier nom donné à l’étape ; un renommage ne modifie que le libellé (`labels`), donc l’historique et les rapports restent cohérents.
 - **Garanties** : `relay_private.validate_pipeline` contrôle noms, doublons, probabilités et refuse de supprimer une étape encore utilisée. `save_pipeline_stages` déplace atomiquement les opportunités d’une étape supprimée vers l’étape choisie, avec contrôle de version. `validate_deal_stage` refuse une étape inconnue du pipeline d’une opportunité.
-- **Code** : `src/lib/domain/pipelines.ts`, `src/components/pipelines/`, `src/app/api/[workspace]/pipeline-stages/`, migration `20261103090000_custom_pipeline_stages.sql`.
+- **Code** : `src/lib/domain/pipelines.ts`, `src/components/pipelines/`, `src/app/api/[workspace]/pipeline-stages/`, migration `20261105131214_custom_pipeline_stages.sql`.
 
 ## 2. Filtres ET/OU imbriqués
 
