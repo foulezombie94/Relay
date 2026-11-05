@@ -1666,9 +1666,210 @@
 .addContext[data-state="open"] {
   background: var(--relay-hover);
 }
-.chatSkillWrap{order:0;display:flex;align-items:center;gap:7px;min-width:0}.chatSkillTrigger{display:flex;align-items:center;gap:5px;height:28px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--relay-muted);font:inherit;font-size:11px;cursor:pointer}.chatSkillTrigger:hover{background:var(--relay-hover);color:var(--relay-ink)}.chatSkillChip{display:flex;align-items:center;gap:5px;max-width:190px;border:1px solid var(--line);border-radius:5px;padding:4px 6px;font-size:10px;color:var(--relay-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chatSkillChip button{display:grid;place-items:center;border:0;background:transparent;color:var(--relay-muted);cursor:pointer}.skillPopover{z-index:1000;width:min(340px,calc(100vw - 24px));max-height:min(440px,70vh);overflow:auto;padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--relay-surface);box-shadow:var(--relay-popover-shadow);color:var(--relay-ink);font-size:12px}.skillPopover>strong{display:block;font-size:13px}.skillPopover>p{color:var(--relay-muted);line-height:1.5;font-size:11px}.skillOption{width:100%;display:flex;align-items:flex-start;gap:9px;padding:9px 6px;text-align:left;border:0;border-radius:6px;background:transparent;color:inherit;cursor:pointer}.skillOption:hover{background:var(--relay-hover)}.skillOption>span{display:grid;gap:4px;min-width:0;flex:1}.skillOption b{font-size:11px}.skillOption small{color:var(--relay-muted);font-size:10px;line-height:1.4}.skillLibraryLink,.skillBack{display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 5px;color:var(--relay-muted);text-decoration:none;font-size:11px;border:0;background:transparent;cursor:pointer}.skillField{display:grid;gap:5px;margin:9px 0;font-size:11px}.skillField input:not([type=checkbox]),.skillField textarea,.skillField select{width:100%;border:1px solid var(--line);border-radius:5px;background:var(--relay-surface);color:var(--relay-ink);padding:7px;font:inherit;font-size:11px}.skillField small{color:var(--relay-muted);font-size:10px}.skillApply,.applySkill{width:100%;border:0;border-radius:6px;background:var(--blue);color:white;padding:8px;font:inherit;font-size:11px;cursor:pointer}.skillBack{margin:0 0 9px}.spin{animation:skillSpin 1s linear infinite}@keyframes skillSpin{to{transform:rotate(360deg)}}
-.skillCreatorCard{display:grid;gap:8px;margin:12px 0;padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--relay-surface-soft);font-size:12px}.skillCreatorCard>div{display:flex;align-items:center;gap:7px}.skillCreatorCard>p{margin:0;color:var(--relay-muted);line-height:1.5}.skillCreatorCard>small{font-size:10px;color:var(--relay-muted)}.skillCreatorCard>button{justify-self:start;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--relay-surface);color:var(--relay-ink);cursor:pointer;font:inherit;font-size:11px}
-.skillMessageTag{display:inline-flex;align-items:center;gap:5px;margin:3px 0 7px;padding:4px 6px;border-radius:5px;background:var(--relay-surface-soft);color:var(--relay-muted);font-size:10px}
+.chatSkillWrap {
+  order: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.chatSkillTrigger {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--relay-muted);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.chatSkillTrigger:hover {
+  background: var(--relay-hover);
+  color: var(--relay-ink);
+}
+.chatSkillChip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 190px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 4px 6px;
+  font-size: 10px;
+  color: var(--relay-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chatSkillChip button {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--relay-muted);
+  cursor: pointer;
+}
+.skillPopover {
+  z-index: 1000;
+  width: min(340px, calc(100vw - 24px));
+  max-height: min(440px, 70vh);
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--relay-surface);
+  box-shadow: var(--relay-popover-shadow);
+  color: var(--relay-ink);
+  font-size: 12px;
+}
+.skillPopover > strong {
+  display: block;
+  font-size: 13px;
+}
+.skillPopover > p {
+  color: var(--relay-muted);
+  line-height: 1.5;
+  font-size: 11px;
+}
+.skillOption {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px 6px;
+  text-align: left;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.skillOption:hover {
+  background: var(--relay-hover);
+}
+.skillOption > span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+.skillOption b {
+  font-size: 11px;
+}
+.skillOption small {
+  color: var(--relay-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.skillLibraryLink,
+.skillBack {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 5px;
+  color: var(--relay-muted);
+  text-decoration: none;
+  font-size: 11px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.skillField {
+  display: grid;
+  gap: 5px;
+  margin: 9px 0;
+  font-size: 11px;
+}
+.skillField input:not([type="checkbox"]),
+.skillField textarea,
+.skillField select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--relay-surface);
+  color: var(--relay-ink);
+  padding: 7px;
+  font: inherit;
+  font-size: 11px;
+}
+.skillField small {
+  color: var(--relay-muted);
+  font-size: 10px;
+}
+.skillApply,
+.applySkill {
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  background: var(--blue);
+  color: white;
+  padding: 8px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.skillBack {
+  margin: 0 0 9px;
+}
+.spin {
+  animation: skillSpin 1s linear infinite;
+}
+@keyframes skillSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.skillCreatorCard {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--relay-surface-soft);
+  font-size: 12px;
+}
+.skillCreatorCard > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.skillCreatorCard > p {
+  margin: 0;
+  color: var(--relay-muted);
+  line-height: 1.5;
+}
+.skillCreatorCard > small {
+  font-size: 10px;
+  color: var(--relay-muted);
+}
+.skillCreatorCard > button {
+  justify-self: start;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--relay-surface);
+  color: var(--relay-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+}
+.skillMessageTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 3px 0 7px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  background: var(--relay-surface-soft);
+  color: var(--relay-muted);
+  font-size: 10px;
+}
 .approvalMode {
   order: 0;
   display: flex;
@@ -2168,4 +2369,16 @@
   font-size: 14px;
   margin: 28px 0;
 }
-.skillPopover[data-preparing=true]{width:min(540px,calc(100vw - 24px));max-height:min(700px,calc(100dvh - 90px));overflow:auto}.skillOption[data-selected=true]{background:var(--relay-hover)}.skillSearchLabel{display:flex;align-items:center;gap:6px}
+.skillPopover[data-preparing="true"] {
+  width: min(540px, calc(100vw - 24px));
+  max-height: min(700px, calc(100dvh - 90px));
+  overflow: auto;
+}
+.skillOption[data-selected="true"] {
+  background: var(--relay-hover);
+}
+.skillSearchLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

@@ -75,7 +75,14 @@ export type AssistantMessage = {
   retry_after?: number;
   accepted?: Record<string, { id: string; resource: string }>;
   skill_result?: import("./agent-skills").SkillCreatorResult;
-  skill?: { id?: string; version_id?: string; name?: string; number?: number; builtin?: string; revision?: number };
+  skill?: {
+    id?: string;
+    version_id?: string;
+    name?: string;
+    number?: number;
+    builtin?: string;
+    revision?: number;
+  };
   skill_run_id?: string;
 };
 export type AssistantConversation = {

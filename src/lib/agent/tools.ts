@@ -112,9 +112,14 @@ export async function guard(c: ToolContext, write = false) {
   if (!r.data || (write && r.data.role === "viewer"))
     throw new ApiError("Vos droits ne permettent plus cette opération.", 403);
   if (c.skillRun) {
-    const state = await c.client.rpc("agent_skill_studio", { w: c.workspace, operation: "run_status", payload: { id: c.skillRun.skillId, run_id: c.skillRun.id } });
+    const state = await c.client.rpc("agent_skill_studio", {
+      w: c.workspace,
+      operation: "run_status",
+      payload: { id: c.skillRun.skillId, run_id: c.skillRun.id },
+    });
     databaseError(state.error);
-    if (state.data?.status !== "running") throw new ApiError("L’exécution de cette méthode est arrêtée.", 409);
+    if (state.data?.status !== "running")
+      throw new ApiError("L’exécution de cette méthode est arrêtée.", 409);
   }
 }
 function remember(

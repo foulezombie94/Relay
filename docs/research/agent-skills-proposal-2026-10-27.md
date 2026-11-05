@@ -21,15 +21,15 @@ Le premier objectif est de rendre reproductibles les méthodes de travail du CRM
 
 L’interface authentifiée ouverte dans Chrome a été parcourue : accueil IA, menu `/`, entrée Skills du menu `+`, ajout d’une skill, fiche de skill avec discussion de création, réglages de la fiche, base de skills et onglet Skills de la bibliothèque.
 
-| Observation directe | Conséquence pour Zyliad |
-|---|---|
-| Le chat propose une recherche de skills et l’accès à leur gestion. | Même catalogue depuis le chat et depuis la bibliothèque. |
-| Le créateur associe une page de skill à une discussion dédiée. | Générer un brouillon structuré avec aperçu éditable à côté du chat. |
-| La fiche porte un bandeau permettant de l’identifier comme skill et de l’essayer. | Distinguer nettement une méthode réutilisable d’une note ordinaire. |
-| La base contient nom, description, fichiers, étiquettes et auteur. | Séparer les instructions des métadonnées utilisées pour la recherche. |
-| La bibliothèque distingue activation personnelle et découverte. | Séparer accès partagé et préférence personnelle d’utilisation. |
-| La bibliothèque affiche les utilisations et une activation personnelle. | Permettre le suivi de l’usage sans rendre obligatoire l’activation pour toute l’équipe. |
-| Une description absente empêche l’utilisation automatique dans le parcours observé. | Exiger une description exploitable avant de proposer le routage automatique. |
+| Observation directe                                                                 | Conséquence pour Zyliad                                                                 |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Le chat propose une recherche de skills et l’accès à leur gestion.                  | Même catalogue depuis le chat et depuis la bibliothèque.                                |
+| Le créateur associe une page de skill à une discussion dédiée.                      | Générer un brouillon structuré avec aperçu éditable à côté du chat.                     |
+| La fiche porte un bandeau permettant de l’identifier comme skill et de l’essayer.   | Distinguer nettement une méthode réutilisable d’une note ordinaire.                     |
+| La base contient nom, description, fichiers, étiquettes et auteur.                  | Séparer les instructions des métadonnées utilisées pour la recherche.                   |
+| La bibliothèque distingue activation personnelle et découverte.                     | Séparer accès partagé et préférence personnelle d’utilisation.                          |
+| La bibliothèque affiche les utilisations et une activation personnelle.             | Permettre le suivi de l’usage sans rendre obligatoire l’activation pour toute l’équipe. |
+| Une description absente empêche l’utilisation automatique dans le parcours observé. | Exiger une description exploitable avant de proposer le routage automatique.            |
 
 La documentation officielle confirme le rôle des descriptions, la distinction entre accès et activation, les ressources jointes et la portabilité par fichier `SKILL.md`. Elle distingue également les skills, les instructions permanentes et les agents déclenchés en arrière-plan. [Documentation Notion](https://www.notion.com/help/create-and-manage-skills).
 
@@ -41,11 +41,11 @@ Chrome n’exposait pas de port CDP direct utilisable par REA. Les observations 
 
 Modules ciblés : `newSkillCreation`, `skillBuilderChatActions`, `librarySkills`, `SkillPageActions`, `createSkillsDatabase` et `new-skill-menu-button`.
 
-| Référence | Portée et résultat |
-|---|---|
-| `ev_de5c4e8ef1f6f04f753498c1f81e4e5bf5c38ed9ccfdd253979c2b3b9ffdef46` | Premier examen de deux bundles de démarrage. Couverture partielle; aucune conclusion d’absence tirée des traces sans correspondance. |
+| Référence                                                             | Portée et résultat                                                                                                                                                                                        |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ev_de5c4e8ef1f6f04f753498c1f81e4e5bf5c38ed9ccfdd253979c2b3b9ffdef46` | Premier examen de deux bundles de démarrage. Couverture partielle; aucune conclusion d’absence tirée des traces sans correspondance.                                                                      |
 | `ev_7e4bc3aa1d96b347239f564ca3df3edb9f9f51d86b922bac9bac379da6c81592` | Analyse des six chunks spécialisés : 121 648 octets de texte, six fichiers JavaScript parsés, 31 382 nœuds AST visités et zéro échec de parsing. Graphe applicatif complet pour cet ensemble sélectionné. |
-| `ev_6c134861aad029923b67b01d12f36abb3d70214b8b383d834a86def44fe7db9b` | Trace statique sortante du module de création par chat : 32 correspondances de sélection et 146 nœuds dans le graphe retourné. Complète à l’intérieur du graphe source retenu. |
+| `ev_6c134861aad029923b67b01d12f36abb3d70214b8b383d834a86def44fe7db9b` | Trace statique sortante du module de création par chat : 32 correspondances de sélection et 146 nœuds dans le graphe retourné. Complète à l’intérieur du graphe source retenu.                            |
 
 Les références statiques à `openSkillPageWithBuilderChat`, aux créations autonome/en base et aux événements de cycle de vie corroborent l’organisation du client observée. Elles ne démontrent pas l’exécution de chaque branche ni les contrôles du serveur Notion. Le graphe sémantique conserve 7 334 relations ou résolutions inconnues; une analyse de chunks minifiés ne constitue pas une reconstitution du backend.
 
@@ -53,18 +53,18 @@ Les captures, manifestes avec SHA-256 et le bundle d’Evidence REA sont conserv
 
 ## 4. Ce qui existe déjà dans Relay
 
-| Élément actuel | Réutilisation prévue |
-|---|---|
-| `src/lib/agent/discovery.ts` | Découverte progressive : sept outils initiaux et chargements supplémentaires de six outils maximum par appel. |
-| `src/lib/agent/contracts.ts` | Schémas validés des recherches et des actions CRM. |
-| `src/lib/agent/runner.ts` | Boucle de décision, budgets, réponses structurées, étapes, citations et revalidation des sources. |
-| `src/lib/agent/tools.ts` | Contrôles de rôle, validation des propositions, application des actions et délégation autonome. |
-| `src/lib/domain/assistant.ts` | Messages, événements, étapes, sources et état de conversation. |
-| `src/components/assistant/composer-view.tsx` | Barre de message, menus, fiche de contexte et choix du mode d’autorisation. |
-| `src/components/pages/assistant.tsx` | Historique privé, envoi, arrêt et restauration d’une conversation. |
-| `src/lib/jobs/runner.ts` et handlers | Leases, reprise, backoff et exécution durable. |
-| `src/lib/jobs/handlers/agent.ts` | Effets externes, statuts d’envoi, contrôles du compte et statuts incertains. |
-| `src/lib/agent/evaluation.ts` | Infrastructure d’évaluation à compléter pour les versions de skills. |
+| Élément actuel                               | Réutilisation prévue                                                                                          |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `src/lib/agent/discovery.ts`                 | Découverte progressive : sept outils initiaux et chargements supplémentaires de six outils maximum par appel. |
+| `src/lib/agent/contracts.ts`                 | Schémas validés des recherches et des actions CRM.                                                            |
+| `src/lib/agent/runner.ts`                    | Boucle de décision, budgets, réponses structurées, étapes, citations et revalidation des sources.             |
+| `src/lib/agent/tools.ts`                     | Contrôles de rôle, validation des propositions, application des actions et délégation autonome.               |
+| `src/lib/domain/assistant.ts`                | Messages, événements, étapes, sources et état de conversation.                                                |
+| `src/components/assistant/composer-view.tsx` | Barre de message, menus, fiche de contexte et choix du mode d’autorisation.                                   |
+| `src/components/pages/assistant.tsx`         | Historique privé, envoi, arrêt et restauration d’une conversation.                                            |
+| `src/lib/jobs/runner.ts` et handlers         | Leases, reprise, backoff et exécution durable.                                                                |
+| `src/lib/jobs/handlers/agent.ts`             | Effets externes, statuts d’envoi, contrôles du compte et statuts incertains.                                  |
+| `src/lib/agent/evaluation.ts`                | Infrastructure d’évaluation à compléter pour les versions de skills.                                          |
 
 Recherche bornée dans `src` et `docs/features` : aucun registre générique de skills versionnés ni créateur de skills n’a été trouvé. Les suggestions actuelles sont des prompts fixes.
 
@@ -72,12 +72,12 @@ La route assistant impose actuellement cinq ou quinze appels d’outils selon le
 
 ## 5. Distinguer les quatre notions
 
-| Notion | Exemple | Responsabilité |
-|---|---|---|
-| Outil | Rechercher un contact, créer une tâche. | Primitive serveur validée. |
-| Skill | Préparer un rendez-vous client selon une méthode commune. | Compose des outils et des instructions pour produire un résultat cohérent. |
-| Workflow | À chaque nouvelle opportunité, créer un suivi. | Déclenchement persistant, conditions et enchaînement déterministe. |
-| Intégration | Gmail ou calendrier connecté. | Moyen d’accès à un service, dans les droits du compte connecté. |
+| Notion      | Exemple                                                   | Responsabilité                                                             |
+| ----------- | --------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Outil       | Rechercher un contact, créer une tâche.                   | Primitive serveur validée.                                                 |
+| Skill       | Préparer un rendez-vous client selon une méthode commune. | Compose des outils et des instructions pour produire un résultat cohérent. |
+| Workflow    | À chaque nouvelle opportunité, créer un suivi.            | Déclenchement persistant, conditions et enchaînement déterministe.         |
+| Intégration | Gmail ou calendrier connecté.                             | Moyen d’accès à un service, dans les droits du compte connecté.            |
 
 Les instructions personnelles permanentes restent une cinquième couche distincte : langue, style et préférences de restitution. Un skill ne doit pas répéter toutes ces préférences ni les remplacer sans raison explicite.
 
@@ -198,11 +198,11 @@ Une version publiée pendant un run ne remplace jamais les instructions déjà c
 
 La permission effective est l’intersection des droits du compte, des droits d’utilisation du skill, de ses outils déclarés, du périmètre des données, du mode choisi dans le chat et des limites des intégrations.
 
-| Mode | Effet pour un skill |
-|---|---|
-| Toujours me consulter | Lecture et préparation; chaque modification/envoi attend la validation prévue. |
-| Vérifier pour moi | Tâches internes simples autorisées selon la politique du serveur; actions externes ou non admissibles présentées à l’utilisateur. |
-| Avancer en autonomie | Après activation confirmée par l’utilisateur, exécution des actions disponibles déclarées par le skill sans validation intermédiaire, dans les droits du compte et le périmètre de la demande. |
+| Mode                  | Effet pour un skill                                                                                                                                                                            |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Toujours me consulter | Lecture et préparation; chaque modification/envoi attend la validation prévue.                                                                                                                 |
+| Vérifier pour moi     | Tâches internes simples autorisées selon la politique du serveur; actions externes ou non admissibles présentées à l’utilisateur.                                                              |
+| Avancer en autonomie  | Après activation confirmée par l’utilisateur, exécution des actions disponibles déclarées par le skill sans validation intermédiaire, dans les droits du compte et le périmètre de la demande. |
 
 Un skill ne peut pas sélectionner lui-même le mode autonome, s’attribuer un rôle administrateur ou ouvrir une intégration absente. Une modification qui élargit les outils ou les données accessibles est visible lors de l’adoption de la nouvelle version. Ce contrôle d’adoption ne doit pas devenir une demande de confirmation répétée à chaque étape du mode autonome.
 
@@ -226,16 +226,16 @@ Un envoi incertain n’est jamais rejoué aveuglément. La reprise consulte l’
 
 ## 16. Modèle de données conceptuel
 
-| Entité proposée | Rôle |
-|---|---|
-| `agent_skills` | Identité, espace, propriétaire, visibilité, état et version publiée. |
-| `agent_skill_versions` | Instructions, manifeste, schémas et hash immuables après publication. |
-| `agent_skill_preferences` | Activation, favoris et utilisation automatique par utilisateur. |
-| `agent_skill_grants` | Utilisation, édition, publication et administration. |
-| `agent_skill_resources` | Références vers les fichiers, exemples et modèles accessibles. |
-| `agent_skill_runs` | Version figée, acteur, conversation, paramètres, budget et état. |
-| `agent_skill_run_steps` | Événements, checkpoints et références des résultats/effets. |
-| `agent_skill_evaluations` | Jeux d’essai, assertions, résultats et décision de validation. |
+| Entité proposée           | Rôle                                                                  |
+| ------------------------- | --------------------------------------------------------------------- |
+| `agent_skills`            | Identité, espace, propriétaire, visibilité, état et version publiée.  |
+| `agent_skill_versions`    | Instructions, manifeste, schémas et hash immuables après publication. |
+| `agent_skill_preferences` | Activation, favoris et utilisation automatique par utilisateur.       |
+| `agent_skill_grants`      | Utilisation, édition, publication et administration.                  |
+| `agent_skill_resources`   | Références vers les fichiers, exemples et modèles accessibles.        |
+| `agent_skill_runs`        | Version figée, acteur, conversation, paramètres, budget et état.      |
+| `agent_skill_run_steps`   | Événements, checkpoints et références des résultats/effets.           |
+| `agent_skill_evaluations` | Jeux d’essai, assertions, résultats et décision de validation.        |
 
 Toutes les entités métier sont rattachées explicitement au workspace et les préférences à l’utilisateur. Les références de versions, ressources et actions doivent conserver cette cohérence. Les index devront suivre les lectures effectives : catalogue par espace/état, préférences par utilisateur, versions par skill et événements par run/séquence.
 
@@ -293,24 +293,24 @@ Prévoir des limites par espace, utilisateur et run; un plafond d’essais de co
 
 ## 23. Catalogue CRM initial
 
-| Skill | Entrée principale | Résultat et effets possibles |
-|---|---|---|
-| Brief rendez-vous | Contact/entreprise et objectif. | Contexte cité, questions, engagements; lecture. |
-| Bilan client | Entreprise et période. | Synthèse des échanges, opportunités et points ouverts. |
-| Synthèse de réunion | Réunion sélectionnée. | Décisions et actions proposées avec preuves. |
-| Engagements à vérifier | Fiche et période. | Promesses documentées, incertitudes et échéances. |
-| Clarifier une contradiction | Deux sources comparables. | Comparaison sourcée et points à clarifier. |
-| Qualifier un prospect | Fiche et critères métier. | Informations connues/manquantes, proposition de mise à jour. |
-| Préparer une relance | Contact, motif, canal. | Brouillon de message et plan de suivi. |
+| Skill                          | Entrée principale                        | Résultat et effets possibles                                  |
+| ------------------------------ | ---------------------------------------- | ------------------------------------------------------------- |
+| Brief rendez-vous              | Contact/entreprise et objectif.          | Contexte cité, questions, engagements; lecture.               |
+| Bilan client                   | Entreprise et période.                   | Synthèse des échanges, opportunités et points ouverts.        |
+| Synthèse de réunion            | Réunion sélectionnée.                    | Décisions et actions proposées avec preuves.                  |
+| Engagements à vérifier         | Fiche et période.                        | Promesses documentées, incertitudes et échéances.             |
+| Clarifier une contradiction    | Deux sources comparables.                | Comparaison sourcée et points à clarifier.                    |
+| Qualifier un prospect          | Fiche et critères métier.                | Informations connues/manquantes, proposition de mise à jour.  |
+| Préparer une relance           | Contact, motif, canal.                   | Brouillon de message et plan de suivi.                        |
 | Effectuer une relance demandée | Destinataire vérifié et contenu demandé. | Envoi dans le mode et les droits choisis, statut fournisseur. |
-| Analyse de pipeline | Pipeline, devise et période. | Agrégats contrôlés, risques et prochaines étapes. |
-| Revue mensuelle de compte | Entreprise et mois. | Rapport, évolutions, tâches de suivi facultatives. |
-| Hygiène des données | Liste et critères explicites. | Incohérences et corrections proposées, sans fusion aveugle. |
-| Résumer une liste de comptes | Liste CRM et objectif. | Tableau comparable avec sources et limites. |
-| Préparer un renouvellement | Compte et échéance connue. | Brief des engagements, échanges et actions disponibles. |
-| Plan d’accueil d’un client | Compte et processus choisi. | Checklist et création de tâches dans le périmètre choisi. |
-| Standardiser une note | Texte ou note sélectionnée. | Mise en forme conforme à la méthode de l’équipe. |
-| Créer ou améliorer un skill | Besoin, exemples ou discussion. | Brouillon, diff, cas d’essai et publication explicite. |
+| Analyse de pipeline            | Pipeline, devise et période.             | Agrégats contrôlés, risques et prochaines étapes.             |
+| Revue mensuelle de compte      | Entreprise et mois.                      | Rapport, évolutions, tâches de suivi facultatives.            |
+| Hygiène des données            | Liste et critères explicites.            | Incohérences et corrections proposées, sans fusion aveugle.   |
+| Résumer une liste de comptes   | Liste CRM et objectif.                   | Tableau comparable avec sources et limites.                   |
+| Préparer un renouvellement     | Compte et échéance connue.               | Brief des engagements, échanges et actions disponibles.       |
+| Plan d’accueil d’un client     | Compte et processus choisi.              | Checklist et création de tâches dans le périmètre choisi.     |
+| Standardiser une note          | Texte ou note sélectionnée.              | Mise en forme conforme à la méthode de l’équipe.              |
+| Créer ou améliorer un skill    | Besoin, exemples ou discussion.          | Brouillon, diff, cas d’essai et publication explicite.        |
 
 Les premières méthodes doivent rester courtes, compréhensibles et immédiatement utiles. Un grand catalogue sans propriétaire, critères de réussite ni usage mesuré deviendrait difficile à maintenir.
 
@@ -324,13 +324,13 @@ Pour le créateur : aperçu de fiche et conversation côte à côte, séparation
 
 ## 25. Ordre de livraison conseillé
 
-| Lot | Contenu | Condition de sortie |
-|---|---|---|
-| 1 — Fondations | Registre, versions, droits, préférences, bibliothèque et six skills de lecture. | Une version accessible est sélectionnable, chargée et tracée sans fuite inter-espace. |
-| 2 — Chat | `/`, menu `+`, puce, paramètres, résultats et restauration de conversation. | Le parcours fonctionne au clavier et sur mobile, avec les trois modes existants. |
-| 3 — Créateur | Conception assistée, brouillons, diff, simulations, publication et duplication. | Le créateur produit une méthode réutilisable sans effets métier pendant sa conception. |
-| 4 — Exécution durable | Jobs longs, checkpoints, reprise, arrêt et métriques. | Une interruption ne double pas un effet externe. |
-| 5 — Équipe et extension | Partage, adoption de versions, workflows, sous-skills bornés, import/export. | Chaque élargissement de portée est explicite et chaque run reste reproductible. |
+| Lot                     | Contenu                                                                         | Condition de sortie                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 1 — Fondations          | Registre, versions, droits, préférences, bibliothèque et six skills de lecture. | Une version accessible est sélectionnable, chargée et tracée sans fuite inter-espace.  |
+| 2 — Chat                | `/`, menu `+`, puce, paramètres, résultats et restauration de conversation.     | Le parcours fonctionne au clavier et sur mobile, avec les trois modes existants.       |
+| 3 — Créateur            | Conception assistée, brouillons, diff, simulations, publication et duplication. | Le créateur produit une méthode réutilisable sans effets métier pendant sa conception. |
+| 4 — Exécution durable   | Jobs longs, checkpoints, reprise, arrêt et métriques.                           | Une interruption ne double pas un effet externe.                                       |
+| 5 — Équipe et extension | Partage, adoption de versions, workflows, sous-skills bornés, import/export.    | Chaque élargissement de portée est explicite et chaque run reste reproductible.        |
 
 Ne pas attendre tous les lots pour rendre le produit utile : la bibliothèque et quelques méthodes CRM fiables apportent déjà de la valeur. Le modèle de données et les contrats doivent toutefois anticiper versions et runs dès le premier lot.
 
