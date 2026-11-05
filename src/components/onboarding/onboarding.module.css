@@ -4,6 +4,47 @@
   font-weight: 100 1000;
   font-display: swap;
 }
+.verificationIcon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: #eef2ff;
+  color: #4f46e5;
+  margin-bottom: 24px;
+}
+.verificationEyebrow {
+  display: block;
+  color: var(--relay-muted);
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.field input.verificationCode {
+  height: 64px;
+  text-align: center;
+  font-size: 25px;
+  letter-spacing: 8px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+.verificationHelp {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--relay-muted);
+  padding: 16px 0;
+  margin-top: 14px;
+  border-top: 1px solid var(--relay-border);
+}
+.verificationHelp svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
 @font-face {
   font-family: "Relay Onboarding Display";
   src: url("/fonts/manrope.ttf") format("truetype");

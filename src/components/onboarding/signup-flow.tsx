@@ -7,6 +7,7 @@ import { browserDb } from "@/lib/supabase/client";
 import { authEmail, authFailureMessage } from "@/lib/supabase/session";
 import { AuthFrame } from "./auth-frame";
 import styles from "./onboarding.module.css";
+import { EmailConfirmation } from "./email-confirmation";
 
 export function SignupFlow() {
   const params = useSearchParams();
@@ -17,6 +18,7 @@ export function SignupFlow() {
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const saving = useRef(false);
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -48,12 +50,11 @@ export function SignupFlow() {
         },
       });
       if (error) throw error;
-      // The project uses automatic email confirmation. A user alone is not
-      // proof of a persisted, authenticated session (including duplicate signup).
+      // A successful pending signup must not be presented as a failed request.
+      // Keep the response neutral, including for an existing email address.
       if (!data.session?.user?.id) {
-        setError(
-          "L’ouverture de votre compte n’a pas été confirmée. Si vous avez déjà un compte, connectez-vous. Sinon, réessayez ou contactez l’aide.",
-        );
+        setPassword("");
+        setAwaitingConfirmation(true);
         return;
       }
       window.location.replace(destination);
@@ -64,6 +65,18 @@ export function SignupFlow() {
       setBusy(false);
     }
   }
+  if (awaitingConfirmation)
+    return (
+      <EmailConfirmation
+        email={email}
+        destination={destination}
+        onEdit={() => {
+          setAwaitingConfirmation(false);
+          setPasswordStep(false);
+          setError("");
+        }}
+      />
+    );
   return (
     <AuthFrame step={0}>
       <h1>{passwordStep ? "Un accès à vous." : "Votre prochain chapitre commence ici."}</h1>

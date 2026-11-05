@@ -34,8 +34,7 @@ function LoginForm() {
     let address: string;
     try {
       address = authEmail(email);
-      if (mode !== "reset" && password.length < 8)
-        throw new Error("Le mot de passe doit contenir au moins 8 caractères.");
+      if (mode !== "reset" && !password) throw new Error("Saisissez votre mot de passe.");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Informations invalides.");
       return;
@@ -101,11 +100,10 @@ function LoginForm() {
               type="password"
               disabled={busy}
               required
-              minLength={8}
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Au moins 8 caractères"
+              placeholder="Votre mot de passe"
             />
           </label>
         )}
