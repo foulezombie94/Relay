@@ -20,6 +20,7 @@ import type { Attribute, CrmRecord, ObjectDefinition } from "@/lib/domain/types"
 import type { RecordContext } from "./context";
 import styles from "./record-details.module.css";
 import { CompanyOverview } from "./company-overview";
+import { EnrichmentPanel } from "./enrichment-panel";
 type Props = {
   record: CrmRecord;
   slug: string;
@@ -332,7 +333,15 @@ export function RecordOverview({
     </Section>
   );
   if (slug === "companies")
-    return <CompanyOverview record={record} context={context} objects={objects} onTab={onTab} />;
+    return (
+      <CompanyOverview
+        record={record}
+        context={context}
+        objects={objects}
+        onTab={onTab}
+        readonly={readonly}
+      />
+    );
   if (slug === "deals")
     return (
       <div className={styles.dealLayout}>
@@ -364,6 +373,7 @@ export function RecordOverview({
     <div className={styles.personLayout}>
       <aside className={styles.sideColumn}>
         {!hideProperties && properties}
+        <EnrichmentPanel record={record} slug={slug} readonly={readonly} />
         <Section title="Entreprise et relations" icon={<Building2 size={16} />} action={manage}>
           <RelatedRecordList
             records={companies}

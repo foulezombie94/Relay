@@ -1,133 +1,137 @@
 "use client";
 import { workspaceHref } from "@/lib/domain/workspace-navigation";
 import { useState } from "react";
-import { useRows, useSave, useWorkspace } from "../providers/data-provider";
-import {
-  PageHeader,
-  AddButton,
-  Editor,
-  Loading,
-  ErrorMessage,
-  Empty,
-  str,
-  type Field,
-} from "../ui";
-import { defaultProbabilities, type Pipeline } from "@/lib/domain/pipelines";
-import { stages } from "@/lib/domain/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Settings2, Trash2 } from "lucide-react";
+import { request, useRows, useSave, useWorkspace } from "../providers/data-provider";
+import { PageHeader, AddButton, Loading, ErrorMessage, Empty } from "../ui";
+import { openStages, stageLabel, type Pipeline } from "@/lib/domain/pipelines";
+import { StageEditor } from "../pipelines/stage-editor";
+import styles from "../pipelines/pipelines.module.css";
+
 export function PipelinesPage() {
   const { workspace } = useWorkspace();
+  const cache = useQueryClient();
   const q = useRows<Pipeline>("pipelines", { size: 100 });
   const { save, remove, busy } = useSave();
   const [edit, setEdit] = useState<Pipeline | true | null>(null);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const admin = ["owner", "admin"].includes(workspace.role);
-  const fields: Field[] = [
-    { key: "name", label: "Nom du pipeline", required: true },
-    ...stages.flatMap((stage, index): Field[] => [
-      { key: "label_" + index, label: "Libellé · " + stage },
-      ...(!["Gagné", "Perdu"].includes(stage)
-        ? [
-            {
-              key: "prob_" + index,
-              label: "Probabilité (%) · " + stage,
-              type: "number" as const,
-              required: true,
-            },
-          ]
-        : []),
-    ]),
-  ];
   return (
     <>
       <PageHeader
         title="Pipelines"
-        description="Distinguez vos cycles de vente et configurez vos hypothèses de prévision."
+        description="Définissez les étapes de chaque cycle de vente et leurs hypothèses de prévision."
         action={
           <AddButton label="Nouveau pipeline" disabled={!admin} onClick={() => setEdit(true)} />
         }
       />
       <ErrorMessage error={q.error || (error ? new Error(error) : null)} />
       <p className="footer-note">
-        Les probabilités sont des hypothèses définies par votre équipe, pas des prédictions IA.
-        Gagné reste à 100 % et Perdu à 0 %. Les six étapes peuvent être renommées.
+        Jusqu’à 20 étapes en cours par pipeline, librement nommées et ordonnées. Gagné (100 %) et
+        Perdu (0 %) clôturent toujours une opportunité et peuvent être renommés. Les probabilités
+        sont des hypothèses de votre équipe, pas des prédictions IA.
       </p>
       {q.isPending ? (
         <Loading />
       ) : (
-        <div className="cards-grid">
+        <div className={styles.grid}>
           {q.data?.data.map((p) => (
-            <article className="detail-card" key={p.id}>
-              <h3>{p.name}</h3>
-              <ol>
-                {stages.map((s) => (
-                  <li key={s}>
-                    {p.labels[s] || s} · {p.probabilities[s]} %
+            <article className={styles.card} key={p.id}>
+              <div className={styles.cardHead}>
+                <div>
+                  <h3>{p.name}</h3>
+                  <small>{openStages(p).length} étapes en cours</small>
+                </div>
+                <div className={styles.actions}>
+                  <a
+                    className="button small"
+                    href={workspaceHref("/app/deals?pipeline=" + p.id, workspace.id)}
+                  >
+                    Voir les opportunités
+                  </a>
+                  <button
+                    className="button small"
+                    disabled={!admin}
+                    onClick={() => setEdit(p)}
+                    aria-label={`Configurer ${p.name}`}
+                  >
+                    <Settings2 size={14} /> Configurer
+                  </button>
+                  <button
+                    className="button small danger"
+                    aria-label={`Supprimer ${p.name}`}
+                    disabled={!admin || busy || (q.data?.data.length ?? 0) < 2}
+                    onClick={async () => {
+                      if (
+                        window.confirm(
+                          "Supprimer ce pipeline inutilisé ? Un pipeline contenant des fiches est protégé.",
+                        )
+                      )
+                        try {
+                          await remove("pipelines", p.id);
+                        } catch (e) {
+                          setError(e instanceof Error ? e.message : "Suppression impossible.");
+                        }
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+              <ol className={styles.track} aria-label={`Étapes de ${p.name}`}>
+                {openStages(p).map((stage, index) => (
+                  <li className={styles.chip} key={stage}>
+                    <span
+                      className={styles.dot}
+                      style={{ "--stage-hue": (index * 47) % 360 } as never}
+                    />
+                    {stageLabel(p, stage)} <em>{p.probabilities[stage] ?? 0} %</em>
                   </li>
                 ))}
+                <li className={styles.chip}>
+                  <span className={styles.dot} style={{ background: "#2f9e6b" }} />
+                  {stageLabel(p, "Gagné")}
+                </li>
+                <li className={styles.chip}>
+                  <span className={styles.dot} style={{ background: "#d1495b" }} />
+                  {stageLabel(p, "Perdu")}
+                </li>
               </ol>
-              <div className="row-actions">
-                <a
-                  className="button small"
-                  href={workspaceHref("/app/deals?pipeline=" + p.id, workspace.id)}
-                >
-                  Voir les opportunités
-                </a>
-                <button className="button small" disabled={!admin} onClick={() => setEdit(p)}>
-                  Configurer
-                </button>
-                <button
-                  className="button small danger"
-                  disabled={!admin || busy || (q.data?.data.length ?? 0) < 2}
-                  onClick={async () => {
-                    if (
-                      window.confirm(
-                        "Supprimer ce pipeline inutilisé ? Un pipeline contenant des fiches est protégé.",
-                      )
-                    )
-                      try {
-                        await remove("pipelines", p.id);
-                      } catch (e) {
-                        setError(e instanceof Error ? e.message : "Suppression impossible.");
-                      }
-                  }}
-                >
-                  Supprimer
-                </button>
-              </div>
             </article>
           ))}
           {!q.data?.data.length && <Empty title="Aucun pipeline" />}
         </div>
       )}
       {edit && (
-        <Editor
-          key={edit === true ? "new" : edit.id}
-          open
+        <StageEditor
+          key={edit === true ? "new" : edit.id + ":" + edit.version}
+          pipeline={edit === true ? null : edit}
+          busy={busy || saving}
           onClose={() => setEdit(null)}
-          title={edit === true ? "Nouveau pipeline" : "Configurer le pipeline"}
-          fields={fields}
-          busy={busy}
-          initial={{
-            name: edit === true ? "" : edit.name,
-            ...Object.fromEntries(
-              stages.flatMap((s, i) => [
-                ["label_" + i, edit === true ? s : edit.labels[s] || s],
-                ["prob_" + i, edit === true ? defaultProbabilities[s] : edit.probabilities[s]],
-              ]),
-            ),
-          }}
-          onSave={async (values) => {
-            const probabilities = { ...defaultProbabilities };
-            const labels: Record<string, string> = {};
-            stages.forEach((s, i) => {
-              labels[s] = str(values["label_" + i]) || s;
-              if (!["Gagné", "Perdu"].includes(s)) probabilities[s] = Number(values["prob_" + i]);
-            });
-            await save(
-              "pipelines",
-              { name: values.name, labels, probabilities },
-              edit === true ? undefined : edit,
-            );
+          onSave={async (draft, moves) => {
+            if (edit === true) {
+              await save("pipelines", draft);
+              return;
+            }
+            setSaving(true);
+            try {
+              const result = await request<{ data: Pipeline; moved: number }>(
+                `/api/${workspace.id}/pipeline-stages`,
+                "POST",
+                { id: edit.id, version: edit.version, pipeline: draft, moves },
+              );
+              await cache.invalidateQueries({ queryKey: ["rows", workspace.id] });
+              toast.success(
+                result.moved
+                  ? `Pipeline enregistré · ${result.moved} opportunité(s) déplacée(s)`
+                  : "Pipeline enregistré",
+              );
+            } finally {
+              setSaving(false);
+            }
           }}
         />
       )}

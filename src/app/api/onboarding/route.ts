@@ -3,6 +3,7 @@ import { z } from "zod";
 import { ApiError, checkOrigin, databaseError, fail, jsonBody } from "@/lib/api/context";
 import { db } from "@/lib/supabase/server";
 import { assertAuthAvailable } from "@/lib/supabase/session";
+import { secondFactorPending } from "@/lib/supabase/mfa";
 import { onboardingWorkspace } from "@/lib/domain/onboarding";
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +16,8 @@ export async function POST(request: NextRequest) {
     } = await client.auth.getUser();
     assertAuthAvailable(authError);
     if (authError || !user) throw new ApiError("Connexion requise.", 401);
+    if (await secondFactorPending(client, user))
+      throw new ApiError("Confirmez votre code de double authentification.", 401, "mfa_required");
     const { data, error } = await client.rpc("create_onboarding_workspace", {
       label: values.name,
       person_name: values.fullName,

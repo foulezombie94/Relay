@@ -118,6 +118,12 @@ Les routes OAuth et connexions s'appuient sur `src/lib/integrations/oauth.ts`, `
 
 `scripts/worker.mts` démarre santé, métriques, heartbeat, scheduling et slots bornés. `src/lib/jobs/client.ts` adapte les RPC de queue ; `lanes.ts` sépare capacité interactive et import/sync ; `runner.ts` gère résultat/retry ; `handlers/` distribue les jobs. Les leases, `SKIP LOCKED`, outbox et états incertains restent le contrat de fiabilité. Les variables Railway sont indépendantes de Vercel.
 
+### API publique, webhooks et maintenance du worker
+
+`/api/v1` authentifie une clé `zk_…` (hachée) et appelle `public.api_request` avec la clé de service. La fonction vérifie la clé, son scope et le débit, puis bascule vers le rôle `zyliad_api` (sans `BYPASSRLS`) avec l’identité du créateur : RLS, triggers et `record_values_validate` restent l’autorité, comme pour le MCP. Les écritures exigent une `Idempotency-Key`.
+
+Les triggers `webhook_capture` alimentent l’outbox privée `relay_private.webhook_deliveries`. `src/lib/jobs/maintenance.ts` réclame les livraisons avec lease, signe en HMAC et poste via le client HTTP anti-SSRF des workflows. La même boucle traite la purge de la corbeille, l’enrichissement (`record_enrichments`) et le réalignement des sièges Stripe. La facturation n’est écrite que par le webhook Stripe vérifié (`/api/billing/webhook`). La 2FA d’espace est appliquée dans `relay_private.has_role` et `member_workspaces`. Détails : [fondamentaux CRM](../features/p0-essentials.md).
+
 ### Landing, aide et portail
 
 `src/app/page.tsx` et `landing-preview.tsx` utilisent des données fictives et des composants de présentation, sans embarquer les accès CRM. Le test `landing-isolation.test.ts` traverse leurs dépendances. `src/components/layout/app-sidebar-view.tsx` est la vue pure ; `app-sidebar.tsx` son adaptateur authentifié.

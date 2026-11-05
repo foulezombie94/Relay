@@ -36,8 +36,12 @@ export function SkillReferenceMenu({
     [index, setIndex] = useState(0),
     [position, setPosition] = useState<{ left: number; top: number } | null>(null);
   const root = useRef<HTMLDivElement>(null);
-  useEffect(() => {
+  const [indexedQuery, setIndexedQuery] = useState(query);
+  if (query !== indexedQuery) {
+    setIndexedQuery(query);
     setIndex(0);
+  }
+  useEffect(() => {
     const timer = setTimeout(() => setTerm(query), 200);
     return () => clearTimeout(timer);
   }, [query]);

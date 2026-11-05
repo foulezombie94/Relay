@@ -1,0 +1,146 @@
+.panel {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--relay-border);
+  border-radius: 10px;
+  background: var(--relay-surface);
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.head h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.head h3 svg {
+  color: #8b5cf6;
+}
+.refresh {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--relay-muted);
+  cursor: pointer;
+}
+.refresh:hover:not(:disabled) {
+  background: var(--relay-hover);
+  color: var(--relay-ink);
+}
+.refresh:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
+.muted {
+  margin: 0;
+  color: var(--relay-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.skeleton {
+  height: 56px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--relay-surface-soft),
+    var(--relay-hover),
+    var(--relay-surface-soft)
+  );
+}
+.identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.identity img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--relay-border);
+  object-fit: contain;
+  background: #fff;
+}
+.identity p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--relay-ink);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+.identity img + p {
+  grid-column: 2;
+}
+.identity p:only-child {
+  grid-column: 1 / -1;
+}
+.facts {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+.facts div {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 8px;
+  font-size: 13px;
+}
+.facts dt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--relay-muted);
+}
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--relay-border);
+  border-radius: 999px;
+  color: var(--relay-ink);
+  font-size: 12.5px;
+  text-decoration: none;
+}
+.links a:hover {
+  background: var(--relay-hover);
+}
+.source {
+  color: var(--relay-muted);
+  font-size: 11.5px;
+}

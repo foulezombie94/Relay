@@ -22,7 +22,8 @@ import {
   migrationFields,
   type CrmSource,
 } from "@/lib/domain/crm-migration";
-import { stages, type Attribute, type ObjectDefinition } from "@/lib/domain/types";
+import type { Attribute, ObjectDefinition } from "@/lib/domain/types";
+import { pipelineStages, stageLabel, type Pipeline } from "@/lib/domain/pipelines";
 import { BackgroundJob } from "../jobs/background-job";
 import styles from "./import.module.css";
 type Inspection = {
@@ -83,8 +84,11 @@ export function ImportRecords({
     size: 100,
   });
   const availableAttrs = objectId === object.id ? attributes : (importedAttrs.data?.data ?? []);
-  const pipelines = useRows("pipelines", { size: 100 });
+  const pipelines = useRows<Pipeline>("pipelines", { size: 100 });
   const [selectedPipeline, setSelectedPipeline] = useState(pipelineId ?? "");
+  const destinationPipeline =
+    pipelines.data?.data.find((p) => p.id === selectedPipeline) ?? pipelines.data?.data[0];
+  const stages = pipelineStages(destinationPipeline);
   const jobs = useRows("import_jobs", { object_id: objectId, size: 20 });
   const [step, setStep] = useState(0);
   const [source, setSource] = useState<CrmSource>("file");
@@ -171,7 +175,7 @@ export function ImportRecords({
         setMapping(next as Record<string, string>);
         const nextStages: Record<string, string> = {};
         for (const stage of data.stages ?? [])
-          if (stages.includes(stage as (typeof stages)[number])) nextStages[stage] = stage;
+          if (stages.includes(stage)) nextStages[stage] = stage;
         setStageMap(nextStages);
       } else if (mode === "preview") {
         setPreview(data);
@@ -564,6 +568,7 @@ export function ImportRecords({
                         value={selectedPipeline}
                         onChange={(e) => {
                           setSelectedPipeline(e.target.value);
+                          setStageMap({});
                           invalidatePreview();
                         }}
                       >
@@ -598,7 +603,9 @@ export function ImportRecords({
                             >
                               <option value="">Choisir une étape Zyliad…</option>
                               {stages.map((s) => (
-                                <option key={s}>{s}</option>
+                                <option key={s} value={s}>
+                                  {stageLabel(destinationPipeline, s)}
+                                </option>
                               ))}
                             </select>
                           </label>

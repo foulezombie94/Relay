@@ -43,7 +43,12 @@ export function SkillPreparation({
     [search, setSearch] = useState(""),
     [recordTerm, setRecordTerm] = useState(""),
     [values, setValues] = useState<Record<string, unknown>>(initialInputs);
-  useEffect(() => setScope(record), [record?.id]);
+  // A different record resets the scope, adjusted during render.
+  const [scopedRecord, setScopedRecord] = useState(record?.id);
+  if (record?.id !== scopedRecord) {
+    setScopedRecord(record?.id);
+    setScope(record);
+  }
   const filtered = Object.fromEntries(
     Object.entries(values).filter(
       ([, value]) =>

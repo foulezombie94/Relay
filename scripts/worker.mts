@@ -11,6 +11,7 @@ const { runJob } = await import("../src/lib/jobs/runner");
 const { workerLanes, runWorkerSlot } = await import("../src/lib/jobs/lanes");
 const { logEvent, flushLogging } = await import("../src/lib/observability/logger");
 const { initWorkerMonitoring, flushMonitoring } = await import("../src/lib/observability/server");
+const { startMaintenance, maintenanceTasks } = await import("../src/lib/jobs/maintenance-tasks");
 initWorkerMonitoring();
 const admin = adminDb();
 const workerId = process.env.WORKER_ID ?? randomUUID();
@@ -107,6 +108,7 @@ const schedule = () => {
 };
 const scheduleTimer = setInterval(schedule, 60000);
 schedule();
+const stopMaintenance = startMaintenance(admin, maintenanceTasks(workerId));
 await logEvent("info", "worker_started", { worker_id: workerId });
 try {
   await heartbeat();
@@ -147,7 +149,7 @@ try {
 } finally {
   clearInterval(timer);
   clearInterval(scheduleTimer);
-  await Promise.allSettled([beating, scheduling]);
+  await Promise.allSettled([beating, scheduling, stopMaintenance()]);
   await heartbeat().catch(() => {});
   await flushMonitoring();
   server.close();

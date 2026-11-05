@@ -53,6 +53,8 @@ export function ChatSkillPicker({
   useEffect(() => {
     if (slashQuery !== null && !busy) {
       slashOpening.current = true;
+      // Opening follows the composer's slash command, an external input event.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(true);
       if (!skillId) setSearch(slashQuery);
     } else if (slashQuery === null && slashOpening.current && !skillId) {
@@ -95,9 +97,11 @@ export function ChatSkillPicker({
     setSkillId(item.id);
     onSlashHandled?.();
   }
-  useEffect(() => {
+  const [activeTerm, setActiveTerm] = useState(term);
+  if (term !== activeTerm) {
+    setActiveTerm(term);
     setActive(0);
-  }, [term]);
+  }
   useEffect(() => {
     if (!open || slashQuery === null || skillId) return;
     const handler = (event: KeyboardEvent) => {

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Search, X, Upload, ExternalLink } from "lucide-react";
@@ -31,7 +31,9 @@ export function SkillResourceProperty({
   const [uploading, setUploading] = useState(false),
     [uploadError, setUploadError] = useState("");
   const latest = useRef({ resources, onChange });
-  latest.current = { resources, onChange };
+  useLayoutEffect(() => {
+    latest.current = { resources, onChange };
+  }, [resources, onChange]);
   const documents = useQuery({
     queryKey: ["skill-reference-documents", workspace, term],
     enabled: open && !preview,

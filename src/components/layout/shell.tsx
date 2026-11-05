@@ -10,6 +10,7 @@ const names: Record<string, string> = {
   priorities: "À traiter",
   playbooks: "Modèles de processus",
   quality: "Qualité des données",
+  trash: "Corbeille",
   companies: "Entreprises",
   people: "Personnes",
   deals: "Opportunités",

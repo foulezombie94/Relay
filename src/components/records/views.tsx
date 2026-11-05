@@ -6,7 +6,7 @@ import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import { Editor, ErrorMessage, type Field, str } from "../ui";
 import { defaultRecordView, normalizeView, type ViewConfig } from "@/lib/domain/views";
 import type { ObjectDefinition, Attribute } from "@/lib/domain/types";
-import { stages } from "@/lib/domain/types";
+import { boardStages, stageLabel, type Pipeline } from "@/lib/domain/pipelines";
 import contactStyles from "./contacts.module.css";
 export function RecordViews({
   object,
@@ -28,6 +28,8 @@ export function RecordViews({
   const { workspace } = useWorkspace();
   const views = useRows("views", { object_id: object.id, size: 100 });
   const members = useRows("memberships", { size: 100 });
+  const pipelines = useRows<Pipeline>("pipelines", { size: 100 });
+  const filterPipeline = pipelines.data?.data.find((p) => p.id === config.pipeline_id);
   const { save, remove, busy } = useSave();
   const [adding, setAdding] = useState(false);
   const [selected, setSelected] = useState("");
@@ -133,8 +135,14 @@ export function RecordViews({
                   onChange={(e) => onChange({ ...config, stage: e.target.value })}
                 >
                   <option value="">Toutes les étapes</option>
-                  {stages.map((s) => (
-                    <option key={s}>{s}</option>
+                  {boardStages(filterPipeline, [], pipelines.data?.data ?? []).map((s) => (
+                    <option key={s} value={s}>
+                      {stageLabel(
+                        filterPipeline ??
+                          pipelines.data?.data.find((p) => p.labels?.[s] || p.stages?.includes(s)),
+                        s,
+                      )}
+                    </option>
                   ))}
                 </select>
               )}

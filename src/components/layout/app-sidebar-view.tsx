@@ -21,6 +21,7 @@ import {
   List,
   Handshake,
   TriangleAlert,
+  Trash2,
   FolderKanban,
   Globe,
   Plug,
@@ -90,7 +91,11 @@ const groups = [
     id: "intelligence",
     label: "Intelligence",
     icon: Sparkles,
-    items: [["quality", "Qualité des données", TriangleAlert], ["skills", "Skills", Sparkles]],
+    items: [
+      ["quality", "Qualité des données", TriangleAlert],
+      ["skills", "Skills", Sparkles],
+      ["trash", "Corbeille", Trash2],
+    ],
   },
   {
     id: "realisation",

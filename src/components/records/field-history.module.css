@@ -1,0 +1,135 @@
+.history {
+  display: grid;
+  gap: 14px;
+}
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.header h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.header p {
+  margin: 2px 0 0;
+  color: var(--relay-muted);
+  font-size: 13px;
+}
+.header select {
+  min-height: 28px;
+  max-width: 240px;
+}
+.empty {
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed var(--relay-border);
+  border-radius: 8px;
+  color: var(--relay-muted);
+  font-size: 14px;
+  text-align: center;
+}
+.timeline {
+  position: relative;
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.event {
+  position: relative;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 10px;
+  padding-bottom: 16px;
+}
+.event::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  bottom: 0;
+  left: 12px;
+  width: 1px;
+  background: var(--relay-border);
+}
+.event:last-child::before {
+  display: none;
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--blue) 14%, var(--relay-surface));
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 600;
+}
+.body {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 14px;
+}
+.meta strong {
+  font-weight: 500;
+}
+.meta span {
+  color: var(--relay-muted);
+  font-size: 13px;
+}
+.changes {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.changes li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--relay-border);
+  border-radius: 6px;
+  background: var(--relay-surface-soft);
+  font-size: 13px;
+}
+.changes svg {
+  color: var(--relay-muted);
+}
+.field {
+  min-width: 110px;
+  color: var(--relay-muted);
+}
+.before {
+  max-width: 40ch;
+  overflow: hidden;
+  color: var(--relay-muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--relay-muted) 60%, transparent);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.after {
+  max-width: 48ch;
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

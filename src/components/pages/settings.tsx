@@ -43,6 +43,11 @@ import { ZapierConnection } from "../integrations/zapier-connection";
 import { McpConnection } from "../mcp/connection";
 import { browserDb } from "@/lib/supabase/client";
 import type { Row } from "@/lib/domain/types";
+import { SecuritySettings } from "../settings/security";
+import { DeveloperApi } from "../settings/developer-api";
+import { EmailAutomationSettings } from "../settings/email-automation";
+import { EnrichmentSettings } from "../settings/enrichment-settings";
+import { BillingSettings } from "../settings/billing";
 import styles from "../settings/settings.module.css";
 
 const sections = [
@@ -73,6 +78,13 @@ const sections = [
     group: "Personnel",
     icon: Video,
     description: "Connectez vos réunions et retrouvez leurs transcriptions.",
+  },
+  {
+    id: "securite",
+    label: "Sécurité",
+    group: "Personnel",
+    icon: ShieldCheck,
+    description: "Double authentification et exigences de connexion de l’espace.",
   },
   {
     id: "notifications",
@@ -166,6 +178,7 @@ function sectionId(hash: string): Section {
     billing: "facturation",
     profile: "profil",
     usage: "utilisation",
+    security: "securite",
   };
   const id = aliases[hash] || hash;
   return sections.find((s) => s.id === id)?.id ?? "apparence";
@@ -532,6 +545,7 @@ function SettingsView() {
                   <ChevronRight size={15} />
                 </Link>
               </div>
+              <EnrichmentSettings key={"enrich:" + workspace.id} />
             </>
           )}
           {selected === "equipe" && (
@@ -540,18 +554,22 @@ function SettingsView() {
             </div>
           )}
           {selected === "comptes" && (
-            <div className={styles.integrationContainer}>
-              <IntegrationsPage
-                embedded
-                providers={["gmail", "outlook", "google-calendar", "outlook-calendar"]}
-              />
-            </div>
+            <>
+              <EmailAutomationSettings key={"email:" + workspace.id} />
+              <div className={styles.integrationContainer}>
+                <IntegrationsPage
+                  embedded
+                  providers={["gmail", "outlook", "google-calendar", "outlook-calendar"]}
+                />
+              </div>
+            </>
           )}
           {selected === "reunions" && (
             <div className={styles.integrationContainer}>
               <IntegrationsPage embedded providers={["google-meet", "microsoft-teams", "zoom"]} />
             </div>
           )}
+          {selected === "securite" && <SecuritySettings />}
           {selected === "notifications" && (
             <div className={styles.notificationContainer}>
               <Notifications embedded />
@@ -582,9 +600,15 @@ function SettingsView() {
             </div>
           )}
           {selected === "utilisation" && <SettingsUsage />}
-          {selected === "facturation" && <SettingsUsage billing />}
+          {selected === "facturation" && (
+            <>
+              <BillingSettings key={"billing:" + workspace.id} />
+              <SettingsUsage billing />
+            </>
+          )}
           {selected === "developpeurs" && (
             <>
+              <DeveloperApi key={"api:" + workspace.id} />
               <McpConnection key={workspace.id} />
               <div className={styles.inlineNotice}>
                 <ShieldCheck size={16} />

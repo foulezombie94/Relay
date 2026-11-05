@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -136,7 +136,9 @@ export function SkillsStudio({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [prepareOpen, setPrepareOpen] = useState(false);
   const dirtyRef = useRef(false);
-  dirtyRef.current = dirty;
+  useLayoutEffect(() => {
+    dirtyRef.current = dirty;
+  }, [dirty]);
   const loadedId = useRef("");
   const [memberSearch, setMemberSearch] = useState("");
   const team = useQuery({
@@ -168,9 +170,12 @@ export function SkillsStudio({
       })),
     [],
   );
-  useEffect(() => {
+  // Follow the URL selection during render (no effect-driven cascade).
+  const [urlSelection, setUrlSelection] = useState(idFromUrl);
+  if (idFromUrl !== urlSelection) {
+    setUrlSelection(idFromUrl);
     if (idFromUrl) setSelected(idFromUrl);
-  }, [idFromUrl]);
+  }
   useEffect(() => {
     if (detail.data?.data) {
       if (loadedId.current === selected && dirtyRef.current) return;

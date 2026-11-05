@@ -1,5 +1,10 @@
-import { stages } from "./types";
-import { defaultProbabilities, type Pipeline, type ForecastDeal } from "./pipelines";
+import {
+  defaultProbabilities,
+  isTerminalStage,
+  openStages,
+  type Pipeline,
+  type ForecastDeal,
+} from "./pipelines";
 export type HistoricalDeal = ForecastDeal & { id: string };
 export type SalesSnapshot = {
   stage?: string;
@@ -12,8 +17,7 @@ export type SalesAudit = {
   before_data: SalesSnapshot | null;
   after_data: SalesSnapshot | null;
 };
-const terminal = (stage?: string) => stage === "Gagné" || stage === "Perdu";
-const openStages = stages.filter((stage) => !terminal(stage));
+const terminal = (stage?: string) => !!stage && isTerminalStage(stage);
 /** Outcomes use the latest audited entry into the current terminal stage, never the expected close date. */
 export function salesHistory(
   deals: HistoricalDeal[],
@@ -43,8 +47,7 @@ export function salesHistory(
         snapshot &&
         snapshot.pipeline_id === deal.pipeline_id &&
         snapshot.stage &&
-        !terminal(snapshot.stage) &&
-        openStages.includes(snapshot.stage)
+        !terminal(snapshot.stage)
       )
         seen.visited.add(snapshot.stage);
     }
@@ -70,12 +73,12 @@ export function salesHistory(
     }
   > = {};
   const calibration = pipelines.flatMap((pipeline) =>
-    openStages.map((stage) => ({
+    openStages(pipeline).map((stage) => ({
       pipelineId: pipeline.id,
       pipeline: pipeline.name,
       stage,
       label: pipeline.labels[stage] ?? stage,
-      configured: pipeline.probabilities[stage] ?? defaultProbabilities[stage],
+      configured: pipeline.probabilities[stage] ?? defaultProbabilities[stage] ?? 0,
       won: 0,
       lost: 0,
       resolved: 0,

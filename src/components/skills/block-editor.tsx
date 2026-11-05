@@ -84,7 +84,10 @@ export function SkillBlockEditor({
     past = useRef<SkillBlock[][]>([]),
     future = useRef<SkillBlock[][]>([]);
   const pending = useRef<{ id: string; offset?: number } | null>(null);
-  const [historyVersion, setHistoryVersion] = useState(0);
+  // Undo/redo availability mirrored in state: refs are never read during render.
+  const [history, setHistory] = useState({ past: 0, future: 0 });
+  const syncHistory = () =>
+    setHistory({ past: past.current.length, future: future.current.length });
   const listId = useId();
   const slashBlock = blocks.find((block) => block.id === slash);
   const slashQuery = slashBlock?.text.startsWith("/") ? slashBlock.text.slice(1) : "";
@@ -98,7 +101,7 @@ export function SkillBlockEditor({
     setBlocks(parseSkillBlocks(value));
     past.current = [];
     future.current = [];
-    setHistoryVersion((v) => v + 1);
+    syncHistory();
     setSlash(null);
     setMenu(null);
     setReference(null);
@@ -167,7 +170,7 @@ export function SkillBlockEditor({
       past.current = [...past.current.slice(-79), blocks];
       future.current = [];
     }
-    setHistoryVersion((v) => v + 1);
+    syncHistory();
     setError("");
     pending.current = focus ?? null;
     emitted.current = serialized;
@@ -267,7 +270,7 @@ export function SkillBlockEditor({
       { id: block.id, offset: end + marker.length },
     );
   }
-  let number = 0;
+  const numbers = listNumbers(blocks);
   return (
     <div
       ref={root}
@@ -320,7 +323,7 @@ export function SkillBlockEditor({
         </button>
         <button
           type="button"
-          disabled={disabled || !past.current.length}
+          disabled={disabled || !history.past}
           title="Annuler · Ctrl/⌘ Z"
           aria-label="Annuler la modification"
           onClick={() => undo()}
@@ -329,7 +332,7 @@ export function SkillBlockEditor({
         </button>
         <button
           type="button"
-          disabled={disabled || !future.current.length}
+          disabled={disabled || !history.future}
           title="Rétablir · Ctrl/⌘ Maj Z"
           aria-label="Rétablir la modification"
           onClick={() => undo(true)}
@@ -337,9 +340,9 @@ export function SkillBlockEditor({
           <Redo2 size={14} />
         </button>
       </div>
-      <div className={styles.blocks} data-history={historyVersion}>
+      <div className={styles.blocks}>
         {blocks.map((block, index) => {
-          number = block.kind === "number" ? number + 1 : 0;
+          const number = numbers[index];
           const definition = blockKinds.find((item) => item.kind === block.kind)!;
           const toggle = isToggleBlock(block.kind);
           const closed = folded.has(block.id);
@@ -855,15 +858,26 @@ export function SkillBlockEditor({
   );
 }
 
+/** Position of each block in its numbered list (0 outside a list), computed before rendering. */
+function listNumbers(blocks: SkillBlock[]) {
+  const numbers: number[] = [];
+  let current = 0;
+  for (const block of blocks) {
+    current = block.kind === "number" ? current + 1 : 0;
+    numbers.push(current);
+  }
+  return numbers;
+}
+
 export function SkillBlocksPreview({ value }: { value: string }) {
   const root = useRef<HTMLDivElement>(null),
     scope = useId();
   const blocks = parseSkillBlocks(value);
-  let number = 0;
+  const numbers = listNumbers(blocks);
   return (
     <div ref={root} className={styles.preview}>
-      {blocks.map((block) => {
-        number = block.kind === "number" ? number + 1 : 0;
+      {blocks.map((block, index) => {
+        const number = numbers[index];
         const text = <InlineBlockText text={block.text} />;
         const content =
           block.kind === "divider" ? (

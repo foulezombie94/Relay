@@ -1,0 +1,219 @@
+.editor {
+  display: grid;
+  gap: 10px;
+}
+.nameField {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--relay-muted);
+}
+.nameField input {
+  font-size: 15px;
+}
+.stageHeader {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 6px 2px 34px;
+  color: var(--relay-muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.stageHeader span:last-child {
+  padding-right: 92px;
+}
+.stageList {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stageRow {
+  display: grid;
+  grid-template-columns: 18px 10px minmax(0, 1fr) 84px auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition: background 100ms ease;
+}
+.stageRow:hover,
+.stageRow[data-dragging="true"] {
+  background: var(--relay-hover);
+}
+.stageRow input {
+  min-height: 30px;
+  border-color: transparent;
+  background: transparent;
+}
+.stageRow input:hover,
+.stageRow input:focus {
+  border-color: var(--relay-border);
+  background: var(--relay-surface);
+}
+.grip {
+  cursor: grab;
+  color: var(--relay-muted);
+  opacity: 0;
+}
+.stageRow:hover .grip {
+  opacity: 1;
+}
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: hsl(var(--stage-hue, 215) 70% 55%);
+}
+.percent {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--relay-muted);
+  font-size: 13px;
+}
+.percent input {
+  width: 58px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.rowActions {
+  display: flex;
+  gap: 2px;
+  opacity: 0.35;
+}
+.stageRow:hover .rowActions,
+.stageRow:focus-within .rowActions {
+  opacity: 1;
+}
+.addStage {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin-left: 30px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--relay-muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+.addStage:hover:not(:disabled) {
+  background: var(--relay-hover);
+  color: var(--relay-ink);
+}
+.terminal {
+  display: grid;
+  gap: 2px;
+}
+.terminal label {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 84px;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px 3px 24px;
+}
+.fixed {
+  color: var(--relay-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.won {
+  color: #2f9e6b;
+}
+.lost {
+  color: #d1495b;
+}
+.moves {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, #e3a008 35%, var(--relay-border));
+  border-radius: 8px;
+  background: color-mix(in srgb, #e3a008 7%, var(--relay-surface));
+  font-size: 13px;
+}
+.moves p {
+  margin: 0;
+  color: var(--relay-muted);
+}
+.moves label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: 12px;
+}
+.card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--relay-border);
+  border-radius: 10px;
+  background: var(--relay-surface);
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cardHead h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.cardHead small {
+  color: var(--relay-muted);
+}
+.track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--relay-surface-soft);
+  border: 1px solid var(--relay-border);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.chip em {
+  color: var(--relay-muted);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+@media (max-width: 600px) {
+  .stageRow {
+    grid-template-columns: 10px minmax(0, 1fr) 70px auto;
+  }
+  .grip {
+    display: none;
+  }
+  .rowActions {
+    opacity: 1;
+  }
+  .stageHeader span:last-child {
+    padding-right: 0;
+  }
+}

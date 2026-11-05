@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { recordFilters } from "./record-filters";
+import { filterTree, recordFilters } from "./record-filters";
 export const viewConfigSchema = z.object({
   filters: recordFilters.optional(),
+  filter_tree: filterTree.optional(),
   pipeline_id: z.union([z.uuid(), z.literal("")]).default(""),
   layout: z.enum(["table", "cards", "kanban", "calendar"]).optional(),
   search: z.string().max(300).default(""),

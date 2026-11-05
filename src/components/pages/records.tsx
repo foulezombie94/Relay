@@ -5,6 +5,8 @@ import { ViewButtons } from "../ui/view-buttons";
 import { MonthCalendar } from "../ui/month-calendar";
 import { List, LayoutGrid, Columns3, CalendarDays } from "lucide-react";
 import { RecordSegments } from "../records/segments";
+import { FilterBuilder, filterFields } from "../records/filter-builder";
+import { filterCount, sendableFilterTree } from "@/lib/domain/record-filters";
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -35,9 +37,8 @@ import { RecordDirectory } from "../records/directory";
 import { RecordTable } from "../records/table";
 import { ImportRecords } from "../records/import";
 import { ExportRecords } from "../records/export";
-import { type Pipeline } from "@/lib/domain/pipelines";
+import { boardStages, pipelineStages, type Pipeline } from "@/lib/domain/pipelines";
 import type { CrmRecord, Attribute } from "@/lib/domain/types";
-import { stages } from "@/lib/domain/types";
 import { Building2, Users, Layers3 } from "lucide-react";
 import styles from "../records/records.module.css";
 import { ObjectStudio, StudioTrigger } from "../records/studio/object-studio";
@@ -110,6 +111,14 @@ function RecordsPageContents({ slug }: { slug: string }) {
     icon: Layers3,
   };
   const PageIcon = pageContent.icon;
+  const viewPipeline = pipelines.data?.data.find((p) => p.id === view.pipeline_id);
+  // Labels of every pipeline, the displayed pipeline taking precedence.
+  const boardLabels: Record<string, string> = Object.assign(
+    {},
+    ...(pipelines.data?.data ?? []).map((p) => p.labels ?? {}).reverse(),
+    viewPipeline?.labels ?? {},
+  );
+  const stageChoices = boardStages(viewPipeline, [], pipelines.data?.data ?? []);
   const search = view.search;
   const filtered = !!(
     search.trim() ||
@@ -117,7 +126,8 @@ function RecordsPageContents({ slug }: { slug: string }) {
     view.owner ||
     view.minimum ||
     view.pipeline_id ||
-    view.filters?.length
+    view.filters?.length ||
+    filterCount(view.filter_tree)
   );
   function clearFilters() {
     setView((current) => ({
@@ -128,6 +138,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
       minimum: "",
       pipeline_id: "",
       filters: [],
+      filter_tree: undefined,
     }));
     setPage(1);
     const query = new URLSearchParams(url.toString());
@@ -193,6 +204,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
   const [lost, setLost] = useState<CrmRecord | null>(null);
   const [error, setError] = useState("");
   const [property, setProperty] = useState<Attribute | true | null>(null);
+  const sentTree = sendableFilterTree(view.filter_tree);
   const q = useRows<CrmRecord>("records", {
     object_id: object?.id,
     pipeline_id: slug === "deals" ? view.pipeline_id || undefined : undefined,
@@ -201,6 +213,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
     owner: view.owner || undefined,
     minimum: view.minimum || undefined,
     filters: view.filters?.length ? JSON.stringify(view.filters) : undefined,
+    filter_tree: sentTree ? JSON.stringify(sentTree) : undefined,
     sort: view.sort,
     direction: view.direction,
     page: page - 1,
@@ -232,7 +245,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
         key: "stage",
         label: "Étape",
         type: "select",
-        options: stages.map((s) => ({ value: s, label: s })),
+        options: stageChoices.map((s) => ({ value: s, label: boardLabels[s] || s })),
       },
       {
         key: "pipeline_id",
@@ -292,6 +305,25 @@ function RecordsPageContents({ slug }: { slug: string }) {
   if (!object) return <Loading />;
   const rows = q.data?.data ?? [];
   const contactFields = contactColumns(custom, slug);
+  const advancedFilter = (
+    <FilterBuilder
+      value={view.filter_tree}
+      fields={filterFields({
+        attributes: custom,
+        deals: slug === "deals",
+        stageOptions: stageChoices.map((stage) => ({
+          value: stage,
+          label: boardLabels[stage] || stage,
+        })),
+        members: members.error ? [] : (members.data?.data ?? []),
+        pipelines: pipelines.data?.data ?? [],
+      })}
+      onChange={(filter_tree) => {
+        setPage(1);
+        setView((current) => ({ ...current, filter_tree }));
+      }}
+    />
+  );
   const manageProperties = workspace.role === "owner" || workspace.role === "admin";
   function changeContactView(value: ViewConfig) {
     setView(value);
@@ -310,6 +342,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
     filters: JSON.stringify(view.filters ?? []),
     pipeline_id: slug === "deals" ? view.pipeline_id : "",
   });
+  if (sentTree) exportParams.set("filter_tree", JSON.stringify(sentTree));
   const exportControl = (
     <ExportRecords
       key={"export:" + object.id}
@@ -399,6 +432,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
             onCreate={() => setEdit(true)}
             onImport={() => setImporting(true)}
             exportControl={exportControl}
+            filterControl={advancedFilter}
             viewControl={viewControls}
             createControl={createControl}
             customizeControl={
@@ -447,14 +481,17 @@ function RecordsPageContents({ slug }: { slug: string }) {
                 </button>
               ))}
             </div>
-            <RecordSegments
-              value={view.filters ?? []}
-              onChange={(filters) => {
-                setPage(1);
-                setView((current) => ({ ...current, filters }));
-              }}
-            />
+            {(view.filters?.length ?? 0) > 0 && (
+              <RecordSegments
+                value={view.filters ?? []}
+                onChange={(filters) => {
+                  setPage(1);
+                  setView((current) => ({ ...current, filters }));
+                }}
+              />
+            )}
             <div className="toolbar">
+              {advancedFilter}
               <SearchBox
                 value={search}
                 onChange={(v) => {
@@ -620,7 +657,11 @@ function RecordsPageContents({ slug }: { slug: string }) {
               setNewStage(stage);
               setEdit(true);
             }}
-            stageLabels={pipelines.data?.data.find((p) => p.id === view.pipeline_id)?.labels}
+            stageLabels={boardLabels}
+            stages={boardStages(viewPipeline, rows, pipelines.data?.data ?? [])}
+            recordStages={(record) =>
+              pipelineStages(pipelines.data?.data.find((p) => p.id === record.pipeline_id))
+            }
             onMove={async (record, stage) => {
               if (stage === "Perdu" && !record.lost_reason?.trim()) {
                 setLost(record);

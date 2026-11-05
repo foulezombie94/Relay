@@ -42,6 +42,13 @@ try {
     "crm-migrations",
     "crm-save-reliability",
     "onboarding",
+    "custom-pipeline-stages",
+    "record-trash-history",
+    "workspace-mfa",
+    "public-api-webhooks",
+    "contact-capture-tracking",
+    "record-enrichment",
+    "stripe-billing",
   ]) {
     await db.query(await readFile(`supabase/tests/${name}.sql`, "utf8"));
     console.log(`PASS ${name}`);

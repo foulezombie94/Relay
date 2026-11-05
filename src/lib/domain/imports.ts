@@ -106,6 +106,8 @@ export function prepareImport(
     sourceKey?: string;
     stageMap?: Record<string, string>;
     deal?: boolean;
+    /** Stages of the destination pipeline; other stage values are rejected per row. */
+    allowedStages?: string[];
   } = {},
 ) {
   const allowed = new Set<string>([
@@ -198,7 +200,15 @@ export function prepareImport(
       if (options.deal && values.stage === "Perdu" && !values.lost_reason)
         values.lost_reason = "Import CRM : raison de perte non renseignée dans l’export";
       values.attributes = custom;
-      values.stage ??= "Nouveau";
+      values.stage ??= options.deal && options.allowedStages ? options.allowedStages[0] : "Nouveau";
+      if (
+        options.deal &&
+        options.allowedStages &&
+        !options.allowedStages.includes(String(values.stage))
+      )
+        throw new Error(
+          "L’étape « " + values.stage + " » n’existe pas dans le pipeline de destination.",
+        );
       values.currency ??= "EUR";
       if (values.stage === "Perdu" && !String(values.lost_reason ?? "").trim())
         throw new Error("Raison de perte obligatoire pour une opportunité perdue.");

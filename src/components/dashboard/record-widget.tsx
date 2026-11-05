@@ -1,4 +1,5 @@
 "use client";
+import { isTerminalStage } from "@/lib/domain/pipelines";
 import { useRef, useState, useEffect } from "react";
 import {
   ArrowUpRight,
@@ -137,9 +138,7 @@ export function RecordWidget({
   }
   if (tile.visual === "board") {
     const stages =
-      tile.kind === "record"
-        ? ["Nouveau", "Qualification", "Proposition", "Négociation", "Gagné", "Perdu"]
-        : ["open", "in_progress", "done", "cancelled"];
+      tile.kind === "record" ? ["Gagné", "Perdu"] : ["open", "in_progress", "done", "cancelled"];
     for (const stage of stages) if (!grouped.has(stage)) grouped.set(stage, []);
   }
   return (
@@ -250,8 +249,14 @@ export function RecordWidget({
                       "postponed",
                       "cancelled",
                     ];
+              // Custom pipeline stages sort after default open stages, before Gagné/Perdu.
               const rank = (value: string) =>
-                order.includes(value) ? order.indexOf(value) : order.length;
+                order.includes(value)
+                  ? order.indexOf(value) +
+                    (tile.kind === "record" && isTerminalStage(value) ? 2 : 0)
+                  : tile.kind === "record"
+                    ? 4.5
+                    : order.length;
               return rank(a) - rank(b) || a.localeCompare(b);
             })
             .map(([group, entries]) => (

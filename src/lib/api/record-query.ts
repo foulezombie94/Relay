@@ -1,5 +1,10 @@
 import "server-only";
-import { recordFilters } from "@/lib/domain/record-filters";
+import {
+  filterTree,
+  groupToLogic,
+  pruneFilterTree,
+  recordFilters,
+} from "@/lib/domain/record-filters";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ApiError } from "./context";
 import { z } from "zod";
@@ -93,6 +98,19 @@ export function recordQuery(
           break;
       }
     }
+  }
+  if (p.get("filter_tree")) {
+    let raw: unknown;
+    try {
+      raw = JSON.parse(p.get("filter_tree")!);
+    } catch {
+      throw new ApiError("Filtre avancé illisible.");
+    }
+    const parsed = filterTree.safeParse(raw);
+    if (!parsed.success) throw new ApiError(parsed.error.issues.map((i) => i.message).join(" "));
+    const tree = pruneFilterTree(parsed.data);
+    // One logic tree, ANDed with the other parameters of the request.
+    if (tree) query = query.or(groupToLogic(tree));
   }
   const sort = p.get("sort") || "updated_at";
   if (!["updated_at", "created_at", "display_name", "amount"].includes(sort))

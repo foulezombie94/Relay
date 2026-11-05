@@ -1,0 +1,144 @@
+.card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--relay-border);
+  border-radius: 10px;
+  background: var(--relay-surface);
+}
+.head {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+.head h3 {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.head p {
+  margin: 0;
+  color: var(--relay-muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--relay-surface-soft);
+  color: var(--relay-muted);
+}
+.icon[data-on="true"] {
+  background: color-mix(in srgb, #2f9e6b 12%, var(--relay-surface));
+  color: #2f9e6b;
+}
+.status {
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--relay-border);
+  color: var(--relay-muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.status[data-on="true"] {
+  border-color: color-mix(in srgb, #2f9e6b 35%, var(--relay-border));
+  color: #23845a;
+}
+.factor {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--relay-border);
+  border-radius: 8px;
+  background: var(--relay-surface-soft);
+}
+.factor div {
+  display: grid;
+}
+.factor strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.factor small {
+  color: var(--relay-muted);
+  font-size: 12.5px;
+}
+.enroll {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+  border-top: 1px solid var(--relay-border);
+}
+.steps {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding-left: 20px;
+  color: var(--relay-muted);
+  font-size: 13.5px;
+}
+.enrollBody {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.qr {
+  width: 180px;
+  height: 180px;
+  padding: 8px;
+  border: 1px solid var(--relay-border);
+  border-radius: 10px;
+  background: #fff;
+}
+.manual {
+  display: grid;
+  gap: 8px;
+  font-size: 13.5px;
+}
+.manual > span {
+  color: var(--relay-muted);
+}
+.manual code {
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--relay-surface-soft);
+  border: 1px solid var(--relay-border);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  word-break: break-all;
+}
+.manual label {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+}
+.manual input {
+  max-width: 180px;
+  font-size: 18px;
+  letter-spacing: 0.35em;
+  font-variant-numeric: tabular-nums;
+}
+.actions {
+  display: flex;
+  gap: 6px;
+}
+@media (max-width: 640px) {
+  .enrollBody {
+    grid-template-columns: 1fr;
+  }
+  .head {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+  .status {
+    grid-column: 2;
+    width: fit-content;
+  }
+}

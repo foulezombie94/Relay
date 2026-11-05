@@ -11,6 +11,7 @@ import {
 } from "@/lib/api/context";
 import { z } from "zod";
 import { assertAuthAvailable } from "@/lib/supabase/session";
+import { secondFactorPending } from "@/lib/supabase/mfa";
 export async function GET() {
   try {
     const client = await db();
@@ -20,6 +21,8 @@ export async function GET() {
     } = await client.auth.getUser();
     assertAuthAvailable(authError);
     if (authError || !user) throw new ApiError("Connexion requise.", 401);
+    if (await secondFactorPending(client, user))
+      throw new ApiError("Confirmez votre code de double authentification.", 401, "mfa_required");
     const { error: invitationError } = await client.rpc("claim_invitations");
     databaseError(invitationError);
     const { data, error } = await client
@@ -27,8 +30,14 @@ export async function GET() {
       .select("role,workspaces(*)")
       .eq("user_id", user.id);
     databaseError(error);
+    const { data: blocked, error: blockedError } = await client.rpc("mfa_blocked_workspaces");
+    databaseError(blockedError);
     return NextResponse.json({
-      data: (data ?? []).map((m) => ({ ...m.workspaces, role: m.role })),
+      // Memberships of workspaces hidden by their 2FA requirement return no workspace row.
+      data: (data ?? [])
+        .filter((m) => m.workspaces)
+        .map((m) => ({ ...m.workspaces, role: m.role })),
+      mfa_blocked: Array.isArray(blocked) ? blocked : [],
       user: { id: user.id, email: user.email },
     });
   } catch (e) {
@@ -82,6 +91,20 @@ export async function PATCH(request: NextRequest) {
             .regex(/^[A-Z]{3}$/)
             .optional(),
           locale: z.enum(["fr", "en"]).optional(),
+          require_mfa: z.boolean().optional(),
+          track_email_opens: z.boolean().optional(),
+          auto_enrich: z.boolean().optional(),
+          track_email_clicks: z.boolean().optional(),
+          capture_excluded_domains: z
+            .array(
+              z
+                .string()
+                .trim()
+                .toLowerCase()
+                .regex(/^[a-z0-9.-]+\.[a-z]{2,}$/, "Domaine invalide"),
+            )
+            .max(200)
+            .optional(),
         }),
       })
       .parse(await jsonBody(request));

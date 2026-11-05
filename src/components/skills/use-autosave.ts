@@ -170,6 +170,8 @@ export function useSkillAutosave(props: Props) {
     )
       return;
     if (status === "error" || status === "conflict" || status === "invalid") return;
+    // "pending" is the visible state of the debounce timer started just below.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (status !== "saving") setStatus("pending");
     const timer = setTimeout(() => void saver.current(), 1000);
     return () => clearTimeout(timer);

@@ -15,6 +15,8 @@ type Fields = {
   workspace_id?: string;
   connection_id?: string;
   action?: string;
+  /** Items processed by a maintenance task. */
+  count?: number;
 };
 const pending = new Set<Promise<void>>();
 let dropped = 0;

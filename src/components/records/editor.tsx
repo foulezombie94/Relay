@@ -2,7 +2,7 @@
 import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import { Editor, Loading, ErrorMessage, str, type Field } from "../ui";
 import type { CrmRecord, Attribute } from "@/lib/domain/types";
-import { stages } from "@/lib/domain/types";
+import { pipelineStages, stageLabel, type Pipeline } from "@/lib/domain/pipelines";
 export function RecordEditor({
   record,
   onClose,
@@ -18,8 +18,10 @@ export function RecordEditor({
       object_id: record.object_id,
       size: 100,
     }),
-    members = useRows("memberships", { size: 100 });
+    members = useRows("memberships", { size: 100 }),
+    pipelines = useRows<Pipeline>("pipelines", { size: 100 });
   const { save, busy } = useSave();
+  const pipeline = pipelines.data?.data.find((p) => p.id === record.pipeline_id);
   if (attrs.isPending || members.isPending) return <Loading />;
   if (attrs.error || members.error) return <ErrorMessage error={attrs.error || members.error} />;
   const custom = (attrs.data?.data ?? []).filter((a) => !a.archived && a.type !== "formula");
@@ -43,7 +45,10 @@ export function RecordEditor({
         key: "stage",
         label: "Étape",
         type: "select",
-        options: stages.map((s) => ({ value: s, label: s })),
+        options: pipelineStages(pipeline).map((s) => ({
+          value: s,
+          label: stageLabel(pipeline, s),
+        })),
       },
       { key: "amount", label: "Montant", type: "number" },
       { key: "currency", label: "Devise", required: true },

@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { connection, externalJson } from "./oauth";
 import { workerClient } from "./worker-client";
 import { deliver } from "./delivery";
+import { extractLinks, trackedHtml } from "@/lib/domain/email-tracking";
 import { unseal } from "./crypto";
 import {
   sequenceSteps,
@@ -106,11 +107,12 @@ export async function processSequence(
     });
     databaseError(prepared.error);
     if (!prepared.data?.ok) return { runAt: new Date(Date.now() + 60000).toISOString() };
+    const html = await trackingHtml(admin, job.delivery_id, origin, message.body, body);
     attempted = true;
     const providerId = await deliver(
       job.provider,
       tokens.access_token,
-      { to: job.email, subject: message.subject, body },
+      { to: job.email, subject: message.subject, body, html },
       job.delivery_id + "@" + origin.hostname,
     );
     const next = steps[job.step + 1];
@@ -139,5 +141,35 @@ export async function processSequence(
     databaseError(failed.error);
     if (retry) throw error;
     throw new PermanentJobError(attempted ? "delivery_uncertain" : "sequence_invalid");
+  }
+}
+
+/**
+ * HTML alternative with open pixel and click redirects, when the workspace enabled
+ * tracking. Tracking never blocks a send: on any error the message goes out untracked.
+ * Only links of the authored message are tracked, never the unsubscribe link.
+ */
+async function trackingHtml(
+  admin: SupabaseClient,
+  delivery: string,
+  origin: URL,
+  authored: string,
+  body: string,
+) {
+  try {
+    const links = extractLinks(authored);
+    const { data, error } = await admin.rpc("email_tracking_prepare", {
+      delivery,
+      link_urls: links,
+    });
+    if (error || !data?.token) return undefined;
+    const token = String(data.token);
+    return trackedHtml(body, {
+      links: data.clicks ? links : [],
+      clickUrl: (position) => new URL(`/api/t/c/${token}/${position}`, origin).toString(),
+      pixelUrl: data.opens ? new URL(`/api/t/o/${token}`, origin).toString() : undefined,
+    });
+  } catch {
+    return undefined;
   }
 }

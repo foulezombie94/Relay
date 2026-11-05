@@ -24,6 +24,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.getUser.mockResolvedValue({ data: { user: { id: "user-a" } }, error: null });
   mocks.single.mockResolvedValue({ data: { role: "member" }, error: null });
+  // No workspace hidden by a 2FA requirement unless a test says otherwise.
+  mocks.rpc.mockResolvedValue({ data: [], error: null });
   const query = { select: vi.fn(() => query), eq: vi.fn(() => query), single: mocks.single };
   mocks.from.mockReturnValue(query);
 });
@@ -58,6 +60,14 @@ describe("authenticated API session boundaries", () => {
     mocks.single.mockResolvedValue({ data: null, error: null });
     await expect(context("workspace-b", true)).rejects.toMatchObject({ status: 403 });
     expect(mocks.getUser).toHaveBeenCalledTimes(1);
+  });
+  it("explains a membership hidden by the workspace 2FA requirement", async () => {
+    mocks.single.mockResolvedValue({ data: null, error: null });
+    mocks.rpc.mockResolvedValue({ data: [{ id: "workspace-b", name: "B" }], error: null });
+    await expect(context("workspace-b")).rejects.toMatchObject({
+      status: 403,
+      code: "mfa_required",
+    });
   });
 
   it("continues to reject writes by viewers", async () => {

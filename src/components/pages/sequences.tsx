@@ -449,6 +449,18 @@ function DeliveryRows({
           <li key={d.id}>
             Message {Number(d.step) + 1} · <Badge value={d.status} /> ·{" "}
             {date(d.sent_at || d.created_at)}
+            {Number(d.open_count) > 0 && (
+              <span title={"Première ouverture : " + date(d.first_opened_at)}>
+                {" "}
+                · {Number(d.open_count)} ouverture(s)
+              </span>
+            )}
+            {Number(d.click_count) > 0 && (
+              <span title={"Premier clic : " + date(d.first_clicked_at)}>
+                {" "}
+                · {Number(d.click_count)} clic(s)
+              </span>
+            )}
           </li>
         ))}
       </ul>

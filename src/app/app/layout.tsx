@@ -5,6 +5,7 @@ import { db } from "@/lib/supabase/server";
 import { AppProvider } from "@/components/providers/data-provider";
 import { Shell } from "@/components/layout/shell";
 import { assertAuthAvailable } from "@/lib/supabase/session";
+import { secondFactorPending } from "@/lib/supabase/mfa";
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const client = await db();
   const {
@@ -13,6 +14,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   } = await client.auth.getUser();
   assertAuthAvailable(error);
   if (error || !user) redirect("/login");
+  if (await secondFactorPending(client, user)) redirect("/login?step=mfa");
   // This metadata controls the welcome UI only; membership/RLS controls access.
   if (user.user_metadata?.relay_onboarding_pending === true) redirect("/onboarding");
   const jar = await cookies();

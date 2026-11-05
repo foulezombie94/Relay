@@ -22,6 +22,7 @@ import {
   type DashboardResult,
 } from "@/lib/domain/dashboards";
 import { tileForVisual } from "@/lib/domain/dashboard-widgets";
+import { boardStages, stageLabel, type Pipeline } from "@/lib/domain/pipelines";
 import { DashboardWidget } from "./widget";
 import { WidgetIcon, widgetVisualIcons } from "./widget-library";
 import { VisualPicker } from "../ui/controls";
@@ -54,7 +55,7 @@ export function WidgetEditor({
   const [tab, setTab] = useState<"view" | "data" | "filters">("view");
   const [preview, setPreview] = useState<DashboardResult>(),
     [busy, setBusy] = useState(false);
-  const pipelines = useRows("pipelines", { size: 100 }),
+  const pipelines = useRows<Pipeline>("pipelines", { size: 100 }),
     members = useRows("memberships", { size: 100 });
   const content = isContentVisual(tile.visual),
     records = isRecordVisual(tile.visual);
@@ -488,15 +489,15 @@ export function WidgetEditor({
                     onChange={(e) => change({ stage: e.target.value || undefined })}
                   >
                     <option value="">Toutes</option>
-                    {[
-                      "Nouveau",
-                      "Qualification",
-                      "Proposition",
-                      "Négociation",
-                      "Gagné",
-                      "Perdu",
-                    ].map((stage) => (
-                      <option key={stage}>{stage}</option>
+                    {boardStages(null, [], pipelines.data?.data ?? []).map((stage) => (
+                      <option key={stage} value={stage}>
+                        {stageLabel(
+                          pipelines.data?.data.find(
+                            (p) => p.stages?.includes(stage) || p.labels?.[stage],
+                          ),
+                          stage,
+                        )}
+                      </option>
                     ))}
                   </select>
                 </label>
