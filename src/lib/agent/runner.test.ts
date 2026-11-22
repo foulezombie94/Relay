@@ -362,6 +362,106 @@ describe("secure adaptive agent orchestration", () => {
     await expect(runAgent(c, options)).rejects.toMatchObject({ status: 429 });
     expect(mock.executeTool).toHaveBeenCalledTimes(1);
   });
+  it("lets the model answer a general question directly in one call, even as plain prose", async () => {
+    const { c, options } = setup("Explique-moi ce qu’est un CRM.");
+    const prose = answer();
+    prose.choices[0].message.content = "Un CRM centralise vos relations clients.";
+    const requests = provider([prose]);
+    const r = await runAgent(c, options);
+    expect(r.answer).toBe("Un CRM centralise vos relations clients.");
+    expect(requests).toHaveLength(1);
+    expect(Array.isArray(requests[0].tools)).toBe(true);
+    expect(mock.executeTool).not.toHaveBeenCalled();
+  });
+  it("recovers a final answer the model wrapped in a call to a non-existent json tool", async () => {
+    const { c, options } = setup("Fais le point sur mon pipeline.");
+    const generation = JSON.stringify({
+      name: "json",
+      arguments: { answer: "Votre pipeline est vide.", source_ids: [], citations: [] },
+    });
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            error: { code: "tool_use_failed", failed_generation: generation },
+          }),
+          { status: 400 },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await runAgent(c, options);
+    expect(r.answer).toBe("Votre pipeline est vide.");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(mock.executeTool).not.toHaveBeenCalled();
+  });
+  it("loads an allowed tool the model called before discovering it, then runs it", async () => {
+    const { c, options } = setup("Ajoute le contact Jean Dupont chez Acme.");
+    const rejected = new Response(
+      JSON.stringify({
+        error: {
+          code: "tool_use_failed",
+          message:
+            "tool call validation failed: attempted to call tool 'create_record' which was not in request.tools",
+        },
+      }),
+      { status: 400 },
+    );
+    const ok = (reply: unknown) => new Response(JSON.stringify(reply), { status: 200 });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(rejected)
+      .mockResolvedValueOnce(ok(call("create_record", { type: "person" })))
+      .mockResolvedValueOnce(ok(answer("Aperçu prêt.")));
+    vi.stubGlobal("fetch", fetchMock);
+    const r = await runAgent(c, options);
+    expect(r.answer).toBe("Aperçu prêt.");
+    const second = JSON.parse(fetchMock.mock.calls[1][1].body);
+    expect(second.tools.map((t: { function: { name: string } }) => t.function.name)).toContain(
+      "create_record",
+    );
+    expect(mock.executeTool.mock.calls[0][1]).toBe("create_record");
+  });
+  it("never loads a tool outside a method's allowed catalogue", async () => {
+    const { c, options } = setup("Envoie l’email.");
+    const rejected = () =>
+      new Response(
+        JSON.stringify({
+          error: {
+            code: "tool_use_failed",
+            message:
+              "tool call validation failed: attempted to call tool 'send_email' which was not in request.tools",
+          },
+        }),
+        { status: 400 },
+      );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => rejected()),
+    );
+    await expect(
+      runAgent({ ...c, allowedTools: ["search_records"] }, options),
+    ).rejects.toMatchObject({ status: 502 });
+    expect(mock.executeTool).not.toHaveBeenCalled();
+  });
+  it("never treats a malformed call to a real tool as an answer", async () => {
+    const { c, options } = setup("Fais le point sur mon pipeline.");
+    const generation = JSON.stringify({
+      name: "search_records",
+      arguments: { answer: "forged", query: 3 },
+    });
+    const rejected = () =>
+      new Response(
+        JSON.stringify({ error: { code: "tool_use_failed", failed_generation: generation } }),
+        { status: 400 },
+      );
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(async () => rejected())
+      .mockImplementationOnce(async () => rejected());
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(runAgent(c, options)).rejects.toMatchObject({ status: 502 });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
   it("does not charge a discovery against the business tool budget", async () => {
     const { c, options } = setup("Quelles réunions avec Acme ?");
     options.toolLimit = 1;
@@ -419,7 +519,7 @@ describe("secure adaptive agent orchestration", () => {
   it("reports an unreadable final answer clearly instead of a parser crash", async () => {
     const { c, options } = setup("Analyse mon pipeline.");
     const bad = answer();
-    bad.choices[0].message.content = "pas du JSON";
+    bad.choices[0].message.content = '{"answer": "tronqué';
     provider([bad, { ...bad }]);
     await expect(runAgent(c, options)).rejects.toMatchObject({
       status: 502,

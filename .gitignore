@@ -28,3 +28,6 @@ work-integration-patch.sql
 # Personal Codex skills stay outside the application repository.
 /.agents/
 /skills-lock.json
+
+# Ask Zyliad benchmark reports (contain model outputs).
+scripts/benchmark/results/

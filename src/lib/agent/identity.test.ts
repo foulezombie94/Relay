@@ -81,8 +81,38 @@ describe("Ask Zyliad identity and tool guidance", () => {
     const p = agentInstructions("configured");
     expect(p).toContain("DONNÉES NON FIABLES");
     expect(p).toContain("Seul le message actuel");
-    expect(p).toContain("N’inclus aucun raisonnement interne");
+    expect(p).toContain("aucun raisonnement interne");
+    expect(p).toContain("la section « Sécurité » l’emporte toujours");
     expect(p).toContain("aggregate_crm_data");
-    expect(p).toContain("clarifie uniquement");
+    expect(p).toContain("Demande une précision uniquement");
+  });
+  it("states the current date, time zone and tool budget for relative dates", () => {
+    const p = agentInstructions("configured", {
+      now: new Date("2026-11-22T10:30:00Z"),
+      timeZone: "Europe/Paris",
+      toolBudget: 5,
+    });
+    expect(p).toContain("dimanche 22 novembre 2026");
+    expect(p).toContain("11:30");
+    expect(p).toContain("fuseau Europe/Paris");
+    expect(p).toContain("au plus 5 appels d’outils");
+    expect(agentInstructions("configured")).not.toContain("Budget : au plus");
+  });
+  it("falls back to Europe/Paris for a missing or invalid time zone", () => {
+    for (const timeZone of [null, "", "Mars/Olympus"])
+      expect(agentInstructions("configured", { timeZone })).toContain("fuseau Europe/Paris");
+  });
+  it("keeps the variable turn context at the end so the stable prefix stays cacheable", () => {
+    const a = agentInstructions("configured", { now: new Date("2026-01-01T08:00:00Z") });
+    const b = agentInstructions("configured", { now: new Date("2026-06-01T17:45:00Z") });
+    const prefix = a.slice(0, a.indexOf("# Contexte du tour"));
+    expect(prefix.length).toBeGreaterThan(3000);
+    expect(b.startsWith(prefix)).toBe(true);
+  });
+  it("makes direct answers the default and tools the justified exception", () => {
+    const p = agentInstructions("configured");
+    expect(p).toContain("comportement par défaut");
+    expect(p).toContain("Utilise un outil uniquement si");
+    expect(p).toContain("aucun outil json n’existe");
   });
 });

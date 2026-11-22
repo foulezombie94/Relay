@@ -32,7 +32,8 @@
     "test:performance:load": "node --import tsx scripts/tests/crm-load.mts",
     "pack:mcp": "node --import tsx scripts/maintenance/pack-mcp.mts",
     "test:mcp": "vitest run src/lib/mcp src/components/mcp --pool=threads --maxWorkers=1 --no-file-parallelism --cache=false",
-    "test:mcp:db": "node --import tsx scripts/tests/mcp-db.mts"
+    "test:mcp:db": "node --import tsx scripts/tests/mcp-db.mts",
+    "bench:agent": "node --conditions=react-server --import tsx scripts/benchmark/run.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "2.3.1",

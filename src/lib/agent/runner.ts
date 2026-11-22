@@ -8,7 +8,7 @@ import {
 } from "@/lib/domain/assistant";
 import { ApiError } from "@/lib/api/context";
 import { executeTool, guard, propose, rpc, type ToolContext } from "./tools";
-import { readRequestKey, toolLabel, type ToolName } from "./contracts";
+import { readRequestKey, toolLabel, toolSchemas, type ToolName } from "./contracts";
 import { agentInstructions } from "./instructions";
 import { directIdentityAnswer, configuredAgentProvider } from "./identity";
 import {
@@ -19,35 +19,82 @@ import {
   parseModelJSON,
 } from "./provider";
 import { providerFailure, agentUsageCost } from "./provider";
-import { progressiveTools, discoveryInstructionsFor, runToolLimit } from "./discovery";
+import {
+  progressiveTools,
+  discoveryInstructionsFor,
+  runToolLimit,
+  DISCOVERY_ALLOWANCE,
+} from "./discovery";
 import { logEvent } from "@/lib/observability/logger";
 import { prepareAgentSkill, validateAgentSkillResult, type AgentSkill } from "./skill-runtime";
 
 // Provider output is bounded before JSON parsing; streams, tool arguments and errors
 // cannot grow indefinitely. No unvalidated model text is displayed to the user.
-// Only a bounded, identifier-shaped error code is kept. Never expose provider bodies,
-// requests, account identifiers or source content in telemetry or the UI.
-async function providerErrorCode(response: Response) {
-  if (!response.body) return undefined;
+// Only a bounded, identifier-shaped error code is kept for telemetry. Never expose
+// provider bodies, requests, account identifiers or source content in telemetry or the UI.
+// For tool_use_failed, Groq returns the model's own rejected output: when the model wrapped
+// its final JSON answer in a call to a tool that does not exist (e.g. "json"), that answer
+// is recovered in memory with the same trust as normal model content, never logged.
+async function readProviderError(response: Response) {
+  if (!response.body) return {};
   const reader = response.body.getReader();
   let text = "";
   try {
-    while (text.length < 8000) {
+    while (text.length < 64000) {
       const part = await reader.read();
       if (part.done) break;
       text += new TextDecoder().decode(part.value);
     }
-    if (text.length > 8000) return undefined;
+    if (text.length > 64000) return {};
     const error = JSON.parse(text).error;
-    const code = typeof error?.code === "string" ? error.code : error?.type;
-    return typeof code === "string" && /^[a-z0-9_]{1,64}$/.test(code) ? code : undefined;
+    const raw = typeof error?.code === "string" ? error.code : error?.type;
+    const code = typeof raw === "string" && /^[a-z0-9_]{1,64}$/.test(raw) ? raw : undefined;
+    return {
+      code,
+      misplacedAnswer: misplacedFinalAnswer(code, error?.failed_generation),
+      missingTool: missingCatalogueTool(code, error?.failed_generation, error?.message),
+    };
   } catch {
     /* Error classification never depends on untrusted provider prose. */
-    return undefined;
+    return {};
   } finally {
     await reader.cancel().catch(() => {});
     reader.releaseLock();
   }
+}
+function misplacedFinalAnswer(code: string | undefined, generation: unknown) {
+  if (code !== "tool_use_failed" || typeof generation !== "string") return undefined;
+  const call = parseModelJSON(generation) as { name?: unknown; arguments?: unknown } | undefined;
+  if (typeof call?.name !== "string") return undefined;
+  if (Object.hasOwn(toolSchemas, call.name) || call.name === "discover_tools") return undefined;
+  const args = typeof call.arguments === "string" ? parseModelJSON(call.arguments) : call.arguments;
+  return args && typeof (args as { answer?: unknown }).answer === "string"
+    ? JSON.stringify(args)
+    : undefined;
+}
+// The model called a real catalogue tool that is not loaded yet (Groq rejects a call to a
+// tool absent from the request). Only an exact catalogue name is returned; whether the
+// run may load it is decided by the server-side toolbox.
+function missingCatalogueTool(code: string | undefined, generation: unknown, message: unknown) {
+  if (code !== "tool_use_failed") return undefined;
+  const call =
+    typeof generation === "string"
+      ? (parseModelJSON(generation) as { name?: unknown } | undefined)
+      : undefined;
+  const fromMessage =
+    typeof message === "string"
+      ? /attempted to call tool '([a-z_]{1,64})' which was not in request\.tools/.exec(message)?.[1]
+      : undefined;
+  const name = typeof call?.name === "string" ? call.name : fromMessage;
+  return name && Object.hasOwn(toolSchemas, name) ? (name as ToolName) : undefined;
+}
+// The final answer is the JSON object requested by the prompt. A direct answer written
+// as plain prose (no JSON at all) is accepted as the answer text; empty or broken JSON is not.
+function finalAnswer(text: string): unknown {
+  const parsed = parseModelJSON(text);
+  if (parsed !== undefined) return parsed;
+  const prose = text.trim();
+  return prose && !/^(?:\{|\[|```)/.test(prose) ? { answer: prose } : undefined;
 }
 async function providerJSON(response: Response, errorCode?: string) {
   if (!response.ok) throw providerFailure(response, errorCode);
@@ -99,7 +146,7 @@ export async function runAgent(
     {
       role: "system",
       content:
-        agentInstructions(options.model) +
+        agentInstructions(options.model, { toolBudget: options.toolLimit }) +
         "\nMode de validation choisi pour ce message : " +
         (c.approvalMode === "ask"
           ? "Toujours me consulter. Prépare les aperçus utiles, mais toute modification ou envoi doit attendre sa confirmation."
@@ -171,6 +218,7 @@ export async function runAgent(
     // Up to DISCOVERY_ALLOWANCE discoveries do not consume the business budget. The
     // database admits the same total (runToolLimit) and at most 16 provider calls.
     let discoveries = 0;
+    let autoLoaded = 0;
     const freeDiscoveries = runToolLimit(options.toolLimit) - Math.max(1, options.toolLimit);
     const maxRound = Math.min(15, options.toolLimit + freeDiscoveries + 1);
     for (let round = 0; round <= maxRound; round++) {
@@ -195,7 +243,7 @@ export async function runAgent(
           "Budget IA atteint. Réduisez le périmètre ou ouvrez une nouvelle recherche.",
           429,
         );
-      options.step("model-" + round, "Analyse des sources et sélection des outils", "running");
+      options.step("model-" + round, "Analyse de la demande", "running");
       const exhausted = toolCalls >= options.toolLimit;
       const beganProvider = Date.now();
       await rpc(c.client, "agent_runtime", {
@@ -263,7 +311,11 @@ export async function runAgent(
             duration_ms: Date.now() - beganProvider,
           },
         });
-      const providerCode = response.ok ? undefined : await providerErrorCode(response);
+      const {
+        code: providerCode,
+        misplacedAnswer,
+        missingTool,
+      } = response.ok ? {} : await readProviderError(response);
       if (!response.ok)
         await logEvent("warn", "agent_provider_call", {
           run_id: c.run,
@@ -274,6 +326,37 @@ export async function runAgent(
           code: "provider_http_error",
           provider_code: providerCode ?? "unknown",
         });
+      if (misplacedAnswer) {
+        // The model wrote its final answer as a call to a tool that does not exist
+        // ("json"): the answer itself is complete and goes through the normal checks.
+        json = misplacedAnswer;
+        options.step("model-" + round, "Réponse prête", "done");
+        break;
+      }
+      if (
+        missingTool &&
+        !c.analysisMeetingId &&
+        autoLoaded < DISCOVERY_ALLOWANCE &&
+        round < maxRound &&
+        !toolbox.allows(missingTool)
+      ) {
+        // The model called an allowed catalogue tool before discovering it. Load it, as an
+        // explicit discovery would (no data access), only if the run's catalogue allows it.
+        try {
+          toolbox.discover({ names: [missingTool] });
+        } catch {
+          /* Outside the run's catalogue: the call stays rejected below. */
+        }
+        if (toolbox.allows(missingTool)) {
+          autoLoaded++;
+          messages.push({
+            role: "system",
+            content: `L’outil ${missingTool} est maintenant chargé : tu peux l’appeler.`,
+          });
+          options.step("model-" + round, "Chargement d’un outil utile", "done");
+          continue;
+        }
+      }
       if (providerCode === "tool_use_failed" && !retriedToolCall && round < maxRound) {
         retriedToolCall = true;
         options.step("model-" + round, "Appel d’outil invalide, nouvelle tentative", "done");
@@ -316,12 +399,12 @@ export async function runAgent(
       if (!choice || choice.finish_reason === "length")
         throw new ApiError("Réponse IA incomplète. Affinez la demande.", 502);
       const message = choice.message;
-      options.step("model-" + round, "Analyse des sources terminée", "done");
+      options.step("model-" + round, "Analyse terminée", "done");
       const calls = message?.tool_calls;
       if (!calls?.length) {
         json = message?.content ?? "";
-        if (parseModelJSON(json) === undefined && !retriedEmpty && round < maxRound) {
-          // One corrective round for an empty or non-JSON final answer.
+        if (finalAnswer(json) === undefined && !retriedEmpty && round < maxRound) {
+          // One corrective round for an empty or malformed final answer.
           retriedEmpty = true;
           messages.push({
             role: "system",
@@ -443,7 +526,7 @@ export async function runAgent(
     }
     options.signal.throwIfAborted();
     await guard(c);
-    const raw = parseModelJSON(json);
+    const raw = finalAnswer(json);
     if (raw === undefined)
       throw new ApiError("Réponse IA vide ou illisible. Relancez la question.", 502);
     const skillResult = skill ? validateAgentSkillResult(skill.manifest, raw) : undefined;
