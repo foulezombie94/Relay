@@ -1,0 +1,112 @@
+.root {
+  --ai-status-ink: var(--muted, #868593);
+  --ai-status-shine: var(--text, #000);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  height: 32px;
+  font-size: 13px;
+  color: var(--text, #000);
+}
+
+.iconSlot {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.track {
+  position: relative;
+  overflow-x: clip;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  white-space: nowrap;
+}
+
+.labelSlot {
+  position: relative;
+  display: grid;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--ai-status-ink);
+}
+
+.detail {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--ai-status-ink) 70%, transparent);
+}
+
+.detailText {
+  max-width: 224px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.favicon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  object-fit: contain;
+}
+
+.faviconSlot {
+  display: flex;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--ai-status-ink) 70%, transparent);
+}
+
+.glyph {
+  color: var(--ai-status-ink);
+}
+
+.glyphError {
+  color: #ff3b30;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--ai-status-ink);
+}
+
+.shimmer {
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+}

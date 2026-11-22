@@ -1,5 +1,6 @@
 "use client";
 import { AgentActions } from "./actions";
+import { AiStatus, type AiStatusState } from "./ai-status";
 import { SecurityNotices } from "./source-reader";
 import { useId, useState } from "react";
 import Link from "next/link";
@@ -159,19 +160,37 @@ function SkillCreatorCard({ value, workspace }: { value: unknown; workspace: str
     </section>
   );
 }
+function activityState(
+  steps: AssistantStep[],
+  active: boolean,
+  failed: boolean,
+  writing: boolean,
+): AiStatusState {
+  if (!active) return failed ? "error" : "done";
+  if (writing) return "writing";
+  const running = steps.findLast((s) => s.status === "running");
+  if (running?.id.startsWith("tool-")) return "researching";
+  if (running?.id.startsWith("model-")) return "analyzing";
+  return "thinking";
+}
 export function AgentActivity({
   steps,
   active,
   elapsed,
+  writing = false,
 }: {
   steps: AssistantStep[];
   active: boolean;
   elapsed?: number;
+  writing?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const detailsId = useId();
   const failed = steps.some((s) => s.status === "error");
   const duration = elapsed ? Math.round(elapsed / 1000) : 0;
+  const state = activityState(steps, active, failed, writing);
+  const running = active ? steps.findLast((s) => s.status === "running") : undefined;
+  const count = `${steps.length} étape${steps.length > 1 ? "s" : ""}`;
   return (
     <div className={styles.activity} data-active={active}>
       <button
@@ -186,17 +205,11 @@ export function AgentActivity({
         }
         onClick={() => setExpanded(!expanded)}
       >
-        {!active && (failed ? <TriangleAlert size={14} /> : <Check size={14} />)}
-        <span
-          className={active ? `${styles.shimmer} shimmer text-sm text-muted-foreground` : undefined}
-        >
-          {active
-            ? "Thinking…"
-            : failed
-              ? "Activité interrompue"
-              : `${steps.length} étape${steps.length > 1 ? "s" : ""} effectuée${steps.length > 1 ? "s" : ""}`}
-        </span>
-        {!active && duration > 0 && <small>{duration} s</small>}
+        <AiStatus
+          state={state}
+          detail={active ? running?.label : steps.length ? count : undefined}
+          elapsed={active ? undefined : duration || undefined}
+        />
         {(!active || expanded) && (expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
       </button>
       {expanded && (
@@ -263,7 +276,12 @@ export function ChatMessage({
   return (
     <article className={styles.agentMessage}>
       {((message.steps?.length ?? 0) > 0 || active) && (
-        <AgentActivity steps={message.steps ?? []} active={active} elapsed={message.elapsed_ms} />
+        <AgentActivity
+          steps={message.steps ?? []}
+          active={active}
+          elapsed={message.elapsed_ms}
+          writing={active && !!message.answer}
+        />
       )}
       {message.answer ? (
         <Answer text={message.answer} />
