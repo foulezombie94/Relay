@@ -12,6 +12,23 @@ describe("provider failures and cost estimates", () => {
     });
     expect(providerFailure(r, true)).toMatchObject({ code: "provider_quota_exhausted" });
   });
+  it("names an unavailable model and an invalid tool call instead of a generic refusal", () => {
+    const r = new Response(null, { status: 400 });
+    expect(providerFailure(r, "model_decommissioned")).toMatchObject({
+      code: "provider_model_unavailable",
+    });
+    expect(providerFailure(r, "tool_use_failed")).toMatchObject({
+      code: "provider_tool_call_invalid",
+    });
+    expect(providerFailure(r, "insufficient_quota")).toMatchObject({
+      code: "provider_failed",
+    });
+    expect(
+      providerFailure(new Response(null, { status: 429 }), "insufficient_quota"),
+    ).toMatchObject({
+      code: "provider_quota_exhausted",
+    });
+  });
   it("supports HTTP dates and ignores malformed retry hints", () => {
     expect(
       retryAfterSeconds(new Headers({ "retry-after": "Thu, 01 Jan 1970 00:01:00 GMT" }), 0),

@@ -8,8 +8,27 @@ export function retryAfterSeconds(headers: Headers, now = Date.now()) {
   const seconds = /^\d+(?:\.\d+)?$/.test(value) ? Number(value) : (Date.parse(value) - now) / 1000;
   return Number.isFinite(seconds) ? Math.min(86400, Math.max(1, Math.ceil(seconds))) : undefined;
 }
-export function providerFailure(response: Response, exhaustedQuota = false) {
+const MODEL_CODES = new Set(["model_not_found", "model_decommissioned", "model_terms_required"]);
+export function providerFailure(response: Response, providerCode?: string | boolean) {
   const status = response.status;
+  const code = typeof providerCode === "string" ? providerCode : undefined;
+  const exhaustedQuota = providerCode === true || code === "insufficient_quota";
+  if (code && MODEL_CODES.has(code))
+    return Object.assign(
+      new ApiError(
+        "Le modèle IA configuré est indisponible chez le fournisseur. Vérifiez GROQ_MODEL ou OPENAI_MODEL.",
+        502,
+      ),
+      { code: "provider_model_unavailable", retryAfter: undefined },
+    );
+  if (code === "tool_use_failed")
+    return Object.assign(
+      new ApiError(
+        "Le modèle IA a produit un appel d’outil invalide. Relancez la question ou reformulez-la.",
+        502,
+      ),
+      { code: "provider_tool_call_invalid", retryAfter: undefined },
+    );
   return Object.assign(
     new ApiError(
       status === 429

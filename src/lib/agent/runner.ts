@@ -19,30 +19,32 @@ import { prepareAgentSkill, validateAgentSkillResult, type AgentSkill } from "./
 
 // Provider output is bounded before JSON parsing; streams, tool arguments and errors
 // cannot grow indefinitely. No unvalidated model text is displayed to the user.
-async function providerJSON(response: Response) {
-  if (!response.ok) {
-    // Only inspect a bounded error code. Never expose provider bodies, requests,
-    // account identifiers or source content in telemetry or the UI.
-    let quota = false;
-    if (response.body) {
-      const reader = response.body.getReader();
-      let text = "";
-      try {
-        while (text.length < 8000) {
-          const part = await reader.read();
-          if (part.done) break;
-          text += new TextDecoder().decode(part.value);
-        }
-        if (text.length <= 8000) quota = JSON.parse(text).error?.code === "insufficient_quota";
-      } catch {
-        /* Error classification never depends on untrusted provider prose. */
-      } finally {
-        await reader.cancel().catch(() => {});
-        reader.releaseLock();
-      }
+// Only a bounded, identifier-shaped error code is kept. Never expose provider bodies,
+// requests, account identifiers or source content in telemetry or the UI.
+async function providerErrorCode(response: Response) {
+  if (!response.body) return undefined;
+  const reader = response.body.getReader();
+  let text = "";
+  try {
+    while (text.length < 8000) {
+      const part = await reader.read();
+      if (part.done) break;
+      text += new TextDecoder().decode(part.value);
     }
-    throw providerFailure(response, quota);
+    if (text.length > 8000) return undefined;
+    const error = JSON.parse(text).error;
+    const code = typeof error?.code === "string" ? error.code : error?.type;
+    return typeof code === "string" && /^[a-z0-9_]{1,64}$/.test(code) ? code : undefined;
+  } catch {
+    /* Error classification never depends on untrusted provider prose. */
+    return undefined;
+  } finally {
+    await reader.cancel().catch(() => {});
+    reader.releaseLock();
   }
+}
+async function providerJSON(response: Response, errorCode?: string) {
+  if (!response.ok) throw providerFailure(response, errorCode);
   if (!response.body) throw new ApiError("Réponse du fournisseur IA absente.", 502);
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -156,6 +158,9 @@ export async function runAgent(
         access_fingerprint: access,
       } satisfies Partial<AssistantMessage>;
     }
+    // Groq rejects a whole call when the model emits a malformed tool call; one fresh
+    // attempt usually succeeds. The rejected call is already closed as "rejected".
+    let retriedToolCall = false;
     for (let round = 0; round <= options.toolLimit; round++) {
       options.signal.throwIfAborted();
       await guard(c);
@@ -244,15 +249,23 @@ export async function runAgent(
             duration_ms: Date.now() - beganProvider,
           },
         });
+      const providerCode = response.ok ? undefined : await providerErrorCode(response);
       if (!response.ok)
         await logEvent("warn", "agent_provider_call", {
           run_id: c.run,
           provider: configuredAgentProvider(),
+          model: options.model,
           status: response.status,
           duration_ms: Date.now() - beganProvider,
           code: "provider_http_error",
+          provider_code: providerCode ?? "unknown",
         });
-      const data = await providerJSON(response);
+      if (providerCode === "tool_use_failed" && !retriedToolCall && round < options.toolLimit) {
+        retriedToolCall = true;
+        options.step("model-" + round, "Appel d’outil invalide, nouvelle tentative", "done");
+        continue;
+      }
+      const data = await providerJSON(response, providerCode);
       if (
         !Number.isSafeInteger(data.usage?.prompt_tokens) ||
         data.usage.prompt_tokens < 0 ||

@@ -10,6 +10,9 @@ type Fields = {
   request_id?: string;
   run_id?: string;
   provider?: string;
+  /** Configured model id and bounded provider error code; never provider prose. */
+  model?: string;
+  provider_code?: string;
   input_tokens?: number;
   output_tokens?: number;
   workspace_id?: string;
