@@ -6,7 +6,15 @@ vi.mock("./database", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./database")>()),
   mcpDb: db.mcpDb,
 }));
-import { handleMcp, executeTool, sanitizeResult, output, toolError } from "./server";
+import {
+  handleMcp,
+  executeTool,
+  sanitizeResult,
+  output,
+  toolError,
+  elicitationModes,
+  confirmationMessage,
+} from "./server";
 import { ApiError } from "@/lib/api/context";
 import { availableToolNames, tools } from "./contracts";
 import { instructions } from "./guidance";
@@ -206,7 +214,7 @@ describe("official MCP SDK v2 transport", () => {
     });
     const result = await executeTool("hash", session, "zyliad_connection", {});
     expect(result).toMatchObject({
-      server_version: "1.3.0",
+      server_version: "1.4.0",
       language: "fr",
       limits: { max_page_size: 20 },
     });
@@ -257,8 +265,48 @@ describe("official MCP SDK v2 transport", () => {
     expect(JSON.stringify(failure)).not.toContain("zmc_a_");
     expect(toolError(new ApiError("Version périmée.", 409, "conflict"), id).retryable).toBe(false);
   });
+  it("approves or rejects a proposal from the MCP client with the connection token", async () => {
+    const writer = { ...session, scopes: ["crm:write"] };
+    db.mcpDb.mockResolvedValueOnce({ id, status: "executed", record_id: id });
+    await expect(
+      executeTool("hash", writer, "zyliad_confirm_command", { id, decision: "approve" }),
+    ).resolves.toMatchObject({ status: "executed" });
+    expect(db.mcpDb).toHaveBeenLastCalledWith("hash", "approve", { command_id: id });
+    db.mcpDb.mockResolvedValueOnce({ id, status: "rejected" });
+    await executeTool("hash", writer, "zyliad_confirm_command", { id, decision: "reject" });
+    expect(db.mcpDb).toHaveBeenLastCalledWith("hash", "reject", { command_id: id });
+    await expect(
+      executeTool("hash", writer, "zyliad_confirm_command", { id, decision: "delete" }),
+    ).rejects.toThrow();
+    await expect(
+      executeTool("hash", { ...session, scopes: ["records:read"] }, "zyliad_confirm_command", {
+        id,
+        decision: "approve",
+      }),
+    ).rejects.toMatchObject({ status: 403 });
+  });
+  it("asks the client itself for a yes/no when it supports form elicitation", () => {
+    const key = "io.modelcontextprotocol/clientCapabilities";
+    expect(elicitationModes({ [key]: { elicitation: {} } })).toEqual({ form: true, url: false });
+    expect(elicitationModes({ [key]: { elicitation: { url: {} } } })).toEqual({
+      form: false,
+      url: true,
+    });
+    expect(elicitationModes({ [key]: { elicitation: { form: {}, url: {} } } })).toEqual({
+      form: true,
+      url: true,
+    });
+    expect(elicitationModes(undefined)).toEqual({ form: false, url: false });
+    const message = confirmationMessage("une tâche", {
+      title: "Rappeler Jeanne",
+      api_key: "secret-value",
+    });
+    expect(message).toContain("Rappeler Jeanne");
+    expect(message).toContain("Rien n’est modifié si vous refusez.");
+    expect(message).not.toContain("secret-value");
+  });
   it("exposes all expected tools only under their grants", () => {
-    expect(Object.keys(tools)).toHaveLength(41);
+    expect(Object.keys(tools)).toHaveLength(42);
     expect(availableToolNames([])).toEqual(["zyliad_connection"]);
   });
 });

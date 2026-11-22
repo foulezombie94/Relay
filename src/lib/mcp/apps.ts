@@ -4,9 +4,9 @@ import type { ToolName } from "./contracts";
 // VS Code…) inside a sandboxed iframe. Each view is a self-contained HTML document with
 // the Zyliad design tokens. It talks to the host over postMessage JSON-RPC (ui/initialize,
 // tools/call, ui/message, ui/open-link) and falls back to ChatGPT's window.openai.
-// Security: no network access (default CSP), every value is rendered as text, links only
-// open Zyliad pages, and "Oui" on a proposal opens the Zyliad confirmation page: the
-// card never approves a write itself.
+// Security: no network access (default CSP), every value is rendered as text and links only
+// open Zyliad pages. "Oui" / "Non" on a proposal are the user's own clicks: they call
+// zyliad_confirm_command through the host, which re-checks rights, roles and versions.
 
 export const appMimeType = "text/html;profile=mcp-app";
 export const appViews = ["record", "results", "proposal", "duplicates", "pipeline"] as const;
@@ -29,6 +29,7 @@ const writeTools: ToolName[] = [
   "zyliad_create_field",
   "zyliad_update_pipeline_stages",
   "zyliad_command_status",
+  "zyliad_confirm_command",
 ];
 export const toolViews: Partial<Record<ToolName, AppView>> = {
   zyliad_get_record: "record",
@@ -62,7 +63,7 @@ const descriptions: Record<AppView, string> = {
   record: "Carte interactive d’une fiche Zyliad.",
   results: "Liste interactive de fiches Zyliad, avec choix d’une fiche.",
   proposal:
-    "Carte de proposition Zyliad avec choix Oui / Non ; la confirmation se fait dans Zyliad.",
+    "Carte de proposition Zyliad avec choix Oui / Non : Oui exécute la modification, Non l’annule.",
   duplicates: "Comparaison interactive de doublons potentiels.",
   pipeline: "Graphique interactif d’un agrégat CRM.",
 };
@@ -158,9 +159,11 @@ function flatten(v,prefix,out){if(v&&typeof v==="object"&&!Array.isArray(v)){Obj
 function renderProposal(d){var input=state.input||{},values=input.values||{},result=d||{},status=state.done||result.status||"pending",action=result.action||"";
  var card=el("div","card"),head=el("div","head");head.appendChild(el("div","avatar",status==="executed"?"✓":status==="pending"?"✎":"✕"));var t=el("div");t.appendChild(el("p","title",actionLabels[action]||"Proposition de modification"));var st=el("span","status "+status,statusLabels[status]||status);t.appendChild(st);head.appendChild(t);card.appendChild(head);
  var rows=flatten(values,"",[]).filter(function(p){return p[1]!==undefined&&p[1]!==null&&p[1]!==""});if(rows.length){var g=el("dl","grid");rows.slice(0,30).forEach(function(p){g.appendChild(el("dt",null,fieldLabel(p[0])));g.appendChild(el("dd",null,p[1]))});card.appendChild(g)}
- card.appendChild(el("p","note",status==="executed"?"Modification confirmée dans Zyliad et exécutée.":status==="pending"?"Rien n’est modifié avant votre confirmation dans Zyliad."+(result.expires_at?" Expire le "+new Date(result.expires_at).toLocaleString("fr-FR")+".":""):"Aucune modification n’a été exécutée par cette proposition."));
- var a=el("div","actions");if(status==="pending"&&result.confirmation_url){a.appendChild(btn("Oui, confirmer dans Zyliad","primary",function(){openLink(result.confirmation_url).catch(failure)}));
-  a.appendChild(btn("Non, annuler","danger",function(){state.done="rejected";render();say("Non : je ne confirme pas cette proposition"+(result.id?" ("+result.id+")":"")+". Ne la reprends pas.").catch(failure)}))}
+ card.appendChild(el("p","note",status==="executed"?"Modification confirmée et exécutée dans Zyliad.":status==="pending"?"Rien n’est modifié avant votre réponse."+(result.expires_at?" Expire le "+new Date(result.expires_at).toLocaleString("fr-FR")+".":""):"Aucune modification n’a été exécutée par cette proposition."));
+ function decide(decision,b){b.disabled=true;state.error="";callTool("zyliad_confirm_command",{id:result.id,decision:decision}).then(function(res){var x=structured(res);var s=x&&x.data&&x.data.status;if(res&&res.isError||!s){state.error=decision==="approve"?"La modification n’a pas pu être exécutée (droits, version ou expiration). Demandez à l’assistant.":"Le refus n’a pas pu être enregistré.";render();return}state.done=s;render();say(s==="executed"?"Oui : la proposition "+result.id+" est confirmée et exécutée.":"Non : la proposition "+result.id+" est annulée. Ne la reprends pas.").catch(function(){})}).catch(failure)}
+ var a=el("div","actions");if(status==="pending"&&result.id){a.appendChild(btn("Oui, confirmer","primary",function(b){decide("approve",b)}));
+  a.appendChild(btn("Non, annuler","danger",function(b){decide("reject",b)}));
+  if(result.confirmation_url)a.appendChild(btn("Voir dans Zyliad",null,function(){openLink(result.confirmation_url).catch(failure)}))}
  if(result.id)a.appendChild(btn("Vérifier le statut",null,function(b){b.disabled=true;callTool("zyliad_command_status",{id:result.id}).then(function(res){var x=structured(res);var s=x&&x.data&&x.data.status;if(s){state.done=s}else{state.error="Statut indisponible."}render()}).catch(failure)}));
  card.appendChild(a);root.appendChild(card)}
 function side(r){var s=el("div","side");s.appendChild(el("div","name",recordName(r)));[["Email",r.email],["Domaine",r.domain],["Étape",r.stage],["Version",r.version]].forEach(function(p){if(p[1]!=null&&p[1]!=="")s.appendChild(el("div","sub",p[0]+" : "+p[1]))});return s}
@@ -188,7 +191,7 @@ window.addEventListener("message",function(e){if(e.source!==window.parent)return
 function fromOpenAI(){var o=oa();if(!o)return false;if(o.toolInput)state.input=o.toolInput;if(o.toolOutput)state.result={structuredContent:o.toolOutput};theme(o.theme);render();return true}
 window.addEventListener("openai:set_globals",fromOpenAI);
 if(!fromOpenAI())render();
-rpc("ui/initialize",{appInfo:{name:"Zyliad",version:"1.3.0"},appCapabilities:{},protocolVersion:"2026-01-26"}).then(function(r){theme(r&&r.hostContext&&r.hostContext.theme);send({jsonrpc:"2.0",method:"ui/notifications/initialized",params:{}})}).catch(function(){});
+rpc("ui/initialize",{appInfo:{name:"Zyliad",version:"1.4.0"},appCapabilities:{},protocolVersion:"2026-01-26"}).then(function(r){theme(r&&r.hostContext&&r.hostContext.theme);send({jsonrpc:"2.0",method:"ui/notifications/initialized",params:{}})}).catch(function(){});
 if(window.ResizeObserver)new ResizeObserver(function(){var h=document.documentElement.scrollHeight;send({jsonrpc:"2.0",method:"ui/notifications/size-changed",params:{width:document.documentElement.scrollWidth,height:h}});if(oa()&&oa().notifyIntrinsicHeight)oa().notifyIntrinsicHeight(h)}).observe(document.body);
 `;
 

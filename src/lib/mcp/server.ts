@@ -5,6 +5,7 @@ import {
   createMcpHandler,
   completable,
   inputRequired,
+  inputResponse,
   CLIENT_CAPABILITIES_META_KEY,
 } from "@modelcontextprotocol/server";
 import { z, ZodError } from "zod";
@@ -49,7 +50,8 @@ const coverageTranslations: Record<string, string> = {
     "Agrégation exacte des résultats correspondants autorisés.",
 };
 const statusLabels: Record<string, string> = {
-  pending: "En attente de confirmation dans Zyliad ; aucune modification exécutée.",
+  pending:
+    "En attente de confirmation ; aucune modification exécutée. Montrez les valeurs à l’utilisateur : s’il dit oui, appelez zyliad_confirm_command (approve), sans passer par Zyliad.",
   executed: "Modification exécutée et confirmée par Zyliad.",
   rejected: "Proposition refusée ; aucune modification exécutée par cette proposition.",
   expired: "Proposition expirée ; préparer une nouvelle proposition avant toute confirmation.",
@@ -160,7 +162,14 @@ export async function executeTool(
     return mcpDb(tokenHash, "aggregate", { kind, group_by, filters });
   }
   if (name === "zyliad_command_status") return mcpDb(tokenHash, "status", input);
+  if (name === "zyliad_confirm_command") return decide(tokenHash, input.id, input.decision);
   return mcpDb(tokenHash, "workspace");
+}
+/** Approves or rejects a proposal of this connection, as its user, from the MCP client. */
+async function decide(tokenHash: string, id: unknown, decision: unknown) {
+  if (decision !== "approve" && decision !== "reject")
+    throw new ApiError("Décision invalide.", 400, "validation_error");
+  return mcpDb(tokenHash, decision, { command_id: id });
 }
 /** Direct link to one proposal on the confirmation page (no CRM value in the URL). */
 export function confirmationUrl(commandId?: unknown) {
@@ -259,12 +268,25 @@ export function toolError(error: unknown, requestId: string) {
     request_id: requestId,
   };
 }
-const readOnly = (name: ToolName) => !("action" in tools[name]);
-/** True when the client declared URL-mode elicitation on this 2026-era request. */
-function supportsUrlElicitation(envelope: unknown) {
+const readOnly = (name: ToolName) =>
+  !("action" in tools[name]) && name !== "zyliad_confirm_command";
+/** Elicitation modes the client declared on this 2026-era request (an empty object means form). */
+export function elicitationModes(envelope: unknown) {
   const caps = (envelope as Record<string, unknown> | undefined)?.[CLIENT_CAPABILITIES_META_KEY] as
-    { elicitation?: { url?: unknown } } | undefined;
-  return !!caps?.elicitation?.url;
+    { elicitation?: Record<string, unknown> } | undefined;
+  const e = caps?.elicitation;
+  if (!e || typeof e !== "object") return { form: false, url: false };
+  return { form: !!e.form || !e.url, url: !!e.url };
+}
+const confirmation = z.object({
+  confirm: z
+    .boolean()
+    .describe("Oui pour exécuter cette modification dans Zyliad, non pour l’annuler."),
+});
+/** Short French summary of a proposal for the client's own confirmation dialog. */
+export function confirmationMessage(title: string, values: unknown) {
+  const text = JSON.stringify(sanitizeResult(values ?? {}));
+  return `Confirmer dans Zyliad : ${title} ?\n${text.length > 700 ? text.slice(0, 700) + "…" : text}\nRien n’est modifié si vous refusez.`;
 }
 export function buildServer(tokenHash: string, session: Session, requestId = randomUUID()) {
   const origin = mcpOrigin();
@@ -311,9 +333,10 @@ export function buildServer(tokenHash: string, session: Session, requestId = ran
         annotations: {
           title: toolTitles[name],
           // Write tools only create a proposal: nothing changes before the human
-          // confirms it in Zyliad, and the same request_id never duplicates it.
+          // confirms it, and the same request_id never duplicates it. The confirm
+          // tool executes it, so clients ask the user before calling it.
           readOnlyHint: readOnly(name),
-          destructiveHint: false,
+          destructiveHint: name === "zyliad_confirm_command",
           idempotentHint: true,
           openWorldHint: false,
         },
@@ -334,23 +357,42 @@ export function buildServer(tokenHash: string, session: Session, requestId = ran
         try {
           const result = await executeTool(tokenHash, session, name, input);
           if (name === "search" || name === "fetch") return plainOutput(result);
-          // A proposal waits for the human: clients that support URL elicitation open the
-          // exact confirmation page in Zyliad, where only the user's session can approve.
-          if (
-            "action" in tool &&
-            result?.status === "pending" &&
-            !ctx.mcpReq.inputResponses &&
-            supportsUrlElicitation(ctx.mcpReq.envelope)
-          )
-            return inputRequired({
-              inputRequests: {
-                confirm: inputRequired.elicitUrl({
-                  message:
-                    "Vérifiez et confirmez cette proposition dans Zyliad. Rien n’est modifié avant votre confirmation.",
-                  url: confirmationUrl(result.id),
-                }),
-              },
-            });
+          // A proposal waits for the human. Clients with form elicitation show a yes/no
+          // dialog themselves (the model cannot answer it): yes executes, no rejects.
+          // URL-only clients open the Zyliad page; others use the card or the confirm tool.
+          if ("action" in tool && result?.status === "pending") {
+            const answer = inputResponse(ctx.mcpReq.inputResponses, "confirm");
+            if (answer.kind === "elicit") {
+              if (answer.action === "accept" && answer.content?.confirm === true)
+                return output(await decide(tokenHash, result.id, "approve"));
+              if (answer.action === "accept" || answer.action === "decline")
+                return output(await decide(tokenHash, result.id, "reject"));
+              return output(result);
+            }
+            const modes = elicitationModes(ctx.mcpReq.envelope);
+            if (!ctx.mcpReq.inputResponses && modes.form)
+              return inputRequired({
+                inputRequests: {
+                  confirm: inputRequired.elicit({
+                    message: confirmationMessage(
+                      toolTitles[name].replace(/^Proposer /, ""),
+                      (input as Record<string, unknown> | undefined)?.values,
+                    ),
+                    requestedSchema: confirmation,
+                  }),
+                },
+              });
+            if (!ctx.mcpReq.inputResponses && modes.url)
+              return inputRequired({
+                inputRequests: {
+                  confirm: inputRequired.elicitUrl({
+                    message:
+                      "Vérifiez et confirmez cette proposition dans Zyliad. Rien n’est modifié avant votre confirmation.",
+                    url: confirmationUrl(result.id),
+                  }),
+                },
+              });
+          }
           return output(result);
         } catch (error) {
           const failure = toolError(error, requestId);

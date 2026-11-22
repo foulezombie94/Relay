@@ -69,7 +69,7 @@ describe("MCP Apps interactive cards", () => {
       const card = await client.readResource({ uri: appUri("proposal") });
       expect(card.contents[0]).toMatchObject({ mimeType: appMimeType });
       expect(String((card.contents[0] as { text?: string }).text)).toContain(
-        "Oui, confirmer dans Zyliad",
+        "zyliad_confirm_command",
       );
       const list = await client.listTools();
       const tool = list.tools.find((t) => t.name === "zyliad_get_record");
