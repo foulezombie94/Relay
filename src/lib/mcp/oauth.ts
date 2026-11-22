@@ -93,7 +93,12 @@ export async function oauthGet(req: NextRequest, operation: string) {
     if (body.resource !== mcpResource())
       throw new ApiError("Wrong resource.", 400, "invalid_target");
     const flow = randomSecret();
-    const client = await resolveClientId(body.client_id, "authorize", oauthRateKey(req));
+    const client = await resolveClientId(
+      body.client_id,
+      "authorize",
+      oauthRateKey(req),
+      body.redirect_uri,
+    );
     await oauthDb("begin", {
       ...body,
       client_id: client,

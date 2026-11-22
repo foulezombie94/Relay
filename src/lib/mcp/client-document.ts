@@ -31,11 +31,55 @@ export const clientIdUrl = z
   }, "client_id must be an HTTPS metadata document URL.");
 export const clientId = z.union([z.uuid(), clientIdUrl]);
 
+const loopbackHosts = ["127.0.0.1", "[::1]", "localhost"];
+function portlessLoopback(value: string) {
+  try {
+    const u = new URL(value);
+    return (
+      u.protocol === "http:" &&
+      loopbackHosts.includes(u.hostname) &&
+      !u.port &&
+      !u.username &&
+      !u.password &&
+      !u.hash
+    );
+  } catch {
+    return false;
+  }
+}
+// Native clients (Claude Code, for one) publish loopback redirects without a port:
+// RFC 8252 §7.3 lets them pick any free port when the authorization starts.
+const documentRedirectUri = z
+  .string()
+  .max(2000)
+  .refine(
+    (value) => redirectUri.safeParse(value).success || portlessLoopback(value),
+    "Invalid redirect URI.",
+  );
+
+/**
+ * Redirect URIs to store for a metadata-document client. A port-less loopback entry
+ * admits the requested loopback URI that differs from it only by its port.
+ */
+export function documentRedirects(declared: string[], requested?: string) {
+  if (!requested || declared.includes(requested)) return declared;
+  let u: URL;
+  try {
+    u = new URL(requested);
+  } catch {
+    return declared;
+  }
+  if (u.protocol !== "http:" || !loopbackHosts.includes(u.hostname) || !u.port) return declared;
+  u.port = "";
+  if (!declared.filter(portlessLoopback).includes(u.href)) return declared;
+  return [requested, ...declared].slice(0, 5);
+}
+
 const documentSchema = z
   .object({
     client_id: z.string(),
     client_name: z.string().trim().min(1).max(100).optional(),
-    redirect_uris: z.array(redirectUri).min(1).max(5),
+    redirect_uris: z.array(documentRedirectUri).min(1).max(5),
     token_endpoint_auth_method: z.literal("none").optional(),
   })
   .strip();
@@ -123,10 +167,16 @@ export async function resolveClientId(
   id: string,
   mode: "authorize" | "resolve",
   rateLimitKey?: string,
+  redirect?: string,
 ) {
   if (z.uuid().safeParse(id).success) return id;
   const url = clientIdUrl.parse(id);
   if (mode === "resolve") return documentDb("resolve", { url });
   const document = await fetchDocument(url);
-  return documentDb("upsert", { url, rate_limit_key: rateLimitKey, ...document });
+  return documentDb("upsert", {
+    url,
+    rate_limit_key: rateLimitKey,
+    client_name: document.client_name,
+    redirect_uris: documentRedirects(document.redirect_uris, redirect),
+  });
 }
