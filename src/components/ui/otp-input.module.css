@@ -1,0 +1,110 @@
+.root {
+  --otp-box: 48px;
+  --otp-radius: 12px;
+  --otp-font: 18px;
+  --otp-caret: 24px;
+  --otp-gap: 8px;
+  --otp-bg: #f4f4f9;
+  --otp-ink: #000;
+  --otp-idle-ring: rgb(134 133 147 / 50%);
+  --otp-error-ring: rgb(255 59 48 / 70%);
+  position: relative;
+  display: inline-flex;
+}
+.root[data-size="sm"] {
+  --otp-box: 40px;
+  --otp-radius: 8px;
+  --otp-font: 16px;
+  --otp-caret: 20px;
+  --otp-gap: 6px;
+}
+.root[data-size="lg"] {
+  --otp-box: 56px;
+  --otp-radius: 16px;
+  --otp-font: 20px;
+  --otp-caret: 28px;
+  --otp-gap: 10px;
+}
+:global(html[data-relay-theme="dark"]) .root {
+  --otp-bg: #262626;
+  --otp-ink: #fff;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--otp-gap);
+}
+
+.cell {
+  position: relative;
+}
+
+/* .root raises specificity above host form rules such as `.field input`. */
+.root .slot {
+  display: block;
+  box-sizing: border-box;
+  width: var(--otp-box);
+  height: var(--otp-box);
+  padding: 0;
+  border: 0;
+  border-radius: var(--otp-radius);
+  background: var(--otp-bg);
+  color: transparent;
+  caret-color: transparent;
+  font: inherit;
+  font-size: var(--otp-font);
+  font-weight: 500;
+  text-align: center;
+  outline: none;
+  transition: box-shadow 200ms;
+}
+.root .slot::selection {
+  background: transparent;
+}
+.root .slot:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.root .idle:focus-visible {
+  box-shadow: 0 0 0 2px var(--otp-idle-ring);
+}
+/* success draws its own ring in svg, so no css ring here */
+.root .error {
+  box-shadow: 0 0 0 2px var(--otp-error-ring);
+  transition-delay: 150ms;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.charLayer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+.char {
+  color: var(--otp-ink);
+  font-size: var(--otp-font);
+  font-weight: 600;
+}
+
+.caret {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 2px;
+  height: var(--otp-caret);
+  border-radius: 9999px;
+  background: var(--otp-ink);
+  pointer-events: none;
+}

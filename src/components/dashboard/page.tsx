@@ -54,6 +54,7 @@ import { WidgetLibrary } from "./widget-library";
 import { WidgetMenu, WidgetResize } from "./widget-menu";
 import styles from "./dashboard.module.css";
 import boardStyles from "./board.module.css";
+import { DeleteButton } from "@/components/ui/delete-button";
 type Preference = { dashboard_id: string; favorite: boolean; home: boolean };
 type Detail = {
   data: {
@@ -95,8 +96,7 @@ function DashboardWorkspace() {
     [override, setOverride] = useState<DashboardSettings | null>(null),
     [editor, setEditor] = useState<{ index: number; tile: ReportTile } | null>(null);
   const [library, setLibrary] = useState(false),
-    [settingsOpen, setSettingsOpen] = useState(false),
-    [deleteOpen, setDeleteOpen] = useState(false);
+    [settingsOpen, setSettingsOpen] = useState(false);
   const [widgetSearch, setWidgetSearch] = useState("");
   const [widgetLibrary, setWidgetLibrary] = useState(false),
     [filtersOpen, setFiltersOpen] = useState(false),
@@ -457,13 +457,16 @@ function DashboardWorkspace() {
             </button>
           )}
           {selectedId && canEdit && !draft && (
-            <button
-              aria-label="Supprimer le dashboard"
-              className="icon-button"
-              onClick={() => setDeleteOpen(true)}
-            >
-              <Trash2 size={16} />
-            </button>
+            <DeleteButton
+              label="Supprimer le dashboard"
+              title="Supprime sa configuration et ses préférences, sans supprimer les données CRM"
+              onConfirm={() =>
+                perform(async () => {
+                  await remove("report_dashboards", selectedId);
+                  switchTo("");
+                })
+              }
+            />
           )}
           <button
             className="button"
@@ -1003,30 +1006,6 @@ function DashboardWorkspace() {
           </form>
         </Modal>
       )}
-      <Modal
-        open={deleteOpen}
-        onClose={() => setDeleteOpen(false)}
-        title="Supprimer ce dashboard ?"
-        description="Cette action supprime sa configuration et ses préférences, sans supprimer les données CRM."
-      >
-        <div className={styles.actions}>
-          <button className="button" onClick={() => setDeleteOpen(false)}>
-            Annuler
-          </button>
-          <button
-            className="button primary"
-            onClick={() =>
-              perform(async () => {
-                await remove("report_dashboards", selectedId);
-                switchTo("");
-                setDeleteOpen(false);
-              })
-            }
-          >
-            Supprimer
-          </button>
-        </div>
-      </Modal>
       <SlideViewer
         open={fullscreen !== null}
         index={fullscreen ?? 0}

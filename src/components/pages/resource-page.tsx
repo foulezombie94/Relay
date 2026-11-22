@@ -397,8 +397,8 @@ export function ResourcePage({ resource }: { resource: string }) {
               onEdit={() => setEditor(row)}
               onPortal={() => setPortal(row)}
               onDelete={() => {
-                if (window.confirm("Retirer cet élément ?"))
-                  void remove(resource, row.id).catch(() => {});
+                // Confirmed inline by the card's delete button.
+                void remove(resource, row.id).catch(() => {});
               }}
               onComplete={() => {
                 void save(resource, { status: "done" }, row).catch(() => {});

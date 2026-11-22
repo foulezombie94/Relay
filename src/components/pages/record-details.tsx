@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { request, useRows, useSave, useWorkspace } from "../providers/data-provider";
 import { Drawer, Editor, Empty, Badge, str, date, Loading, ErrorMessage, type Field } from "../ui";
 import { Pagination } from "../ui/pagination";
@@ -16,6 +16,7 @@ import styles from "../records/record-details.module.css";
 import { StudioRecordProfile } from "../records/studio/record-profile";
 import { RecordSkillLauncher } from "../skills/record-launcher";
 import { FieldHistory } from "../records/field-history";
+import { DeleteButton } from "@/components/ui/delete-button";
 const names: Record<string, string> = {
   timeline: "Contexte",
   relations: "Relations",
@@ -125,26 +126,19 @@ function LegacyRecordDetails({
               <Pencil size={14} />
               Modifier
             </button>
-            <button
-              className="button small"
+            <DeleteButton
+              label="Mettre la fiche à la corbeille"
+              title="Mettre à la corbeille : restaurable pendant 30 jours"
               disabled={readonly || busy}
-              onClick={async () => {
-                if (
-                  window.confirm(
-                    "Mettre cette fiche à la corbeille ? Elle reste restaurable pendant 30 jours.",
-                  )
-                )
-                  try {
-                    await remove("records", record.id);
-                    onClose();
-                  } catch (e) {
-                    setError(e instanceof Error ? e.message : "Suppression impossible");
-                  }
+              onConfirm={async () => {
+                try {
+                  await remove("records", record.id);
+                  onClose();
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : "Suppression impossible");
+                }
               }}
-            >
-              <Trash2 size={14} />
-              Supprimer
-            </button>
+            />
           </div>
         </div>
         <ErrorMessage error={error ? new Error(error) : null} />

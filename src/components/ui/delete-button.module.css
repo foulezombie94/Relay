@@ -1,0 +1,111 @@
+.root {
+  --del-surface: #f4f4f9;
+  --del-recess: #e7e7ef;
+  --del-glyph: #868593;
+  --del-hover: #fafafd;
+  --del-focus: #868593;
+  --del-lift:
+    0 0.5px 1px rgb(0 0 0 / 5%), 0 1px 3px rgb(0 0 0 / 8%), inset 0 0.5px 0 rgb(255 255 255 / 90%);
+  position: relative;
+  flex: 0 0 auto;
+  height: 48px;
+  border-radius: 16px;
+  background: var(--del-surface);
+  color: var(--del-glyph);
+}
+:global(html[data-relay-theme="dark"]) .root {
+  --del-surface: #262626;
+  --del-recess: #1b1b1b;
+  --del-glyph: #9b9aa7;
+  --del-hover: #2c2c2c;
+  --del-lift:
+    0 0.5px 1px rgb(0 0 0 / 35%), 0 1.5px 4px rgb(0 0 0 / 25%),
+    inset 0 0.5px 0 rgb(255 255 255 / 7%);
+}
+.disabled {
+  opacity: 0.5;
+}
+
+.trigger {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+}
+.trigger:disabled {
+  cursor: not-allowed;
+}
+.trigger:focus-visible,
+.circle:focus-visible {
+  box-shadow: 0 0 0 2px var(--del-focus);
+}
+.bin {
+  overflow: visible;
+}
+
+.panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 16px;
+  background: var(--del-recess);
+}
+.notch {
+  position: absolute;
+  top: 50%;
+  left: -5px;
+  z-index: 20;
+  width: 6px;
+  height: 10px;
+  background: var(--del-recess);
+  transform: translateY(-50%);
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+}
+
+.circleWrap {
+  display: flex;
+}
+.circle {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--del-surface);
+  color: inherit;
+  box-shadow: var(--del-lift);
+  cursor: pointer;
+  outline: none;
+  transition: background-color 200ms;
+}
+.circle:hover {
+  background: var(--del-hover);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

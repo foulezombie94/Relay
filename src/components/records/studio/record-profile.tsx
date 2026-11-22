@@ -11,7 +11,6 @@ import {
   MousePointer2,
   Pin,
   PanelRight,
-  Trash2,
   Pencil,
   ListPlus,
   LayoutGrid,
@@ -46,6 +45,7 @@ import { useStudio, useStudioActions, type StudioData } from "./use-studio";
 import { studioFields, fieldValue, sectionNames, type StudioField } from "./fields";
 import styles from "./studio.module.css";
 import { RecordSkillLauncher } from "../../skills/record-launcher";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 export function StudioRecordProfile({
   record,
@@ -154,27 +154,19 @@ export function StudioRecordProfile({
           <button type="button" className="button small" disabled={readonly} onClick={onEdit}>
             <Pencil size={13} /> Modifier
           </button>
-          <button
-            type="button"
-            className="icon-button"
-            aria-label="Mettre la fiche à la corbeille"
+          <DeleteButton
+            label="Mettre la fiche à la corbeille"
+            title="Mettre à la corbeille : restaurable pendant 30 jours"
             disabled={readonly || save.busy}
-            onClick={async () => {
-              if (
-                window.confirm(
-                  "Mettre cette fiche à la corbeille ? Elle reste restaurable pendant 30 jours.",
-                )
-              )
-                try {
-                  await save.remove("records", record.id);
-                  onClose();
-                } catch (e) {
-                  setError(e instanceof Error ? e.message : "Suppression impossible");
-                }
+            onConfirm={async () => {
+              try {
+                await save.remove("records", record.id);
+                onClose();
+              } catch (e) {
+                setError(e instanceof Error ? e.message : "Suppression impossible");
+              }
             }}
-          >
-            <Trash2 size={15} />
-          </button>
+          />
         </div>
         <header className={styles.recordHeader}>
           <span className={styles.pageIcon}>

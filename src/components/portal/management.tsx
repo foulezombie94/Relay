@@ -11,7 +11,6 @@ import {
   ArrowUpRight,
   RefreshCw,
   Pencil,
-  Trash2,
   FileText,
   Users,
   LockKeyhole,
@@ -21,13 +20,14 @@ import {
 } from "lucide-react";
 import { useRows, useSave, useWorkspace } from "../providers/data-provider";
 import { request } from "@/lib/api/request";
-import { Editor, Modal, ErrorMessage, str, type Field } from "../ui";
+import { Editor, ErrorMessage, str, type Field } from "../ui";
 import { RecordPicker } from "../records/picker";
 import { PortalDetails } from "../pages/portal-details";
 import { portalSummarySchema, portalDate, portalInitials } from "@/lib/domain/portals";
 import type { Row } from "@/lib/domain/types";
 import { PortalLoading, Progress, PortalPagination } from "./shared";
 import styles from "./portal.module.css";
+import { DeleteButton } from "@/components/ui/delete-button";
 export function PortalsPage() {
   const { workspace } = useWorkspace();
   return <PortalManagement key={workspace.id} />;
@@ -41,7 +41,6 @@ function PortalManagement() {
   const [editor, setEditor] = useState<Row | true | null>(() =>
     params.get("create") === "1" && workspace.role !== "viewer" ? true : null,
   );
-  const [deletion, setDeletion] = useState<Row | null>(null);
   const [actionError, setActionError] = useState<Error | null>(null);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({ q: "", page: 0, state: "all" });
@@ -258,14 +257,21 @@ function PortalManagement() {
                           >
                             <Pencil size={14} />
                           </button>
-                          <button
-                            className="icon-button"
-                            aria-label={"Supprimer " + str(portal.name)}
+                          <DeleteButton
+                            label={"Supprimer " + str(portal.name)}
+                            title="Supprime le portail, ses accès, partages et échanges ; les fiches et documents d’origine sont conservés"
                             disabled={readOnly || busy}
-                            onClick={() => setDeletion(portal)}
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                            onConfirm={async () => {
+                              setActionError(null);
+                              try {
+                                await remove("portals", portal.id);
+                              } catch (e) {
+                                setActionError(
+                                  e instanceof Error ? e : new Error("Suppression impossible."),
+                                );
+                              }
+                            }}
+                          />
                         </div>
                       </footer>
                     </article>
@@ -371,35 +377,6 @@ function PortalManagement() {
           onSave={(values) => save("portals", values, editor === true ? undefined : editor)}
         />
       )}
-      <Modal
-        open={!!deletion}
-        onClose={() => setDeletion(null)}
-        title="Supprimer ce portail ?"
-        description="Le portail, ses accès, ses partages et ses échanges seront supprimés. Les fiches CRM et documents d’origine sont conservés."
-      >
-        <div className={styles.tools}>
-          <button className="button" onClick={() => setDeletion(null)}>
-            Annuler
-          </button>
-          <button
-            className="button primary"
-            disabled={busy}
-            onClick={async () => {
-              if (!deletion) return;
-              setActionError(null);
-              try {
-                await remove("portals", deletion.id);
-                setDeletion(null);
-              } catch (e) {
-                setActionError(e instanceof Error ? e : new Error("Suppression impossible."));
-              }
-            }}
-          >
-            Supprimer le portail
-          </button>
-        </div>
-        <ErrorMessage error={actionError} />
-      </Modal>
     </main>
   );
 }

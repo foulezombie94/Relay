@@ -15,6 +15,7 @@ import {
   type InsightTemplate,
 } from "@/lib/domain/meetings";
 import styles from "./meetings.module.css";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 export function InsightTemplates() {
   const { workspace, user } = useWorkspace();
@@ -22,7 +23,6 @@ export function InsightTemplates() {
     [state, setState] = useState("published"),
     [edit, setEdit] = useState<InsightTemplate | true | null>(null),
     [preset, setPreset] = useState(0),
-    [deletion, setDeletion] = useState<InsightTemplate | null>(null),
     [deleteBusy, setDeleteBusy] = useState(false),
     [error, setError] = useState<Error | null>(null);
   const q = useRows<InsightTemplate>("meeting_insight_templates", {
@@ -146,13 +146,22 @@ export function InsightTemplates() {
                   >
                     <Archive size={14} />
                   </button>
-                  <button
-                    className="icon-button"
-                    aria-label={`Supprimer ${t.name}`}
-                    onClick={() => setDeletion(t)}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <DeleteButton
+                    label={`Supprimer ${t.name}`}
+                    title="Les analyses déjà réalisées restent dans votre historique"
+                    disabled={deleteBusy}
+                    onConfirm={async () => {
+                      if (deleteBusy) return;
+                      setDeleteBusy(true);
+                      try {
+                        await remove("meeting_insight_templates", t.id);
+                      } catch (err) {
+                        setError(err as Error);
+                      } finally {
+                        setDeleteBusy(false);
+                      }
+                    }}
+                  />
                 </footer>
               )}
             </article>
@@ -171,41 +180,6 @@ export function InsightTemplates() {
           preset={preset}
           onClose={() => setEdit(null)}
         />
-      )}
-      {deletion && (
-        <Modal
-          open
-          title="Supprimer le modèle ?"
-          description={`Le modèle « ${deletion.name} » sera supprimé. Les analyses déjà réalisées restent dans votre historique.`}
-          onClose={() => {
-            if (!deleteBusy) setDeletion(null);
-          }}
-        >
-          <ErrorMessage error={error} />
-          <div className="dialog-actions">
-            <button className="button" disabled={deleteBusy} onClick={() => setDeletion(null)}>
-              Annuler
-            </button>
-            <button
-              className="button danger"
-              disabled={deleteBusy}
-              onClick={async () => {
-                if (deleteBusy) return;
-                setDeleteBusy(true);
-                try {
-                  await remove("meeting_insight_templates", deletion.id);
-                  setDeletion(null);
-                } catch (err) {
-                  setError(err as Error);
-                } finally {
-                  setDeleteBusy(false);
-                }
-              }}
-            >
-              Supprimer
-            </button>
-          </div>
-        </Modal>
       )}
     </div>
   );

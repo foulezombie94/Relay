@@ -142,3 +142,10 @@
     width: fit-content;
   }
 }
+
+.otpField {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}

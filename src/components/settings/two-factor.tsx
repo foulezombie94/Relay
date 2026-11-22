@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Copy, KeyRound, ShieldCheck, ShieldOff, Smartphone } from "lucide-react";
 import { browserDb } from "@/lib/supabase/client";
 import { totpCode } from "../onboarding/second-factor";
+import { OtpInput } from "@/components/ui/otp-input";
 import styles from "./two-factor.module.css";
 
 type Factor = { id: string; friendly_name?: string; status: string; created_at: string };
@@ -176,23 +177,19 @@ export function TwoFactorSettings({ onEnabled }: { onEnabled?: () => void }) {
               >
                 <Copy size={13} /> Copier la clé
               </button>
-              <label>
+              <div className={styles.otpField}>
                 Code de vérification
-                <input
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  placeholder="123456"
-                  value={code}
-                  disabled={busy}
+                <OtpInput
+                  length={6}
+                  size="sm"
+                  label="Code de vérification"
                   autoFocus
-                  onChange={(event) => {
-                    const next = totpCode(event.target.value);
-                    setCode(next);
-                    if (next.length === 6) void confirm(next);
-                  }}
+                  disabled={busy}
+                  value={code}
+                  onChange={(next) => setCode(totpCode(next))}
+                  onComplete={(next) => void confirm(totpCode(next))}
                 />
-              </label>
+              </div>
               <div className={styles.actions}>
                 <button
                   className="button primary small"

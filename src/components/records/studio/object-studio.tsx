@@ -12,7 +12,6 @@ import {
   Copy,
   ExternalLink,
   Eye,
-  Trash2,
   Settings2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -39,6 +38,7 @@ import {
 } from "./config-editors";
 import { FormView } from "./form-view";
 import styles from "./studio.module.css";
+import { DeleteButton } from "@/components/ui/delete-button";
 const icons = {
   layout: LayoutTemplate,
   relation: Link2,
@@ -410,24 +410,17 @@ function ConfigEditor({
         <ErrorMessage error={error ? new Error(error) : null} />
         <footer className={styles.editorFooter}>
           {initial && (
-            <button
-              type="button"
-              className="button small"
+            <DeleteButton
+              label="Supprimer cette configuration"
+              title="Supprimer cette configuration : les liens de cette relation seront également retirés"
               disabled={readonly || busy}
-              onClick={() => {
-                if (
-                  window.confirm(
-                    "Supprimer cette configuration ? Les liens de cette relation seront également retirés.",
-                  )
-                )
-                  void execute(async () => {
-                    await actions.remove(initial);
-                    onRemoved();
-                  });
-              }}
-            >
-              <Trash2 size={14} /> Supprimer
-            </button>
+              onConfirm={() =>
+                void execute(async () => {
+                  await actions.remove(initial);
+                  onRemoved();
+                })
+              }
+            />
           )}
           <span className={styles.grow}>
             {kind === "layout"

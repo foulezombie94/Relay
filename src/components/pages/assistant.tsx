@@ -12,7 +12,6 @@ import {
   PanelLeftClose,
   PanelRight,
   LockKeyhole,
-  Trash2,
   Copy,
   ArrowUpRight,
   Settings2,
@@ -35,6 +34,7 @@ import { readAssistantStream } from "../assistant/stream";
 import { type AssistantConversation, type AssistantMessage } from "@/lib/domain/assistant";
 import { assistantApprovalMode, type AssistantApprovalMode } from "@/lib/domain/assistant-approval";
 import styles from "../assistant/assistant.module.css";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 type AssistantStatus = {
   configured: boolean;
@@ -72,7 +72,6 @@ function AssistantSession() {
     [historyOpen, setHistoryOpen] = useState(false);
   const [rename, setRename] = useState(false),
     [newTitle, setNewTitle] = useState(""),
-    [remove, setRemove] = useState(false),
     [editing, setEditing] = useState(false);
   const active = useRef<AbortController | null>(null),
     readVersion = useRef(0),
@@ -460,17 +459,25 @@ function AssistantSession() {
                             <Copy size={15} />
                             Copier l’identifiant
                           </button>
-                          <button
-                            type="button"
-                            className={styles.iconButton}
-                            aria-label="Supprimer cette conversation"
-                            title="Supprimer la conversation"
-                            disabled={busy}
-                            onClick={() => setRemove(true)}
-                          >
-                            <Trash2 size={15} />
-                            Supprimer la conversation
-                          </button>
+                          <DeleteButton
+                            label="Supprimer cette conversation"
+                            title="Les propositions déjà ajoutées au CRM restent disponibles"
+                            disabled={busy || editing}
+                            onConfirm={async () => {
+                              setEditing(true);
+                              try {
+                                await request(endpoint + "?id=" + conversation, "DELETE");
+                                newChat();
+                                await status.refetch();
+                              } catch (e) {
+                                toast.error(
+                                  e instanceof Error ? e.message : "Suppression impossible",
+                                );
+                              } finally {
+                                setEditing(false);
+                              }
+                            }}
+                          />
                         </>
                       )}
                       <Link href="/doc?article=assistant">
@@ -709,38 +716,6 @@ function AssistantSession() {
             </button>
           </div>
         </form>
-      </Modal>
-      <Modal
-        open={remove}
-        onClose={() => setRemove(false)}
-        title="Supprimer cette conversation ?"
-        description="Les messages de cette conversation seront supprimés. Les propositions déjà ajoutées au CRM restent disponibles."
-      >
-        <div className="dialog-actions">
-          <button type="button" className="button" onClick={() => setRemove(false)}>
-            Annuler
-          </button>
-          <button
-            type="button"
-            className="button danger"
-            disabled={editing}
-            onClick={async () => {
-              setEditing(true);
-              try {
-                await request(endpoint + "?id=" + conversation, "DELETE");
-                setRemove(false);
-                newChat();
-                await status.refetch();
-              } catch (e) {
-                toast.error(e instanceof Error ? e.message : "Suppression impossible");
-              } finally {
-                setEditing(false);
-              }
-            }}
-          >
-            Supprimer
-          </button>
-        </div>
       </Modal>
     </section>
   );

@@ -1,8 +1,9 @@
 "use client";
-import { Pencil, Trash2, Check, FileText } from "lucide-react";
+import { Pencil, Check, FileText } from "lucide-react";
 import { Badge, date, str } from "../ui/display";
 import type { CrmRecord, Row } from "@/lib/domain/types";
 import { workspaceHref } from "@/lib/domain/workspace-navigation";
+import { DeleteButton } from "@/components/ui/delete-button";
 export function ResourceCard({
   row,
   resource,
@@ -55,14 +56,7 @@ export function ResourceCard({
           >
             <Pencil size={15} />
           </button>
-          <button
-            className="icon-button"
-            aria-label="Supprimer"
-            disabled={readOnly || busy}
-            onClick={onDelete}
-          >
-            <Trash2 size={15} />
-          </button>
+          <DeleteButton label="Supprimer" disabled={readOnly || busy} onConfirm={onDelete} />
         </div>
       </div>
       {(resource === "notes" || expanded) && (

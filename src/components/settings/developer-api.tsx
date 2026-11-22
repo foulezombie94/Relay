@@ -2,22 +2,13 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  Check,
-  Copy,
-  ExternalLink,
-  KeyRound,
-  Plus,
-  RefreshCw,
-  Send,
-  Trash2,
-  Webhook,
-} from "lucide-react";
+import { Check, Copy, ExternalLink, KeyRound, Plus, RefreshCw, Send, Webhook } from "lucide-react";
 import { request, useWorkspace } from "../providers/data-provider";
 import { Modal, ErrorMessage, Loading } from "../ui";
 import { Toggle } from "../ui/controls";
 import { apiScopes, scopeLabels, webhookEventLabels, webhookEvents } from "@/lib/domain/public-api";
 import styles from "./developer-api.module.css";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 type ApiKey = {
   id: string;
@@ -201,17 +192,11 @@ function ApiKeys() {
                 <span className={styles.pill} data-state={state}>
                   {state === "active" ? "Active" : state === "revoked" ? "Révoquée" : "Expirée"}
                 </span>
-                <button
-                  className="icon-button"
-                  aria-label={`Révoquer ${key.name}`}
+                <DeleteButton
+                  label={`Révoquer ${key.name}`}
+                  title="Révoquer : les outils qui l’utilisent perdront l’accès immédiatement"
                   disabled={state !== "active"}
-                  onClick={async () => {
-                    if (
-                      !window.confirm(
-                        `Révoquer « ${key.name} » ? Les outils qui l’utilisent perdront l’accès immédiatement.`,
-                      )
-                    )
-                      return;
+                  onConfirm={async () => {
                     try {
                       await request(`/api/${workspace.id}/api-keys?id=${key.id}`, "DELETE");
                       await cache.invalidateQueries({
@@ -222,9 +207,7 @@ function ApiKeys() {
                       toast.error(e instanceof Error ? e.message : "Révocation impossible.");
                     }
                   }}
-                >
-                  <Trash2 size={15} />
-                </button>
+                />
               </div>
             );
           })}
@@ -468,13 +451,11 @@ function Webhooks() {
                 >
                   <RefreshCw size={14} />
                 </button>
-                <button
-                  className="icon-button"
-                  aria-label={`Supprimer ${endpoint.url}`}
+                <DeleteButton
+                  label={`Supprimer ${endpoint.url}`}
+                  title="Supprimer ce webhook et son historique de livraison"
                   disabled={busy}
-                  onClick={async () => {
-                    if (!window.confirm("Supprimer ce webhook et son historique de livraison ?"))
-                      return;
+                  onConfirm={async () => {
                     try {
                       await request(`/api/${workspace.id}/webhooks?id=${endpoint.id}`, "DELETE");
                       if (selected === endpoint.id) setSelected(null);
@@ -483,9 +464,7 @@ function Webhooks() {
                       toast.error(e instanceof Error ? e.message : "Suppression impossible.");
                     }
                   }}
-                >
-                  <Trash2 size={15} />
-                </button>
+                />
               </div>
             </div>
           ))}

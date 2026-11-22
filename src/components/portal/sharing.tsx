@@ -10,7 +10,6 @@ import {
   Users,
   MessageSquare,
   Pencil,
-  Trash2,
   LockKeyhole,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,6 +28,7 @@ import { PortalLoading, SharedItem, PortalPagination } from "./shared";
 import { PortalMessages } from "./messages";
 import { usePortalResource } from "./use-portal-resource";
 import styles from "./portal.module.css";
+import { DeleteButton } from "@/components/ui/delete-button";
 const discussionSchema = z.object({ data: portalDetailSchema });
 function Discussion({ id }: { id: string }) {
   const [page, setPage] = useState(0);
@@ -56,7 +56,6 @@ export function PortalSharing({ portal, onClose }: { portal: Row; onClose: () =>
   const docs = useRows("documents", { record_id: str(portal.record_id), size: 100 });
   const { save, remove, busy } = useSave();
   const [editor, setEditor] = useState<{ resource: string; row?: Row } | null>(null);
-  const [deletion, setDeletion] = useState<Row | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const accessLost = [items.error, members.error, docs.error].some(
     (error) => error instanceof RequestError && [401, 403].includes(error.status),
@@ -216,14 +215,21 @@ export function PortalSharing({ portal, onClose }: { portal: Row; onClose: () =>
                               <Pencil size={12} />
                               Modifier
                             </button>
-                            <button
-                              className="button small"
+                            <DeleteButton
+                              label="Retirer ce partage"
+                              title="Le client ne pourra plus consulter cet élément ; le document d’origine est conservé"
                               disabled={readOnly || busy}
-                              onClick={() => setDeletion(item)}
-                            >
-                              <Trash2 size={12} />
-                              Retirer
-                            </button>
+                              onConfirm={async () => {
+                                setError(null);
+                                try {
+                                  await remove("portal_items", item.id);
+                                } catch (e) {
+                                  setError(
+                                    e instanceof Error ? e : new Error("Retrait impossible."),
+                                  );
+                                }
+                              }}
+                            />
                           </div>
                         </div>
                       );
@@ -378,35 +384,7 @@ export function PortalSharing({ portal, onClose }: { portal: Row; onClose: () =>
               }
             />
           )}
-          <Modal
-            open={!!deletion}
-            onClose={() => setDeletion(null)}
-            title="Retirer cet élément du portail ?"
-            description="Le client ne pourra plus consulter cet élément ni télécharger son document depuis ce portail. Le document d’origine est conservé."
-          >
-            <div className={styles.tools}>
-              <button className="button" onClick={() => setDeletion(null)}>
-                Annuler
-              </button>
-              <button
-                className="button primary"
-                disabled={busy}
-                onClick={async () => {
-                  if (!deletion) return;
-                  setError(null);
-                  try {
-                    await remove("portal_items", deletion.id);
-                    setDeletion(null);
-                  } catch (e) {
-                    setError(e instanceof Error ? e : new Error("Retrait impossible."));
-                  }
-                }}
-              >
-                Retirer le partage
-              </button>
-            </div>
-            <ErrorMessage error={error} />
-          </Modal>
+          <ErrorMessage error={error} />
         </>
       )}
     </Modal>

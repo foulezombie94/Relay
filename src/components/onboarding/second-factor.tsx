@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { browserDb } from "@/lib/supabase/client";
+import { OtpInput } from "@/components/ui/otp-input";
 import { AuthFrame } from "./auth-frame";
 import styles from "./onboarding.module.css";
 
@@ -71,26 +72,19 @@ export function SecondFactorStep({ destination }: { destination: string }) {
           void verify(code);
         }}
       >
-        <label className={styles.field}>
+        <div className={styles.field}>
           Code de vérification
-          <input
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="\d{6}"
-            maxLength={6}
-            required
+          <OtpInput
+            length={6}
+            label="Code de vérification"
             autoFocus
             disabled={busy || !ready}
             value={code}
-            placeholder="123456"
-            style={{ letterSpacing: "0.4em", fontVariantNumeric: "tabular-nums", fontSize: 20 }}
-            onChange={(event) => {
-              const next = totpCode(event.target.value);
-              setCode(next);
-              if (next.length === 6) void verify(next);
-            }}
+            status={error ? "error" : "idle"}
+            onChange={(next) => setCode(totpCode(next))}
+            onComplete={(next) => void verify(totpCode(next))}
           />
-        </label>
+        </div>
         {error && (
           <div role="alert" className="alert error">
             {error}

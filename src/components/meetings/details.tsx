@@ -12,7 +12,6 @@ import {
   Download,
   Search,
   Pencil,
-  Trash2,
   Plus,
   Users,
   FileText,
@@ -37,6 +36,7 @@ import { MeetingInsights } from "./insights";
 import styles from "./meetings.module.css";
 import { meetingTabKeys } from "./keyboard-tabs";
 import { MeetingCallout } from "./blocks";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 export function MeetingDetails({ id, onClose }: { id: string; onClose: () => void }) {
   const q = useRows<Meeting>("meetings", { id, size: 1 });
@@ -72,7 +72,6 @@ function MeetingContent({ meeting, onClose }: { meeting: Meeting; onClose: () =>
     [term, setTerm] = useState(""),
     [speaker, setSpeaker] = useState("all"),
     [editing, setEditing] = useState(false),
-    [deleting, setDeleting] = useState(false),
     [task, setTask] = useState(false),
     [error, setError] = useState<Error | null>(null),
     [deleteBusy, setDeleteBusy] = useState(false);
@@ -150,13 +149,22 @@ function MeetingContent({ meeting, onClose }: { meeting: Meeting; onClose: () =>
               <Plus size={13} />
               Créer une tâche
             </button>
-            <button
-              className="icon-button"
-              aria-label="Supprimer la réunion"
-              onClick={() => setDeleting(true)}
-            >
-              <Trash2 size={14} />
-            </button>
+            <DeleteButton
+              label="Supprimer la réunion"
+              title="Retire la transcription, les favoris et les liens CRM ; le rendez-vous distant n’est pas annulé"
+              disabled={deleteBusy}
+              onConfirm={async () => {
+                setDeleteBusy(true);
+                try {
+                  await remove("meetings", meeting.id);
+                  onClose();
+                } catch (err) {
+                  setError(err as Error);
+                } finally {
+                  setDeleteBusy(false);
+                }
+              }}
+            />
           </>
         )}
       </div>
@@ -421,40 +429,6 @@ function MeetingContent({ meeting, onClose }: { meeting: Meeting; onClose: () =>
             setTask(false);
           }}
         />
-      )}
-      {deleting && (
-        <Modal
-          open
-          title="Supprimer cette réunion ?"
-          description="La transcription, les favoris et les liens CRM seront retirés de Zyliad. Le rendez-vous distant ne sera pas annulé."
-          onClose={() => {
-            if (!deleteBusy) setDeleting(false);
-          }}
-        >
-          <ErrorMessage error={error} />
-          <div className="dialog-actions">
-            <button className="button" disabled={deleteBusy} onClick={() => setDeleting(false)}>
-              Annuler
-            </button>
-            <button
-              className="button danger"
-              disabled={deleteBusy}
-              onClick={async () => {
-                setDeleteBusy(true);
-                try {
-                  await remove("meetings", meeting.id);
-                  onClose();
-                } catch (err) {
-                  setError(err as Error);
-                } finally {
-                  setDeleteBusy(false);
-                }
-              }}
-            >
-              Supprimer
-            </button>
-          </div>
-        </Modal>
       )}
     </div>
   );

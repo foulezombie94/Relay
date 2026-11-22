@@ -3,12 +3,13 @@ import { workspaceHref } from "@/lib/domain/workspace-navigation";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Settings2, Trash2 } from "lucide-react";
+import { Settings2 } from "lucide-react";
 import { request, useRows, useSave, useWorkspace } from "../providers/data-provider";
 import { PageHeader, AddButton, Loading, ErrorMessage, Empty } from "../ui";
 import { openStages, stageLabel, type Pipeline } from "@/lib/domain/pipelines";
 import { StageEditor } from "../pipelines/stage-editor";
 import styles from "../pipelines/pipelines.module.css";
+import { DeleteButton } from "@/components/ui/delete-button";
 
 export function PipelinesPage() {
   const { workspace } = useWorkspace();
@@ -60,25 +61,18 @@ export function PipelinesPage() {
                   >
                     <Settings2 size={14} /> Configurer
                   </button>
-                  <button
-                    className="button small danger"
-                    aria-label={`Supprimer ${p.name}`}
+                  <DeleteButton
+                    label={`Supprimer ${p.name}`}
+                    title="Supprimer ce pipeline inutilisé (un pipeline contenant des fiches est protégé)"
                     disabled={!admin || busy || (q.data?.data.length ?? 0) < 2}
-                    onClick={async () => {
-                      if (
-                        window.confirm(
-                          "Supprimer ce pipeline inutilisé ? Un pipeline contenant des fiches est protégé.",
-                        )
-                      )
-                        try {
-                          await remove("pipelines", p.id);
-                        } catch (e) {
-                          setError(e instanceof Error ? e.message : "Suppression impossible.");
-                        }
+                    onConfirm={async () => {
+                      try {
+                        await remove("pipelines", p.id);
+                      } catch (e) {
+                        setError(e instanceof Error ? e.message : "Suppression impossible.");
+                      }
                     }}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  />
                 </div>
               </div>
               <ol className={styles.track} aria-label={`Étapes de ${p.name}`}>
