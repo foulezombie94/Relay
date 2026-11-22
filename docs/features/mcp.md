@@ -140,3 +140,19 @@ Serveur **1.2.0**, 41 outils. Migration `20261122123019_mcp_extended_capabilitie
 Non inclus : brouillons d’email et événements de calendrier via MCP (ils exigent la chaîne outbox/worker des fournisseurs et la résolution du compte), et recherche sémantique.
 
 Tests : `supabase/tests/mcp-extended.sql` (consentement `crm:admin`, CIMD, propositions, fusion, champ, pipeline, doublons), ajouté à `npm run test:mcp:db`. La migration et les suites MCP existantes ont été exécutées contre la base de production dans des transactions annulées avant application.
+
+## MCP 1.3 — cartes interactives (MCP Apps)
+
+Les hôtes compatibles MCP Apps (spécification 2026-01-26 : ChatGPT, Claude, VS Code…) affichent des cartes Zyliad interactives au lieu de texte brut. Les clients en terminal (Codex CLI, Claude Code) continuent de recevoir le texte et le JSON habituels.
+
+| Carte                                     | Outils                                                               | Interactions                                                                                          |
+| ----------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Fiche (`ui://zyliad/record.html`)         | `zyliad_get_record`, `zyliad_record_context`                         | Ouvrir dans Zyliad, voir le contexte (tâches, notes, réunions), préparer une relance, créer une tâche |
+| Résultats (`ui://zyliad/results.html`)    | `zyliad_search_records`, `zyliad_get_records`, `zyliad_list_records` | « Choisir » une fiche (lève une ambiguïté), « Détails » sur place                                     |
+| Proposition (`ui://zyliad/proposal.html`) | toutes les écritures et `zyliad_command_status`                      | **Oui, confirmer dans Zyliad** (ouvre la page de confirmation), **Non, annuler**, vérifier le statut  |
+| Doublons (`ui://zyliad/duplicates.html`)  | `zyliad_find_duplicates`                                             | Fusionner en gardant l’une ou l’autre fiche, « Pas des doublons »                                     |
+| Graphique (`ui://zyliad/pipeline.html`)   | `zyliad_aggregate`                                                   | Barres cliquables pour analyser un groupe                                                             |
+
+- **Style** : couleurs, police DM Sans, bordures et mode sombre de l’application (thème transmis par l’hôte).
+- **Protocole** : `ui/initialize`, `tools/call`, `ui/message`, `ui/open-link`, `ui/notifications/size-changed` ; compatibilité ChatGPT via `openai/outputTemplate` et `window.openai`.
+- **Sécurité** : aucune ressource ni requête réseau externe (CSP par défaut), valeurs affichées en texte (jamais en HTML), liens limités au domaine Zyliad. « Oui » ouvre la confirmation dans Zyliad : la carte ne confirme jamais une écriture elle-même. « Non » prévient l’assistant ; la proposition expire sans effet.

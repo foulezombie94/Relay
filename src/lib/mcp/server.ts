@@ -21,6 +21,7 @@ import {
   availableToolNames,
 } from "./contracts";
 import { bearer, mcpDb } from "./database";
+import { appMimeType, appResourceMeta, appUri, appViews, toolAppMeta, widgetHtml } from "./apps";
 import { mcpOrigin, mcpResource, mcpAllowedOrigins } from "./config";
 import { instructions, serverVersion, localizedSchema, promptDefinitions } from "./guidance";
 export { instructions } from "./guidance";
@@ -305,6 +306,8 @@ export function buildServer(tokenHash: string, session: Session, requestId = ran
                 data: z.unknown(),
               }),
             }),
+        // Interactive card (MCP Apps / ChatGPT) for tools that have one.
+        ...(toolAppMeta(name) ? { _meta: toolAppMeta(name) } : {}),
         annotations: {
           title: toolTitles[name],
           // Write tools only create a proposal: nothing changes before the human
@@ -380,6 +383,27 @@ export function buildServer(tokenHash: string, session: Session, requestId = ran
     },
     async (uri) => ({ contents: [{ uri: uri.href, text: instructions, mimeType: "text/plain" }] }),
   );
+  // MCP Apps cards: static HTML with the Zyliad design, no network access, no data inside.
+  for (const view of appViews)
+    server.registerResource(
+      `app-${view}`,
+      appUri(view),
+      {
+        mimeType: appMimeType,
+        description: "Carte interactive Zyliad",
+        _meta: appResourceMeta(view),
+      },
+      async (uri) => ({
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: appMimeType,
+            text: widgetHtml(view, origin),
+            _meta: appResourceMeta(view),
+          },
+        ],
+      }),
+    );
   const canReadRecords = session.scopes.includes("records:read");
   // One record as attachable context, e.g. zyliad://record/<uuid>.
   server.registerResource(
