@@ -21,4 +21,12 @@ export function mcpOrigin() {
 export function mcpResource() {
   return mcpOrigin() + "/api/mcp";
 }
+/** Canonical origin plus browser MCP clients explicitly allowed by MCP_ALLOWED_ORIGINS. */
+export function mcpAllowedOrigins() {
+  const extra = (process.env.MCP_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value) => /^https?:\/\/[a-z0-9.-]+(?::\d{1,5})?$/i.test(value));
+  return [mcpOrigin(), ...extra];
+}
 export const flowCookie = "zyliad_mcp_flow";

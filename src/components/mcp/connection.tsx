@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useWorkspace, request } from "@/components/providers/data-provider";
 import { ErrorMessage, date } from "@/components/ui";
@@ -32,6 +32,15 @@ const actionLabels: Record<string, string> = {
   update_task: "Modifier une tâche",
   create_note: "Créer une note privée",
   update_note: "Modifier une note",
+  update_commitment: "Mettre à jour un engagement",
+  create_workflow_draft: "Créer un brouillon de workflow",
+  update_workflow_draft: "Modifier un workflow",
+  add_to_list: "Ajouter à une liste",
+  remove_from_list: "Retirer d’une liste",
+  merge_records: "Fusionner deux doublons",
+  create_attribute: "Créer un champ",
+  save_pipeline_stages: "Modifier les étapes d’un pipeline",
+  duplicates: "Chercher des doublons",
   connection: "Vérifier la connexion",
   record: "Lire une fiche",
   records: "Lire plusieurs fiches",
@@ -67,11 +76,21 @@ export function McpConnection() {
   const { workspace } = useWorkspace();
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  // Direct link from an MCP client: /app/settings?mcp_command=<id>#developpeurs
+  const [focus] = useState(() =>
+    typeof window === "undefined"
+      ? null
+      : new URLSearchParams(window.location.search).get("mcp_command"),
+  );
   const q = useQuery({
     queryKey: ["mcp-connections", workspace.id],
     queryFn: () => request<{ data: Snapshot; origin: string }>(`/api/${workspace.id}/mcp`),
     refetchInterval: 15000,
   });
+  useEffect(() => {
+    if (focus && q.data)
+      document.getElementById(`mcp-command-${focus}`)?.scrollIntoView({ block: "center" });
+  }, [focus, q.data]);
   async function act(operation: "approve" | "reject" | "revoke", id: string) {
     if (
       operation === "revoke" &&
@@ -140,7 +159,12 @@ export function McpConnection() {
         </p>
       )}
       {q.data?.data.commands.map((c) => (
-        <article className={styles.card} key={c.id}>
+        <article
+          className={c.id === focus ? `${styles.card} ${styles.focused}` : styles.card}
+          key={c.id}
+          id={`mcp-command-${c.id}`}
+          aria-current={c.id === focus ? "true" : undefined}
+        >
           <div className={styles.cardHead}>
             <strong>{actionLabels[c.action] ?? c.action}</strong>
             <span>{resultLabels[c.status] ?? c.status}</span>

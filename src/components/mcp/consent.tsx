@@ -21,7 +21,13 @@ export function McpConsent({
   );
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
-  const viewer = workspaces.find((w) => w.id === workspace)?.role === "viewer";
+  const role = workspaces.find((w) => w.id === workspace)?.role;
+  const viewer = role === "viewer";
+  // Same rules as the database: no write for viewers; crm:admin for owners/admins with crm:write.
+  const blocked = (scope: string) =>
+    (viewer && (scope === "crm:write" || scope === "crm:admin")) ||
+    (scope === "crm:admin" &&
+      (!role || !["owner", "admin"].includes(role) || !selected.includes("crm:write")));
   async function consent(allow: boolean) {
     setBusy(true);
     setError("");
@@ -32,7 +38,7 @@ export function McpConsent({
         body: JSON.stringify({
           consent_context: consentContext,
           workspace,
-          scopes: selected.filter((s) => !viewer || s !== "crm:write"),
+          scopes: selected.filter((s) => !blocked(s)),
           allow,
         }),
         credentials: "same-origin",
@@ -75,8 +81,8 @@ export function McpConsent({
           <label key={scope}>
             <input
               type="checkbox"
-              checked={selected.includes(scope) && !(viewer && scope === "crm:write")}
-              disabled={busy || (viewer && scope === "crm:write")}
+              checked={selected.includes(scope) && !blocked(scope)}
+              disabled={busy || blocked(scope)}
               onChange={(e) =>
                 setSelected((s) =>
                   e.target.checked ? [...s, scope] : s.filter((v) => v !== scope),
@@ -112,9 +118,7 @@ export function McpConsent({
         </button>
         <button
           className={styles.primary}
-          disabled={
-            busy || !workspace || !selected.filter((s) => !viewer || s !== "crm:write").length
-          }
+          disabled={busy || !workspace || !selected.filter((s) => !blocked(s)).length}
           onClick={() => void consent(true)}
         >
           {busy ? "Connexion…" : "Autoriser la connexion"}

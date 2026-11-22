@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { context, ApiError, databaseError } from "@/lib/api/context";
 import { workflowBody, boundedJsonBody } from "@/lib/api/workflow-body";
-import { mcpOrigin, mcpResource, flowCookie } from "./config";
+import { mcpOrigin, mcpResource, flowCookie, mcpAllowedOrigins } from "./config";
 import { hash, oauthDb } from "./database";
 import {
   registrationSchema,
@@ -16,6 +16,7 @@ import {
 } from "./oauth-validation";
 import { defaultScopes, scopes } from "./contracts";
 import { oauthRateKey } from "./oauth-rate-key";
+import { resolveClientId } from "./client-document";
 
 const noStore = { "Cache-Control": "no-store", Pragma: "no-cache" };
 export const randomSecret = () => randomBytes(32).toString("base64url");
@@ -40,7 +41,9 @@ export function oauthFailure(error: unknown) {
 }
 function verifyOrigin(req: NextRequest, required = false) {
   const origin = req.headers.get("origin");
-  if ((required && !origin) || (origin && origin !== mcpOrigin()))
+  // Consent is Zyliad-only; browser MCP clients on the allowlist may register and exchange tokens.
+  const allowed = required ? [mcpOrigin()] : mcpAllowedOrigins();
+  if ((required && !origin) || (origin && !allowed.includes(origin)))
     throw new ApiError("Origine non autorisée.", 403, "access_denied");
 }
 async function form(req: NextRequest) {
@@ -67,6 +70,8 @@ export function authorizationMetadata() {
     // successful consent before they exchange the authorization code. We keep
     // returning `iss`; clients that support RFC 9207 can still validate it.
     authorization_response_iss_parameter_supported: false,
+    // OAuth Client ID Metadata Documents (HTTPS client_id), alongside registration.
+    client_id_metadata_document_supported: true,
   };
 }
 export function resourceMetadata() {
@@ -88,7 +93,13 @@ export async function oauthGet(req: NextRequest, operation: string) {
     if (body.resource !== mcpResource())
       throw new ApiError("Wrong resource.", 400, "invalid_target");
     const flow = randomSecret();
-    await oauthDb("begin", { ...body, flow_hash: hash(flow), rate_limit_key: oauthRateKey(req) });
+    const client = await resolveClientId(body.client_id, "authorize", oauthRateKey(req));
+    await oauthDb("begin", {
+      ...body,
+      client_id: client,
+      flow_hash: hash(flow),
+      rate_limit_key: oauthRateKey(req),
+    });
     const response = NextResponse.redirect(mcpOrigin() + "/mcp/authorize", 303);
     response.cookies.set(flowCookie, flow, {
       httpOnly: true,
@@ -130,7 +141,7 @@ export async function oauthPost(req: NextRequest, operation: string) {
       const tokens = await oauthDb(
         body.grant_type === "authorization_code" ? "exchange" : "refresh",
         {
-          client_id: body.client_id,
+          client_id: await resolveClientId(body.client_id, "resolve"),
           resource,
           access_hash: hash(access),
           new_refresh_hash: hash(refresh),
@@ -161,13 +172,16 @@ export async function oauthPost(req: NextRequest, operation: string) {
     if (operation === "revoke") {
       const body = z
         .object({
-          client_id: z.uuid(),
+          client_id: z.union([z.uuid(), z.string().url().max(2000)]),
           token: z.string().max(100),
           token_type_hint: z.enum(["access_token", "refresh_token"]).optional(),
         })
         .strict()
         .parse(await form(req));
-      await oauthDb("revoke", { client_id: body.client_id, token_hash: hash(body.token) });
+      await oauthDb("revoke", {
+        client_id: await resolveClientId(body.client_id, "resolve"),
+        token_hash: hash(body.token),
+      });
       return NextResponse.json({}, { headers: noStore });
     }
     if (operation === "consent") {
