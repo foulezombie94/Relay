@@ -101,14 +101,30 @@ export function agentUsageCost(input: number, output: number) {
       output * rate("AGENT_OUTPUT_USD_PER_MILLION", 1.6),
   );
 }
-export function agentProviderOptions(exhausted: boolean) {
+export function agentProviderOptions() {
   if (configuredAgentProvider() !== "groq")
     return { store: false, response_format: { type: "json_object" } };
-  return {
-    store: false,
-    include_reasoning: false,
-    reasoning_effort: "low",
-    // Groq rejects JSON mode together with tools, even when tool_choice is none.
-    ...(exhausted ? { response_format: { type: "json_object" } } : {}),
-  };
+  // No JSON mode on Groq: it is incompatible with tools, and with gpt-oss it returns
+  // 400 json_validate_failed when the model leaves its content empty. The prompt asks
+  // for JSON and parseModelJSON reads it.
+  return { store: false, include_reasoning: false, reasoning_effort: "low" };
+}
+/** Reads the model's final JSON object, tolerating a Markdown fence or surrounding text. */
+export function parseModelJSON(text: string): unknown {
+  const trimmed = text.trim();
+  const candidates = [
+    trimmed,
+    trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)?.[1],
+    trimmed.includes("{") ? trimmed.slice(trimmed.indexOf("{"), trimmed.lastIndexOf("}") + 1) : "",
+  ];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try {
+      const value: unknown = JSON.parse(candidate);
+      if (value && typeof value === "object" && !Array.isArray(value)) return value;
+    } catch {
+      /* Try the next, narrower candidate. */
+    }
+  }
+  return undefined;
 }

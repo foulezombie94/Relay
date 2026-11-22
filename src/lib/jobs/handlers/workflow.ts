@@ -197,7 +197,7 @@ export async function workflowJob(admin: SupabaseClient, job: Job): Promise<JobR
         },
         body: JSON.stringify({
           model: configuredAgentModel(),
-          ...agentProviderOptions(true),
+          ...agentProviderOptions(),
           max_completion_tokens: 600,
           response_format: { type: "json_object" },
           messages: [

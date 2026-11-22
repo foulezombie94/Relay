@@ -1,6 +1,12 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 vi.mock("server-only", () => ({}));
-import { providerFailure, retryAfterSeconds, agentUsageCost } from "./provider";
+import {
+  providerFailure,
+  retryAfterSeconds,
+  agentUsageCost,
+  agentProviderOptions,
+  parseModelJSON,
+} from "./provider";
 afterEach(() => vi.unstubAllEnvs());
 describe("provider failures and cost estimates", () => {
   it("distinguishes rate limiting from exhausted supplier credit", () => {
@@ -28,6 +34,20 @@ describe("provider failures and cost estimates", () => {
     ).toMatchObject({
       code: "provider_quota_exhausted",
     });
+  });
+  it("never forces JSON mode on Groq but keeps it for OpenAI", () => {
+    vi.stubEnv("AI_PROVIDER", "groq");
+    expect(agentProviderOptions()).not.toHaveProperty("response_format");
+    vi.stubEnv("AI_PROVIDER", "openai");
+    expect(agentProviderOptions()).toMatchObject({ response_format: { type: "json_object" } });
+  });
+  it("reads plain, fenced or surrounded JSON objects and rejects everything else", () => {
+    expect(parseModelJSON('{"answer":"a"}')).toEqual({ answer: "a" });
+    expect(parseModelJSON('```json\n{"answer":"b"}\n```')).toEqual({ answer: "b" });
+    expect(parseModelJSON('Voici : {"answer":"c"} fin')).toEqual({ answer: "c" });
+    expect(parseModelJSON("")).toBeUndefined();
+    expect(parseModelJSON("[1,2]")).toBeUndefined();
+    expect(parseModelJSON("pas du JSON")).toBeUndefined();
   });
   it("supports HTTP dates and ignores malformed retry hints", () => {
     expect(

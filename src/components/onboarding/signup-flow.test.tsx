@@ -67,13 +67,13 @@ describe("progressive signup without email verification", () => {
     fireEvent.click(enterPassword());
     await waitFor(() => expect(mocks.replace).toHaveBeenLastCalledWith("/onboarding"));
   });
-  it("never treats a user without a session as successful signup", async () => {
+  it("asks a user without a session to confirm their email instead of signing them in", async () => {
     mocks.signUp.mockResolvedValue({
       data: { user: { id: "user-a" }, session: null },
       error: null,
     });
     fireEvent.click(enterPassword());
-    expect((await screen.findByRole("alert")).textContent).toContain("n’a pas été confirmée");
+    expect(await screen.findByRole("heading", { name: "Votre espace vous attend." })).toBeTruthy();
     expect(mocks.replace).not.toHaveBeenCalled();
   });
   it("retains input and prevents duplicate in-flight requests after an interrupted write", async () => {

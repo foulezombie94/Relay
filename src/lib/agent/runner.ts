@@ -11,9 +11,15 @@ import { executeTool, guard, propose, rpc, type ToolContext } from "./tools";
 import { readRequestKey, toolLabel, type ToolName } from "./contracts";
 import { agentInstructions } from "./instructions";
 import { directIdentityAnswer, configuredAgentProvider } from "./identity";
-import { agentApiKey, agentEndpoint, agentProviderTools, agentProviderOptions } from "./provider";
+import {
+  agentApiKey,
+  agentEndpoint,
+  agentProviderTools,
+  agentProviderOptions,
+  parseModelJSON,
+} from "./provider";
 import { providerFailure, agentUsageCost } from "./provider";
-import { progressiveTools, discoveryInstructionsFor } from "./discovery";
+import { progressiveTools, discoveryInstructionsFor, runToolLimit } from "./discovery";
 import { logEvent } from "@/lib/observability/logger";
 import { prepareAgentSkill, validateAgentSkillResult, type AgentSkill } from "./skill-runtime";
 
@@ -161,7 +167,13 @@ export async function runAgent(
     // Groq rejects a whole call when the model emits a malformed tool call; one fresh
     // attempt usually succeeds. The rejected call is already closed as "rejected".
     let retriedToolCall = false;
-    for (let round = 0; round <= options.toolLimit; round++) {
+    let retriedEmpty = false;
+    // Up to DISCOVERY_ALLOWANCE discoveries do not consume the business budget. The
+    // database admits the same total (runToolLimit) and at most 16 provider calls.
+    let discoveries = 0;
+    const freeDiscoveries = runToolLimit(options.toolLimit) - Math.max(1, options.toolLimit);
+    const maxRound = Math.min(15, options.toolLimit + freeDiscoveries + 1);
+    for (let round = 0; round <= maxRound; round++) {
       options.signal.throwIfAborted();
       await guard(c);
       const prompt = JSON.stringify(messages);
@@ -208,9 +220,11 @@ export async function runAgent(
           },
           body: JSON.stringify({
             model: options.model,
-            ...agentProviderOptions(exhausted || !definitions.length),
+            ...agentProviderOptions(),
             max_completion_tokens: options.outputTokens,
-            ...(!definitions.length || (configuredAgentProvider() === "groq" && exhausted)
+            // Once the budget is spent the tools stay visible with tool_choice "none":
+            // without them gpt-oss on Groq imagines a tool call and returns no content.
+            ...(!definitions.length
               ? {}
               : {
                   tools: definitions,
@@ -260,7 +274,7 @@ export async function runAgent(
           code: "provider_http_error",
           provider_code: providerCode ?? "unknown",
         });
-      if (providerCode === "tool_use_failed" && !retriedToolCall && round < options.toolLimit) {
+      if (providerCode === "tool_use_failed" && !retriedToolCall && round < maxRound) {
         retriedToolCall = true;
         options.step("model-" + round, "Appel d’outil invalide, nouvelle tentative", "done");
         continue;
@@ -306,6 +320,16 @@ export async function runAgent(
       const calls = message?.tool_calls;
       if (!calls?.length) {
         json = message?.content ?? "";
+        if (parseModelJSON(json) === undefined && !retriedEmpty && round < maxRound) {
+          // One corrective round for an empty or non-JSON final answer.
+          retriedEmpty = true;
+          messages.push({
+            role: "system",
+            content:
+              "Ta réponse précédente était vide ou n’était pas un objet JSON. Réponds maintenant uniquement avec l’objet JSON final demandé.",
+          });
+          continue;
+        }
         break;
       }
       if (!Array.isArray(calls) || calls.length !== 1 || toolCalls >= options.toolLimit)
@@ -325,9 +349,10 @@ export async function runAgent(
         operation: "tool",
         payload: { id: c.run, secret: c.runSecret, tool: name },
       });
-      toolCalls++;
+      if (name === "discover_tools" && discoveries < freeDiscoveries) discoveries++;
+      else toolCalls++;
       const began = Date.now(),
-        id = "tool-" + toolCalls;
+        id = "tool-" + (toolCalls + discoveries);
       const label = name === "discover_tools" ? "Sélection des capacités utiles" : toolLabel(name);
       options.step(id, label, "running");
       let result: unknown;
@@ -418,7 +443,9 @@ export async function runAgent(
     }
     options.signal.throwIfAborted();
     await guard(c);
-    const raw: unknown = JSON.parse(json);
+    const raw = parseModelJSON(json);
+    if (raw === undefined)
+      throw new ApiError("Réponse IA vide ou illisible. Relancez la question.", 502);
     const skillResult = skill ? validateAgentSkillResult(skill.manifest, raw) : undefined;
     const data = assistantOutput.parse(raw);
     data.proposals = data.proposals.filter(

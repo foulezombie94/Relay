@@ -12,3 +12,5 @@ package-lock.json
 next-env.d.ts
 docs/performance/*.json
 supabase/**/*.sql
+# Supabase Auth email templates: hand-tuned inline HTML for mail clients; reformatting can change rendering.
+supabase/templates/*.html

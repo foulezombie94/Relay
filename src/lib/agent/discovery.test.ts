@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { progressiveTools } from "./discovery";
+import { progressiveTools, discoveryInstructionsFor, runToolLimit } from "./discovery";
 import { toolSchemas } from "./contracts";
 describe("progressive tool catalogue", () => {
   it("provides no implicit base tools or discovery to a method with no tools", () => {
@@ -58,6 +58,18 @@ describe("progressive tool catalogue", () => {
     expect(first.definitions()).toEqual(before);
     expect(first.allows("send_email")).toBe(false);
     expect(progressiveTools().allows("draft_email")).toBe(false);
+  });
+  it("tells the model which tools are already loaded so it does not rediscover them", () => {
+    const text = discoveryInstructionsFor();
+    expect(text).toContain("déjà chargés");
+    expect(text).toContain("search_records");
+    expect(discoveryInstructionsFor(["search_meetings"])).toContain("Aucun outil n’est chargé");
+  });
+  it("admits the discovery allowance within the database ceiling of 15 calls", () => {
+    expect(runToolLimit(5)).toBe(7);
+    expect(runToolLimit(14)).toBe(15);
+    expect(runToolLimit(15)).toBe(15);
+    expect(runToolLimit(0)).toBe(3);
   });
   it("rejects unknown tools, hidden arguments and oversized discovery requests", () => {
     const t = progressiveTools();

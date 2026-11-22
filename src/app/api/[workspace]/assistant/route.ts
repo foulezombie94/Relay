@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID, randomBytes } from "node:crypto";
 import { runAgent } from "@/lib/agent/runner";
+import { runToolLimit } from "@/lib/agent/discovery";
 import { configuredAgentModel } from "@/lib/agent/identity";
 import { agentApiKey } from "@/lib/agent/provider";
 import { assistantApprovalMode } from "@/lib/domain/assistant-approval";
@@ -342,7 +343,7 @@ export async function POST(req: NextRequest, { params }: P) {
             w: workspace,
             operation: "begin",
             payload: {
-              tool_limit: limits.toolLimit,
+              tool_limit: runToolLimit(limits.toolLimit),
               reserved_tokens: input.deepen ? 180000 : 60000,
               token_limit: limits.reservedTokens,
               secret: runSecret,

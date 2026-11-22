@@ -362,6 +362,70 @@ describe("secure adaptive agent orchestration", () => {
     await expect(runAgent(c, options)).rejects.toMatchObject({ status: 429 });
     expect(mock.executeTool).toHaveBeenCalledTimes(1);
   });
+  it("does not charge a discovery against the business tool budget", async () => {
+    const { c, options } = setup("Quelles réunions avec Acme ?");
+    options.toolLimit = 1;
+    provider([
+      call("discover_tools", { names: ["search_meetings"] }),
+      call("search_meetings", { query: "Acme" }),
+      answer(),
+    ]);
+    const r = await runAgent(c, options);
+    expect(r.answer).toContain("Aucune donnée");
+    expect(mock.executeTool).toHaveBeenCalledTimes(1);
+    expect(mock.executeTool.mock.calls[0][1]).toBe("search_meetings");
+  });
+  it("charges discoveries beyond the free allowance like any other tool", async () => {
+    const { c, options } = setup("Cherche partout.");
+    options.toolLimit = 1;
+    provider([
+      call("discover_tools", { names: ["search_meetings"] }),
+      call("discover_tools", { names: ["search_notes"] }),
+      call("discover_tools", { names: ["search_calendar"] }),
+      call("search_records", { query: "x" }),
+    ]);
+    await expect(runAgent(c, options)).rejects.toMatchObject({ status: 429 });
+    expect(mock.executeTool).not.toHaveBeenCalled();
+  });
+  it("keeps tools visible with tool_choice none and no JSON mode once the budget is spent", async () => {
+    vi.stubEnv("AI_PROVIDER", "groq");
+    vi.stubEnv("GROQ_API_KEY", "test-only-key");
+    try {
+      const { c, options } = setup("Cherche Acme.");
+      options.toolLimit = 1;
+      const requests = provider([call("search_records", { query: "Acme" }), answer()]);
+      await runAgent(c, options);
+      const final = requests.at(-1)!;
+      expect(final.tool_choice).toBe("none");
+      expect(Array.isArray(final.tools)).toBe(true);
+      expect(final).not.toHaveProperty("response_format");
+      expect(JSON.stringify(final.messages)).toContain("Budget d’outils atteint");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+  it("asks once more after an empty final answer and reads a fenced JSON answer", async () => {
+    const { c, options } = setup("Bonjour, résume mon pipeline.");
+    const empty = answer();
+    empty.choices[0].message.content = "";
+    const fenced = answer();
+    fenced.choices[0].message.content =
+      "```json\n" + JSON.stringify({ answer: "Pipeline résumé." }) + "\n```";
+    const requests = provider([empty, fenced]);
+    const r = await runAgent(c, options);
+    expect(r.answer).toBe("Pipeline résumé.");
+    expect(JSON.stringify(requests[1].messages)).toContain("objet JSON final");
+  });
+  it("reports an unreadable final answer clearly instead of a parser crash", async () => {
+    const { c, options } = setup("Analyse mon pipeline.");
+    const bad = answer();
+    bad.choices[0].message.content = "pas du JSON";
+    provider([bad, { ...bad }]);
+    await expect(runAgent(c, options)).rejects.toMatchObject({
+      status: 502,
+      message: expect.stringContaining("illisible"),
+    });
+  });
   it("settles a rejected provider call, surfaces its retry delay and never retries automatically", async () => {
     const { c, options } = setup("Analyse mes ventes.");
     vi.stubGlobal(
