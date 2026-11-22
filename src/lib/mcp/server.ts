@@ -430,10 +430,12 @@ export function buildServer(tokenHash: string, session: Session, requestId = ran
         Object.fromEntries(
           Object.entries(shape).map(([key, value]) => [
             key,
+            // completable() marks the schema it receives: build a fresh one per server so the
+            // shared module-level prompt schemas are never mutated across requests.
             key === "record_id"
-              ? completable(value as z.ZodString, complete("record"))
+              ? completable(z.uuid(), complete("record"))
               : key === "pipeline_id"
-                ? completable(value as z.ZodString, complete("pipeline"))
+                ? completable(z.uuid(), complete("pipeline"))
                 : value,
           ]),
         ),
