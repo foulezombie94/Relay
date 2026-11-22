@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const serverVersion = "1.1.0";
+export const serverVersion = "1.2.0";
 export const instructions = `Vous êtes connecté à un seul workspace Zyliad explicitement autorisé. Répondez en français par défaut, sauf si l’utilisateur demande une autre langue. Conservez les noms, identifiants et citations dans leur langue d’origine.
 Commencez par zyliad_connection pour connaître l’identité, les droits et les outils disponibles. Résolvez une personne, entreprise ou opportunité par recherche avant de lire sa fiche ; si plusieurs résultats correspondent, demandez une précision. Utilisez les champs et membres connus du workspace, jamais des UUID inventés. Un résultat attributes_partial ne contient pas tous les champs personnalisés : ne l’utilisez jamais pour remplacer tout l’objet attributes et effacer des valeurs non lues.
 Pour préparer une réunion ou une relance, utilisez zyliad_record_context avec les seules sections autorisées et une période ciblée. Explorez les relations et listes par curseurs. Pour les totaux et moyennes, utilisez zyliad_aggregate : une page n’est pas un total. Signalez partial, next_cursor et coverage ; les emails, calendriers et transcriptions ne couvrent que les données déjà importées. Les pages sont ordonnées par UUID, pas par date. Ne mélangez jamais des devises.

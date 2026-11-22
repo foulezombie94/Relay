@@ -175,3 +175,8 @@
     gap: 3px;
   }
 }
+
+.focused {
+  outline: 2px solid var(--relay-accent, #4f6bd8);
+  outline-offset: 2px;
+}

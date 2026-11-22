@@ -1,18 +1,27 @@
 import "server-only";
-import { McpServer, createMcpHandler } from "@modelcontextprotocol/server";
+import {
+  McpServer,
+  ResourceTemplate,
+  createMcpHandler,
+  completable,
+  inputRequired,
+  CLIENT_CAPABILITIES_META_KEY,
+} from "@modelcontextprotocol/server";
 import { z, ZodError } from "zod";
 import { randomUUID } from "node:crypto";
 import { ApiError } from "@/lib/api/context";
 import { logEvent } from "@/lib/observability/logger";
 import {
   tools,
+  toolTitles,
+  fetchKinds,
   type ToolName,
   parseTool,
   requiredToolScopes,
   availableToolNames,
 } from "./contracts";
 import { bearer, mcpDb } from "./database";
-import { mcpOrigin } from "./config";
+import { mcpOrigin, mcpResource, mcpAllowedOrigins } from "./config";
 import { instructions, serverVersion, localizedSchema, promptDefinitions } from "./guidance";
 export { instructions } from "./guidance";
 
@@ -140,8 +149,10 @@ export async function executeTool(
       values: input.values,
       request_id: input.request_id,
     });
-    return { ...result, confirmation_url: mcpOrigin() + "/app/settings#developpeurs" };
+    return { ...result, confirmation_url: confirmationUrl(result?.id) };
   }
+  if (name === "search") return searchAll(tokenHash, session, String(input.query));
+  if (name === "fetch") return fetchItem(tokenHash, session, String(input.id));
   if (name === "zyliad_read_source") return mcpDb(tokenHash, "source", input);
   if (name === "zyliad_aggregate") {
     const { kind, group_by, ...filters } = input;
@@ -149,6 +160,77 @@ export async function executeTool(
   }
   if (name === "zyliad_command_status") return mcpDb(tokenHash, "status", input);
   return mcpDb(tokenHash, "workspace");
+}
+/** Direct link to one proposal on the confirmation page (no CRM value in the URL). */
+export function confirmationUrl(commandId?: unknown) {
+  const base = mcpOrigin() + "/app/settings";
+  return typeof commandId === "string" && /^[0-9a-f-]{36}$/.test(commandId)
+    ? `${base}?mcp_command=${commandId}#developpeurs`
+    : base + "#developpeurs";
+}
+type SearchItem = { id: string; title: string; url: string };
+const itemTitle = (row: Record<string, unknown>, fallback: string) =>
+  String(row.display_name ?? row.title ?? row.subject ?? row.label ?? row.name ?? fallback).slice(
+    0,
+    200,
+  );
+function itemUrl(kind: keyof typeof fetchKinds, id: string, title: string, workspace: string) {
+  const o = mcpOrigin();
+  const w = encodeURIComponent(workspace);
+  if (kind === "document") return `${o}/api/${w}/files?id=${id}`;
+  if (kind === "record") return `${o}/app/search?q=${encodeURIComponent(title)}&workspace=${w}`;
+  const page = { note: "notes", meeting: "meetings", email: "communications", task: "tasks" }[kind];
+  return `${o}/app/${page}?focus=${id}&workspace=${w}`;
+}
+/** Standard search tool: records plus every other source kind the connection may read. */
+async function searchAll(tokenHash: string, session: Session, query: string) {
+  const kinds = (Object.keys(fetchKinds) as (keyof typeof fetchKinds)[]).filter((kind) =>
+    session.scopes.includes(fetchKinds[kind]),
+  );
+  const results: SearchItem[] = [];
+  for (const kind of kinds) {
+    const page = await mcpDb(tokenHash, "search", {
+      kind,
+      filters: { query, limit: kind === "record" ? 10 : 5 },
+    });
+    for (const row of (page?.data ?? []) as Record<string, unknown>[]) {
+      if (typeof row.id !== "string") continue;
+      const title = itemTitle(row, kind);
+      results.push({
+        id: `${kind}:${row.id}`,
+        title,
+        url: itemUrl(kind, row.id, title, session.workspace_id),
+      });
+    }
+  }
+  return { results };
+}
+/** Standard fetch tool: the authorized content of one search result. */
+async function fetchItem(tokenHash: string, session: Session, value: string) {
+  const [kind, id] = value.split(":") as [keyof typeof fetchKinds, string];
+  const data =
+    kind === "record"
+      ? (await mcpDb(tokenHash, "record", { record_id: id }))?.record
+      : ((await mcpDb(tokenHash, "source", { kind, id }))?.data?.[0] ?? null);
+  if (!data) throw new ApiError("Ce résultat est introuvable ou inaccessible.", 404, "not_found");
+  const title = itemTitle(data, kind);
+  return {
+    id: value,
+    title,
+    text: JSON.stringify(sanitizeResult(data)),
+    url: itemUrl(kind, id, title, session.workspace_id),
+    metadata: { kind, trust: "untrusted_external_data" },
+  };
+}
+function plainOutput(value: unknown) {
+  const text = JSON.stringify(sanitizeResult(value));
+  if (Buffer.byteLength(text, "utf8") > maxResponseBytes)
+    throw new ApiError(
+      "Ce résultat est trop volumineux. Précisez la recherche.",
+      413,
+      "response_too_large",
+    );
+  return { content: [{ type: "text" as const, text }] };
 }
 export function toolError(error: unknown, requestId: string) {
   const status = error instanceof ApiError ? error.status : error instanceof ZodError ? 400 : 503;
@@ -176,45 +258,103 @@ export function toolError(error: unknown, requestId: string) {
     request_id: requestId,
   };
 }
+const readOnly = (name: ToolName) => !("action" in tools[name]);
+/** True when the client declared URL-mode elicitation on this 2026-era request. */
+function supportsUrlElicitation(envelope: unknown) {
+  const caps = (envelope as Record<string, unknown> | undefined)?.[CLIENT_CAPABILITIES_META_KEY] as
+    { elicitation?: { url?: unknown } } | undefined;
+  return !!caps?.elicitation?.url;
+}
 export function buildServer(tokenHash: string, session: Session, requestId = randomUUID()) {
-  const server = new McpServer({ name: "zyliad", version: serverVersion }, { instructions });
+  const origin = mcpOrigin();
+  const server = new McpServer(
+    {
+      name: "zyliad",
+      title: "Zyliad CRM",
+      version: serverVersion,
+      websiteUrl: origin + "/mcp",
+      icons: [{ src: origin + "/icon.svg", mimeType: "image/svg+xml", sizes: ["any"] }],
+    },
+    { instructions },
+  );
   const available = new Set(availableToolNames(session.scopes));
-  for (const [name, tool] of Object.entries(tools)) {
-    if (!available.has(name as ToolName)) continue;
+  // Every tool is listed so a client can request a missing scope (step-up). A call
+  // without the scopes it needs gets HTTP 403 insufficient_scope with the full set
+  // to request; the tool itself re-checks the scopes before any data access.
+  for (const name of Object.keys(tools) as ToolName[]) {
+    const tool = tools[name];
     server.registerTool(
       name,
       {
-        description: tool.description,
-        inputSchema: localizedSchema(tool.schema) as z.ZodType<Record<string, unknown>>,
-        outputSchema: z.object({
-          trust: z.literal("untrusted_external_data"),
-          language: z.literal("fr"),
-          message: z.string(),
-          data: z.unknown(),
-        }),
+        title: toolTitles[name],
+        description:
+          tool.description +
+          (available.has(name)
+            ? ""
+            : " Nécessite une permission supplémentaire, demandée à l’appel."),
+        inputSchema: localizedSchema(tool.schema as z.ZodObject) as z.ZodType<
+          Record<string, unknown>
+        >,
+        ...(name === "search" || name === "fetch"
+          ? {}
+          : {
+              outputSchema: z.object({
+                trust: z.literal("untrusted_external_data"),
+                language: z.literal("fr"),
+                message: z.string(),
+                data: z.unknown(),
+              }),
+            }),
         annotations: {
-          readOnlyHint: tool.scope !== "crm:write" || name === "zyliad_command_status",
+          title: toolTitles[name],
+          // Write tools only create a proposal: nothing changes before the human
+          // confirms it in Zyliad, and the same request_id never duplicates it.
+          readOnlyHint: readOnly(name),
           destructiveHint: false,
           idempotentHint: true,
           openWorldHint: false,
         },
+        scopeChallenge: ({ request }) => {
+          const args = (request.params as { arguments?: Record<string, unknown> } | undefined)
+            ?.arguments;
+          const missing = requiredToolScopes(name, args ?? {}).filter(
+            (scope) => scope !== "invalid_scope" && !session.scopes.includes(scope),
+          );
+          if (!missing.length) return undefined;
+          const all = [...new Set([...session.scopes, ...missing])] as [string, ...string[]];
+          return { scopes: all, errorDescription: "Additional Zyliad permission required" };
+        },
       },
-      async (input: unknown) => {
+      async (input: unknown, ctx) => {
         const started = performance.now();
         let outcome = "success";
         try {
-          return output(await executeTool(tokenHash, session, name as ToolName, input));
+          const result = await executeTool(tokenHash, session, name, input);
+          if (name === "search" || name === "fetch") return plainOutput(result);
+          // A proposal waits for the human: clients that support URL elicitation open the
+          // exact confirmation page in Zyliad, where only the user's session can approve.
+          if (
+            "action" in tool &&
+            result?.status === "pending" &&
+            !ctx.mcpReq.inputResponses &&
+            supportsUrlElicitation(ctx.mcpReq.envelope)
+          )
+            return inputRequired({
+              inputRequests: {
+                confirm: inputRequired.elicitUrl({
+                  message:
+                    "Vérifiez et confirmez cette proposition dans Zyliad. Rien n’est modifié avant votre confirmation.",
+                  url: confirmationUrl(result.id),
+                }),
+              },
+            });
+          return output(result);
         } catch (error) {
           const failure = toolError(error, requestId);
           outcome = failure.error;
           return {
             isError: true,
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify(failure),
-              },
-            ],
+            content: [{ type: "text" as const, text: JSON.stringify(failure) }],
           };
         } finally {
           await logEvent(outcome === "success" ? "info" : "warn", "mcp_tool_result", {
@@ -240,10 +380,70 @@ export function buildServer(tokenHash: string, session: Session, requestId = ran
     },
     async (uri) => ({ contents: [{ uri: uri.href, text: instructions, mimeType: "text/plain" }] }),
   );
-  for (const [name, prompt] of Object.entries(promptDefinitions))
+  const canReadRecords = session.scopes.includes("records:read");
+  // One record as attachable context, e.g. zyliad://record/<uuid>.
+  server.registerResource(
+    "record",
+    new ResourceTemplate("zyliad://record/{id}", { list: undefined }),
+    {
+      mimeType: "application/json",
+      description: "Une fiche Zyliad autorisée (personne, entreprise ou opportunité), en JSON.",
+      scopeChallenge: () =>
+        canReadRecords
+          ? undefined
+          : {
+              scopes: [...new Set([...session.scopes, "records:read"])] as [string, ...string[]],
+            },
+    },
+    async (uri, variables) => {
+      const id = String(variables.id ?? "");
+      if (!/^[0-9a-f-]{36}$/.test(id)) throw new ApiError("Identifiant de fiche invalide.", 400);
+      const data = await mcpDb(tokenHash, "record", { record_id: id });
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(output(data).structuredContent),
+          },
+        ],
+      };
+    },
+  );
+  // Prompt arguments that take a record or pipeline offer completion from a search.
+  const complete = (kind: "record" | "pipeline") => async (value: string) => {
+    if (kind === "record" ? !canReadRecords : !session.scopes.includes("configuration:read"))
+      return [];
+    if (/^[0-9a-f-]{36}$/.test(value)) return [value];
+    const page = await mcpDb(tokenHash, "search", {
+      kind,
+      filters: { query: value.slice(0, 100), limit: 10 },
+    }).catch(() => null);
+    return ((page?.data ?? []) as Record<string, unknown>[])
+      .map((row) => row.id)
+      .filter((id): id is string => typeof id === "string");
+  };
+  for (const [name, prompt] of Object.entries(promptDefinitions)) {
+    const shape = (prompt.schema as z.ZodObject).shape as Record<string, z.ZodType>;
+    const args = z
+      .object(
+        Object.fromEntries(
+          Object.entries(shape).map(([key, value]) => [
+            key,
+            // completable() marks the schema it receives: build a fresh one per server so the
+            // shared module-level prompt schemas are never mutated across requests.
+            key === "record_id"
+              ? completable(z.uuid(), complete("record"))
+              : key === "pipeline_id"
+                ? completable(z.uuid(), complete("pipeline"))
+                : value,
+          ]),
+        ),
+      )
+      .strict();
     server.registerPrompt(
       name,
-      { description: prompt.description, argsSchema: localizedSchema(prompt.schema) },
+      { description: prompt.description, argsSchema: localizedSchema(args) },
       async (input) => ({
         messages: [
           {
@@ -256,17 +456,42 @@ export function buildServer(tokenHash: string, session: Session, requestId = ran
         ],
       }),
     );
+  }
   return server;
+}
+/** CORS for browser-based MCP clients on an explicit allowlist (bearer tokens only, no cookies). */
+export function corsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get("origin");
+  if (!origin || !mcpAllowedOrigins().includes(origin)) return {};
+  return {
+    "Access-Control-Allow-Origin": origin,
+    Vary: "Origin",
+    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers":
+      "Authorization, Content-Type, Accept, Mcp-Protocol-Version, Mcp-Session-Id, Last-Event-ID",
+    "Access-Control-Expose-Headers":
+      "WWW-Authenticate, Mcp-Session-Id, Mcp-Protocol-Version, X-Request-ID",
+    "Access-Control-Max-Age": "600",
+  };
+}
+export function handleMcpPreflight(request: Request) {
+  const headers = corsHeaders(request);
+  return new Response(null, {
+    status: headers["Access-Control-Allow-Origin"] ? 204 : 403,
+    headers,
+  });
 }
 export async function handleMcp(request: Request) {
   const requestId = randomUUID();
+  const cors = corsHeaders(request);
   try {
     const o = new URL(mcpOrigin());
     const origin = request.headers.get("origin");
     // Next.js may canonicalize request.url to its internal listening hostname.
-    // Validate the actual HTTP Host against the configured public origin.
+    // Validate the actual HTTP Host against the configured public origin; a browser
+    // Origin must be the canonical one or explicitly allowlisted (DNS rebinding).
     const host = request.headers.get("host") ?? new URL(request.url).host;
-    if (host !== o.host || (origin && origin !== o.origin))
+    if (host !== o.host || (origin && !mcpAllowedOrigins().includes(origin)))
       throw new ApiError(
         "Cette origine n’est pas autorisée à utiliser le MCP Zyliad.",
         403,
@@ -289,12 +514,21 @@ export async function handleMcp(request: Request) {
       maxSubscriptions: 0,
     });
     try {
-      const response = await handler.fetch(request);
+      const response = await handler.fetch(request, {
+        authInfo: {
+          token: tokenHash,
+          clientId: session.connection_id,
+          scopes: session.scopes,
+          resource: new URL(mcpResource()),
+          resourceMetadataUrl: `${mcpOrigin()}/.well-known/oauth-protected-resource/api/mcp`,
+        },
+      });
       const bytes = await response.arrayBuffer();
       const headers = new Headers(response.headers);
       headers.set("Cache-Control", "no-store");
       headers.set("X-Content-Type-Options", "nosniff");
       headers.set("X-Request-ID", requestId);
+      for (const [k, v] of Object.entries(cors)) headers.set(k, v);
       return new Response(bytes, { status: response.status, headers });
     } finally {
       await handler.close();
@@ -314,6 +548,7 @@ export async function handleMcp(request: Request) {
       {
         status,
         headers: {
+          ...cors,
           "Cache-Control": "no-store",
           "X-Request-ID": requestId,
           ...(status === 401

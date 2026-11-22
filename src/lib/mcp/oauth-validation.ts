@@ -35,7 +35,7 @@ export const registrationSchema = z
   .strip();
 export const authorizationSchema = z
   .object({
-    client_id: z.uuid(),
+    client_id: z.union([z.uuid(), z.string().url().max(2000)]),
     redirect_uri: redirectUri,
     response_type: z.literal("code"),
     code_challenge: opaque,
@@ -49,7 +49,7 @@ export const tokenSchema = z.discriminatedUnion("grant_type", [
   z
     .object({
       grant_type: z.literal("authorization_code"),
-      client_id: z.uuid(),
+      client_id: z.union([z.uuid(), z.string().url().max(2000)]),
       code: opaque,
       redirect_uri: redirectUri,
       code_verifier: z.string().regex(/^[A-Za-z0-9._~-]{43,128}$/),
@@ -59,7 +59,7 @@ export const tokenSchema = z.discriminatedUnion("grant_type", [
   z
     .object({
       grant_type: z.literal("refresh_token"),
-      client_id: z.uuid(),
+      client_id: z.union([z.uuid(), z.string().url().max(2000)]),
       refresh_token: z.string().regex(/^zmc_r_[A-Za-z0-9_-]{43}$/),
       // Some native clients omit resource on refresh; the server binds it
       // to its sole canonical audience and checks the stored family again.

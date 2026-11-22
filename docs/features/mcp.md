@@ -122,3 +122,21 @@ Audit du consentement et des permissions MCP : [résultats et limites du 12 octo
 ## Correctif de dépendance du 26 octobre 2026
 
 L’installateur et le pont optionnel 1.1.1 utilisent Zod 4.6.7. Les archives déjà publiées 1.0.0/1.1.0 restent immuables pour les configurations existantes ; elles conservent leurs dépendances historiques. Utiliser la connexion HTTP native ou relancer la commande d’installation 1.1.1 ci-dessus pour remplacer l’ancien pont. La version du protocole et les autorisations serveur ne changent pas.
+
+## MCP 1.2 — 22 novembre 2026
+
+Serveur **1.2.0**, 41 outils. Migration `20261122123019_mcp_extended_capabilities` (appliquée en base ; additive, compatible avec 1.1).
+
+- **Confirmation directe** : chaque proposition renvoie `confirmation_url` vers sa ligne exacte (`/app/settings?mcp_command=<id>#developpeurs`), mise en évidence dans Paramètres → Développeurs. Les clients qui déclarent l’élicitation URL (protocole 2026-07-28) ouvrent cette page eux-mêmes. Aucune confirmation par formulaire : seule la session Zyliad de l’utilisateur approuve.
+- **Demande de permission (step-up)** : tous les outils sont listés ; un appel sans le scope nécessaire reçoit HTTP 403 `insufficient_scope` avec l’ensemble complet des scopes à demander (RFC 6750), et l’outil revérifie ses scopes avant tout accès.
+- **Nouvelles propositions** (`crm:write`) : engagement (`zyliad_update_commitment`), brouillon de workflow désactivé (`zyliad_create_workflow_draft`, `zyliad_update_workflow_draft`), listes (`zyliad_add_to_list`, `zyliad_remove_from_list`). Elles réutilisent le SQL de l’agent intégré, sous RLS.
+- **Administration** (`crm:admin`, propriétaires et admins, toujours avec `crm:write`) : fusion de doublons (`zyliad_merge_records`, revalidée comme l’écran Doublons), nouveau champ (`zyliad_create_field`), étapes de pipeline (`zyliad_update_pipeline_stages`). Lecture des paires candidates : `zyliad_find_duplicates` (`records:read`).
+- **Outils standard** `search` / `fetch` (ChatGPT et connecteurs) : recherche plein texte classée dans les seuls types autorisés, identifiants `type:UUID`, lecture avec la permission propre du type. Ce n’est pas une recherche sémantique : aucun fournisseur d’embeddings n’est configuré.
+- **Ressource** `zyliad://record/{id}` et **autocomplétion** des arguments `record_id` / `pipeline_id` des prompts.
+- **CIMD** (Client ID Metadata Documents) : `client_id` peut être une URL HTTPS ; le document est récupéré avec protections SSRF (HTTPS port par défaut, adresses publiques uniquement, sans redirection, 5 s, 10 Kio, `client_id` identique à l’URL) et stocké dans `mcp_clients.metadata_url`. L’enregistrement dynamique reste disponible.
+- **CORS** : origine canonique plus `MCP_ALLOWED_ORIGINS` (liste séparée par des virgules, par exemple `http://localhost:6274` pour MCP Inspector) sur `/api/mcp` et les points OAuth `register`, `token`, `revoke`. Le consentement reste limité à l’origine canonique.
+- **Titres, icône et annotations** : titre français par outil, icône `/icon.svg`. Les outils d’écriture sont annotés non destructifs et idempotents : ils créent seulement une proposition, dédupliquée par `request_id`.
+
+Non inclus : brouillons d’email et événements de calendrier via MCP (ils exigent la chaîne outbox/worker des fournisseurs et la résolution du compte), et recherche sémantique.
+
+Tests : `supabase/tests/mcp-extended.sql` (consentement `crm:admin`, CIMD, propositions, fusion, champ, pipeline, doublons), ajouté à `npm run test:mcp:db`. La migration et les suites MCP existantes ont été exécutées contre la base de production dans des transactions annulées avant application.

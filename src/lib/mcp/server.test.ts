@@ -49,7 +49,13 @@ describe("official MCP SDK v2 transport", () => {
         expect(client.getProtocolEra()).toBe(mode === "auto" ? "modern" : "legacy");
         const list = await client.listTools();
         expect(list.tools.some((t) => t.name === "zyliad_search_records")).toBe(true);
-        expect(list.tools.some((t) => t.name === "zyliad_create_record")).toBe(false);
+        // Every tool is listed (step-up); a missing scope is requested at call time.
+        expect(list.tools.find((t) => t.name === "zyliad_create_record")?.description).toContain(
+          "permission supplémentaire",
+        );
+        expect(list.tools.find((t) => t.name === "zyliad_search_records")?.title).toBe(
+          "Rechercher des fiches",
+        );
         expect(list.tools.find((t) => t.name === "zyliad_search_records")?.description).toContain(
           "Rechercher personnes",
         );
@@ -123,7 +129,7 @@ describe("official MCP SDK v2 transport", () => {
     );
     expect(result).toMatchObject({
       status: "pending",
-      confirmation_url: "http://127.0.0.1:3000/app/settings#developpeurs",
+      confirmation_url: `http://127.0.0.1:3000/app/settings?mcp_command=${id}#developpeurs`,
     });
     expect(db.mcpDb).toHaveBeenCalledWith(
       "hash",
@@ -200,7 +206,7 @@ describe("official MCP SDK v2 transport", () => {
     });
     const result = await executeTool("hash", session, "zyliad_connection", {});
     expect(result).toMatchObject({
-      server_version: "1.1.0",
+      server_version: "1.2.0",
       language: "fr",
       limits: { max_page_size: 20 },
     });
@@ -252,8 +258,134 @@ describe("official MCP SDK v2 transport", () => {
     expect(toolError(new ApiError("Version périmée.", 409, "conflict"), id).retryable).toBe(false);
   });
   it("exposes all expected tools only under their grants", () => {
-    expect(Object.keys(tools)).toHaveLength(30);
+    expect(Object.keys(tools)).toHaveLength(41);
     expect(availableToolNames([])).toEqual(["zyliad_connection"]);
+  });
+});
+
+describe("MCP 1.2", () => {
+  const call = (name: string, args: unknown, scopes = session.scopes) => {
+    db.mcpDb.mockImplementation(async (_token, operation) =>
+      operation === "session"
+        ? { ...session, scopes }
+        : { data: [{ id, label: "Fixture contact" }], record: { id, display_name: "Fixture" } },
+    );
+    return handleMcp(
+      new Request("http://127.0.0.1:3000/api/mcp", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer zmc_a_" + "a".repeat(43),
+          "content-type": "application/json",
+          accept: "application/json, text/event-stream",
+          "mcp-protocol-version": "2025-11-25",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name, arguments: args },
+        }),
+      }),
+    );
+  };
+  it("serves several requests in a row (prompt completion schemas are never mutated)", async () => {
+    for (let i = 0; i < 3; i++) {
+      const client = new Client({ name: "fixture-client", version: "1.0.0" });
+      const transport = new StreamableHTTPClientTransport(
+        new URL("http://127.0.0.1:3000/api/mcp"),
+        {
+          requestInit: { headers: { Authorization: "Bearer zmc_a_" + "a".repeat(43) } },
+          fetch: async (url, init) => handleMcp(new Request(url, init)),
+        },
+      );
+      try {
+        await client.connect(transport);
+        expect((await client.listPrompts()).prompts).toHaveLength(5);
+        expect((await client.listResourceTemplates()).resourceTemplates[0].uriTemplate).toBe(
+          "zyliad://record/{id}",
+        );
+      } finally {
+        await client.close();
+      }
+    }
+  }, 15000);
+  it("answers a missing scope with HTTP 403 insufficient_scope and the full scope set", async () => {
+    const response = await call("zyliad_create_task", { request_id: id, values: { title: "T" } });
+    expect(response.status).toBe(403);
+    const challenge = response.headers.get("www-authenticate") ?? "";
+    expect(challenge).toContain("insufficient_scope");
+    expect(challenge).toContain("crm:write");
+    expect(challenge).toContain("records:read");
+    expect(db.mcpDb).not.toHaveBeenCalledWith("hash", "prepare", expect.anything());
+  });
+  it("returns standard search results and fetches one with its own scope", async () => {
+    db.mcpDb.mockResolvedValue({ data: [{ id, display_name: "Acme" }] });
+    const found = await executeTool("hash", session, "search", { query: "Acme" });
+    // Only the kinds this connection may read are searched (records and tasks here).
+    expect((found as { results: { id: string }[] }).results.map((r) => r.id)).toEqual([
+      `record:${id}`,
+      `task:${id}`,
+    ]);
+    expect(JSON.stringify(found)).toContain("/app/search?q=Acme");
+    await expect(executeTool("hash", session, "fetch", { id: `note:${id}` })).rejects.toMatchObject(
+      { status: 403 },
+    );
+    db.mcpDb.mockResolvedValue({ record: { id, display_name: "Acme" } });
+    const item = await executeTool("hash", session, "fetch", { id: `record:${id}` });
+    expect(item).toMatchObject({ id: `record:${id}`, title: "Acme" });
+  });
+  it("allows CORS only for the canonical origin and MCP_ALLOWED_ORIGINS", async () => {
+    vi.stubEnv("MCP_ALLOWED_ORIGINS", "http://localhost:6274");
+    const { handleMcpPreflight } = await import("./server");
+    const ok = handleMcpPreflight(
+      new Request("http://127.0.0.1:3000/api/mcp", {
+        method: "OPTIONS",
+        headers: { origin: "http://localhost:6274" },
+      }),
+    );
+    expect(ok.status).toBe(204);
+    expect(ok.headers.get("access-control-allow-origin")).toBe("http://localhost:6274");
+    expect(ok.headers.get("access-control-expose-headers")).toContain("WWW-Authenticate");
+    const denied = handleMcpPreflight(
+      new Request("http://127.0.0.1:3000/api/mcp", {
+        method: "OPTIONS",
+        headers: { origin: "https://attacker.example" },
+      }),
+    );
+    expect(denied.status).toBe(403);
+    expect(denied.headers.get("access-control-allow-origin")).toBeNull();
+  });
+  it("routes the new proposals and admin actions through prepare only", async () => {
+    db.mcpDb.mockResolvedValue({ id, status: "pending" });
+    const admin = { ...session, scopes: [...session.scopes, "crm:write", "crm:admin"] };
+    await executeTool("hash", admin, "zyliad_add_to_list", {
+      request_id: id,
+      values: { list_id: id, record_id: id },
+    });
+    await executeTool("hash", admin, "zyliad_create_field", {
+      request_id: id,
+      values: { object_id: id, key: "score", name: "Score", type: "number" },
+    });
+    expect(db.mcpDb.mock.calls.map((c) => c[2]?.action)).toEqual([
+      "add_to_list",
+      "create_attribute",
+    ]);
+    await expect(
+      executeTool(
+        "hash",
+        { ...session, scopes: [...session.scopes, "crm:write"] },
+        "zyliad_merge_records",
+        {
+          request_id: id,
+          values: {
+            source_id: id,
+            target_id: "a7d1e3b0-1c2d-4e5f-8a9b-0c1d2e3f4a5b",
+            source_version: 1,
+            target_version: 1,
+          },
+        },
+      ),
+    ).rejects.toMatchObject({ status: 403 });
   });
 });
 
