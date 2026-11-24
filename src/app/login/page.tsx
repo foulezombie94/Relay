@@ -8,6 +8,7 @@ import { authEmail, authFailureMessage, loginDestination } from "@/lib/supabase/
 import { SignupFlow } from "@/components/onboarding/signup-flow";
 import { AuthFrame } from "@/components/onboarding/auth-frame";
 import { SecondFactorStep } from "@/components/onboarding/second-factor";
+import { PasswordInput } from "@/components/ui/password-input";
 import styles from "@/components/onboarding/onboarding.module.css";
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -104,13 +105,13 @@ function LoginForm() {
         {mode !== "reset" && (
           <label className={styles.field}>
             Mot de passe
-            <input
-              type="password"
+            <PasswordInput
+              strength={false}
               disabled={busy}
               required
               autoComplete="current-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={setPassword}
               placeholder="Votre mot de passe"
             />
           </label>

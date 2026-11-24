@@ -192,26 +192,6 @@
 .field input::placeholder {
   color: #8b94a3;
 }
-.password {
-  position: relative;
-}
-.password input {
-  padding-right: 48px;
-}
-.reveal {
-  position: absolute;
-  right: 5px;
-  top: 6px;
-  height: 36px;
-  width: 36px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  background: transparent;
-  border-radius: 6px;
-  color: var(--relay-muted);
-  cursor: pointer;
-}
 .hint {
   font-size: 12px;
   line-height: 1.5;

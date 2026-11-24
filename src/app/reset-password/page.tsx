@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import { browserDb } from "@/lib/supabase/client";
 import { authFailureMessage } from "@/lib/supabase/session";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useRouter } from "next/navigation";
 export default function ResetPassword() {
   const [error, setError] = useState("");
@@ -72,8 +73,7 @@ export default function ResetPassword() {
       >
         <label>
           Mot de passe
-          <input
-            type="password"
+          <PasswordInput
             disabled={busy}
             name="password"
             required
@@ -84,8 +84,8 @@ export default function ResetPassword() {
         </label>
         <label>
           Confirmez le mot de passe
-          <input
-            type="password"
+          <PasswordInput
+            strength={false}
             name="confirmation"
             required
             minLength={8}

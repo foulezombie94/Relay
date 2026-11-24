@@ -2,7 +2,8 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { PasswordInput } from "@/components/ui/password-input";
 import { browserDb } from "@/lib/supabase/client";
 import { authEmail, authFailureMessage } from "@/lib/supabase/session";
 import { AuthFrame } from "./auth-frame";
@@ -15,7 +16,6 @@ export function SignupFlow() {
   const [email, setEmail] = useState(() => params.get("email")?.slice(0, 254) ?? "");
   const [password, setPassword] = useState("");
   const [passwordStep, setPasswordStep] = useState(false);
-  const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
@@ -118,32 +118,19 @@ export function SignupFlow() {
             </div>
             <div className={styles.field}>
               <label htmlFor="signup-password">Mot de passe</label>
-              <div className={styles.password}>
-                <input
-                  id="signup-password"
-                  type={visible ? "text" : "password"}
-                  autoComplete="new-password"
-                  autoFocus
-                  required
-                  minLength={8}
-                  maxLength={128}
-                  disabled={busy}
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  aria-describedby="password-hint"
-                  placeholder="Au moins 8 caractères"
-                />
-                <button
-                  type="button"
-                  className={styles.reveal}
-                  disabled={busy}
-                  aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                  aria-pressed={visible}
-                  onClick={() => setVisible(!visible)}
-                >
-                  {visible ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
+              <PasswordInput
+                id="signup-password"
+                autoComplete="new-password"
+                autoFocus
+                required
+                minLength={8}
+                maxLength={128}
+                disabled={busy}
+                value={password}
+                onChange={setPassword}
+                aria-describedby="password-hint"
+                placeholder="Au moins 8 caractères"
+              />
               <span className={styles.hint} id="password-hint">
                 Au moins 8 caractères. Utilisez un mot de passe unique.
               </span>
