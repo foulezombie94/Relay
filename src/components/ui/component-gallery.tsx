@@ -30,6 +30,7 @@ import { MonthCalendar } from "./month-calendar";
 import { SlideViewer } from "./slide-viewer";
 import { DashboardChart } from "../dashboard/chart";
 import { defaultTile, type DashboardDatum } from "@/lib/domain/dashboards";
+import { TasksDemo } from "../tasks/tasks-demo";
 import styles from "./component-gallery.module.css";
 const values: DashboardDatum[] = [
   {
@@ -129,6 +130,7 @@ export function ComponentGallery() {
         </div>
         <nav className={styles.anchors} aria-label="Familles de composants">
           {[
+            ["taches", "Tâches"],
             ["commandes", "Commandes"],
             ["proprietes", "Propriétés"],
             ["vues", "Vues"],
@@ -140,6 +142,13 @@ export function ComponentGallery() {
             </a>
           ))}
         </nav>
+        <section id="taches">
+          <h2>Tâches</h2>
+          <p>Filtres, liste à cocher, échéances et création, avec les composants coss ui.</p>
+          <div className={styles.surface}>
+            <TasksDemo onMessage={setStatus} />
+          </div>
+        </section>
         <section id="commandes">
           <h2>Commandes</h2>
           <p>Actions principales, boutons discrets et menus contextuels.</p>

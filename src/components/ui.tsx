@@ -131,7 +131,7 @@ export function SearchBox({ value, onChange }: { value: string; onChange: (s: st
     </div>
   );
 }
-function localDateTime(value: unknown) {
+export function localDateTime(value: unknown) {
   const d = new Date(String(value));
   if (Number.isNaN(d.getTime())) return "";
   const pad = (n: number) => String(n).padStart(2, "0");
