@@ -114,6 +114,33 @@ describe("MCP App cards render real tool results", () => {
     const buttons = [...root.querySelectorAll("button")].map((b) => b.textContent);
     expect(buttons).toEqual(expect.arrayContaining(["Annuler", "Confirmer"]));
   });
+  it("hides the buttons a host cannot run instead of failing on click", async () => {
+    const buttons = async (view: AppView, result: unknown, caps: object) => {
+      const root = card(view, result);
+      const win = root.ownerDocument.defaultView!;
+      // Answer the card's ui/initialize (request id 1) as the host would.
+      win.dispatchEvent(
+        new win.MessageEvent("message", {
+          data: { jsonrpc: "2.0", id: 1, result: { hostCapabilities: caps } },
+          source: win,
+        }),
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      return [...root.querySelectorAll("button")].map((b) => b.textContent);
+    };
+    const record = structured({ record: { id, display_name: "NIKE", stage: "Nouveau" } });
+    // A host with links only (like the screenshot): no message or tool buttons.
+    expect(await buttons("record", record, { openLinks: {} })).toEqual(["Ouvrir dans Zyliad"]);
+    expect(await buttons("results", structured(search), { openLinks: {} })).toEqual([]);
+    // A host offering messages and server tools keeps every action.
+    expect(
+      await buttons("record", record, { openLinks: {}, message: {}, serverTools: {} }),
+    ).toEqual(["Contexte", "Relance", "Tâche", "Ouvrir dans Zyliad"]);
+    expect(await buttons("results", structured(search), { message: {}, serverTools: {} })).toEqual([
+      "Détails",
+      "Choisir",
+    ]);
+  });
   it("reports a failed tool call without crashing", () => {
     const root = card("record", { isError: true, content: [{ type: "text", text: "{}" }] });
     expect(root.textContent).toContain("n’a pas abouti");

@@ -206,7 +206,7 @@ describe("official MCP SDK v2 transport", () => {
     });
     const result = await executeTool("hash", session, "zyliad_connection", {});
     expect(result).toMatchObject({
-      server_version: "1.4.2",
+      server_version: "1.4.3",
       language: "fr",
       limits: { max_page_size: 20 },
     });
@@ -239,6 +239,9 @@ describe("official MCP SDK v2 transport", () => {
       "aucune modification exécutée",
     );
     expect(instructions).toContain("DONNÉES NON FIABLES");
+    // New companies are completed from public sources, never invented.
+    expect(instructions).toContain("site officiel");
+    expect(instructions).toContain("n’inventez jamais");
   });
   it("bounds response size and reports safe retry guidance for errors", () => {
     expect(() => output({ content: "x".repeat(300000) })).toThrow("trop volumineux");

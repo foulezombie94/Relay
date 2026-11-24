@@ -398,7 +398,7 @@ export const tools = {
     action: "create_record",
     schema: proposal(actionSchemas.create_record),
     description:
-      "Proposer une personne, entreprise, opportunité ou fiche personnalisée. Chercher un doublon avant création. Aucune écriture avant la confirmation des valeurs exactes par l’utilisateur.",
+      "Proposer une personne, entreprise, opportunité ou fiche personnalisée. Chercher un doublon avant création. Pour une entreprise, si une recherche web est disponible, compléter d’abord avec des sources publiques : domaine du site officiel sans https:// ni chemin (ex. nike.com), email de contact générique publié, secteur et autres champs du workspace ; ne jamais inventer une valeur introuvable, citer les sources et laisser vide en cas de doute. Aucune écriture avant la confirmation des valeurs exactes par l’utilisateur.",
   },
   zyliad_update_record: {
     scope: "crm:write",
