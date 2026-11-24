@@ -566,7 +566,7 @@ export const tools = {
  * Destructive or administrative proposals. Zyliad refuses to approve them with the MCP
  * token: a signed-in member confirms them in the app, so an instruction injected in an
  * email or a note cannot make the model approve them by itself. Must stay identical to
- * relay_private.mcp_app_confirmation (migration 20261124120000_mcp_app_confirmation).
+ * relay_private.mcp_app_confirmation (migration 20261124224517_mcp_app_confirmation).
  */
 export const appConfirmedActions: readonly string[] = [
   "merge_records",

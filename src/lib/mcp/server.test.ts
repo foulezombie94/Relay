@@ -332,7 +332,7 @@ describe("official MCP SDK v2 transport", () => {
   it("keeps the sensitive action list identical to the database gate", async () => {
     const { readFile } = await import("node:fs/promises");
     const sql = await readFile(
-      "supabase/migrations/20261124120000_mcp_app_confirmation.sql",
+      "supabase/migrations/20261124224517_mcp_app_confirmation.sql",
       "utf8",
     );
     const listed = /select action in \(([^)]*)\)/.exec(sql)![1].match(/'([a-z_]+)'/g)!;
