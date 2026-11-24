@@ -58,13 +58,18 @@ describe("authenticated API session boundaries", () => {
 
   it("never accepts a persistent session as a substitute for current workspace membership", async () => {
     mocks.single.mockResolvedValue({ data: null, error: null });
-    await expect(context("workspace-b", true)).rejects.toMatchObject({ status: 403 });
+    await expect(context("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", true)).rejects.toMatchObject({
+      status: 403,
+    });
     expect(mocks.getUser).toHaveBeenCalledTimes(1);
   });
   it("explains a membership hidden by the workspace 2FA requirement", async () => {
     mocks.single.mockResolvedValue({ data: null, error: null });
-    mocks.rpc.mockResolvedValue({ data: [{ id: "workspace-b", name: "B" }], error: null });
-    await expect(context("workspace-b")).rejects.toMatchObject({
+    mocks.rpc.mockResolvedValue({
+      data: [{ id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", name: "B" }],
+      error: null,
+    });
+    await expect(context("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")).rejects.toMatchObject({
       status: 403,
       code: "mfa_required",
     });
@@ -72,7 +77,9 @@ describe("authenticated API session boundaries", () => {
 
   it("continues to reject writes by viewers", async () => {
     mocks.single.mockResolvedValue({ data: { role: "viewer" }, error: null });
-    await expect(context("workspace-a", true)).rejects.toMatchObject({ status: 403 });
+    await expect(context("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", true)).rejects.toMatchObject({
+      status: 403,
+    });
   });
 
   it("does not downgrade a network failure to 401 on regular CRM operations", async () => {
@@ -80,7 +87,7 @@ describe("authenticated API session boundaries", () => {
       data: { user: null },
       error: new AuthRetryableFetchError("offline", 0),
     });
-    const response = await context("workspace-a").then(() => {
+    const response = await context("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa").then(() => {
       throw new Error("Unauthorized acceptance");
     }, fail);
     expect(response.status).toBe(503);

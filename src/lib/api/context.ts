@@ -17,6 +17,7 @@ export class ApiError extends Error {
     super(message);
   }
 }
+const workspaceIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function context(workspaceId: string, write = false) {
   const client = await db();
   const {
@@ -27,6 +28,10 @@ export async function context(workspaceId: string, write = false) {
   if (error || !user) throw new ApiError("Connectez-vous pour continuer.", 401);
   if (await secondFactorPending(client, user))
     throw new ApiError("Confirmez votre code de double authentification.", 401, "mfa_required");
+  // Workspace ids are UUIDs; anything else is refused like an unknown workspace, before
+  // it reaches a database filter (security audit F-08).
+  if (!workspaceIdPattern.test(workspaceId))
+    throw new ApiError("Cet espace est inaccessible.", 403);
   const { data: membership, error: membershipError } = await client
     .from("memberships")
     .select("role")
@@ -55,7 +60,15 @@ export function requireAdmin(role: Role) {
 }
 export function checkOrigin(request: NextRequest) {
   const origin = request.headers.get("origin");
-  if (!origin) return;
+  if (!origin) {
+    // Browsers send Origin on cross-site writes. If a proxy or an old browser drops it,
+    // Fetch Metadata still tells a cross-site request apart (security audit F-04).
+    // With neither header the caller is not a browser and carries no ambient cookie.
+    const site = request.headers.get("sec-fetch-site");
+    if (site && site !== "same-origin" && site !== "none")
+      throw new ApiError("Origine non autorisée.", 403);
+    return;
+  }
   const bases = [new URL(request.url)];
   if (process.env.APP_URL) bases.push(new URL(process.env.APP_URL));
   const allowed = new Set(bases.map((url) => url.origin));
