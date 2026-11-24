@@ -4,9 +4,6 @@ import {
   ResourceTemplate,
   createMcpHandler,
   completable,
-  inputRequired,
-  inputResponse,
-  CLIENT_CAPABILITIES_META_KEY,
 } from "@modelcontextprotocol/server";
 import { z, ZodError } from "zod";
 import { randomUUID } from "node:crypto";
@@ -152,7 +149,14 @@ export async function executeTool(
       values: input.values,
       request_id: input.request_id,
     });
-    return { ...result, confirmation_url: confirmationUrl(result?.id) };
+    // The card renders from this result alone: action, exact values and readable names.
+    return {
+      ...result,
+      action: tool.action,
+      values: input.values,
+      labels: await proposalLabels(tokenHash, session, input.values),
+      confirmation_url: confirmationUrl(result?.id),
+    };
   }
   if (name === "search") return searchAll(tokenHash, session, String(input.query));
   if (name === "fetch") return fetchItem(tokenHash, session, String(input.id));
@@ -164,6 +168,31 @@ export async function executeTool(
   if (name === "zyliad_command_status") return mcpDb(tokenHash, "status", input);
   if (name === "zyliad_confirm_command") return decide(tokenHash, input.id, input.decision);
   return mcpDb(tokenHash, "workspace");
+}
+type Named = { id?: unknown; name?: unknown; object_id?: unknown; key?: unknown };
+/**
+ * Human names for the identifiers of a proposal (CRM type, custom fields), read from
+ * the workspace definitions when the connection may read them. Never blocks a proposal.
+ */
+export async function proposalLabels(tokenHash: string, session: Session, values: unknown) {
+  const labels: Record<string, string> = {};
+  if (!session.scopes.includes("configuration:read") || !values || typeof values !== "object")
+    return labels;
+  const v = values as Record<string, unknown>;
+  try {
+    const ws = (await mcpDb(tokenHash, "workspace")) as {
+      objects?: Named[];
+      attributes?: Named[];
+    } | null;
+    const object = ws?.objects?.find((o) => o.id === v.object_id);
+    if (object && typeof object.name === "string") labels.object_id = object.name;
+    for (const a of ws?.attributes ?? [])
+      if (a.object_id === v.object_id && typeof a.key === "string" && typeof a.name === "string")
+        labels["attributes." + a.key] = a.name;
+  } catch {
+    // Names are a convenience: the card falls back to the raw values.
+  }
+  return labels;
 }
 /** Approves or rejects a proposal of this connection, as its user, from the MCP client. */
 async function decide(tokenHash: string, id: unknown, decision: unknown) {
@@ -270,24 +299,6 @@ export function toolError(error: unknown, requestId: string) {
 }
 const readOnly = (name: ToolName) =>
   !("action" in tools[name]) && name !== "zyliad_confirm_command";
-/** Elicitation modes the client declared on this 2026-era request (an empty object means form). */
-export function elicitationModes(envelope: unknown) {
-  const caps = (envelope as Record<string, unknown> | undefined)?.[CLIENT_CAPABILITIES_META_KEY] as
-    { elicitation?: Record<string, unknown> } | undefined;
-  const e = caps?.elicitation;
-  if (!e || typeof e !== "object") return { form: false, url: false };
-  return { form: !!e.form || !e.url, url: !!e.url };
-}
-const confirmation = z.object({
-  confirm: z
-    .boolean()
-    .describe("Oui pour exécuter cette modification dans Zyliad, non pour l’annuler."),
-});
-/** Short French summary of a proposal for the client's own confirmation dialog. */
-export function confirmationMessage(title: string, values: unknown) {
-  const text = JSON.stringify(sanitizeResult(values ?? {}));
-  return `Confirmer dans Zyliad : ${title} ?\n${text.length > 700 ? text.slice(0, 700) + "…" : text}\nRien n’est modifié si vous refusez.`;
-}
 export function buildServer(tokenHash: string, session: Session, requestId = randomUUID()) {
   const origin = mcpOrigin();
   const server = new McpServer(
@@ -351,48 +362,15 @@ export function buildServer(tokenHash: string, session: Session, requestId = ran
           return { scopes: all, errorDescription: "Additional Zyliad permission required" };
         },
       },
-      async (input: unknown, ctx) => {
+      async (input: unknown) => {
         const started = performance.now();
         let outcome = "success";
         try {
           const result = await executeTool(tokenHash, session, name, input);
           if (name === "search" || name === "fetch") return plainOutput(result);
-          // A proposal waits for the human. Clients with form elicitation show a yes/no
-          // dialog themselves (the model cannot answer it): yes executes, no rejects.
-          // URL-only clients open the Zyliad page; others use the card or the confirm tool.
-          if ("action" in tool && result?.status === "pending") {
-            const answer = inputResponse(ctx.mcpReq.inputResponses, "confirm");
-            if (answer.kind === "elicit") {
-              if (answer.action === "accept" && answer.content?.confirm === true)
-                return output(await decide(tokenHash, result.id, "approve"));
-              if (answer.action === "accept" || answer.action === "decline")
-                return output(await decide(tokenHash, result.id, "reject"));
-              return output(result);
-            }
-            const modes = elicitationModes(ctx.mcpReq.envelope);
-            if (!ctx.mcpReq.inputResponses && modes.form)
-              return inputRequired({
-                inputRequests: {
-                  confirm: inputRequired.elicit({
-                    message: confirmationMessage(
-                      toolTitles[name].replace(/^Proposer /, ""),
-                      (input as Record<string, unknown> | undefined)?.values,
-                    ),
-                    requestedSchema: confirmation,
-                  }),
-                },
-              });
-            if (!ctx.mcpReq.inputResponses && modes.url)
-              return inputRequired({
-                inputRequests: {
-                  confirm: inputRequired.elicitUrl({
-                    message:
-                      "Vérifiez et confirmez cette proposition dans Zyliad. Rien n’est modifié avant votre confirmation.",
-                    url: confirmationUrl(result.id),
-                  }),
-                },
-              });
-          }
+          // A proposal waits for the human, who answers on the card (Oui / Non) or in
+          // the conversation (zyliad_confirm_command). No client dialog: hosts that
+          // cannot show one decline it at once, which would drop the proposal.
           return output(result);
         } catch (error) {
           const failure = toolError(error, requestId);

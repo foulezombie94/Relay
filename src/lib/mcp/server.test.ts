@@ -6,15 +6,7 @@ vi.mock("./database", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./database")>()),
   mcpDb: db.mcpDb,
 }));
-import {
-  handleMcp,
-  executeTool,
-  sanitizeResult,
-  output,
-  toolError,
-  elicitationModes,
-  confirmationMessage,
-} from "./server";
+import { handleMcp, executeTool, sanitizeResult, output, toolError } from "./server";
 import { ApiError } from "@/lib/api/context";
 import { availableToolNames, tools } from "./contracts";
 import { instructions } from "./guidance";
@@ -214,7 +206,7 @@ describe("official MCP SDK v2 transport", () => {
     });
     const result = await executeTool("hash", session, "zyliad_connection", {});
     expect(result).toMatchObject({
-      server_version: "1.4.0",
+      server_version: "1.4.1",
       language: "fr",
       limits: { max_page_size: 20 },
     });
@@ -285,25 +277,39 @@ describe("official MCP SDK v2 transport", () => {
       }),
     ).rejects.toMatchObject({ status: 403 });
   });
-  it("asks the client itself for a yes/no when it supports form elicitation", () => {
-    const key = "io.modelcontextprotocol/clientCapabilities";
-    expect(elicitationModes({ [key]: { elicitation: {} } })).toEqual({ form: true, url: false });
-    expect(elicitationModes({ [key]: { elicitation: { url: {} } } })).toEqual({
-      form: false,
-      url: true,
+  it("returns a proposal the card can render alone: action, values and readable names", async () => {
+    const objectId = "23c88c34-9bec-47d6-a803-b30f147e51a4";
+    db.mcpDb.mockResolvedValueOnce({ id, status: "pending", expires_at: "2026-11-25T10:00:00Z" });
+    db.mcpDb.mockResolvedValueOnce({
+      objects: [{ id: objectId, name: "Entreprises", slug: "companies" }],
+      attributes: [{ object_id: objectId, key: "secteur", name: "Secteur" }],
     });
-    expect(elicitationModes({ [key]: { elicitation: { form: {}, url: {} } } })).toEqual({
-      form: true,
-      url: true,
+    const values = { object_id: objectId, display_name: "Apple", attributes: { secteur: "Tech" } };
+    const result = await executeTool(
+      "hash",
+      { ...session, scopes: ["crm:write", "configuration:read"] },
+      "zyliad_create_record",
+      { request_id: id, values },
+    );
+    expect(result).toMatchObject({
+      id,
+      status: "pending",
+      action: "create_record",
+      values,
+      labels: { object_id: "Entreprises", "attributes.secteur": "Secteur" },
     });
-    expect(elicitationModes(undefined)).toEqual({ form: false, url: false });
-    const message = confirmationMessage("une tâche", {
-      title: "Rappeler Jeanne",
-      api_key: "secret-value",
-    });
-    expect(message).toContain("Rappeler Jeanne");
-    expect(message).toContain("Rien n’est modifié si vous refusez.");
-    expect(message).not.toContain("secret-value");
+    expect(db.mcpDb).toHaveBeenLastCalledWith("hash", "workspace");
+    // Without configuration:read the proposal is unchanged and nothing else is read.
+    db.mcpDb.mockClear();
+    db.mcpDb.mockResolvedValueOnce({ id, status: "pending" });
+    const plain = await executeTool(
+      "hash",
+      { ...session, scopes: ["crm:write"] },
+      "zyliad_create_record",
+      { request_id: id, values },
+    );
+    expect(plain).toMatchObject({ labels: {}, action: "create_record" });
+    expect(db.mcpDb).toHaveBeenCalledTimes(1);
   });
   it("exposes all expected tools only under their grants", () => {
     expect(Object.keys(tools)).toHaveLength(42);
@@ -414,7 +420,12 @@ describe("MCP 1.2", () => {
       request_id: id,
       values: { object_id: id, key: "score", name: "Score", type: "number" },
     });
-    expect(db.mcpDb.mock.calls.map((c) => c[2]?.action)).toEqual([
+    // Writes go through prepare only; the other calls are read-only workspace names.
+    expect(db.mcpDb.mock.calls.filter((c) => c[1] !== "workspace").map((c) => c[1])).toEqual([
+      "prepare",
+      "prepare",
+    ]);
+    expect(db.mcpDb.mock.calls.filter((c) => c[1] === "prepare").map((c) => c[2]?.action)).toEqual([
       "add_to_list",
       "create_attribute",
     ]);

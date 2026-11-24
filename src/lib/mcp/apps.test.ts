@@ -43,8 +43,10 @@ describe("MCP Apps interactive cards", () => {
       expect(html.startsWith("<!doctype html>")).toBe(true);
       expect(html).toContain(`var VIEW="${view}"`);
       expect(html).not.toMatch(/<(?:script|link|img|iframe)[^>]+(?:src|href)=/i);
+      // The SVG namespace is an identifier for createElementNS, never fetched.
       for (const url of html.match(/https?:\/\/[^\s"'<>)]+/g) ?? [])
-        expect(url.startsWith("https://www.zyliad.online")).toBe(true);
+        if (url !== "http://www.w3.org/2000/svg")
+          expect(url.startsWith("https://www.zyliad.online")).toBe(true);
       // Values are written with textContent, never as HTML.
       expect(html).not.toContain("innerHTML");
     }
