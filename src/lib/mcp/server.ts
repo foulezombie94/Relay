@@ -17,6 +17,7 @@ import {
   parseTool,
   requiredToolScopes,
   availableToolNames,
+  appConfirmedActions,
 } from "./contracts";
 import { bearer, mcpDb } from "./database";
 import { appMimeType, appResourceMeta, appUri, appViews, toolAppMeta, widgetHtml } from "./apps";
@@ -150,12 +151,19 @@ export async function executeTool(
       request_id: input.request_id,
     });
     // The card renders from this result alone: action, exact values and readable names.
+    // Sensitive actions are confirmed in Zyliad only; the database refuses them otherwise.
+    const inApp = appConfirmedActions.includes(tool.action);
     return {
       ...result,
       action: tool.action,
       values: input.values,
       labels: await proposalLabels(tokenHash, session, input.values),
       confirmation_url: confirmationUrl(result?.id),
+      ...(inApp && {
+        confirm_in_app: true,
+        confirmation:
+          "Action sensible : l’utilisateur doit la confirmer lui-même dans Zyliad avec confirmation_url. zyliad_confirm_command approve sera refusé ; reject reste possible.",
+      }),
     };
   }
   if (name === "search") return searchAll(tokenHash, session, String(input.query));

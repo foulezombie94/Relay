@@ -1,6 +1,6 @@
 import "server-only";
 import { lookup } from "node:dns/promises";
-import { isIP, BlockList } from "node:net";
+import { isIP, BlockList, type LookupFunction } from "node:net";
 import { request } from "node:https";
 
 const blocked = new BlockList();
@@ -69,33 +69,45 @@ export async function resolveWorkflowDestination(value: string, slack = false) {
   const chosen = addresses.find((a) => a.family === 4) ?? addresses[0];
   return { url, chosen };
 }
-export async function workflowPost(
-  value: string,
-  payload: unknown,
-  headers: Record<string, string> = {},
-  resolved?: Awaited<ReturnType<typeof resolveWorkflowDestination>>,
-) {
-  const { url, chosen } = resolved ?? (await resolveWorkflowDestination(value));
-  const body = JSON.stringify(payload);
-  if (Buffer.byteLength(body) > 65536) throw new Error("Contenu externe trop volumineux.");
+type Destination = Awaited<ReturnType<typeof resolveWorkflowDestination>>;
+type PinnedOptions = {
+  method: "GET" | "POST";
+  headers?: Record<string, string>;
+  body?: string;
+  maxBytes: number;
+  timeoutMs: number;
+};
+/**
+ * DNS lookup that always answers with the address already checked. Node asks for a list
+ * (`all: true`) when it races IPv4 and IPv6 (autoSelectFamily, on by default), and for a
+ * single address otherwise: both shapes must be answered or the connection fails.
+ */
+export function pinnedLookup(chosen: Destination["chosen"]): LookupFunction {
+  return (_hostname, options, callback) =>
+    options?.all
+      ? callback(null, [{ address: chosen.address, family: chosen.family }])
+      : callback(null, chosen.address, chosen.family);
+}
+/**
+ * One HTTPS exchange with an already validated destination. The socket connects to the
+ * checked address (no second DNS resolution), redirects are not followed, and the
+ * response size and total duration are bounded.
+ */
+function pinnedRequest({ url, chosen }: Destination, options: PinnedOptions) {
   return new Promise<{ status: number; body: string }>((resolve, reject) => {
     const req = request(
       url,
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Content-Length": Buffer.byteLength(body),
-          ...headers,
-        },
-        lookup: (_hostname, _options, callback) => callback(null, chosen.address, chosen.family),
+        method: options.method,
+        headers: options.headers,
+        lookup: pinnedLookup(chosen),
       },
       (res) => {
         let size = 0;
         const chunks: Buffer[] = [];
         res.on("data", (chunk: Buffer) => {
           size += chunk.length;
-          if (size > 65536) {
+          if (size > options.maxBytes) {
             res.destroy(new Error("Réponse trop volumineuse."));
             return;
           }
@@ -107,9 +119,44 @@ export async function workflowPost(
         res.on("error", reject);
       },
     );
-    const timer = setTimeout(() => req.destroy(new Error("Délai fournisseur dépassé.")), 15000);
+    const timer = setTimeout(
+      () => req.destroy(new Error("Délai fournisseur dépassé.")),
+      options.timeoutMs,
+    );
     req.on("close", () => clearTimeout(timer));
     req.on("error", reject);
-    req.end(body);
+    req.end(options.body);
   });
+}
+export async function workflowPost(
+  value: string,
+  payload: unknown,
+  headers: Record<string, string> = {},
+  resolved?: Destination,
+) {
+  const destination = resolved ?? (await resolveWorkflowDestination(value));
+  const body = JSON.stringify(payload);
+  if (Buffer.byteLength(body) > 65536) throw new Error("Contenu externe trop volumineux.");
+  return pinnedRequest(destination, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": String(Buffer.byteLength(body)),
+      ...headers,
+    },
+    body,
+    maxBytes: 65536,
+    timeoutMs: 15000,
+  });
+}
+/**
+ * GET of a public HTTPS document chosen by a third party (OAuth client metadata, for
+ * one), under the same network boundary as outgoing workflow calls.
+ */
+export async function publicGet(
+  value: string,
+  { maxBytes, timeoutMs, headers }: Pick<PinnedOptions, "maxBytes" | "timeoutMs" | "headers">,
+) {
+  const destination = await resolveWorkflowDestination(value);
+  return pinnedRequest(destination, { method: "GET", headers, maxBytes, timeoutMs });
 }

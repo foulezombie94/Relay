@@ -9,6 +9,7 @@ try {
   await db.query(await readFile("supabase/tests/mcp-read-context.sql", "utf8"));
   await db.query(await readFile("supabase/tests/mcp-extended.sql", "utf8"));
   await db.query(await readFile("supabase/tests/mcp-client-confirmation.sql", "utf8"));
+  await db.query(await readFile("supabase/tests/mcp-app-confirmation.sql", "utf8"));
 } finally {
   await db.end();
 }

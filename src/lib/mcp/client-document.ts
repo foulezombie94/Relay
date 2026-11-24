@@ -1,9 +1,9 @@
 import "server-only";
-import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 import { z } from "zod";
 import { adminDb } from "@/lib/supabase/admin";
 import { ApiError } from "@/lib/api/context";
+import { publicGet } from "@/lib/integrations/workflow-http";
 import { redirectUri } from "./oauth-validation";
 
 // OAuth Client ID Metadata Documents: the client_id is an HTTPS URL serving the
@@ -84,60 +84,21 @@ const documentSchema = z
   })
   .strip();
 
-export function privateAddress(address: string) {
-  const v4 = address.startsWith("::ffff:") ? address.slice(7) : address;
-  if (isIP(v4) === 4) {
-    const [a, b] = v4.split(".").map(Number);
-    return (
-      a === 0 ||
-      a === 10 ||
-      a === 127 ||
-      a >= 224 ||
-      (a === 100 && b >= 64 && b <= 127) ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      (a === 198 && (b === 18 || b === 19))
-    );
-  }
-  const v6 = address.toLowerCase();
-  return (
-    v6 === "::" ||
-    v6 === "::1" ||
-    /^f[cd]/.test(v6) ||
-    /^fe[89ab]/.test(v6) ||
-    v6.startsWith("ff") ||
-    v6.startsWith("2001:db8")
-  );
-}
-
+// The document URL is chosen by an unknown client. It goes through the same network
+// boundary as outgoing workflow calls (security audit ZY-04): public addresses only,
+// connection pinned to the checked address, no redirect, bounded size and duration.
 async function fetchDocument(url: string) {
   const u = new URL(url);
-  const addresses = await lookup(u.hostname, { all: true }).catch(() => []);
-  if (!addresses.length || addresses.some((a) => privateAddress(a.address)))
-    throw new ApiError("Client metadata unavailable.", 400, "invalid_client");
-  const response = await fetch(u, {
-    redirect: "error",
+  const response = await publicGet(url, {
     headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(5000),
+    maxBytes: 10240,
+    timeoutMs: 5000,
   }).catch(() => null);
-  if (!response?.ok || !response.body)
+  if (!response || response.status < 200 || response.status >= 300)
     throw new ApiError("Client metadata unavailable.", 400, "invalid_client");
-  const reader = response.body.getReader();
-  let text = "";
-  try {
-    while (text.length <= 10240) {
-      const part = await reader.read();
-      if (part.done) break;
-      text += new TextDecoder().decode(part.value);
-    }
-  } finally {
-    await reader.cancel().catch(() => {});
-  }
-  if (text.length > 10240) throw new ApiError("Client metadata too large.", 400, "invalid_client");
   let parsed: z.infer<typeof documentSchema>;
   try {
-    parsed = documentSchema.parse(JSON.parse(text));
+    parsed = documentSchema.parse(JSON.parse(response.body));
   } catch {
     throw new ApiError("Invalid client metadata.", 400, "invalid_client");
   }

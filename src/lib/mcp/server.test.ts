@@ -8,7 +8,7 @@ vi.mock("./database", async (importOriginal) => ({
 }));
 import { handleMcp, executeTool, sanitizeResult, output, toolError } from "./server";
 import { ApiError } from "@/lib/api/context";
-import { availableToolNames, tools } from "./contracts";
+import { appConfirmedActions, availableToolNames, tools } from "./contracts";
 import { instructions } from "./guidance";
 const id = "cf967873-7e4e-4d9a-b54b-8797f2583213";
 const session = {
@@ -206,7 +206,7 @@ describe("official MCP SDK v2 transport", () => {
     });
     const result = await executeTool("hash", session, "zyliad_connection", {});
     expect(result).toMatchObject({
-      server_version: "1.4.3",
+      server_version: "1.4.4",
       language: "fr",
       limits: { max_page_size: 20 },
     });
@@ -312,7 +312,34 @@ describe("official MCP SDK v2 transport", () => {
       { request_id: id, values },
     );
     expect(plain).toMatchObject({ labels: {}, action: "create_record" });
+    expect(plain).not.toHaveProperty("confirm_in_app");
     expect(db.mcpDb).toHaveBeenCalledTimes(1);
+  });
+  it("marks sensitive proposals as confirmed in Zyliad only, with their link", async () => {
+    db.mcpDb.mockResolvedValueOnce({ id, status: "pending" });
+    const result = await executeTool(
+      "hash",
+      { ...session, scopes: ["crm:write"] },
+      "zyliad_remove_from_list",
+      { request_id: id, values: { list_id: id, record_id: id } },
+    );
+    expect(result).toMatchObject({
+      action: "remove_from_list",
+      confirm_in_app: true,
+      confirmation_url: `http://127.0.0.1:3000/app/settings?mcp_command=${id}#developpeurs`,
+    });
+  });
+  it("keeps the sensitive action list identical to the database gate", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const sql = await readFile(
+      "supabase/migrations/20261124120000_mcp_app_confirmation.sql",
+      "utf8",
+    );
+    const listed = /select action in \(([^)]*)\)/.exec(sql)![1].match(/'([a-z_]+)'/g)!;
+    expect(listed.map((a) => a.slice(1, -1)).sort()).toEqual([...appConfirmedActions].sort());
+    // Every sensitive action is a real proposal tool.
+    const actions = Object.values(tools).flatMap((t) => ("action" in t ? [t.action] : []));
+    for (const action of appConfirmedActions) expect(actions).toContain(action);
   });
   it("exposes all expected tools only under their grants", () => {
     expect(Object.keys(tools)).toHaveLength(42);

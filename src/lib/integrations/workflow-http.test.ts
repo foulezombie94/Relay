@@ -1,7 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
-import { publicAddress, workflowURL } from "./workflow-http";
+import { pinnedLookup, publicAddress, workflowURL } from "./workflow-http";
 describe("external action network boundary", () => {
+  it("answers both DNS lookup shapes Node uses with the checked address only", () => {
+    const lookup = pinnedLookup({ address: "93.184.216.34", family: 4 });
+    const answers: unknown[][] = [];
+    // autoSelectFamily (Node's default) asks for a list of addresses.
+    lookup("evil.example", { all: true }, (...args: unknown[]) => answers.push(args));
+    // Without it, Node asks for one address and its family.
+    lookup("evil.example", {}, (...args: unknown[]) => answers.push(args));
+    expect(answers).toEqual([
+      [null, [{ address: "93.184.216.34", family: 4 }]],
+      [null, "93.184.216.34", 4],
+    ]);
+  });
   it("blocks private, loopback, metadata and IPv6 translations", () => {
     for (const ip of [
       "127.0.0.1",

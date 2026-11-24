@@ -47,6 +47,8 @@ export async function mcpDb(tokenHash: string, operation: string, payload: unkno
           rate_limited:
             "La limite de requêtes MCP est atteinte. Attendez 60 secondes avant de réessayer.",
           not_found: "Cette ressource est introuvable ou inaccessible dans ce workspace.",
+          confirm_in_app:
+            "Action sensible : elle ne peut pas être approuvée depuis le client MCP. Donnez à l’utilisateur le lien confirmation_url de la proposition pour qu’il la confirme dans Zyliad.",
           validation_error:
             "Les paramètres ne sont pas valides pour cette opération. Consultez le schéma de l’outil.",
         } as Record<string, string>
@@ -55,7 +57,7 @@ export async function mcpDb(tokenHash: string, operation: string, payload: unkno
         ? 401
         : data.error === "rate_limited"
           ? 429
-          : data.error === "forbidden"
+          : data.error === "forbidden" || data.error === "confirm_in_app"
             ? 403
             : data.error === "conflict"
               ? 409

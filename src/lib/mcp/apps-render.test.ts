@@ -114,6 +114,22 @@ describe("MCP App cards render real tool results", () => {
     const buttons = [...root.querySelectorAll("button")].map((b) => b.textContent);
     expect(buttons).toEqual(expect.arrayContaining(["Annuler", "Confirmer"]));
   });
+  it("never offers to approve a sensitive proposal from the card, only in Zyliad", () => {
+    const root = card(
+      "proposal",
+      structured({
+        id,
+        status: "pending",
+        action: "merge_records",
+        values: { source_id: id, target_id: id },
+        confirm_in_app: true,
+        confirmation_url: `${origin}/app/settings?mcp_command=${id}#developpeurs`,
+      }),
+    );
+    const buttons = [...root.querySelectorAll("button")].map((b) => b.textContent);
+    expect(buttons).toEqual(["Annuler", "Confirmer dans Zyliad"]);
+    expect(root.textContent).toContain("Action sensible : à confirmer dans Zyliad");
+  });
   it("hides the buttons a host cannot run instead of failing on click", async () => {
     const buttons = async (view: AppView, result: unknown, caps: object) => {
       const root = card(view, result);
