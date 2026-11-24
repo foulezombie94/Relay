@@ -206,7 +206,7 @@ describe("official MCP SDK v2 transport", () => {
     });
     const result = await executeTool("hash", session, "zyliad_connection", {});
     expect(result).toMatchObject({
-      server_version: "1.4.1",
+      server_version: "1.4.2",
       language: "fr",
       limits: { max_page_size: 20 },
     });
