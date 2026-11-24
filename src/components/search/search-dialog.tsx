@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { request, useWorkspace } from "../providers/data-provider";
 import { SearchDialogView } from "./search-dialog-view";
-import { searchEntries, searchNavigation, type SearchResponse } from "./search-model";
+import { commandEntries, searchEntries, type SearchResponse } from "./search-model";
 export function SearchDialog({ onClose }: { onClose: () => void }) {
   const { workspace, user, objects } = useWorkspace();
   return (
@@ -47,11 +47,12 @@ function SearchSession({
   });
   const searching = term.trim().length >= 2;
   const pending = searching && (debounced !== term.trim() || query.isPending);
-  const entries = !searching
-    ? searchNavigation
-    : !query.error && query.data && debounced === term.trim()
+  // Actions and pages first (filtered as you type), then the records found.
+  const results =
+    searching && !query.error && query.data && debounced === term.trim()
       ? searchEntries(query.data, objects)
       : [];
+  const entries = [...commandEntries(term), ...results];
   return (
     <SearchDialogView
       open

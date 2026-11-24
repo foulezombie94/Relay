@@ -2,8 +2,47 @@
 import { useId, useRef, useState } from "react";
 import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Search, FileText, ArrowUpRight, PanelRight, SlidersHorizontal, X } from "lucide-react";
-import { searchScopes, type SearchEntry } from "./search-model";
+import {
+  Search,
+  FileText,
+  ArrowUpRight,
+  PanelRight,
+  SlidersHorizontal,
+  X,
+  Plus,
+  LayoutDashboard,
+  Building2,
+  User,
+  Handshake,
+  ListTodo,
+  StickyNote,
+  CalendarDays,
+  Sparkles,
+  Columns3,
+  Globe,
+  Settings,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
+import { searchScopes, type SearchEntry, type SearchIcon } from "./search-model";
+
+const icons: Record<SearchIcon, LucideIcon> = {
+  plus: Plus,
+  dashboard: LayoutDashboard,
+  company: Building2,
+  person: User,
+  deal: Handshake,
+  task: ListTodo,
+  note: StickyNote,
+  meeting: CalendarDays,
+  assistant: Sparkles,
+  pipeline: Columns3,
+  portal: Globe,
+  settings: Settings,
+  trash: Trash2,
+  result: FileText,
+};
+const commandGroups = new Set(["Actions", "Aller à"]);
 import styles from "./search-dialog.module.css";
 export function SearchDialogView({
   open,
@@ -35,7 +74,8 @@ export function SearchDialogView({
   const [selected, setSelected] = useState("");
   const refs = useRef<(HTMLAnchorElement | null)[]>([]),
     id = useId();
-  const available = error || loading ? [] : entries;
+  const available =
+    error || loading ? entries.filter((e) => commandGroups.has(e.group ?? "")) : entries;
   const current = available.find((entry) => entry.id === selected) ?? available[0];
   function move(delta: number) {
     if (!available.length) return;
@@ -146,23 +186,21 @@ export function SearchDialogView({
           )}
           <div className={styles.content} data-preview={preview}>
             <div className={styles.results}>
-              <p className={styles.heading}>
-                {term.trim().length < 2 ? "Accès rapide" : "Résultats"}
-              </p>
-              {error ? (
-                <p className={styles.message} role="alert">
-                  {error}
-                </p>
-              ) : loading ? (
-                <p className={styles.message} role="status">
-                  Recherche en cours…
-                </p>
-              ) : (
-                <>
-                  <div id={id} role="listbox" aria-label="Résultats de recherche">
-                    {available.map((entry, index) => (
+              <div id={id} role="listbox" aria-label="Actions et résultats">
+                {available.map((entry, index) => {
+                  const group = entry.group ?? entry.category;
+                  const Icon = icons[entry.icon ?? "result"];
+                  const startsGroup =
+                    index === 0 ||
+                    (available[index - 1].group ?? available[index - 1].category) !== group;
+                  return (
+                    <div key={entry.id} role="presentation">
+                      {startsGroup && (
+                        <p className={styles.heading} role="presentation">
+                          {group}
+                        </p>
+                      )}
                       <Link
-                        key={entry.id}
                         id={id + "-" + index}
                         href={entry.href}
                         prefetch={prefetch ? undefined : false}
@@ -178,7 +216,7 @@ export function SearchDialogView({
                           if (!event.ctrlKey && !event.metaKey && !event.shiftKey) onClose();
                         }}
                       >
-                        <FileText size={19} />
+                        <Icon size={18} />
                         <span>
                           <strong>{entry.title}</strong>
                           <small>
@@ -188,14 +226,24 @@ export function SearchDialogView({
                         </span>
                         <ArrowUpRight size={14} />
                       </Link>
-                    ))}
-                  </div>
-                  {!available.length && (
-                    <p className={styles.message}>
-                      Aucun résultat accessible. Essayez une autre recherche.
-                    </p>
-                  )}
-                </>
+                    </div>
+                  );
+                })}
+              </div>
+              {error ? (
+                <p className={styles.message} role="alert">
+                  {error}
+                </p>
+              ) : loading ? (
+                <p className={styles.message} role="status">
+                  Recherche en cours…
+                </p>
+              ) : (
+                !available.length && (
+                  <p className={styles.message}>
+                    Aucun résultat accessible. Essayez une autre recherche.
+                  </p>
+                )
               )}
             </div>
             {preview && (
@@ -203,7 +251,10 @@ export function SearchDialogView({
                 {current ? (
                   <>
                     <div className={styles.previewCover}>
-                      <FileText size={28} />
+                      {(() => {
+                        const Icon = icons[current.icon ?? "result"];
+                        return <Icon size={28} />;
+                      })()}
                     </div>
                     <div className={styles.previewBody}>
                       <small>

@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, within, waitFor } from "@testing-li
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SearchDialogView } from "./search-dialog-view";
 import { SearchDialog } from "./search-dialog";
-import { searchEntries, type SearchEntry } from "./search-model";
+import { commandEntries, searchEntries, type SearchEntry } from "./search-model";
 const mocks = vi.hoisted(() => ({
   request: vi.fn(),
   context: {
@@ -179,4 +179,47 @@ it("builds routes only for supported resources and encodes record identifiers", 
   );
   expect(result).toHaveLength(1);
   expect(result[0].href).toBe("/app/companies?record=r%26x");
+});
+it("lists actions and pages first, filtered as you type without accents", () => {
+  expect(
+    commandEntries("")
+      .slice(0, 1)
+      .map((e) => e.title),
+  ).toEqual(["Nouvelle tâche"]);
+  expect(commandEntries("tache").map((e) => e.title)).toEqual(["Nouvelle tâche", "Tâches"]);
+  expect(commandEntries("PARAMETRES").map((e) => e.href)).toEqual(["/app/settings"]);
+  expect(commandEntries("zzz")).toEqual([]);
+});
+it("groups the command menu and moves across groups with the keyboard", () => {
+  const close = vi.fn();
+  const commands = commandEntries("ta");
+  render(
+    <SearchDialogView
+      {...base}
+      onClose={close}
+      term="ta"
+      entries={[...commands, { ...entries[0], group: "Fiches" }]}
+    />,
+  );
+  const list = screen.getByRole("listbox", { name: "Actions et résultats" });
+  expect(within(list).getByText("Actions")).toBeTruthy();
+  expect(within(list).getByText("Aller à")).toBeTruthy();
+  // Headings are paragraphs; "Fiches" also appears as each result’s category.
+  expect(
+    within(list)
+      .getAllByText("Fiches")
+      .some((el) => el.tagName === "P"),
+  ).toBe(true);
+  const input = screen.getByRole("combobox", { name: "Rechercher dans votre espace" });
+  const options = within(list).getAllByRole("option");
+  for (let i = 1; i < options.length; i++) fireEvent.keyDown(input, { key: "ArrowDown" });
+  expect(options[options.length - 1].getAttribute("aria-selected")).toBe("true");
+  expect(options[options.length - 1].textContent).toContain("Studio Rivage");
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(close).toHaveBeenCalled();
+});
+it("keeps actions usable while the record search is loading", () => {
+  render(<SearchDialogView {...base} term="tâche" entries={commandEntries("tâche")} loading />);
+  expect(screen.getByRole("option", { name: /Nouvelle tâche/ })).toBeTruthy();
+  expect(screen.getByRole("status").textContent).toBe("Recherche en cours…");
 });

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "../ui/sidebar";
 import { AppSidebarView } from "../layout/app-sidebar-view";
 import { SearchDialogView } from "./search-dialog-view";
-import { searchNavigation, type SearchEntry } from "./search-model";
+import { commandEntries, type SearchEntry } from "./search-model";
 import type { Workspace } from "@/lib/domain/types";
 import styles from "./search-demo.module.css";
 const workspace: Workspace = {
@@ -58,16 +58,18 @@ export function SearchDemo() {
     commitments: "Engagements",
     meetings: "Réunions",
   };
-  const entries =
-    term.trim().length < 2
-      ? searchNavigation.map((item) => ({ ...item, href: "/demo/components" }))
-      : examples.filter(
-          (item) =>
-            (scope === "all" || item.category === labels[scope]) &&
-            (item.title + " " + item.excerpt)
-              .toLocaleLowerCase("fr")
-              .includes(term.trim().toLocaleLowerCase("fr")),
-        );
+  const commands = commandEntries(term).map((item) => ({ ...item, href: "/demo/components" }));
+  // Actions and pages are already filtered (accents ignored); examples match the text.
+  const found = examples
+    .filter(
+      (item) =>
+        (scope === "all" || item.category === labels[scope]) &&
+        (item.title + " " + item.excerpt)
+          .toLocaleLowerCase("fr")
+          .includes(term.trim().toLocaleLowerCase("fr")),
+    )
+    .map((item) => ({ ...item, group: item.category }));
+  const entries = term.trim().length < 2 ? commands : [...commands, ...found];
   return (
     <SidebarProvider interactive={false} data-relay-ui>
       <AppSidebarView

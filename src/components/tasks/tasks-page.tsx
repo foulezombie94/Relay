@@ -105,7 +105,11 @@ export function TasksPage() {
   const [status, setStatus] = useState("");
   const [owner, setOwner] = useState("");
   const [due, setDue] = useState("");
-  const [editor, setEditor] = useState<Row | true | null>(null);
+  const params = useSearchParams();
+  // /app/tasks?create=1 (Ctrl+K « Nouvelle tâche ») opens the creation dialog.
+  const [editor, setEditor] = useState<Row | true | null>(() =>
+    params.get("create") === "1" && workspace.role !== "viewer" ? true : null,
+  );
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebounced(search);
@@ -113,7 +117,7 @@ export function TasksPage() {
     }, 250);
     return () => clearTimeout(timer);
   }, [search]);
-  const focus = useSearchParams().get("focus") ?? undefined;
+  const focus = params.get("focus") ?? undefined;
   const q = useRows("tasks", {
     size: 25,
     page,
