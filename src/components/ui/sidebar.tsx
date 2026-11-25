@@ -17,6 +17,13 @@ type SidebarContextValue = {
   setWidth: (width: number) => void;
 };
 const SidebarContext = React.createContext<SidebarContextValue | null>(null);
+const TEXT_ENTRY = 'input,textarea,select,[contenteditable="true"],[contenteditable=""]';
+// Mobile browsers keep focus in a text field when a button is tapped. Blurring it hides the
+// keyboard; otherwise the dialog would restore focus to that field and reopen the keyboard.
+function dismissKeyboard() {
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && active.matches(TEXT_ENTRY)) active.blur();
+}
 export function useSidebar() {
   const context = React.useContext(SidebarContext);
   if (!context) throw new Error("useSidebar requires SidebarProvider");
@@ -92,8 +99,11 @@ export function SidebarProvider({
     [open, onOpenChange, interactive],
   );
   const toggleSidebar = React.useCallback(() => {
-    if (isMobile) setOpenMobile((v) => !v);
-    else setOpen((v) => !v);
+    if (isMobile) {
+      // Close the on-screen keyboard before the sheet opens, so the sheet uses the full screen.
+      dismissKeyboard();
+      setOpenMobile((v) => !v);
+    } else setOpen((v) => !v);
   }, [isMobile, setOpen]);
   React.useEffect(() => {
     if (!interactive) return;
@@ -157,6 +167,7 @@ export function Sidebar({
   collapsible?: "offcanvas" | "icon" | "none";
 }) {
   const { isMobile, openMobile, setOpenMobile, state } = useSidebar();
+  const sheet = React.useRef<HTMLDivElement>(null);
   const floating = state === "collapsed" && collapsible === "offcanvas";
   const content = (
     <div data-sidebar="sidebar" className={"sb-panel " + className} dir={dir} {...props}>
@@ -169,11 +180,26 @@ export function Sidebar({
         <Dialog.Portal>
           <Dialog.Overlay className="sb-overlay" />
           <Dialog.Content
+            ref={sheet}
             data-slot="sidebar"
             data-mobile="true"
             data-side={side}
             dir={dir}
             className="sb-mobile-sheet"
+            onOpenAutoFocus={(event) => {
+              // Focus the sheet itself, never a field inside it, so no keyboard appears.
+              event.preventDefault();
+              dismissKeyboard();
+              sheet.current?.focus({ preventScroll: true });
+            }}
+            onCloseAutoFocus={(event) => {
+              // Return focus to the menu button rather than the previously focused text field.
+              event.preventDefault();
+              const trigger = Array.from(
+                document.querySelectorAll<HTMLElement>('[data-slot="sidebar-trigger"]'),
+              ).find((element) => !element.closest(".sb-mobile-sheet"));
+              trigger?.focus({ preventScroll: true });
+            }}
           >
             <Dialog.Title className="sr-only">Navigation principale</Dialog.Title>
             <Dialog.Description className="sr-only">

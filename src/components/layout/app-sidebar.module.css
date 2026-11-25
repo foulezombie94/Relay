@@ -382,7 +382,7 @@
   display: none;
 }
 :global(.sb-mobile-sheet) .sidebar .toolbarActions {
-  margin-right: 28px;
+  margin-right: 34px;
 }
 @media (max-width: 767px) {
   .sidebar :global(.sb-menu-button),

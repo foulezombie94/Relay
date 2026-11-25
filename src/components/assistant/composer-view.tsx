@@ -5,7 +5,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Dialog from "@radix-ui/react-dialog";
 import Link from "next/link";
 import {
-  ArrowUp,
+  SendHorizontal,
   Square,
   Plus,
   Search,
@@ -429,8 +429,14 @@ export function AssistantComposerView({
               className={styles.send}
               disabled={!message.trim() || !configured}
               aria-label="Envoyer le message"
+              title={configured ? "Envoyer (Entrée)" : "Assistant non configuré"}
+              // Keep focus in the field: on mobile, blurring it closes the keyboard and moves
+              // the button before the tap ends, so the submit was lost.
+              onPointerDown={(event) => {
+                if (event.pointerType !== "mouse") event.preventDefault();
+              }}
             >
-              <ArrowUp size={14} />
+              <SendHorizontal size={16} strokeWidth={2.25} aria-hidden="true" />
             </button>
           )}
         </div>
