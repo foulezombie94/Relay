@@ -4,10 +4,15 @@ vi.mock("server-only", () => ({}));
 vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn(), flush: vi.fn() }));
 vi.mock("@/lib/observability/logger", () => ({ logEvent: vi.fn() }));
 vi.mock("@/lib/supabase/mfa", () => ({ secondFactorPending: async () => false }));
-const supabase = vi.hoisted(() => ({ from: vi.fn(), rpc: vi.fn() }));
+const supabase = vi.hoisted(() => ({
+  from: vi.fn(),
+  rpc: vi.fn(),
+  getSession: vi.fn(),
+  getUser: vi.fn(),
+}));
 vi.mock("@/lib/supabase/server", () => ({
   db: async () => ({
-    auth: { getUser: async () => ({ data: { user: { id: "user-1" } }, error: null }) },
+    auth: { getUser: supabase.getUser, getSession: supabase.getSession },
     from: supabase.from,
     rpc: supabase.rpc,
   }),
@@ -44,6 +49,10 @@ describe("context (audit F-08)", () => {
   beforeEach(() => {
     supabase.from.mockReset();
     supabase.rpc.mockReset();
+    supabase.getSession.mockReset();
+    supabase.getSession.mockRejectedValue(new Error("no local session"));
+    supabase.getUser.mockReset();
+    supabase.getUser.mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
   });
   it("refuses a workspace id that is not a UUID before any database filter", async () => {
     for (const id of ["abc", "x,workspace_id.neq.0", "9f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f)"])
@@ -59,5 +68,40 @@ describe("context (audit F-08)", () => {
       role: "member",
     });
     expect(supabase.from).toHaveBeenCalledWith("memberships");
+  });
+  it("reads the membership while Auth verifies the user, for the verified user only (P-02)", async () => {
+    const workspace = "9f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f";
+    const reads: string[] = [];
+    let verify!: (value: unknown) => void;
+    supabase.getSession.mockResolvedValue({ data: { session: { user: { id: "user-1" } } } });
+    supabase.getUser.mockReturnValue(new Promise((resolve) => (verify = resolve)));
+    const membershipQuery = () => {
+      const filters: Record<string, string> = {};
+      const q = {
+        eq: (column: string, value: string) => ((filters[column] = value), q),
+        single: async () => {
+          reads.push(filters.user_id);
+          return { data: { role: "member" }, error: null };
+        },
+      };
+      return q;
+    };
+    supabase.from.mockImplementation(() => ({ select: membershipQuery }));
+    const pending = context(workspace);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    // The membership was requested before Auth answered.
+    expect(reads).toEqual(["user-1"]);
+    verify({ data: { user: { id: "user-1" } }, error: null });
+    await expect(pending).resolves.toMatchObject({ role: "member" });
+    expect(reads).toEqual(["user-1"]);
+    // A session cookie naming another user than the one Auth verified is not trusted.
+    reads.length = 0;
+    supabase.getSession.mockResolvedValue({ data: { session: { user: { id: "someone-else" } } } });
+    supabase.getUser.mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
+    await expect(context(workspace)).resolves.toMatchObject({ role: "member" });
+    expect(reads).toEqual(["someone-else", "user-1"]);
+    // No verified user: refused, whatever the early read returned.
+    supabase.getUser.mockResolvedValue({ data: { user: null }, error: null });
+    await expect(context(workspace)).rejects.toMatchObject({ status: 401 });
   });
 });

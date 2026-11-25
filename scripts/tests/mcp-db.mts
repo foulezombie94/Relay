@@ -11,6 +11,7 @@ try {
   await db.query(await readFile("supabase/tests/mcp-client-confirmation.sql", "utf8"));
   await db.query(await readFile("supabase/tests/mcp-app-confirmation.sql", "utf8"));
   await db.query(await readFile("supabase/tests/mcp-client-document-admission.sql", "utf8"));
+  await db.query(await readFile("supabase/tests/indexed-search.sql", "utf8"));
 } finally {
   await db.end();
 }

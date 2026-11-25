@@ -1,72 +1,9 @@
-import { MeetingsPage } from "@/components/meetings/page";
-import { SequencesPage } from "@/components/pages/sequences";
-import { PipelinesPage } from "@/components/pages/pipelines";
-import { EmailTemplatesPage } from "@/components/pages/email-templates";
-import { RecordsPage } from "@/components/pages/records";
-import { ResourcePage } from "@/components/pages/resource-page";
-import { TasksPage } from "@/components/tasks/tasks-page";
-import { WorkflowsPage } from "@/components/pages/workflows";
-import { AssistantPage } from "@/components/pages/assistant";
-import { ReportsPage } from "@/components/pages/reports";
-import { DashboardPage } from "@/components/dashboard/page";
-import { SettingsPage } from "@/components/pages/settings";
-import { IntegrationsPage } from "@/components/pages/integrations";
-import { SearchPage } from "@/components/pages/search";
-import { ListPage } from "@/components/pages/lists";
-import { CommunicationsPage } from "@/components/pages/communications";
-import { PrioritiesPage } from "@/components/pages/priorities";
-import { PlaybooksPage } from "@/components/pages/playbooks";
-import { QualityPage } from "@/components/pages/quality";
-import { PortalsPage } from "@/components/portal/management";
-import { SkillsPage } from "@/components/skills/page";
-import { TrashPage } from "@/components/trash/page";
 import { notFound } from "next/navigation";
+import { SectionView } from "@/components/layout/section-view";
+import { sectionTarget } from "@/components/layout/sections";
+
 export default async function Page({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
-  if (["people", "companies", "deals"].includes(section)) return <RecordsPage slug={section} />;
-  if (section.startsWith("object-")) return <RecordsPage slug={section.slice(7)} />;
-  if (section.startsWith("list-")) return <ListPage id={section.slice(5)} />;
-  if (section === "tasks") return <TasksPage />;
-  if (["notes", "commitments", "conflicts", "handovers", "lists"].includes(section))
-    return <ResourcePage resource={section} />;
-  switch (section) {
-    case "meetings":
-      return <MeetingsPage />;
-    case "portals":
-      return <PortalsPage />;
-    case "dashboard":
-      return <DashboardPage />;
-    case "sequences":
-      return <SequencesPage />;
-    case "pipelines":
-      return <PipelinesPage />;
-    case "email-templates":
-      return <EmailTemplatesPage />;
-    case "priorities":
-      return <PrioritiesPage />;
-    case "playbooks":
-      return <PlaybooksPage />;
-    case "quality":
-      return <QualityPage />;
-    case "communications":
-      return <CommunicationsPage />;
-    case "workflows":
-      return <WorkflowsPage />;
-    case "assistant":
-      return <AssistantPage />;
-    case "skills":
-      return <SkillsPage />;
-    case "trash":
-      return <TrashPage />;
-    case "reports":
-      return <ReportsPage />;
-    case "settings":
-      return <SettingsPage />;
-    case "integrations":
-      return <IntegrationsPage />;
-    case "search":
-      return <SearchPage />;
-    default:
-      notFound();
-  }
+  if (!sectionTarget(section)) notFound();
+  return <SectionView section={section} />;
 }

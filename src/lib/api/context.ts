@@ -18,8 +18,33 @@ export class ApiError extends Error {
   }
 }
 const workspaceIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** User id of the session cookie, read locally; trusted only once Auth confirms it. */
+async function sessionUserId(client: Awaited<ReturnType<typeof db>>) {
+  try {
+    const { data } = await client.auth.getSession();
+    return data.session?.user?.id;
+  } catch {
+    return undefined;
+  }
+}
 export async function context(workspaceId: string, write = false) {
   const client = await db();
+  const membershipOf = (userId: string) =>
+    client
+      .from("memberships")
+      .select("role")
+      .eq("workspace_id", workspaceId)
+      .eq("user_id", userId)
+      .single()
+      .then(
+        (r) => r,
+        (e: unknown) => ({ data: null, error: e as { code?: string; message: string } }),
+      );
+  // The membership read starts with the Auth check instead of after it (performance
+  // audit P-02). It runs under RLS with the same token, and its result is used only when
+  // the user verified by Auth is the one it was read for; otherwise it is read again.
+  const claimed = workspaceIdPattern.test(workspaceId) ? await sessionUserId(client) : undefined;
+  const early = claimed ? membershipOf(claimed) : undefined;
   const {
     data: { user },
     error,
@@ -32,12 +57,9 @@ export async function context(workspaceId: string, write = false) {
   // it reaches a database filter (security audit F-08).
   if (!workspaceIdPattern.test(workspaceId))
     throw new ApiError("Cet espace est inaccessible.", 403);
-  const { data: membership, error: membershipError } = await client
-    .from("memberships")
-    .select("role")
-    .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .single();
+  const { data: membership, error: membershipError } = await (early && claimed === user.id
+    ? early
+    : membershipOf(user.id));
   if (membershipError?.code !== "PGRST116") databaseError(membershipError);
   if (!membership) {
     // A workspace requiring 2FA is hidden by RLS from aal1 sessions: say why.

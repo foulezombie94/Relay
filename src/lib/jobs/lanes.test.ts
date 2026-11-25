@@ -7,7 +7,7 @@ describe("bounded worker lanes", () => {
     expect(lanes.flatMap((l) => l.types).sort()).toEqual([...jobTypes].sort());
     expect(lanes.reduce((n, l) => n + l.concurrency, 0)).toBe(3);
     expect(lanes[0].types).not.toContain("imports");
-    expect(lanes[0].maxPollMs).toBe(2000);
+    expect(lanes[0].maxPollMs).toBe(3000);
   });
   it("refuses unsafe capacity values", () => {
     for (const n of ["0", "-1", "5", "1.5", "NaN", ""])

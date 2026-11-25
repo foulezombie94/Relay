@@ -7,6 +7,21 @@ export async function GET(req: NextRequest, { params }: P) {
     const { workspace } = await params;
     const { client } = await context(workspace);
     const p = req.nextUrl.searchParams;
+    const unreadQuery = () =>
+      client
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("workspace_id", workspace)
+        .is("read_at", null);
+    // The badge polled by every open tab: one count on the partial unread index.
+    if (p.get("summary") === "1") {
+      const unread = await unreadQuery();
+      databaseError(unread.error);
+      return NextResponse.json(
+        { unread: unread.count },
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
     const page = z.coerce
       .number()
       .int()
@@ -23,11 +38,7 @@ export async function GET(req: NextRequest, { params }: P) {
         .order("created_at", { ascending: false })
         .order("id")
         .range(page * 20, page * 20 + 19),
-      client
-        .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("workspace_id", workspace)
-        .is("read_at", null),
+      unreadQuery(),
     ]);
     databaseError(list.error);
     databaseError(count.error);

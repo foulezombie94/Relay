@@ -218,7 +218,13 @@ function RecordsPageContents({ slug }: { slug: string }) {
     direction: view.direction,
     page: page - 1,
     size: 50,
+    // The total only changes with the filters, which bring back page 1: later pages
+    // skip the count over the whole workspace and reuse it.
+    count: page > 1 ? "0" : undefined,
   });
+  const [total, setTotal] = useState(0);
+  const freshTotal = q.data?.count;
+  if (typeof freshTotal === "number" && freshTotal !== total) setTotal(freshTotal);
   const members = useRows("memberships", { size: 100 });
   const attrs = useRows<Attribute>("attributes", {
     object_id: object?.id,
@@ -352,7 +358,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
       params={exportParams}
       columns={view.columns}
       attributes={custom}
-      count={q.data?.count ?? 0}
+      count={total}
       compact={slug === "people"}
     />
   );
@@ -500,7 +506,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
                 }}
               />
               <span className="pill">
-                {q.data?.count ?? 0} {pageContent.plural}
+                {total} {pageContent.plural}
               </span>
               <ViewButtons
                 label="Présentation des fiches"
@@ -701,7 +707,7 @@ function RecordsPageContents({ slug }: { slug: string }) {
           </button>
           <button
             className="button small"
-            disabled={page * 50 >= (q.data?.count ?? 0)}
+            disabled={page * 50 >= total}
             onClick={() => setPage((p) => p + 1)}
           >
             Suivant

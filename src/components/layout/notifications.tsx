@@ -23,6 +23,15 @@ export function Notifications({ embedded = false }: { embedded?: boolean } = {})
   const [unread, setUnread] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const shown = embedded || open;
+  // Every open tab polls only the unread counter (one indexed count); the list itself is
+  // read while it is shown.
+  const summary = useQuery({
+    queryKey: ["notifications", workspace.id, "summary"],
+    queryFn: () => request<{ unread: number }>("/api/" + workspace.id + "/notifications?summary=1"),
+    refetchInterval: 60000,
+    enabled: !embedded,
+  });
   const q = useQuery({
     queryKey: ["notifications", workspace.id, page, unread],
     queryFn: () =>
@@ -30,7 +39,9 @@ export function Notifications({ embedded = false }: { embedded?: boolean } = {})
         "/api/" + workspace.id + "/notifications?page=" + page + "&unread=" + unread,
       ),
     refetchInterval: 60000,
+    enabled: shown,
   });
+  const unreadCount = (shown ? q.data?.unread : undefined) ?? summary.data?.unread ?? 0;
   async function mark(id?: string) {
     setBusy(true);
     setError(null);
@@ -40,7 +51,7 @@ export function Notifications({ embedded = false }: { embedded?: boolean } = {})
         "PATCH",
         id ? { id } : { all: true },
       );
-      await q.refetch();
+      await Promise.all([q.refetch(), embedded ? null : summary.refetch()]);
     } catch (e) {
       setError(e instanceof Error ? e : new Error("Action impossible"));
     } finally {
@@ -123,10 +134,10 @@ export function Notifications({ embedded = false }: { embedded?: boolean } = {})
         className="button small"
         style={{ marginLeft: "auto" }}
         onClick={() => setOpen(true)}
-        aria-label={"Notifications · " + (q.data?.unread ?? 0) + " non lues"}
+        aria-label={"Notifications · " + unreadCount + " non lues"}
       >
         <Bell size={16} />
-        {(q.data?.unread ?? 0) > 0 && <span>{q.data?.unread}</span>}
+        {unreadCount > 0 && <span>{unreadCount}</span>}
       </button>
       {open && (
         <Modal open onClose={() => setOpen(false)} title="Vos notifications">

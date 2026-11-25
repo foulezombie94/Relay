@@ -45,6 +45,17 @@ export function useRows<T extends Row = Row>(
       ),
   });
 }
+/**
+ * After a write, lists of that resource shown on screen reload now; every other list of
+ * the workspace is only marked stale and reloads the next time it is shown, instead of
+ * all visible lists (pipelines, members, fields…) refetching after each edit.
+ */
+export function refreshAfterWrite(cache: QueryClient, workspace: string, resource: string) {
+  return Promise.all([
+    cache.invalidateQueries({ queryKey: ["rows", workspace, resource] }),
+    cache.invalidateQueries({ queryKey: ["rows", workspace], refetchType: "none" }),
+  ]);
+}
 export function useSave() {
   const { workspace, user } = useWorkspace();
   const cache = useQueryClient();
@@ -74,7 +85,7 @@ export function useSave() {
       );
       const saved = confirmedRow(data.data, row?.id ?? attempt?.id);
       attempt?.confirm();
-      void cache.invalidateQueries({ queryKey: ["rows", workspace.id] }).catch(() => {});
+      void refreshAfterWrite(cache, workspace.id, resource).catch(() => {});
       toast.success("Enregistré");
       return saved;
     } catch (e) {
@@ -90,7 +101,10 @@ export function useSave() {
       const result = await request("/api/" + workspace.id + "/" + resource + "?id=" + id, "DELETE");
       if (result.ok !== true)
         throw new RequestError("La suppression n’a pas été confirmée. Réessayez.", 502);
-      await cache.invalidateQueries({ queryKey: ["rows", workspace.id] });
+      // Removing a record also affects what is linked to it: refresh everything shown.
+      await (resource === "records"
+        ? cache.invalidateQueries({ queryKey: ["rows", workspace.id] })
+        : refreshAfterWrite(cache, workspace.id, resource));
       toast.success("Élément retiré");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Action impossible");
@@ -178,12 +192,20 @@ function Gate({ children }: { children: ReactNode }) {
     setSelection({ requested: id, remembered: id });
     cache.removeQueries({ queryKey: ["rows"] });
   }
+  // When the URL already names the workspace, its record types load together with the
+  // workspace list instead of after it (performance audit P-02). The server still checks
+  // the membership; a wrong id only yields an unused 403.
+  const objectsFor =
+    workspace?.id ??
+    (q.isPending && selected && /^[0-9a-f-]{36}$/i.test(selected) ? selected : undefined);
   const objects = useQuery({
-    queryKey: ["rows", workspace?.id, "objects"],
-    enabled: !!workspace,
+    queryKey: ["rows", objectsFor, "objects"],
+    enabled: !!objectsFor,
+    retry: (failures, error) =>
+      !(error instanceof RequestError && [401, 403].includes(error.status)) && failures < 1,
     queryFn: async () => {
       const result = await request<{ data: ObjectDefinition[] }>(
-        "/api/" + workspace!.id + "/objects?size=100",
+        "/api/" + objectsFor! + "/objects?size=100",
       );
       if (!Array.isArray(result.data))
         throw new RequestError("Le chargement des types de fiches a échoué. Réessayez.", 502);

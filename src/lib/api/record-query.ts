@@ -17,25 +17,32 @@ export function recordQuery(
   user: string,
   withCount = true,
 ) {
-  let query = client
-    .from("records")
-    .select(recordColumns, withCount ? { count: "exact" } : {})
+  const options = withCount ? { count: "exact" as const } : {};
+  const lookup = p.get("lookup") ? z.string().max(200).parse(p.get("lookup")!.trim()) : "";
+  const search = p.get("q")?.trim();
+  const table = () => client.from("records").select(recordColumns, options);
+  // ILIKE and @@ are not leakproof, so under RLS they cannot use an index. From 3
+  // characters the matching ids come from an indexed helper and the rows are still read
+  // under RLS (see migration 20261125102616_indexed_search_under_rls).
+  const base =
+    lookup.length >= 3
+      ? client
+          .rpc("records_matching", { w: workspace, term: lookup }, options)
+          .select(recordColumns)
+      : search
+        ? client
+            .rpc("records_search", { w: workspace, term: search }, options)
+            .select(recordColumns)
+        : table();
+  let query = (base as unknown as ReturnType<typeof table>)
     .eq("workspace_id", workspace)
     .eq("archived", p.get("archived") === "true");
   if (p.get("object_id")) query = query.eq("object_id", z.uuid().parse(p.get("object_id")));
   if (p.get("id")) query = query.eq("id", z.uuid().parse(p.get("id")));
   if (p.get("ids"))
     query = query.in("id", z.array(z.uuid()).max(100).parse(p.get("ids")!.split(",")));
-  if (p.get("lookup")) {
-    const pattern = JSON.stringify(
-      "%" +
-        z
-          .string()
-          .max(200)
-          .parse(p.get("lookup")!.trim())
-          .replace(/[\\%_]/g, "\\$&") +
-        "%",
-    );
+  if (lookup && lookup.length < 3) {
+    const pattern = JSON.stringify("%" + lookup.replace(/[\\%_]/g, "\\$&") + "%");
     query = query.or(
       ["display_name", "email", "domain"].map((column) => column + ".ilike." + pattern).join(","),
     );
@@ -52,8 +59,8 @@ export function recordQuery(
     if (!/^\d{1,16}(\.\d{1,2})?$/.test(minimum)) throw new ApiError("Montant minimum invalide.");
     query = query.gte("amount", minimum);
   }
-  const search = p.get("q")?.trim();
-  if (search)
+  // Already matched by records_search unless the lookup helper was used.
+  if (search && lookup.length >= 3)
     query = query.textSearch("search", search, {
       type: "websearch",
       config: "simple",

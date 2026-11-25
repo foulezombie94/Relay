@@ -5,27 +5,22 @@ const sources = [
   {
     resource: "records",
     columns: "id,object_id,display_name,email,domain,updated_at",
-    index: "search",
   },
   {
     resource: "notes",
     columns: "id,record_id,title,content,private,updated_at",
-    index: "search_index",
   },
   {
     resource: "tasks",
     columns: "id,record_id,title,description,status,due_date,updated_at",
-    index: "search_index",
   },
   {
     resource: "commitments",
     columns: "id,record_id,title,source_quote,status,due_date,updated_at",
-    index: "search_index",
   },
   {
     resource: "meetings",
     columns: "id,record_id,title,summary,starts_at,created_at",
-    index: "search_index",
   },
 ] as const;
 export async function GET(
@@ -43,14 +38,12 @@ export async function GET(
       sources
         .filter((s) => scope === "all" || scope === s.resource)
         .map(async (source) => {
+          // Full-text @@ cannot use its index under RLS (not leakproof): the matching
+          // ids come from an indexed helper, the rows are still read under RLS.
           let query = client
-            .from(source.resource)
-            .select(source.columns, { count: "exact" })
-            .eq("workspace_id", workspace)
-            .textSearch(source.index, term, {
-              type: "websearch",
-              config: "simple",
-            });
+            .rpc(source.resource + "_search", { w: workspace, term }, { count: "exact" })
+            .select(source.columns as string)
+            .eq("workspace_id", workspace);
           if (source.resource === "records") query = query.eq("archived", false);
           const { data, count, error } = await query
             .order(source.resource === "meetings" ? "created_at" : "updated_at", {
@@ -58,11 +51,11 @@ export async function GET(
             })
             .limit(25);
           databaseError(error);
+          const rows = (data ?? []) as unknown as Record<string, unknown>[];
           return {
             resource: source.resource,
             count: count ?? 0,
-            results: (data ?? []).map((raw) => {
-              const row = raw as unknown as Record<string, unknown>;
+            results: rows.map((row) => {
               return {
                 id: row.id,
                 object_id: row.object_id,

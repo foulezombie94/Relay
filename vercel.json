@@ -4,5 +4,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm ci",
-  "regions": ["cdg1"]
+  "regions": ["cdg1"],
+  "fluid": true
 }

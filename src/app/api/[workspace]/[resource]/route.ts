@@ -27,10 +27,14 @@ export async function GET(request: NextRequest, { params }: Params) {
     const page = Math.max(0, Math.floor(Number(p.get("page") ?? 0) || 0)),
       size = Math.min(100, Math.max(1, Math.floor(Number(p.get("size") ?? 50) || 50)));
     if (resource === "records") {
-      const { data, error, count } = await recordQuery(client, workspace, p, user.id).range(
-        page * size,
-        (page + 1) * size - 1,
-      );
+      const { data, error, count } = await recordQuery(
+        client,
+        workspace,
+        p,
+        user.id,
+        // Lists count matches on their first page and pass count=0 for the next ones.
+        p.get("count") !== "0",
+      ).range(page * size, (page + 1) * size - 1);
       databaseError(error);
       return NextResponse.json({ data, count, page, size });
     }

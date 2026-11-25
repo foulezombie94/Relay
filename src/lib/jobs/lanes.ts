@@ -22,15 +22,17 @@ export function workerLanes(
       name: "interactive" as const,
       types: types.filter((t) => !bulk.has(t)),
       concurrency: slots("WORKER_SHORT_CONCURRENCY", 2),
+      // Idle back-off doubles up to this ceiling (performance audit P-11): an idle
+      // worker no longer polls every 2 s; a job waits at most 3 s after a quiet period.
       minPollMs: 1000,
-      maxPollMs: 2000,
+      maxPollMs: 3000,
     },
     {
       name: "bulk" as const,
       types: types.filter((t) => bulk.has(t)),
       concurrency: slots("WORKER_LONG_CONCURRENCY", 1),
       minPollMs: 2000,
-      maxPollMs: 5000,
+      maxPollMs: 15000,
     },
   ].filter((l) => l.types.length);
 }
