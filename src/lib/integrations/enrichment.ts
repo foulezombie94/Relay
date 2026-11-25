@@ -1,7 +1,7 @@
 import "server-only";
 import { request } from "node:https";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { resolveWorkflowDestination } from "./workflow-http";
+import { pinnedLookup, resolveWorkflowDestination } from "./workflow-http";
 import {
   matchRegistry,
   parseCompanySite,
@@ -36,7 +36,7 @@ export async function fetchHomepage(domain: string) {
             Accept: "text/html,application/xhtml+xml",
             "Accept-Language": "fr,en;q=0.8",
           },
-          lookup: (_host, _options, callback) => callback(null, chosen.address, chosen.family),
+          lookup: pinnedLookup(chosen),
         },
         (res) => {
           const type = String(res.headers["content-type"] ?? "");

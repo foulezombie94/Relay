@@ -48,6 +48,7 @@ import { clientId, clientIdUrl, documentRedirects, resolveClientId } from "./cli
 const claudeCode = "https://claude.ai/oauth/claude-code-client-metadata";
 const declared = ["http://localhost/callback", "http://127.0.0.1/callback"];
 const clientUuid = "cf967873-7e4e-4d9a-b54b-8797f2583213";
+const operations = () => rpc.mock.calls.map((call) => (call[1] as { operation: string }).operation);
 const serve = (document: unknown, status = 200) => {
   net.status = status;
   net.body = typeof document === "string" ? document : JSON.stringify(document);
@@ -120,7 +121,7 @@ describe("OAuth Client ID Metadata Documents", () => {
       code: "invalid_client",
     });
     expect(net.connections).toEqual([]);
-    expect(rpc).not.toHaveBeenCalled();
+    expect(operations()).not.toContain("upsert");
   });
   it("refuses internal host names before any DNS lookup", async () => {
     for (const url of ["https://metadata.internal/c.json", "https://printer.local/c.json"])
@@ -153,7 +154,30 @@ describe("OAuth Client ID Metadata Documents", () => {
     await expect(resolveClientId(claudeCode, "authorize")).rejects.toMatchObject({
       code: "invalid_client",
     });
-    expect(rpc).not.toHaveBeenCalled();
+    expect(operations()).not.toContain("upsert");
+  });
+  it("spends the rate limit before any network request, so failing URLs count too", async () => {
+    let lookupsAtAdmission = -1;
+    rpc.mockImplementation(async (_name: string, { operation }: { operation: string }) => {
+      if (operation === "admit") lookupsAtAdmission = net.lookups;
+      return { data: operation === "admit" ? { admitted: true } : { client_id: clientUuid } };
+    });
+    await resolveClientId(claudeCode, "authorize", "key");
+    expect(lookupsAtAdmission).toBe(0);
+    expect(rpc).toHaveBeenNthCalledWith(1, "mcp_client_document", {
+      operation: "admit",
+      payload: { url: claudeCode, rate_limit_key: "key" },
+    });
+    // Over budget: refused with 429 before DNS or any connection.
+    rpc.mockResolvedValue({ data: { error: "rate_limited" } });
+    net.lookups = 0;
+    net.connections = [];
+    await expect(resolveClientId(claudeCode, "authorize", "key")).rejects.toMatchObject({
+      status: 429,
+      code: "rate_limited",
+    });
+    expect(net.lookups).toBe(0);
+    expect(net.connections).toEqual([]);
   });
   it("returns a registered client UUID unchanged, without any network or database call", async () => {
     await expect(resolveClientId(clientUuid, "authorize")).resolves.toBe(clientUuid);

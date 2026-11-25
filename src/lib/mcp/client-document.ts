@@ -108,7 +108,10 @@ async function fetchDocument(url: string) {
   return { client_name: parsed.client_name ?? u.hostname, redirect_uris: parsed.redirect_uris };
 }
 
-async function documentDb(operation: "upsert" | "resolve", payload: Record<string, unknown>) {
+async function documentRpc(
+  operation: "admit" | "upsert" | "resolve",
+  payload: Record<string, unknown>,
+) {
   const { data, error } = await adminDb().rpc("mcp_client_document", { operation, payload });
   if (error) throw new ApiError("Service MCP temporairement indisponible.", 503);
   if (data?.error)
@@ -117,7 +120,10 @@ async function documentDb(operation: "upsert" | "resolve", payload: Record<strin
       data.error === "rate_limited" ? 429 : 400,
       data.error === "rate_limited" ? "rate_limited" : "invalid_client",
     );
-  return z.object({ client_id: z.uuid() }).parse(data).client_id;
+  return data;
+}
+async function documentDb(operation: "upsert" | "resolve", payload: Record<string, unknown>) {
+  return z.object({ client_id: z.uuid() }).parse(await documentRpc(operation, payload)).client_id;
 }
 
 /**
@@ -133,6 +139,9 @@ export async function resolveClientId(
   if (z.uuid().safeParse(id).success) return id;
   const url = clientIdUrl.parse(id);
   if (mode === "resolve") return documentDb("resolve", { url });
+  // Spend the rate-limit budget before the outgoing fetch, so a URL that fails or stalls
+  // still counts: otherwise anyone could make the server fetch without bound.
+  await documentRpc("admit", { url, rate_limit_key: rateLimitKey });
   const document = await fetchDocument(url);
   return documentDb("upsert", {
     url,

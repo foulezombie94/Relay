@@ -3,7 +3,7 @@ import { request } from "node:https";
 import { ApiError } from "@/lib/api/context";
 import { externalJson } from "./oauth";
 import { graphPage, syncWindow } from "./sync-window";
-import { resolveWorkflowDestination } from "./workflow-http";
+import { pinnedLookup, resolveWorkflowDestination } from "./workflow-http";
 
 type MeetingProvider = "google-meet" | "microsoft-teams" | "zoom";
 type Meeting = {
@@ -50,7 +50,7 @@ async function download(value: string, token: string, provider: "zoom" | "micros
       url,
       {
         headers: { Authorization: "Bearer " + token },
-        lookup: (_host, _options, callback) => callback(null, chosen.address, chosen.family),
+        lookup: pinnedLookup(chosen),
       },
       (res) => {
         if (res.statusCode !== 200) {
